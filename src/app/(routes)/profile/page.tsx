@@ -1,6 +1,8 @@
+import PostGrid from "@/app/components/PostGrid";
 import { auth } from "@/auth";
 import { Check, MoveLeft, Settings } from "lucide-react";
 import Link from "next/link";
+import img1 from "./Flux2-Klein_00001_.png";
 
 export default async function ProfilePage() {
   const session = await auth();
@@ -39,13 +41,34 @@ export default async function ProfilePage() {
           <div className="size-42 bg-white rounded-full flex items-center justify-center">
             <div className="size-40 aspect-square overflow-hidden rounded-full">
               <img
-                src="http://127.0.0.1:8188/api/view?filename=2026-vio-zit_02927_.png"
+                src={img1.src}
                 alt="testimg"
                 className="w-full h-full object-cover"
               />
             </div>{" "}
           </div>
         </div>
+      </section>
+      <section className="text-center mt-8">
+        <h1 className="text-xl bold"> {session?.user?.name}</h1>
+        <p className="text-slate-800 my-1">Business Account</p>
+        <p>
+          Bla bla bla <br />
+          Allods ONLINE
+        </p>
+      </section>
+      <section className="mt-4 ">
+        <div className="flex justify-center gap-4">
+          <Link className="font-bold underline" href="/">
+            Posts
+          </Link>
+          <Link className="text-slate-700" href="/highlights">
+            Highlights
+          </Link>
+        </div>
+      </section>
+      <section className="mt-4 ">
+        <PostGrid />
       </section>
     </main>
   );

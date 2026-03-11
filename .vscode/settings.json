@@ -1,3 +1,4 @@
 {
-  "cSpell.words": ["esnext", "geist", "testimg"]
+  "cSpell.words": ["datasource", "esnext", "geist", "prisma", "testimg"],
+  "prisma.pinToPrisma6": true
 }
