@@ -36,10 +36,12 @@ export default function MobileNav() {
                 href="/create"
                 className="group -rotate-45 bg-gradient-to-tr from-ig-orange to-ig-red to-70% size-12 flex flex-col items-center justify-center text-white rounded-full"
               >
-                <div className="flex size-14 items-center justify-center rounded-full bg-gradient-to-tr from-(--ig-orange) to-(--ig-red) shadow-md transition-transform duration-200 group-hover:scale-105">
-                  <CameraIcon className="mt-25 size-10 text-white transition-transform duration-200 group-hover:scale-90  mb-25" />
-                </div>{" "}
-                <span className="mt-3 translate-y-3 text-[13px] font-extrabold tracking-wide opacity-0 group-hover:opacity-100 transition-all duration-200 bg-gradient-to-tr from-[var(--ig-orange)] to-[var(--ig-red)] bg-clip-text text-transparent drop-shadow-[0_1px_1px_rgba(0,0,0,0.18)]">
+                <div className="absolute inset-0 overflow-hidden rounded-full shadow-md transition-transform duration-200 group-hover:scale-105">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[var(--ig-orange)] to-[var(--ig-red)] transition-opacity duration-300 group-hover:opacity-0" />
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[var(--ig-red)] to-[var(--ig-orange)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                </div>
+                <CameraIcon className="relative z-10 size-8 text-white transition-transform duration-200 group-hover:scale-90" />{" "}
+                <span className="absolute top-full mt-3 left-1/2 -translate-x-1/2 text-[13px] font-extrabold tracking-wide opacity-0 group-hover:opacity-100 transition-all duration-200 bg-gradient-to-tr from-[var(--ig-orange)] to-[var(--ig-red)] bg-clip-text text-transparent drop-shadow-[0_1px_1px_rgba(0,0,0,0.18)] whitespace-nowrap pointer-events-none">
                   CREATE
                 </span>
               </Link>

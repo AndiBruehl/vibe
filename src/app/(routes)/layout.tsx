@@ -4,7 +4,8 @@ import { Theme } from "@radix-ui/themes";
 import "@radix-ui/themes/styles.css";
 import "./../globals.css";
 
-import Navbar from "@/app/components/Navbar";
+import MobileNav from "@/app/components/MobileNav";
+import DesktopNav from "../components/DesktopNav";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,7 +34,8 @@ export default function RootLayout({
       >
         <Theme>
           {children}
-          <Navbar />
+          <DesktopNav />
+          <MobileNav />
         </Theme>
       </body>
     </html>
