@@ -2,10 +2,16 @@ import PostGrid from "@/app/components/PostGrid";
 import { auth } from "@/auth";
 import { Check, MoveLeft, Settings } from "lucide-react";
 import Link from "next/link";
-import img1 from "./Flux2-Klein_00001_.png";
+import img1 from "./default.jpg";
+import { prisma } from "@/db";
 
 export default async function ProfilePage() {
   const session = await auth();
+  const profile = await prisma.profile.findFirstOrThrow({
+    where: {
+      email: session?.user?.email as string,
+    },
+  });
   return (
     <main>
       <section className=" flex justify-between items-center">
@@ -19,7 +25,7 @@ export default async function ProfilePage() {
           </span>
         </Link>
         <div className="text-lg font-medium flex items-center gap-2">
-          {session?.user?.name}
+          {profile.username}
           <div className="text-white size-5 rounded-full bg-linear-to-tr from-(--ig-orange) to-(--ig-red) inline-flex items-center justify-center">
             <Check size={16} />
           </div>
@@ -40,22 +46,15 @@ export default async function ProfilePage() {
           {" "}
           <div className="size-42 bg-white rounded-full flex items-center justify-center">
             <div className="size-40 aspect-square overflow-hidden rounded-full">
-              <img
-                src={img1.src}
-                alt="testimg"
-                className="w-full h-full object-cover"
-              />
+              <img src={profile?.avatar || img1.src} alt="Avatar" />
             </div>{" "}
           </div>
         </div>
       </section>
       <section className="text-center mt-8">
-        <h1 className="text-xl bold"> {session?.user?.name}</h1>
-        <p className="text-slate-800 my-1">Business Account</p>
-        <p>
-          Bla bla bla <br />
-          Allods ONLINE
-        </p>
+        <h1 className="text-xl bold"> {profile.name}</h1>
+        <p className="text-slate-800 my-1">{profile.subtitle}</p>
+        <p>{profile.bio}</p>
       </section>
       <section className="mt-4 ">
         <div className="flex justify-center gap-4">
