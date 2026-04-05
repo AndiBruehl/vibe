@@ -1,8 +1,109 @@
 @import "tailwindcss";
 
+/* =========================
+   ROOT COLOR VARIABLES
+========================= */
+
 :root {
+  /* Base colors */
   --ig-red: rgb(207, 33, 66);
-  --ig-green: rgb(230, 173, 77);
+  --ig-orange: rgb(230, 173, 77);
   --ig-green: rgb(34, 197, 94);
   --ig-blue: rgb(29, 78, 216);
+
+  /* Lightmode gradient colors */
+  --ig-blue-lm: rgb(29, 78, 216);
+  --ig-green-lm: rgb(22, 163, 74);
+
+  /* Darkmode gradient colors */
+  --ig-blue-dm: rgb(59, 130, 246);
+  --ig-green-dm: rgb(34, 197, 94);
+
+  /* Gradients */
+  --ig-gradient-lm: linear-gradient(
+    135deg,
+    var(--ig-blue-lm),
+    var(--ig-green-lm)
+  );
+
+  --ig-gradient-dm: linear-gradient(
+    135deg,
+    var(--ig-blue-dm),
+    var(--ig-green-dm)
+  );
+
+  /* Default gradient (Lightmode) */
+  --ig-gradient: var(--ig-gradient-lm);
+
+  /* =========================
+     BACKGROUND COLORS
+  ========================= */
+
+  /* Body */
+  --ig-body-bg: rgb(255, 255, 255);
+
+  /* Navbar slightly darker than body */
+  --ig-nav-bg: rgb(245, 245, 245);
+}
+
+/* =========================
+   DARK MODE
+========================= */
+
+.dark {
+  --ig-gradient: var(--ig-gradient-dm);
+
+  /* Body background */
+  --ig-body-bg: rgb(17, 24, 39);
+
+  /* Navbar slightly lighter than body */
+  --ig-nav-bg: rgb(31, 41, 55);
+}
+
+/* =========================
+   GLOBAL STYLES
+========================= */
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--ig-body-bg);
+  @apply text-gray-900 antialiased;
+}
+
+.dark body {
+  @apply text-gray-100;
+}
+
+/* =========================
+   UI HELPERS
+========================= */
+
+/* Gradient background */
+
+.bg-ig-gradient {
+  background: var(--ig-gradient);
+}
+
+/* Navbar background */
+
+.bg-ig-nav {
+  background: var(--ig-nav-bg);
+}
+
+/* Gradient text */
+
+.text-ig-gradient {
+  background: var(--ig-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Gradient border */
+
+.border-ig-gradient {
+  border-image: var(--ig-gradient) 1;
 }
