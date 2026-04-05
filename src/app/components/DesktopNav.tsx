@@ -5,6 +5,7 @@ import {
   SearchIcon,
   UserIcon,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 export default function DesktopNav() {
@@ -12,7 +13,19 @@ export default function DesktopNav() {
     <aside className="hidden md:fixed md:left-0 md:top-0 md:z-40 md:block md:h-screen md:w-46 bg-white px-4 py-6 shadow-md shadow-gray-300 dark:bg-gray-800 dark:shadow-gray-700">
       <div className="flex flex-col gap-3">
         <Link
-          href="/home"
+          href="/"
+          className="group flex items-center  rounded-xl transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+        >
+          <Image
+            src="/logo.svg"
+            alt="logo"
+            width={120}
+            height={120}
+            className="mx-auto"
+          />{" "}
+        </Link>{" "}
+        <Link
+          href="/"
           className="group flex items-center gap-3 rounded-xl px-3 py-3 transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700"
         >
           <div className="relative flex size-10 shrink-0 items-center justify-center rounded-full">
@@ -27,7 +40,6 @@ export default function DesktopNav() {
             Home
           </span>
         </Link>
-
         <Link
           href="/search"
           className="group flex items-center gap-3 rounded-xl px-3 py-3 transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -44,7 +56,6 @@ export default function DesktopNav() {
             Search
           </span>
         </Link>
-
         <Link
           href="/create"
           className="group flex items-center gap-3 rounded-xl px-3 py-3 transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -61,7 +72,6 @@ export default function DesktopNav() {
             Create
           </span>
         </Link>
-
         <Link
           href="/browse"
           className="group flex items-center gap-3 rounded-xl px-3 py-3 transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -78,7 +88,6 @@ export default function DesktopNav() {
             Browse
           </span>
         </Link>
-
         <Link
           href="/profile"
           className="group flex items-center gap-3 rounded-xl px-3 py-3 transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700"
