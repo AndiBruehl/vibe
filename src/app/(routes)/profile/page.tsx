@@ -1,9 +1,10 @@
-import PostGrid from "@/app/components/PostGrid";
 import { auth } from "@/auth";
 import { Check, MoveLeft, Settings } from "lucide-react";
 import Link from "next/link";
 import img1 from "./default.jpg";
 import { prisma } from "@/db";
+import ProfilePosts from "@/app/components/ProfilePosts";
+import { Suspense } from "react";
 
 export default async function ProfilePage() {
   const session = await auth();
@@ -43,7 +44,6 @@ export default async function ProfilePage() {
       </section>
       <section className="mt-8 flex justify-center">
         <div className="size-44 bg-linear-to-tr from-(--ig-orange) to-(--ig-red) rounded-full flex items-center justify-center">
-          {" "}
           <div className="size-42 bg-white rounded-full flex items-center justify-center">
             <div className="size-40 aspect-square overflow-hidden rounded-full">
               <img src={profile?.avatar || img1.src} alt="Avatar" />
@@ -67,7 +67,9 @@ export default async function ProfilePage() {
         </div>
       </section>
       <section className="mt-4 ">
-        <PostGrid />
+        <Suspense fallback="Loading posts...">
+          <ProfilePosts email={session?.user?.email as string} />
+        </Suspense>
       </section>
     </main>
   );
