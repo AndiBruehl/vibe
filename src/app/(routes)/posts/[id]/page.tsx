@@ -1,44 +1,68 @@
+import { auth } from "@/auth";
 import { prisma } from "@/db";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-
 import Link from "next/link";
 import { MoveLeft } from "lucide-react";
+import LikeButton from "./../../../components/LikeButton";
+import CommentForm from "./../../../components/CommentForm";
+import PostComments from "./../../../components/PostComments";
 
 export default async function SinglePostPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const session = await auth();
+  const viewerEmail = session?.user?.email ?? null;
+
   const { id } = await params;
 
   const post = await prisma.post.findUnique({
     where: { id },
+    include: {
+      likes: viewerEmail
+        ? {
+            where: {
+              authorEmail: viewerEmail,
+            },
+            select: {
+              id: true,
+            },
+          }
+        : false,
+    },
   });
 
   if (!post) {
     notFound();
   }
 
+  const author = await prisma.profile.findUnique({
+    where: { email: post.authorEmail },
+  });
+
+  const isLikedByViewer =
+    viewerEmail && Array.isArray(post.likes) ? post.likes.length > 0 : false;
+
   return (
     <>
-      <section className="flex flex-row justify-between items-center">
+      <section className="flex flex-row items-center justify-between">
         <Link
           href="/profile"
-          className="group flex items-center gap-2 text-black no-underline hover:no-underline visited:no-underline hover:text-slate-700"
+          className="group flex items-center gap-2 text-black no-underline hover:text-slate-700 dark:text-white dark:hover:text-slate-300"
         >
           <MoveLeft className="shrink-0" />
-
-          <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <span className="whitespace-nowrap opacity-0 transition-opacity duration-200 group-hover:opacity-100">
             Back to Profile
           </span>
         </Link>
       </section>
-      <main className="mx-auto flex min-h-screen w-full justify-center p-4 md:p-8">
-        <div className="w-full max-w-md flex justify-center">
-          {/* 👇 Skalierung */}
-          <div className="w-full scale-90 md:scale-95 origin-top">
-            <article className="w-full overflow-hidden rounded-2xl bg-white shadow-lg shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
+
+      <main className="mx-auto w-full max-w-6xl p-4 md:p-8">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:items-start">
+          <div className="self-start md:sticky md:top-8">
+            <article className="overflow-hidden rounded-2xl bg-white shadow-lg shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
               <div className="w-full">
                 <Image
                   src={post.image}
@@ -47,6 +71,15 @@ export default async function SinglePostPage({
                   height={800}
                   className="h-auto w-full object-contain"
                   priority
+                  unoptimized
+                />
+              </div>
+
+              <div className="flex items-center gap-2 px-5 pt-4">
+                <LikeButton
+                  postId={post.id}
+                  initialLiked={!!isLikedByViewer}
+                  initialLikes={post.likesCount}
                 />
               </div>
 
@@ -60,6 +93,52 @@ export default async function SinglePostPage({
                 </p>
               </div>
             </article>
+          </div>
+
+          <div className="flex flex-col gap-4">
+            <Link href="/profile" className="group">
+              <article className="flex h-28 items-center justify-between rounded-2xl bg-white px-5 shadow-md shadow-gray-200 transition hover:shadow-lg dark:bg-gray-800 dark:shadow-gray-900">
+                <div className="flex items-center gap-3">
+                  <div className="size-12 overflow-hidden rounded-full bg-gray-300">
+                    {author?.avatar ? (
+                      <Image
+                        src={author.avatar}
+                        alt={author.name || "author"}
+                        width={48}
+                        height={48}
+                        className="h-full w-full object-cover"
+                        unoptimized
+                      />
+                    ) : null}
+                  </div>
+
+                  <div>
+                    <p className="font-semibold text-gray-900 dark:text-white">
+                      {author?.name || "Unknown"}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      @{author?.username || "user"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  {new Date(post.createdAt).toLocaleDateString()}
+                </div>
+              </article>
+            </Link>
+
+            <section className="rounded-2xl bg-white p-5 shadow-md shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
+              <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
+                Comments
+              </h2>
+
+              <CommentForm postId={post.id} />
+
+              <div className="mt-6">
+                <PostComments postId={post.id} />
+              </div>
+            </section>
           </div>
         </div>
       </main>
