@@ -27,8 +27,12 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
 
   const activeTab = tab === "bookmarks" || tab === "highlights" ? tab : "posts";
 
-  const profile = await prisma.profile.findFirstOrThrow({
+  const profile = await prisma.profile.upsert({
     where: {
+      email: session.user.email,
+    },
+    update: {},
+    create: {
       email: session.user.email,
     },
   });

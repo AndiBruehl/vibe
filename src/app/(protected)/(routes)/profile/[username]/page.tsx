@@ -92,7 +92,8 @@ export default async function ProfileByUsernamePage({
       <main className="mx-auto w-full max-w-6xl p-4 md:p-8">
         <section className="overflow-hidden rounded-2xl bg-white shadow-lg shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
           <div className="flex flex-col gap-6 p-6 md:flex-row md:items-center md:justify-between md:p-8">
-            <div className="flex items-center gap-4">
+            {/* LEFT SIDE */}
+            <div className="flex items-start gap-4">
               <div className="size-24 overflow-hidden rounded-full bg-gray-300 md:size-28">
                 {profile.avatar ? (
                   <Image
@@ -106,45 +107,48 @@ export default async function ProfileByUsernamePage({
                 ) : null}
               </div>
 
-              <div className="min-w-0">
-                <h1 className="truncate text-2xl font-bold text-gray-900 dark:text-white">
+              <div className="flex flex-col">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                   {profile.name || "Unknown"}
                 </h1>
+
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   @{profile.username}
                 </p>
 
-                {profile.subtitle ? (
+                {profile.subtitle && (
                   <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
                     {profile.subtitle}
                   </p>
-                ) : null}
+                )}
 
-                {profile.bio ? (
-                  <p className="mt-2 max-w-2xl text-sm text-gray-700 dark:text-gray-200">
+                {profile.bio && (
+                  <p className="mt-2 max-w-md text-sm text-gray-700 dark:text-gray-200">
                     {profile.bio}
                   </p>
-                ) : null}
+                )}
+
+                {/* 🔥 FOLLOW BUTTON HIER */}
+                {!isOwnProfile && (
+                  <div className="mt-4">
+                    <FollowButton
+                      targetProfileId={profile.id}
+                      targetUsername={profile.username || ""}
+                      isFollowing={isFollowing}
+                    />
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
-              <div className="flex gap-6 text-sm">
-                <div>
-                  <p className="font-semibold text-gray-900 dark:text-white">
-                    {postsCount}
-                  </p>
-                  <p className="text-gray-500 dark:text-gray-400">Posts</p>
-                </div>
+            {/* RIGHT SIDE (STATS) */}
+            <div className="flex gap-6 text-sm">
+              <div>
+                <p className="font-semibold text-gray-900 dark:text-white">
+                  {postsCount}
+                </p>
+                <p className="text-gray-500 dark:text-gray-400">Posts</p>
               </div>
-
-              {!isOwnProfile && viewerEmail ? (
-                <FollowButton
-                  targetProfileId={profile.id}
-                  targetUsername={profile.username || ""}
-                  isFollowing={isFollowing}
-                />
-              ) : null}
             </div>
           </div>
 

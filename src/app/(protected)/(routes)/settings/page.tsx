@@ -12,10 +12,10 @@ export default async function SettingsPage() {
     redirect("/");
   }
 
-  const profile = await prisma.profile.findUnique({
-    where: {
-      email: session.user.email,
-    },
+  const profile = await prisma.profile.upsert({
+    where: { email: session.user.email },
+    update: {},
+    create: { email: session.user.email },
   });
 
   return (
