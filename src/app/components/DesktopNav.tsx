@@ -31,12 +31,12 @@ export default function DesktopNav() {
           <div className="relative flex size-10 shrink-0 items-center justify-center rounded-full">
             <div className="absolute inset-0 overflow-hidden rounded-full shadow-md transition-transform duration-200 group-hover:scale-105">
               <div className="absolute inset-0 rounded-full transition-opacity duration-300 group-hover:opacity-0" />
-              <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[var(--ig-red)] to-[var(--ig-orange)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+              <div className="absolute inset-0 rounded-full bg-linear-to-tr from-(--ig-red) to-(--ig-orange) opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
             </div>
             <HomeIcon className="relative z-10 size-5 text-white transition-transform duration-200 group-hover:scale-90" />
           </div>
 
-          <span className="text-[18px] font-normal text-black transition-all duration-200 group-hover:bg-gradient-to-tr group-hover:from-[var(--ig-orange)] group-hover:to-[var(--ig-red)] group-hover:bg-clip-text group-hover:text-transparent dark:text-white">
+          <span className="text-[18px] font-normal text-black transition-all duration-200 group-hover:bg-linear-to-tr group-hover:from-(--ig-orange) group-hover:to-(--ig-red) group-hover:bg-clip-text group-hover:text-transparent dark:text-white">
             Home
           </span>
         </Link>
@@ -47,12 +47,12 @@ export default function DesktopNav() {
           <div className="relative flex size-10 shrink-0 items-center justify-center rounded-full">
             <div className="absolute inset-0 overflow-hidden rounded-full shadow-md transition-transform duration-200 group-hover:scale-105">
               <div className="absolute inset-0 rounded-full transition-opacity duration-300 group-hover:opacity-0" />
-              <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[var(--ig-red)] to-[var(--ig-orange)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+              <div className="absolute inset-0 rounded-full bg-linear-to-tr from-(--ig-red) to-(--ig-orange) opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
             </div>
             <SearchIcon className="relative z-10 size-5 text-white transition-transform duration-200 group-hover:scale-90" />
           </div>
 
-          <span className="text-[18px] font-normal text-black transition-all duration-200 group-hover:bg-gradient-to-tr group-hover:from-[var(--ig-orange)] group-hover:to-[var(--ig-red)] group-hover:bg-clip-text group-hover:text-transparent dark:text-white">
+          <span className="text-[18px] font-normal text-black transition-all duration-200 group-hover:bg-linear-to-tr group-hover:from-(--ig-orange) group-hover:to-(--ig-red) group-hover:bg-clip-text group-hover:text-transparent dark:text-white">
             Search
           </span>
         </Link>
@@ -62,13 +62,13 @@ export default function DesktopNav() {
         >
           <div className="relative flex size-10 shrink-0 items-center justify-center rounded-full">
             <div className="absolute inset-0 overflow-hidden rounded-full shadow-md transition-transform duration-200 group-hover:scale-105">
-              <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[var(--ig-orange)] to-[var(--ig-red)] transition-opacity duration-300 group-hover:opacity-0" />
-              <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[var(--ig-red)] to-[var(--ig-orange)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+              <div className="absolute inset-0 rounded-full bg-linear-to-tr from-(--ig-orange) to-(--ig-red) transition-opacity duration-300 group-hover:opacity-0" />
+              <div className="absolute inset-0 rounded-full bg-linear-to-tr from-(--ig-red) to-(--ig-orange) opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
             </div>
             <CameraIcon className="relative z-10 size-5 text-white transition-transform duration-200 group-hover:scale-90" />
           </div>
 
-          <span className="text-[18px] font-normal text-black transition-all duration-200 group-hover:bg-gradient-to-tr group-hover:from-[var(--ig-orange)] group-hover:to-[var(--ig-red)] group-hover:bg-clip-text group-hover:text-transparent dark:text-white">
+          <span className="text-[18px] font-normal text-black transition-all duration-200 group-hover:bg-linear-to-tr group-hover:from-(--ig-orange) group-hover:to-(--ig-red) group-hover:bg-clip-text group-hover:text-transparent dark:text-white">
             Create
           </span>
         </Link>
@@ -79,12 +79,12 @@ export default function DesktopNav() {
           <div className="relative flex size-10 shrink-0 items-center justify-center rounded-full">
             <div className="absolute inset-0 overflow-hidden rounded-full shadow-md transition-transform duration-200 group-hover:scale-105">
               <div className="absolute inset-0 rounded-full transition-opacity duration-300 group-hover:opacity-0" />
-              <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[var(--ig-red)] to-[var(--ig-orange)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+              <div className="absolute inset-0 rounded-full bg-linear-to-tr from-(--ig-red) to-(--ig-orange) opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
             </div>
             <LayoutGridIcon className="relative z-10 size-5 text-white transition-transform duration-200 group-hover:scale-90" />
           </div>
 
-          <span className="text-[18px] font-normal text-black transition-all duration-200 group-hover:bg-gradient-to-tr group-hover:from-[var(--ig-orange)] group-hover:to-[var(--ig-red)] group-hover:bg-clip-text group-hover:text-transparent dark:text-white">
+          <span className="text-[18px] font-normal text-black transition-all duration-200 group-hover:bg-linear-to-tr group-hover:from-(--ig-orange) group-hover:to-(--ig-red) group-hover:bg-clip-text group-hover:text-transparent dark:text-white">
             Browse
           </span>
         </Link>
@@ -95,12 +95,12 @@ export default function DesktopNav() {
           <div className="relative flex size-10 shrink-0 items-center justify-center rounded-full">
             <div className="absolute inset-0 overflow-hidden rounded-full shadow-md transition-transform duration-200 group-hover:scale-105">
               <div className="absolute inset-0 rounded-full transition-opacity duration-300 group-hover:opacity-0" />
-              <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[var(--ig-red)] to-[var(--ig-orange)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+              <div className="absolute inset-0 rounded-full bg-linear-to-tr from-(--ig-red) to-(--ig-orange) opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
             </div>
             <UserIcon className="relative z-10 size-5 text-white transition-transform duration-200 group-hover:scale-90" />
           </div>
 
-          <span className="text-[18px] font-normal text-black transition-all duration-200 group-hover:bg-gradient-to-tr group-hover:from-[var(--ig-orange)] group-hover:to-[var(--ig-red)] group-hover:bg-clip-text group-hover:text-transparent dark:text-white">
+          <span className="text-[18px] font-normal text-black transition-all duration-200 group-hover:bg-linear-to-tr group-hover:from-(--ig-orange) group-hover:to-(--ig-red) group-hover:bg-clip-text group-hover:text-transparent dark:text-white">
             Profile
           </span>
         </Link>

@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { postEntry } from "@/actions";
+import Image from "next/image";
 
 export default function CreatePage() {
   const [imageUrl, setImageUrl] = useState("");
@@ -48,7 +49,7 @@ export default function CreatePage() {
           <div className="relative">
             <div className="group relative flex size-64 items-center justify-center rounded-md bg-gray-400 p-2 transition-all duration-200 hover:bg-gray-500 hover:shadow-lg">
               {imageUrl && (
-                <img
+                <Image
                   src={imageUrl}
                   alt="Uploaded"
                   className="h-full w-full rounded-md object-contain"
@@ -91,7 +92,7 @@ export default function CreatePage() {
                 aria-label="Upload image"
               />
 
-              <div className="pointer-events-none absolute inset-0 rounded-md bg-gradient-to-tr from-[var(--ig-orange)] to-[var(--ig-red)] opacity-0 mix-blend-overlay transition-opacity duration-200 group-hover:opacity-100" />
+              <div className="pointer-events-none absolute inset-0 rounded-md bg-linear-to-tr from-(--ig-orange) to-(--ig-red) opacity-0 mix-blend-overlay transition-opacity duration-200 group-hover:opacity-100" />
             </div>
           </div>
 

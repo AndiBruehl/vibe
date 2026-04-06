@@ -29,7 +29,7 @@ export default async function Home() {
         >
           <button
             type="submit"
-            className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-red-500 to-orange-500 px-8 py-4 text-lg font-semibold text-white shadow-xl shadow-black/30 transition hover:scale-[1.05] hover:shadow-2xl"
+            className="flex items-center gap-3 rounded-2xl bg-linear-to-r from-red-500 to-orange-500 px-8 py-4 text-lg font-semibold text-white shadow-xl shadow-black/30 transition hover:scale-[1.05] hover:shadow-2xl"
           >
             🔥 Login with Google
           </button>
