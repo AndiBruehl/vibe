@@ -16,10 +16,11 @@ model Profile {
   subtitle String?
   bio      String?
 
-  posts        Post[]
-  comments     Comment[]
-  commentLikes CommentLike[]
-  postLikes    PostLike[]
+  posts         Post[]
+  comments      Comment[]
+  commentLikes  CommentLike[]
+  postLikes     PostLike[]
+  bookmarks     PostBookmark[]
 }
 
 model Post {
@@ -33,11 +34,25 @@ model Post {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  comments Comment[]
-  likes    PostLike[]
+  comments   Comment[]
+  likes      PostLike[]
+  bookmarks  PostBookmark[]
 }
 
 model PostLike {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt   DateTime @default(now())
+
+  postId      String   @db.ObjectId
+  post        Post     @relation(fields: [postId], references: [id])
+
+  authorEmail String
+  author      Profile  @relation(fields: [authorEmail], references: [email])
+
+  @@unique([postId, authorEmail])
+}
+
+model PostBookmark {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   createdAt   DateTime @default(now())
 

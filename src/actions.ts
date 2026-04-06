@@ -300,3 +300,57 @@ export async function likeComment(formData: FormData): Promise<void> {
 
   revalidatePath(`/posts/${postIdValue}`);
 }
+
+export async function togglePostBookmark(formData: FormData): Promise<void> {
+  const session = await auth();
+
+  if (!session?.user?.email) {
+    redirect("/");
+  }
+
+  const postIdValue = formData.get("postId");
+
+  if (typeof postIdValue !== "string" || !postIdValue) {
+    throw new Error("Post ID is missing.");
+  }
+
+  const post = await prisma.post.findUnique({
+    where: { id: postIdValue },
+    select: { id: true },
+  });
+
+  if (!post) {
+    throw new Error("Post not found.");
+  }
+
+  const existingBookmark = await prisma.postBookmark.findUnique({
+    where: {
+      postId_authorEmail: {
+        postId: postIdValue,
+        authorEmail: session.user.email,
+      },
+    },
+  });
+
+  if (existingBookmark) {
+    await prisma.postBookmark.delete({
+      where: {
+        postId_authorEmail: {
+          postId: postIdValue,
+          authorEmail: session.user.email,
+        },
+      },
+    });
+  } else {
+    await prisma.postBookmark.create({
+      data: {
+        postId: postIdValue,
+        authorEmail: session.user.email,
+      },
+    });
+  }
+
+  revalidatePath("/");
+  revalidatePath("/profile");
+  revalidatePath(`/posts/${postIdValue}`);
+}

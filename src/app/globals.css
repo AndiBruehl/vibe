@@ -44,6 +44,12 @@
 
   /* Navbar slightly darker than body */
   --ig-nav-bg: rgb(245, 245, 245);
+
+  /* Surface / cards */
+  --ig-surface-bg: rgb(255, 255, 255);
+
+  /* Elevated surface / hover */
+  --ig-surface-hover-bg: rgb(248, 250, 252);
 }
 
 /* =========================
@@ -58,6 +64,13 @@
 
   /* Navbar slightly lighter than body */
   --ig-nav-bg: rgb(31, 41, 55);
+
+  /* Surface / cards
+     Chosen so slate-200 / slate-300 stays readable */
+  --ig-surface-bg: rgb(30, 41, 59); /* slate-800 */
+
+  /* Elevated surface / hover */
+  --ig-surface-hover-bg: rgb(51, 65, 85); /* slate-700 */
 }
 
 /* =========================
@@ -83,19 +96,26 @@ body {
 ========================= */
 
 /* Gradient background */
-
 .bg-ig-gradient {
   background: var(--ig-gradient);
 }
 
 /* Navbar background */
-
 .bg-ig-nav {
   background: var(--ig-nav-bg);
 }
 
-/* Gradient text */
+/* Surface background */
+.bg-ig-surface {
+  background: var(--ig-surface-bg);
+}
 
+/* Surface hover / elevated */
+.bg-ig-surface-hover {
+  background: var(--ig-surface-hover-bg);
+}
+
+/* Gradient text */
 .text-ig-gradient {
   background: var(--ig-gradient);
   -webkit-background-clip: text;
@@ -103,7 +123,6 @@ body {
 }
 
 /* Gradient border */
-
 .border-ig-gradient {
   border-image: var(--ig-gradient) 1;
 }

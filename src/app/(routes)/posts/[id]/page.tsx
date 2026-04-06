@@ -5,9 +5,11 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { MoveLeft } from "lucide-react";
 import LikeButton from "./../../../components/LikeButton";
+import BookmarkButton from "./../../../components/BookmarkButton";
 import CommentForm from "./../../../components/CommentForm";
 import PostComments from "./../../../components/PostComments";
 import ExpandablePostImage from "@/app/components/ExpandablePostImage";
+
 export default async function SinglePostPage({
   params,
 }: {
@@ -31,6 +33,16 @@ export default async function SinglePostPage({
             },
           }
         : false,
+      bookmarks: viewerEmail
+        ? {
+            where: {
+              authorEmail: viewerEmail,
+            },
+            select: {
+              id: true,
+            },
+          }
+        : false,
     },
   });
 
@@ -44,6 +56,11 @@ export default async function SinglePostPage({
 
   const isLikedByViewer =
     viewerEmail && Array.isArray(post.likes) ? post.likes.length > 0 : false;
+
+  const isBookmarkedByViewer =
+    viewerEmail && Array.isArray(post.bookmarks)
+      ? post.bookmarks.length > 0
+      : false;
 
   return (
     <>
@@ -70,11 +87,16 @@ export default async function SinglePostPage({
                 />
               </div>
 
-              <div className="flex items-center gap-2 px-5 pt-4">
+              <div className="flex items-center justify-between px-5 pt-4">
                 <LikeButton
                   postId={post.id}
                   initialLiked={!!isLikedByViewer}
                   initialLikes={post.likesCount}
+                />
+
+                <BookmarkButton
+                  postId={post.id}
+                  initialBookmarked={!!isBookmarkedByViewer}
                 />
               </div>
 
@@ -91,7 +113,10 @@ export default async function SinglePostPage({
           </div>
 
           <div className="flex flex-col gap-4">
-            <Link href="/profile" className="group">
+            <Link
+              href={author?.username ? `/profile/${author.username}` : "#"}
+              className="group"
+            >
               <article className="flex h-28 items-center justify-between rounded-2xl bg-white px-5 shadow-md shadow-gray-200 transition hover:shadow-lg dark:bg-gray-800 dark:shadow-gray-900">
                 <div className="flex items-center gap-3">
                   <div className="size-12 overflow-hidden rounded-full bg-gray-300">

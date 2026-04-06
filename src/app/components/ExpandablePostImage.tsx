@@ -55,10 +55,10 @@ export default function ExpandablePostImage({
 
       {isOpen ? (
         <div
-          className="fixed inset-0 z-50 bg-black/65 backdrop-blur-sm md:left-[200px]"
+          className="fixed inset-0 z-50 bg-black/65 backdrop-blur-sm"
           onClick={() => setIsOpen(false)}
         >
-          <div className="flex h-full w-full items-center justify-center p-6 md:p-10">
+          <div className="flex h-full w-full items-center justify-center p-6 md:pl-55 md:pr-10 md:py-10">
             <button
               type="button"
               onClick={() => setIsOpen(false)}

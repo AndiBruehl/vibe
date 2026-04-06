@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import CommentLikeButton from "./CommentLikeButton";
 import ReplyForm from "./ReplyForm";
 
@@ -43,6 +44,10 @@ export default function CommentItem({
 }: CommentItemProps) {
   const [showReplyForm, setShowReplyForm] = useState(false);
 
+  const profileHref = comment.author.username
+    ? `/profile/${comment.author.username}`
+    : null;
+
   return (
     <div
       className={
@@ -51,27 +56,67 @@ export default function CommentItem({
     >
       <article className="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
         <div className="flex items-start gap-3">
-          <div className="size-10 overflow-hidden rounded-full bg-gray-300">
-            {comment.author.avatar ? (
-              <Image
-                src={comment.author.avatar}
-                alt={comment.author.name || "author"}
-                width={40}
-                height={40}
-                className="h-full w-full object-cover"
-                unoptimized
-              />
-            ) : null}
-          </div>
+          {profileHref ? (
+            <Link
+              href={profileHref}
+              className="block shrink-0 transition-opacity hover:opacity-90"
+            >
+              <div className="size-10 overflow-hidden rounded-full bg-gray-300">
+                {comment.author.avatar ? (
+                  <Image
+                    src={comment.author.avatar}
+                    alt={comment.author.name || "author"}
+                    width={40}
+                    height={40}
+                    className="h-full w-full object-cover"
+                    unoptimized
+                  />
+                ) : null}
+              </div>
+            </Link>
+          ) : (
+            <div className="size-10 shrink-0 overflow-hidden rounded-full bg-gray-300">
+              {comment.author.avatar ? (
+                <Image
+                  src={comment.author.avatar}
+                  alt={comment.author.name || "author"}
+                  width={40}
+                  height={40}
+                  className="h-full w-full object-cover"
+                  unoptimized
+                />
+              ) : null}
+            </div>
+          )}
 
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <p className="font-semibold text-gray-900 dark:text-white">
-                {comment.author.name || "Unknown"}
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                @{comment.author.username || "user"}
-              </p>
+              {profileHref ? (
+                <Link
+                  href={profileHref}
+                  className="font-semibold text-gray-900 transition hover:text-slate-700 dark:text-white dark:hover:text-slate-300"
+                >
+                  {comment.author.name || "Unknown"}
+                </Link>
+              ) : (
+                <p className="font-semibold text-gray-900 dark:text-white">
+                  {comment.author.name || "Unknown"}
+                </p>
+              )}
+
+              {profileHref ? (
+                <Link
+                  href={profileHref}
+                  className="text-sm text-gray-500 transition hover:text-slate-700 dark:text-gray-400 dark:hover:text-slate-300"
+                >
+                  @{comment.author.username}
+                </Link>
+              ) : (
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  @{comment.author.username || "user"}
+                </p>
+              )}
+
               <span className="text-xs text-gray-400 dark:text-gray-500">
                 {new Date(comment.createdAt).toLocaleDateString()}
               </span>
