@@ -6,7 +6,6 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { postEntry } from "@/actions";
-import Image from "next/image";
 
 export default function CreatePage() {
   const [imageUrl, setImageUrl] = useState("");
@@ -49,7 +48,7 @@ export default function CreatePage() {
           <div className="relative">
             <div className="group relative flex size-64 items-center justify-center rounded-md bg-gray-400 p-2 transition-all duration-200 hover:bg-gray-500 hover:shadow-lg">
               {imageUrl && (
-                <Image
+                <img
                   src={imageUrl}
                   alt="Uploaded"
                   className="h-full w-full rounded-md object-contain"
