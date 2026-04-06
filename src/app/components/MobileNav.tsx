@@ -15,7 +15,7 @@ export default function MobileNav() {
       {" "}
       <div className="flex text-gray-700 dark:text-gray-300 *:flex *:items-center">
         <div className="pl-2 bg-white dark:bg-gray-800 rounded-t-xl w-full relative z-10 *:size-12 *:flex *:flex-col *:items-center *:justify-center justify-around pt-4">
-          <Link href="/" className="group">
+          <Link href="/home" className="group">
             <HomeIcon className="transition-transform duration-200 group-hover:scale-90" />
             <span className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               HOME
@@ -31,7 +31,7 @@ export default function MobileNav() {
         </div>
 
         <div className="size-14 relative -top-4 justify-center w-35">
-          <div className="absolute bg-blue-500 bg-clip-text border-white dark:border-gray-800 border-t-transparent dark:border-t-transparent border-l-transparent dark:border-l-transparent border-50 rounded-full rotate-45">
+          <div className="absolute bg-red-500 bg-clip-text border-white dark:border-gray-800 border-t-transparent dark:border-t-transparent border-l-transparent dark:border-l-transparent border-50 rounded-full rotate-45">
             <div className="border-4 size-15 border-transparent">
               <Link
                 href="/create"

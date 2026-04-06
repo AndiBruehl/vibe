@@ -354,3 +354,93 @@ export async function togglePostBookmark(formData: FormData): Promise<void> {
   revalidatePath("/profile");
   revalidatePath(`/posts/${postIdValue}`);
 }
+
+export async function toggleFollow(formData: FormData): Promise<void> {
+  const session = await auth();
+
+  if (!session?.user?.email) {
+    redirect("/");
+  }
+
+  const targetProfileIdValue = formData.get("targetProfileId");
+  const targetUsernameValue = formData.get("targetUsername");
+
+  if (
+    typeof targetProfileIdValue !== "string" ||
+    !targetProfileIdValue.trim()
+  ) {
+    throw new Error("Target profile ID is missing.");
+  }
+
+  if (typeof targetUsernameValue !== "string") {
+    throw new Error("Target username is missing.");
+  }
+
+  const currentUserProfile = await prisma.profile.findUnique({
+    where: {
+      email: session.user.email,
+    },
+    select: {
+      id: true,
+      username: true,
+    },
+  });
+
+  if (!currentUserProfile) {
+    throw new Error("Current user profile not found.");
+  }
+
+  if (currentUserProfile.id === targetProfileIdValue) {
+    throw new Error("You cannot follow yourself.");
+  }
+
+  const targetProfile = await prisma.profile.findUnique({
+    where: {
+      id: targetProfileIdValue,
+    },
+    select: {
+      id: true,
+      username: true,
+    },
+  });
+
+  if (!targetProfile) {
+    throw new Error("Target profile not found.");
+  }
+
+  const existingFollow = await prisma.follow.findUnique({
+    where: {
+      followerId_followingId: {
+        followerId: currentUserProfile.id,
+        followingId: targetProfile.id,
+      },
+    },
+  });
+
+  if (existingFollow) {
+    await prisma.follow.delete({
+      where: {
+        followerId_followingId: {
+          followerId: currentUserProfile.id,
+          followingId: targetProfile.id,
+        },
+      },
+    });
+  } else {
+    await prisma.follow.create({
+      data: {
+        followerId: currentUserProfile.id,
+        followingId: targetProfile.id,
+      },
+    });
+  }
+
+  revalidatePath("/");
+  revalidatePath("/profile");
+
+  if (targetUsernameValue.trim()) {
+    revalidatePath(`/${targetUsernameValue.trim()}`);
+    revalidatePath(`/profile/${targetUsernameValue.trim()}`);
+    revalidatePath(`/u/${targetUsernameValue.trim()}`);
+  }
+}

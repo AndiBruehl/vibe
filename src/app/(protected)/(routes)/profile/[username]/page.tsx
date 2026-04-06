@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { MoveLeft, Grid3X3, Bookmark } from "lucide-react";
 import ProfilePosts from "@/app/components/ProfilePosts";
 import BookmarkPosts from "@/app/components/BookmarkPosts";
+import FollowButton from "@/app/components/FollowButton";
 
 type ProfileByUsernamePageProps = {
   params: Promise<{
@@ -45,11 +46,40 @@ export default async function ProfileByUsernamePage({
     },
   });
 
+  let isFollowing = false;
+
+  if (!isOwnProfile && viewerEmail) {
+    const viewerProfile = await prisma.profile.findUnique({
+      where: {
+        email: viewerEmail,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (viewerProfile) {
+      const existingFollow = await prisma.follow.findUnique({
+        where: {
+          followerId_followingId: {
+            followerId: viewerProfile.id,
+            followingId: profile.id,
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      isFollowing = !!existingFollow;
+    }
+  }
+
   return (
     <>
       <section className="flex flex-row items-center justify-between">
         <Link
-          href="/"
+          href="/home"
           className="group flex items-center gap-2 text-black no-underline hover:text-slate-700 dark:text-white dark:hover:text-slate-300"
         >
           <MoveLeft className="shrink-0" />
@@ -98,13 +128,23 @@ export default async function ProfileByUsernamePage({
               </div>
             </div>
 
-            <div className="flex gap-6 text-sm">
-              <div>
-                <p className="font-semibold text-gray-900 dark:text-white">
-                  {postsCount}
-                </p>
-                <p className="text-gray-500 dark:text-gray-400">Posts</p>
+            <div className="flex items-center gap-4">
+              <div className="flex gap-6 text-sm">
+                <div>
+                  <p className="font-semibold text-gray-900 dark:text-white">
+                    {postsCount}
+                  </p>
+                  <p className="text-gray-500 dark:text-gray-400">Posts</p>
+                </div>
               </div>
+
+              {!isOwnProfile && viewerEmail ? (
+                <FollowButton
+                  targetProfileId={profile.id}
+                  targetUsername={profile.username || ""}
+                  isFollowing={isFollowing}
+                />
+              ) : null}
             </div>
           </div>
 
@@ -141,7 +181,7 @@ export default async function ProfileByUsernamePage({
 
         <section className="mt-6">
           {activeTab === "bookmarks" && isOwnProfile ? (
-            <BookmarkPosts />
+            <BookmarkPosts email={profile.email} />
           ) : (
             <ProfilePosts email={profile.email} />
           )}

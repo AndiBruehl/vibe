@@ -56,23 +56,6 @@
    DARK MODE
 ========================= */
 
-.dark {
-  --ig-gradient: var(--ig-gradient-dm);
-
-  /* Body background */
-  --ig-body-bg: rgb(17, 24, 39);
-
-  /* Navbar slightly lighter than body */
-  --ig-nav-bg: rgb(31, 41, 55);
-
-  /* Surface / cards
-     Chosen so slate-200 / slate-300 stays readable */
-  --ig-surface-bg: rgb(30, 41, 59); /* slate-800 */
-
-  /* Elevated surface / hover */
-  --ig-surface-hover-bg: rgb(51, 65, 85); /* slate-700 */
-}
-
 /* =========================
    GLOBAL STYLES
 ========================= */
@@ -80,11 +63,6 @@
 html,
 body {
   height: 100%;
-}
-
-body {
-  background: var(--ig-body-bg);
-  @apply text-gray-900 antialiased;
 }
 
 .dark body {

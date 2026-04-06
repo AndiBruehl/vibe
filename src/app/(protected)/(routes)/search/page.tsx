@@ -82,7 +82,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     <main className="pb-24 md:pb-8">
       <section className="flex items-center justify-between">
         <Link
-          href="/"
+          href="/home"
           className="group flex items-center gap-2 text-slate-800 no-underline visited:text-slate-800 hover:text-slate-600 dark:text-slate-200 dark:visited:text-slate-200 dark:hover:text-slate-300"
         >
           <MoveLeft />

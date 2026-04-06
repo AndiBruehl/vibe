@@ -4,10 +4,10 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { MoveLeft } from "lucide-react";
-import LikeButton from "./../../../components/LikeButton";
-import BookmarkButton from "./../../../components/BookmarkButton";
-import CommentForm from "./../../../components/CommentForm";
-import PostComments from "./../../../components/PostComments";
+import LikeButton from "@/app/components/LikeButton";
+import BookmarkButton from "@/app/components/BookmarkButton";
+import CommentForm from "@/app/components/CommentForm";
+import PostComments from "@/app/components/PostComments";
 import ExpandablePostImage from "@/app/components/ExpandablePostImage";
 
 export default async function SinglePostPage({

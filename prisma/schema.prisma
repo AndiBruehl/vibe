@@ -21,6 +21,23 @@ model Profile {
   commentLikes  CommentLike[]
   postLikes     PostLike[]
   bookmarks     PostBookmark[]
+
+  followers     Follow[] @relation("ProfileFollowers")
+  following     Follow[] @relation("ProfileFollowing")
+}
+
+model Follow {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  followerId String  @db.ObjectId
+  follower   Profile @relation("ProfileFollowing", fields: [followerId], references: [id])
+
+  followingId String  @db.ObjectId
+  following   Profile @relation("ProfileFollowers", fields: [followingId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([followerId, followingId])
 }
 
 model Post {
