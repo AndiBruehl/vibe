@@ -83,7 +83,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       <section className="flex items-center justify-between">
         <Link
           href="/home"
-          className="group flex items-center gap-2 text-slate-800 no-underline visited:text-slate-800 hover:text-slate-600 dark:text-slate-200 dark:visited:text-slate-200 dark:hover:text-slate-300"
+          className="group flex items-center gap-2 text-slate-800 no-underline visited:text-slate-800 hover:text-slate-600 dark:text-slate-500 dark:visited:text-slate-400 dark:hover:text-slate-500"
         >
           <MoveLeft />
           <span className="opacity-0 transition-opacity duration-200 group-hover:opacity-100">
@@ -91,7 +91,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           </span>
         </Link>
 
-        <h1 className="text-lg font-bold text-slate-800 dark:text-slate-200">
+        <h1 className="text-lg font-bold text-slate-800 dark:text-slate-500">
           Search
         </h1>
 
@@ -114,7 +114,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         <>
           <section className="mt-6">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">
+              <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-500">
                 Users
               </h2>
               <span className="text-sm text-slate-500 dark:text-slate-400">
@@ -151,7 +151,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                         </div>
 
                         <div className="min-w-0">
-                          <p className="truncate font-semibold text-slate-800 transition group-hover:text-slate-600 dark:text-slate-200 dark:group-hover:text-slate-300">
+                          <p className="truncate font-semibold text-slate-800 transition group-hover:text-slate-600 dark:text-slate-500 dark:group-hover:text-slate-300">
                             {user.name || "Unknown"}
                           </p>
                           <p className="truncate text-sm text-slate-500 dark:text-slate-400">
@@ -173,7 +173,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
           <section className="mt-8">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">
+              <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-500">
                 Posts
               </h2>
               <span className="text-sm text-slate-500 dark:text-slate-400">
@@ -218,7 +218,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                         </div>
 
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-200">
+                          <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-500">
                             {post.author.name || "Unknown"}
                           </p>
                           <p className="truncate text-xs text-slate-500 dark:text-slate-400">

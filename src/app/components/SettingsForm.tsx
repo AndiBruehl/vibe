@@ -1,10 +1,10 @@
 "use client";
 
 import { ImageUp } from "lucide-react";
-import { Button, TextArea, TextField } from "@radix-ui/themes";
+import { Button, Switch, TextArea, TextField } from "@radix-ui/themes";
 import type { Profile } from "@prisma/client";
 import { upsertProfile } from "@/actions";
-import { useRef, useState, type ChangeEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
 
 import defaultImg from "./default.jpg";
 
@@ -20,6 +20,29 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
   );
   const [avatarUrl, setAvatarUrl] = useState<string>(profile?.avatar ?? "");
   const [isUploading, setIsUploading] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isThemeReady, setIsThemeReady] = useState(false);
+
+  useEffect(() => {
+    const html = document.documentElement;
+    const savedTheme = localStorage.getItem("theme");
+
+    if (!savedTheme) {
+      localStorage.setItem("theme", "dark");
+      html.classList.remove("light", "dark");
+      html.classList.add("dark");
+      html.dataset.theme = "dark";
+      setIsDarkMode(true);
+    } else {
+      const isDark = savedTheme === "dark";
+      html.classList.remove("light", "dark");
+      html.classList.add(isDark ? "dark" : "light");
+      html.dataset.theme = isDark ? "dark" : "light";
+      setIsDarkMode(isDark);
+    }
+
+    setIsThemeReady(true);
+  }, []);
 
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -56,12 +79,12 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
 
   return (
     <form action={upsertProfile}>
-      <div className="flex gap-3 items-center">
-        <div className="size-24 rounded-full overflow-hidden bg-slate-400 border-2 border-slate-600 shadow-lg shadow-slate-900">
+      <div className="flex items-center gap-3">
+        <div className="size-24 overflow-hidden rounded-full border-2 border-slate-600 bg-slate-400 shadow-lg shadow-slate-900">
           <img
             src={avatarSrc}
             alt="Avatar"
-            className="w-full h-full object-cover"
+            className="h-full w-full cursor-pointer object-cover"
             onClick={() => fileInRef.current?.click()}
           />
         </div>
@@ -120,6 +143,26 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
         placeholder="your_description"
         className="mb-4"
       />
+
+      <label className="mt-2 flex items-center gap-2">
+        <span>Dark mode</span>
+        <Switch
+          checked={isDarkMode}
+          disabled={!isThemeReady}
+          onCheckedChange={(nextChecked) => {
+            setIsDarkMode(nextChecked);
+
+            const html = document.documentElement;
+            const theme = nextChecked ? "dark" : "light";
+
+            html.classList.remove("light", "dark");
+            html.classList.add(theme);
+            html.dataset.theme = theme;
+
+            localStorage.setItem("theme", theme);
+          }}
+        />
+      </label>
 
       <div className="mt-2 flex justify-center">
         <Button type="submit" variant="solid" disabled={isUploading}>

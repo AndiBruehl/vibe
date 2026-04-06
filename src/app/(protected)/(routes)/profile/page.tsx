@@ -42,7 +42,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
       <section className="flex items-center justify-between">
         <Link
           href="/home"
-          className="group flex items-center gap-2 text-slate-800 no-underline visited:text-slate-800 hover:text-slate-600 dark:text-slate-200 dark:visited:text-slate-200 dark:hover:text-slate-300"
+          className="group flex items-center gap-2 text-slate-800 no-underline visited:text-slate-800 hover:text-slate-600 dark:text-slate-200 dark:visited:text-slate-400 dark:hover:text-slate-500"
         >
           <MoveLeft />
           <span className="opacity-0 transition-opacity duration-200 group-hover:opacity-100">
@@ -59,7 +59,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
 
         <Link
           href="/settings"
-          className="group flex items-center gap-2 text-slate-800 no-underline visited:text-slate-800 hover:text-slate-600 dark:text-slate-200 dark:visited:text-slate-200 dark:hover:text-slate-300"
+          className="group flex items-center gap-2 text-slate-800 no-underline visited:text-slate-800 hover:text-slate-600 dark:text-slate-200 dark:visited:text-slate-400 dark:hover:text-slate-500"
         >
           <span className="opacity-0 transition-opacity duration-200 group-hover:opacity-100">
             Settings

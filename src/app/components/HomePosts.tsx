@@ -107,16 +107,16 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
       <section className="mx-auto flex min-h-[70vh] w-full max-w-2xl items-center justify-center">
         <div className="flex w-full max-w-2xl flex-col gap-6">
           <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-center shadow-xl backdrop-blur-xl">
-            <h2 className="text-3xl font-bold text-slate-900 dark:text-white">
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-500">
               Nothing here yet
             </h2>
 
-            <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+            <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-500">
               Create your first entry or follow people to fill your feed.
             </p>
 
             {shouldShowNameHint ? (
-              <div className="mt-5 rounded-2xl border border-amber-300/40 bg-amber-100/70 px-4 py-3 text-sm text-amber-900 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-200">
+              <div className="mt-5 rounded-2xl border border-amber-300/40 bg-amber-100/70 px-4 py-3 text-sm text-amber-900 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400">
                 Tip: Update your name and username under{" "}
                 <Link
                   href="/settings"
@@ -142,14 +142,14 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
                   <CameraIcon className="relative z-10 size-5 text-white transition-transform duration-200 group-hover:scale-90" />
                 </div>
 
-                <span className="text-[18px] font-normal text-black transition-all duration-200 group-hover:bg-linear-to-tr group-hover:from-(--ig-orange) group-hover:to-(--ig-red) group-hover:bg-clip-text group-hover:text-transparent dark:text-white">
+                <span className="text-[18px] font-normal text-black transition-all duration-200 group-hover:bg-linear-to-tr group-hover:from-(--ig-orange) group-hover:to-(--ig-red) group-hover:bg-clip-text group-hover:text-transparent dark: dark:text-slate-500">
                   Create your first entry
                 </span>
               </Link>
 
               <Link
                 href="/search"
-                className="inline-flex items-center gap-2 text-sm text-slate-500 transition hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
+                className="inline-flex items-center gap-2 text-sm text-slate-500 transition hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-900"
               >
                 <Search size={16} />
                 Find people to follow
@@ -163,7 +163,7 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
                 size={18}
                 className="text-slate-700 dark:text-slate-200"
               />
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+              <h3 className="text-lg font-semibold text-slate-900 dark: dark:text-slate-500">
                 Suggested users
               </h3>
             </div>
@@ -193,7 +193,7 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
                       />
 
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">
+                        <p className="truncate text-sm font-semibold text-slate-900 dark: dark:text-slate-500">
                           {user.name || user.username || "Unknown user"}
                         </p>
                         <p className="truncate text-xs text-slate-500 dark:text-slate-400">
@@ -244,7 +244,7 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
 
                 <div className="min-w-0">
                   <Link
-                    className="relative z-20 block truncate text-sm font-semibold text-white transition hover:text-zinc-300"
+                    className="relative z-20 block truncate text-sm font-semibold  dark:text-slate-500 transition hover:text-zinc-300"
                     href={
                       profile?.username ? `/profile/${profile.username}` : "#"
                     }
