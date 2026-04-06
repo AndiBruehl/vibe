@@ -7,7 +7,7 @@ import { MoveLeft } from "lucide-react";
 import LikeButton from "./../../../components/LikeButton";
 import CommentForm from "./../../../components/CommentForm";
 import PostComments from "./../../../components/PostComments";
-
+import ExpandablePostImage from "@/app/components/ExpandablePostImage";
 export default async function SinglePostPage({
   params,
 }: {
@@ -64,14 +64,9 @@ export default async function SinglePostPage({
           <div className="self-start md:sticky md:top-8">
             <article className="overflow-hidden rounded-2xl bg-white shadow-lg shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
               <div className="w-full">
-                <Image
+                <ExpandablePostImage
                   src={post.image}
                   alt={post.description || "Post image"}
-                  width={800}
-                  height={800}
-                  className="h-auto w-full object-contain"
-                  priority
-                  unoptimized
                 />
               </div>
 
