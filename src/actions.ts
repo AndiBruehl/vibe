@@ -444,3 +444,182 @@ export async function toggleFollow(formData: FormData): Promise<void> {
     revalidatePath(`/u/${targetUsernameValue.trim()}`);
   }
 }
+
+function getDirectConversationKey(profileIdA: string, profileIdB: string) {
+  return [profileIdA, profileIdB].sort().join(":");
+}
+
+function isObjectId(value: string) {
+  return /^[a-f\d]{24}$/i.test(value);
+}
+
+export async function startConversation(formData: FormData): Promise<void> {
+  const session = await auth();
+
+  if (!session?.user?.email) {
+    redirect("/");
+  }
+
+  const targetProfileIdValue = formData.get("targetProfileId");
+
+  if (
+    typeof targetProfileIdValue !== "string" ||
+    !isObjectId(targetProfileIdValue)
+  ) {
+    throw new Error("Target profile ID is missing.");
+  }
+
+  const currentUserProfile = await prisma.profile.findUnique({
+    where: {
+      email: session.user.email,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!currentUserProfile) {
+    throw new Error("Current user profile not found.");
+  }
+
+  if (currentUserProfile.id === targetProfileIdValue) {
+    redirect("/messages");
+  }
+
+  const targetProfile = await prisma.profile.findUnique({
+    where: {
+      id: targetProfileIdValue,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!targetProfile) {
+    throw new Error("Target profile not found.");
+  }
+
+  const directKey = getDirectConversationKey(
+    currentUserProfile.id,
+    targetProfile.id,
+  );
+
+  const conversation = await prisma.conversation.upsert({
+    where: {
+      directKey,
+    },
+    update: {},
+    create: {
+      directKey,
+      participants: {
+        create: [
+          {
+            profileId: currentUserProfile.id,
+          },
+          {
+            profileId: targetProfile.id,
+          },
+        ],
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  revalidatePath("/messages");
+  redirect(`/messages/${conversation.id}`);
+}
+
+export async function sendMessage(formData: FormData): Promise<void> {
+  const session = await auth();
+
+  if (!session?.user?.email) {
+    redirect("/");
+  }
+
+  const conversationIdValue = formData.get("conversationId");
+  const bodyValue = formData.get("body");
+
+  if (
+    typeof conversationIdValue !== "string" ||
+    !isObjectId(conversationIdValue)
+  ) {
+    throw new Error("Conversation ID is missing.");
+  }
+
+  if (typeof bodyValue !== "string") {
+    throw new Error("Message text is missing.");
+  }
+
+  const body = bodyValue.trim();
+
+  if (!body) {
+    throw new Error("Message cannot be empty.");
+  }
+
+  const currentUserProfile = await prisma.profile.findUnique({
+    where: {
+      email: session.user.email,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!currentUserProfile) {
+    throw new Error("Current user profile not found.");
+  }
+
+  const conversation = await prisma.conversation.findFirst({
+    where: {
+      id: conversationIdValue,
+      participants: {
+        some: {
+          profileId: currentUserProfile.id,
+        },
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!conversation) {
+    throw new Error("Conversation not found.");
+  }
+
+  const now = new Date();
+
+  await prisma.$transaction([
+    prisma.message.create({
+      data: {
+        conversationId: conversation.id,
+        senderId: currentUserProfile.id,
+        body,
+      },
+    }),
+    prisma.conversation.update({
+      where: {
+        id: conversation.id,
+      },
+      data: {
+        updatedAt: now,
+      },
+    }),
+    prisma.conversationParticipant.update({
+      where: {
+        conversationId_profileId: {
+          conversationId: conversation.id,
+          profileId: currentUserProfile.id,
+        },
+      },
+      data: {
+        lastReadAt: now,
+      },
+    }),
+  ]);
+
+  revalidatePath("/messages");
+  revalidatePath(`/messages/${conversation.id}`);
+}

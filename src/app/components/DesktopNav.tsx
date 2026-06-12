@@ -2,13 +2,21 @@ import {
   CameraIcon,
   HomeIcon,
   LayoutGridIcon,
+  MessageCircleIcon,
   SearchIcon,
   UserIcon,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import MessageUnreadBadge from "@/app/components/MessageUnreadBadge";
 
-export default function DesktopNav() {
+type DesktopNavProps = {
+  unreadConversationCount?: number;
+};
+
+export default function DesktopNav({
+  unreadConversationCount = 0,
+}: DesktopNavProps) {
   return (
     <aside className="hidden md:fixed md:left-0 md:top-0 md:z-40 md:block md:h-screen md:w-46 bg-white px-4 py-6 shadow-md shadow-gray-300 dark:bg-gray-800 dark:shadow-gray-700">
       <div className="flex flex-col gap-3">
@@ -86,6 +94,26 @@ export default function DesktopNav() {
 
           <span className="text-[18px] font-normal text-black transition-all duration-200 group-hover:bg-linear-to-tr group-hover:from-(--ig-orange) group-hover:to-(--ig-red) group-hover:bg-clip-text group-hover:text-transparent dark:text-white">
             Browse
+          </span>
+        </Link>
+        <Link
+          href="/messages"
+          className="group flex items-center gap-3 rounded-xl px-3 py-3 transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+        >
+          <div className="relative flex size-10 shrink-0 items-center justify-center rounded-full">
+            <div className="absolute inset-0 overflow-hidden rounded-full shadow-md transition-transform duration-200 group-hover:scale-105">
+              <div className="absolute inset-0 rounded-full transition-opacity duration-300 group-hover:opacity-0" />
+              <div className="absolute inset-0 rounded-full bg-linear-to-tr from-(--ig-red) to-(--ig-orange) opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+            </div>
+            <MessageCircleIcon className="relative z-10 size-5 text-white transition-transform duration-200 group-hover:scale-90" />
+            <MessageUnreadBadge
+              initialCount={unreadConversationCount}
+              className="absolute -right-1 -top-1 z-20 flex min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-[11px] font-bold leading-none text-white ring-2 ring-white dark:ring-gray-800"
+            />
+          </div>
+
+          <span className="text-[18px] font-normal text-black transition-all duration-200 group-hover:bg-linear-to-tr group-hover:from-(--ig-orange) group-hover:to-(--ig-red) group-hover:bg-clip-text group-hover:text-transparent dark:text-white">
+            Messages
           </span>
         </Link>
         <Link

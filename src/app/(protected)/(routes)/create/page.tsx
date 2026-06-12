@@ -2,36 +2,85 @@
 
 import { Button, TextArea } from "@radix-ui/themes";
 import { SendIcon, UploadCloudIcon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { postEntry } from "@/actions";
 
+const MAX_IMAGE_SIZE_BYTES = 25 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "image/avif",
+]);
+
+function getUploadErrorMessage(result: { error?: unknown; details?: unknown }) {
+  const error = typeof result.error === "string" ? result.error : null;
+  const details = typeof result.details === "string" ? result.details : null;
+
+  return [error, details].filter(Boolean).join(" ");
+}
+
 export default function CreatePage() {
   const [imageUrl, setImageUrl] = useState("");
-  const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
   const fileInRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    if (!file) return;
+  async function handleFileChange(fileValue: File | null) {
+    setImageUrl("");
+
+    if (!fileValue) {
+      return;
+    }
+
+    if (!ALLOWED_IMAGE_TYPES.has(fileValue.type)) {
+      setUploadError(
+        "Unsupported image format. Please upload JPG, PNG, WebP, GIF, or AVIF.",
+      );
+      return;
+    }
+
+    if (fileValue.size > MAX_IMAGE_SIZE_BYTES) {
+      setUploadError(
+        "Image is too large. Please upload an image under 25 MB.",
+      );
+      return;
+    }
 
     const data = new FormData();
-    data.set("file", file);
+    data.set("file", fileValue);
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsUploading(true);
+    setUploadError("");
 
-    fetch("/api/upload", {
-      method: "POST",
-      body: data,
-    })
-      .then((res) => res.json())
-      .then((result) => setImageUrl(result.url))
-      .catch((error) => console.error(error))
-      .finally(() => setIsUploading(false));
-  }, [file]);
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: data,
+      });
+
+        const result = await res.json();
+
+        if (!res.ok) {
+          throw new Error(getUploadErrorMessage(result) || "Upload failed.");
+        }
+
+        if (typeof result.url !== "string") {
+          throw new Error("Upload failed.");
+        }
+
+        setImageUrl(result.url);
+    } catch (error) {
+      setImageUrl("");
+      setUploadError(error instanceof Error ? error.message : "Upload failed.");
+    } finally {
+      setIsUploading(false);
+    }
+  }
 
   return (
     <form
@@ -41,7 +90,7 @@ export default function CreatePage() {
       }}
       className="h-full"
     >
-      <input type="hidden" name="image" value={imageUrl} />
+      <input type="hidden" name="image" value={imageUrl || ""} />
 
       <div className="flex h-screen items-center justify-center gap-4">
         <div className="flex gap-4">
@@ -59,8 +108,11 @@ export default function CreatePage() {
                 type="file"
                 className="hidden"
                 ref={fileInRef}
-                accept="image/*"
-                onChange={(ev) => setFile(ev.target.files?.[0] || null)}
+                accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
+                onChange={(ev) => {
+                  void handleFileChange(ev.target.files?.[0] || null);
+                  ev.target.value = "";
+                }}
               />
 
               {!imageUrl && !isUploading && (
@@ -82,6 +134,12 @@ export default function CreatePage() {
                 >
                   Uploading...
                 </Button>
+              )}
+
+              {uploadError && !isUploading && (
+                <p className="absolute bottom-3 left-3 right-3 z-20 rounded-md bg-white/90 px-3 py-2 text-center text-sm font-semibold text-red-600 shadow dark:bg-gray-900/90">
+                  {uploadError}
+                </p>
               )}
 
               <button

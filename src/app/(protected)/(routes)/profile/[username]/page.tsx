@@ -7,6 +7,7 @@ import { MoveLeft, Grid3X3, Bookmark } from "lucide-react";
 import ProfilePosts from "@/app/components/ProfilePosts";
 import BookmarkPosts from "@/app/components/BookmarkPosts";
 import FollowButton from "@/app/components/FollowButton";
+import MessageButton from "@/app/components/MessageButton";
 
 type ProfileByUsernamePageProps = {
   params: Promise<{
@@ -130,12 +131,13 @@ export default async function ProfileByUsernamePage({
 
                 {/* 🔥 FOLLOW BUTTON HIER */}
                 {!isOwnProfile && (
-                  <div className="mt-4">
+                  <div className="mt-4 flex flex-wrap gap-2">
                     <FollowButton
                       targetProfileId={profile.id}
                       targetUsername={profile.username || ""}
                       isFollowing={isFollowing}
                     />
+                    <MessageButton targetProfileId={profile.id} />
                   </div>
                 )}
               </div>
