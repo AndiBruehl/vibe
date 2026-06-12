@@ -4,6 +4,7 @@ import { Button, TextArea } from "@radix-ui/themes";
 import { SendIcon, UploadCloudIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { PinataSDK } from "pinata";
 
 import { postEntry } from "@/actions";
 
@@ -22,6 +23,43 @@ function getUploadErrorMessage(result: { error?: unknown; details?: unknown }) {
 
   return [error, details].filter(Boolean).join(" ");
 }
+
+function getGatewayUrl(cid: string) {
+  const gateway = process.env.NEXT_PUBLIC_GATEWAY_URL;
+
+  if (!gateway) {
+    return `https://gateway.pinata.cloud/ipfs/${cid}`;
+  }
+
+  const normalizedGateway = gateway.startsWith("http")
+    ? gateway
+    : `https://${gateway}`;
+
+  return `${normalizedGateway.replace(/\/$/, "")}/ipfs/${cid}`;
+}
+
+async function getSignedUploadUrl() {
+  const response = await fetch("/api/upload/url", {
+    cache: "no-store",
+  });
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(getUploadErrorMessage(result) || "Upload failed.");
+  }
+
+  if (typeof result.url !== "string") {
+    throw new Error("Upload failed.");
+  }
+
+  return result.url;
+}
+
+const pinata = new PinataSDK({
+  pinataJwt: "",
+  pinataGateway: process.env.NEXT_PUBLIC_GATEWAY_URL,
+});
 
 export default function CreatePage() {
   const [imageUrl, setImageUrl] = useState("");
@@ -51,29 +89,16 @@ export default function CreatePage() {
       return;
     }
 
-    const data = new FormData();
-    data.set("file", fileValue);
-
     setIsUploading(true);
     setUploadError("");
 
     try {
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: data,
-      });
+      const signedUploadUrl = await getSignedUploadUrl();
+      const upload = await pinata.upload.public
+        .file(fileValue)
+        .url(signedUploadUrl);
 
-        const result = await res.json();
-
-        if (!res.ok) {
-          throw new Error(getUploadErrorMessage(result) || "Upload failed.");
-        }
-
-        if (typeof result.url !== "string") {
-          throw new Error("Upload failed.");
-        }
-
-        setImageUrl(result.url);
+      setImageUrl(getGatewayUrl(upload.cid));
     } catch (error) {
       setImageUrl("");
       setUploadError(error instanceof Error ? error.message : "Upload failed.");
