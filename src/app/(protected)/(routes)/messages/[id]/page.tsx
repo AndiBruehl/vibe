@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import { MoveLeft, Send } from "lucide-react";
 import img1 from "../../profile/default.jpg";
 import ConversationLiveRefresh from "@/app/components/ConversationLiveRefresh";
+import ConversationAutoScroll from "@/app/components/ConversationAutoScroll";
 
 type ConversationPageProps = {
   params: Promise<{
@@ -205,6 +206,7 @@ export default async function ConversationPage({
             );
           })
         )}
+        <ConversationAutoScroll latestMessageId={latestMessage?.id} />
       </section>
 
       <form
