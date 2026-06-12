@@ -1,4 +1,5 @@
 import {
+  BellIcon,
   CameraIcon,
   HomeIcon,
   LayoutGridIcon,
@@ -46,6 +47,22 @@ export default function DesktopNav({
 
           <span className="text-[18px] font-normal text-black transition-all duration-200 group-hover:bg-linear-to-tr group-hover:from-(--ig-orange) group-hover:to-(--ig-red) group-hover:bg-clip-text group-hover:text-transparent dark:text-white">
             Home
+          </span>
+        </Link>
+        <Link
+          href="/activity"
+          className="group flex items-center gap-3 rounded-xl px-3 py-3 transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+        >
+          <div className="relative flex size-10 shrink-0 items-center justify-center rounded-full">
+            <div className="absolute inset-0 overflow-hidden rounded-full shadow-md transition-transform duration-200 group-hover:scale-105">
+              <div className="absolute inset-0 rounded-full transition-opacity duration-300 group-hover:opacity-0" />
+              <div className="absolute inset-0 rounded-full bg-linear-to-tr from-(--ig-red) to-(--ig-orange) opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+            </div>
+            <BellIcon className="relative z-10 size-5 text-white transition-transform duration-200 group-hover:scale-90" />
+          </div>
+
+          <span className="text-[18px] font-normal text-black transition-all duration-200 group-hover:bg-linear-to-tr group-hover:from-(--ig-orange) group-hover:to-(--ig-red) group-hover:bg-clip-text group-hover:text-transparent dark:text-white">
+            Activity
           </span>
         </Link>
         <Link

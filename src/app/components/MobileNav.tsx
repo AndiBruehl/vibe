@@ -1,4 +1,5 @@
 import {
+  BellIcon,
   CameraIcon,
   HomeIcon,
   LayoutGridIcon,
@@ -25,6 +26,13 @@ export default function MobileNav({
             <HomeIcon className="transition-transform duration-200 group-hover:scale-90" />
             <span className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               HOME
+            </span>
+          </Link>
+
+          <Link href="/activity" className="group">
+            <BellIcon className="transition-transform duration-200 group-hover:scale-90" />
+            <span className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              ACTIVITY
             </span>
           </Link>
 
