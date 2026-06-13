@@ -6,7 +6,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "desktop": "npm --prefix electron-app start",
+    "desktop:install": "npm --prefix electron-app install",
+    "desktop:build": "npm --prefix electron-app run build",
+    "desktop:build:win": "npm --prefix electron-app run build:win",
+    "desktop:build:linux": "npm --prefix electron-app run build:linux",
+    "desktop:build:mac": "npm --prefix electron-app run build:mac"
   },
   "dependencies": {
     "@prisma/client": "^6.19.2",

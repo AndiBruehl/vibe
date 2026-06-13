@@ -1,0 +1,30 @@
+{
+  "name": "vibe-desktop",
+  "productName": "Vibe",
+  "version": "0.1.0",
+  "description": "Vibe Desktop App",
+  "main": "main.js",
+  "author": { "name": "andi", "email": "andi@example.com" },
+  "homepage": "https://github.com/yourusername/vibe-desktop",
+  "build": {
+    "appId": "com.andi.vibe",
+    "productName": "Vibe",
+    "win": {
+      "target": ["nsis", "portable"],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  },
+  "scripts": {
+    "build:win": "electron-builder --win nsis portable"
+  },
+  "devDependencies": {
+    "electron": "^39.8.10",
+    "electron-builder": "^26.15.3"
+  }
+}
