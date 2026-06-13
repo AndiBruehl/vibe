@@ -12,12 +12,18 @@ export async function upsertProfile(formData: FormData) {
     redirect("/");
   }
 
+  const username = ((formData.get("username") as string) || "").trim();
+
+  if (/\s/.test(username)) {
+    throw new Error("Invalid username: spaces are not allowed.");
+  }
+
   const newUserInfo = {
-    username: (formData.get("username") as string) || "",
-    name: (formData.get("name") as string) || "",
-    subtitle: (formData.get("subtitle") as string) || "",
-    bio: (formData.get("bio") as string) || "",
-    avatar: (formData.get("avatarUrl") as string) || "",
+    username,
+    name: ((formData.get("name") as string) || "").trim(),
+    subtitle: ((formData.get("subtitle") as string) || "").trim(),
+    bio: ((formData.get("bio") as string) || "").trim(),
+    avatar: ((formData.get("avatarUrl") as string) || "").trim(),
   };
 
   await prisma.profile.upsert({

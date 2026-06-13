@@ -1,5 +1,5 @@
-import { auth } from "@/auth";
 import { prisma } from "@/db";
+import { getMobileSession } from "@/mobile-auth";
 import { NextResponse, type NextRequest } from "next/server";
 
 type MobileConversationRouteProps = {
@@ -12,16 +12,16 @@ function isObjectId(value: string) {
   return /^[a-f\d]{24}$/i.test(value);
 }
 
-async function getCurrentUserProfile() {
-  const session = await auth();
+async function getCurrentUserProfile(request: NextRequest) {
+  const session = await getMobileSession(request);
 
-  if (!session?.user?.email) {
+  if (!session) {
     return null;
   }
 
   return prisma.profile.findUnique({
     where: {
-      email: session.user.email,
+      email: session.email,
     },
     select: {
       id: true,
@@ -30,7 +30,7 @@ async function getCurrentUserProfile() {
 }
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: MobileConversationRouteProps,
 ) {
   const { id } = await params;
@@ -39,7 +39,7 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const currentUserProfile = await getCurrentUserProfile();
+  const currentUserProfile = await getCurrentUserProfile(request);
 
   if (!currentUserProfile) {
     return NextResponse.json({ messages: [] });
@@ -99,7 +99,7 @@ export async function POST(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const currentUserProfile = await getCurrentUserProfile();
+  const currentUserProfile = await getCurrentUserProfile(request);
 
   if (!currentUserProfile) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

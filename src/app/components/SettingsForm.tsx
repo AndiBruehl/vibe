@@ -4,7 +4,7 @@ import { ImageUp } from "lucide-react";
 import { Button, Switch, TextArea, TextField } from "@radix-ui/themes";
 import type { Profile } from "@prisma/client";
 import { upsertProfile } from "@/actions";
-import { useEffect, useRef, useState, type ChangeEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 
 import defaultImg from "./default.jpg";
 
@@ -14,6 +14,7 @@ type SettingsFormProps = {
 
 export default function SettingsForm({ profile }: SettingsFormProps) {
   const fileInRef = useRef<HTMLInputElement>(null);
+  const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(
     profile?.avatar ?? null,
@@ -22,6 +23,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isThemeReady, setIsThemeReady] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
 
   useEffect(() => {
     const html = document.documentElement;
@@ -42,6 +44,14 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
     }
 
     setIsThemeReady(true);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimeoutRef.current) {
+        clearTimeout(toastTimeoutRef.current);
+      }
+    };
   }, []);
 
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -75,10 +85,42 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
     }
   };
 
+  const showToast = (message: string) => {
+    setToastMessage(message);
+
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+    }
+
+    toastTimeoutRef.current = setTimeout(() => {
+      setToastMessage("");
+      toastTimeoutRef.current = null;
+    }, 4000);
+  };
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    const formData = new FormData(e.currentTarget);
+    const username = formData.get("username");
+
+    if (typeof username === "string" && /\s/.test(username)) {
+      e.preventDefault();
+      showToast("Invalid username: spaces are not allowed.");
+    }
+  };
+
   const avatarSrc = previewUrl || profile?.avatar || defaultImg.src;
 
   return (
-    <form action={upsertProfile}>
+    <form action={upsertProfile} onSubmit={handleSubmit}>
+      {toastMessage ? (
+        <div
+          role="alert"
+          className="fixed right-4 top-4 z-50 max-w-sm rounded-lg border border-red-400/40 bg-red-500 px-4 py-3 text-sm font-bold text-white shadow-xl shadow-slate-950/40"
+        >
+          {toastMessage}
+        </div>
+      ) : null}
+
       <div className="flex items-center gap-3">
         <div className="size-24 overflow-hidden rounded-full border-2 border-slate-600 bg-slate-400 shadow-lg shadow-slate-900">
           <img
@@ -117,8 +159,12 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
         name="username"
         defaultValue={profile?.username ?? ""}
         placeholder="your_username"
-        className="mb-4"
+        className="mb-2"
       />
+      <p className="mb-4 text-xs font-semibold text-slate-400">
+        Spaces are not allowed in usernames. Use letters, numbers, underscores,
+        or dots instead.
+      </p>
 
       <p className="mt-2 font-bold">name</p>
       <TextField.Root
