@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { MessageCircle, MoveLeft } from "lucide-react";
 import img1 from "../profile/default.jpg";
 import MessagesToast from "./MessagesToast";
+import ConversationListItem from "./ConversationListItem";
 
 export default async function MessagesPage() {
   const session = await auth();
@@ -106,86 +107,13 @@ export default async function MessagesPage() {
           </div>
         ) : (
           <div className="divide-y divide-slate-100 dark:divide-slate-700">
-            {conversations.map((conversation: any) => {
-              const otherParticipant = conversation.participants.find(
-                (participant: any) =>
-                  participant.profileId !== currentUserProfile.id,
-              );
-              const currentParticipant = conversation.participants.find(
-                (participant: any) =>
-                  participant.profileId === currentUserProfile.id,
-              );
-              const otherProfile = otherParticipant?.profile;
-              const latestMessage = conversation.messages[0];
-              const isUnread =
-                latestMessage &&
-                latestMessage.senderId !== currentUserProfile.id &&
-                (!currentParticipant?.lastReadAt ||
-                  latestMessage.createdAt > currentParticipant.lastReadAt);
-
-              return (
-                <Link
-                  key={conversation.id}
-                  href={`/messages/${conversation.id}`}
-                  className={`flex items-center gap-4 px-5 py-4 transition ${
-                    isUnread
-                      ? "bg-red-50/80 hover:bg-red-50 dark:bg-red-950/20 dark:hover:bg-red-950/30"
-                      : "hover:bg-slate-50 dark:hover:bg-gray-700"
-                  }`}
-                >
-                  <div
-                    className={`relative size-12 shrink-0 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700 ${
-                      isUnread ? "ring-2 ring-red-500 ring-offset-2" : ""
-                    } ring-offset-white dark:ring-offset-gray-800`}
-                  >
-                    <Image
-                      src={otherProfile?.avatar || img1.src}
-                      alt={otherProfile?.name || "User avatar"}
-                      fill
-                      className="object-cover"
-                      unoptimized
-                    />
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-3">
-                      <p
-                        className={`truncate text-slate-800 dark:text-slate-100 ${
-                          isUnread ? "font-bold" : "font-semibold"
-                        }`}
-                      >
-                        {otherProfile?.name ||
-                          otherProfile?.username ||
-                          "Unknown user"}
-                      </p>
-                      <div className="flex shrink-0 items-center gap-2">
-                        {isUnread ? (
-                          <span className="rounded-full bg-red-600 px-2 py-0.5 text-[11px] font-bold leading-none text-white">
-                            New
-                          </span>
-                        ) : null}
-                        <span className="text-xs text-slate-400">
-                          {latestMessage
-                            ? new Date(
-                                latestMessage.createdAt,
-                              ).toLocaleDateString()
-                            : ""}
-                        </span>
-                      </div>
-                    </div>
-                    <p
-                      className={`truncate text-sm ${
-                        isUnread
-                          ? "font-semibold text-slate-900 dark:text-slate-100"
-                          : "text-slate-500 dark:text-slate-400"
-                      }`}
-                    >
-                      {latestMessage?.body || "Start the conversation."}
-                    </p>
-                  </div>
-                </Link>
-              );
-            })}
+            {conversations.map((conversation: any) => (
+              <ConversationListItem
+                key={conversation.id}
+                conversation={conversation}
+                currentUserId={currentUserProfile.id}
+              />
+            ))}
           </div>
         )}
       </section>

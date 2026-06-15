@@ -141,20 +141,72 @@ export default async function ConversationPage({
         </Link>
 
         <div className="flex min-w-0 items-center gap-3">
-          <div className="relative size-10 shrink-0 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-            <Image
-              src={otherProfile?.avatar || img1.src}
-              alt={otherProfile?.name || "User avatar"}
-              fill
-              className="object-cover"
-              unoptimized
-            />
-          </div>
+          {conversation.isGroup ? (
+            <div className="relative size-10 shrink-0 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+              <Image
+                src={otherProfile?.avatar || img1.src}
+                alt={otherProfile?.name || "Conversation avatar"}
+                fill
+                className="object-cover"
+                unoptimized
+              />
+            </div>
+          ) : otherProfile?.username ? (
+            <Link
+              href={`/profile/${otherProfile.username}`}
+              className="block relative size-10 shrink-0 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700"
+            >
+              <div className="absolute inset-0">
+                <Image
+                  src={otherProfile?.avatar || img1.src}
+                  alt={otherProfile?.name || "User avatar"}
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+              </div>
+            </Link>
+          ) : (
+            <div className="relative size-10 shrink-0 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+              <Image
+                src={otherProfile?.avatar || img1.src}
+                alt={otherProfile?.name || "User avatar"}
+                fill
+                className="object-cover"
+                unoptimized
+              />
+            </div>
+          )}
           <div className="min-w-0 text-right">
-            <p className="truncate font-semibold text-slate-800 dark:text-slate-100">
-              {otherProfile?.name || otherProfile?.username || "Unknown user"}
-            </p>
-            {otherProfile?.username ? (
+            {conversation.isGroup ? (
+              <Link
+                href={`/messages/group/${conversation.id}`}
+                className="truncate font-semibold text-slate-800 dark:text-slate-100 no-underline hover:underline"
+              >
+                {conversation.name ||
+                  conversation.participants
+                    .map((p: any) => p.profile?.name || p.profile?.username || "Unknown user")
+                    .slice(0, 3)
+                    .join(", ")}
+              </Link>
+            ) : otherProfile?.username ? (
+              <Link
+                href={`/profile/${otherProfile.username}`}
+                className="truncate font-semibold text-slate-800 dark:text-slate-100 no-underline hover:underline"
+              >
+                {otherProfile?.name || otherProfile?.username || "Unknown user"}
+              </Link>
+            ) : (
+              <p className="truncate font-semibold text-slate-800 dark:text-slate-100">
+                {otherProfile?.name || otherProfile?.username || "Unknown user"}
+              </p>
+            )}
+
+            {conversation.isGroup ? (
+              <p className="truncate text-sm text-slate-500 dark:text-slate-400">
+                {conversation.participants.length} members
+              </p>
+            ) : otherProfile?.username ? (
               <p className="truncate text-sm text-slate-500 dark:text-slate-400">
                 @{otherProfile.username}
               </p>
