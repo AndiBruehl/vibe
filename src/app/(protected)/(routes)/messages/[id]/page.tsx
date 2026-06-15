@@ -162,7 +162,7 @@ export default async function ConversationPage({
           <div className="relative size-10 shrink-0 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
             <Image
               src={otherProfile?.avatar || img1.src}
-              alt={otherProfile?.name || "User avatar"}
+              alt={conversationTitle || "Conversation avatar"}
               fill
               className="object-cover"
               unoptimized
@@ -170,11 +170,11 @@ export default async function ConversationPage({
           </div>
           <div className="min-w-0 text-right">
             <p className="truncate font-semibold text-slate-800 dark:text-slate-100">
-              {otherProfile?.name || otherProfile?.username || "Unknown user"}
+              {conversationTitle}
             </p>
-            {otherProfile?.username ? (
+            {conversationSubtitle ? (
               <p className="truncate text-sm text-slate-500 dark:text-slate-400">
-                @{otherProfile.username}
+                {conversationSubtitle}
               </p>
             ) : null}
           </div>
@@ -206,7 +206,7 @@ export default async function ConversationPage({
                       : "bg-white text-slate-800 dark:bg-gray-800 dark:text-slate-100"
                   }`}
                 >
-                  <p className="whitespace-pre-wrap break-words text-sm leading-6">
+                  <p className="whitespace-pre-wrap wrap-break-word text-sm leading-6">
                     {message.body}
                   </p>
                   <p
