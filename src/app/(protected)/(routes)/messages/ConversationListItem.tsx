@@ -32,6 +32,11 @@ export default function ConversationListItem({
     (!currentParticipant?.lastReadAt ||
       latestMessage.createdAt > currentParticipant.lastReadAt);
 
+  const isGroup =
+    Boolean(conversation.isGroup) ||
+    (conversation.participants && conversation.participants.length > 2) ||
+    Boolean(conversation.name);
+
   return (
     <div
       role="button"
@@ -53,14 +58,8 @@ export default function ConversationListItem({
         } ring-offset-white dark:ring-offset-gray-800`}
       >
         <Image
-          src={
-            conversation.isGroup ? img1.src : otherProfile?.avatar || img1.src
-          }
-          alt={
-            conversation.isGroup
-              ? `${conversation.name || "Group"} avatar`
-              : otherProfile?.name || "User avatar"
-          }
+          src={isGroup ? img1.src : otherProfile?.avatar || img1.src}
+          alt={isGroup ? `${conversation.name || "Group"} avatar` : otherProfile?.name || "User avatar"}
           fill
           className="object-cover"
           unoptimized
@@ -74,14 +73,10 @@ export default function ConversationListItem({
               isUnread ? "font-bold" : "font-semibold"
             }`}
           >
-            {conversation.isGroup ? (
-              conversation.name || "Group"
+            {isGroup ? (
+              conversation.name || conversation.participants.map((p: any) => p.profile?.name || p.profile?.username || "Unknown user").slice(0, 3).join(", ")
             ) : otherProfile?.username ? (
-              <Link
-                href={`/profile/${otherProfile.username}`}
-                onClick={(e) => e.stopPropagation()}
-                className="no-underline hover:underline"
-              >
+              <Link href={`/profile/${otherProfile.username}`} className="no-underline hover:underline">
                 {otherProfile?.name || otherProfile?.username}
               </Link>
             ) : (
@@ -120,7 +115,7 @@ export default function ConversationListItem({
               : "text-slate-500 dark:text-slate-400"
           }`}
         >
-          {conversation.isGroup ? (
+          {isGroup ? (
             latestMessage ? (
               <>
                 <span className="font-semibold text-slate-900 dark:text-slate-100 mr-1">

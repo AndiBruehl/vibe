@@ -121,6 +121,7 @@ export default async function ConversationPage({
   }
 
   const latestMessage = conversation.messages.at(-1);
+  const isGroup = Boolean(conversation.isGroup) || (conversation.participants && conversation.participants.length > 2) || Boolean(conversation.name);
 
   return (
     <main className="mx-auto flex min-h-[calc(100vh-2rem)] w-full max-w-3xl flex-col pb-24 md:pb-4">
@@ -142,15 +143,9 @@ export default async function ConversationPage({
         </Link>
 
         <div className="flex min-w-0 items-center gap-3">
-          {conversation.isGroup ? (
+          {isGroup ? (
             <div className="relative size-10 shrink-0 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-              <Image
-                src={img1.src}
-                alt={conversation.name || "Group avatar"}
-                fill
-                className="object-cover"
-                unoptimized
-              />
+              <Image src={img1.src} alt={conversation.name || "Group avatar"} fill className="object-cover" unoptimized />
             </div>
           ) : otherProfile?.username ? (
             <Link
@@ -179,21 +174,9 @@ export default async function ConversationPage({
             </div>
           )}
           <div className="min-w-0 text-right">
-            {conversation.isGroup ? (
-              <Link
-                href={`/messages/group/${conversation.id}`}
-                className="truncate font-semibold text-slate-800 dark:text-slate-100 no-underline hover:underline"
-              >
-                {conversation.name ||
-                  conversation.participants
-                    .map(
-                      (p: any) =>
-                        p.profile?.name ||
-                        p.profile?.username ||
-                        "Unknown user",
-                    )
-                    .slice(0, 3)
-                    .join(", ")}
+            {isGroup ? (
+              <Link href={`/messages/group/${conversation.id}`} className="truncate font-semibold text-slate-800 dark:text-slate-100 no-underline hover:underline">
+                {conversation.name || conversation.participants.map((p: any) => p.profile?.name || p.profile?.username || "Unknown user").slice(0, 3).join(", ")}
               </Link>
             ) : otherProfile?.username ? (
               <Link
