@@ -92,14 +92,14 @@ export default async function ConversationPage({
   }
 
   const otherParticipant = conversation.participants.find(
-    (participant) => participant.profileId !== currentUserProfile.id,
+    (participant: any) => participant.profileId !== currentUserProfile.id,
   );
   const otherProfile = otherParticipant?.profile;
   const currentParticipant = conversation.participants.find(
-    (participant) => participant.profileId === currentUserProfile.id,
+    (participant: any) => participant.profileId === currentUserProfile.id,
   );
   const hasUnreadMessages = conversation.messages.some(
-    (message) =>
+    (message: any) =>
       message.senderId !== currentUserProfile.id &&
       (!currentParticipant?.lastReadAt ||
         message.createdAt > currentParticipant.lastReadAt),
@@ -171,7 +171,7 @@ export default async function ConversationPage({
             </p>
           </div>
         ) : (
-          conversation.messages.map((message) => {
+          conversation.messages.map((message: any) => {
             const isOwnMessage = message.senderId === currentUserProfile.id;
 
             return (

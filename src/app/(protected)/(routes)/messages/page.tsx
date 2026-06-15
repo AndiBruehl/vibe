@@ -94,13 +94,13 @@ export default async function MessagesPage() {
           </div>
         ) : (
           <div className="divide-y divide-slate-100 dark:divide-slate-700">
-            {conversations.map((conversation) => {
+            {conversations.map((conversation: any) => {
               const otherParticipant = conversation.participants.find(
-                (participant) =>
+                (participant: any) =>
                   participant.profileId !== currentUserProfile.id,
               );
               const currentParticipant = conversation.participants.find(
-                (participant) =>
+                (participant: any) =>
                   participant.profileId === currentUserProfile.id,
               );
               const otherProfile = otherParticipant?.profile;

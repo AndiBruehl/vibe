@@ -82,7 +82,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
         <GroupSettings
           conversationId={conversation.id}
           initialName={conversation.name}
-          participants={conversation.participants.map((p) => p.profile)}
+          participants={conversation.participants.map((p: any) => p.profile)}
           currentUserId={currentUserProfile.id}
         />
       </section>

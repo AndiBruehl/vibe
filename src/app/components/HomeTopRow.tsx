@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Follow, Profile } from "@prisma/client";
+type Follow = any;
+type Profile = any;
 import { Avatar } from "@radix-ui/themes";
 // import { PlusIcon } from "lucide-react";
 

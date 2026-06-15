@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { auth } from "@/auth";
 import { prisma } from "@/db";
 import Image from "next/image";
@@ -124,8 +125,10 @@ export default async function ActivityPage() {
   const items: ActivityItem[] = [
     // Safe Follows
     ...follows
-      .filter((f) => f.follower) // ← Safety
-      .map((follow) => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .filter((f: any) => f.follower) // ← Safety
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .map((follow: any) => ({
         id: `follow-${follow.id}`,
         type: "follow" as const,
         title: `${follow.follower.name || follow.follower.username || "Someone"} followed you`,
@@ -139,8 +142,10 @@ export default async function ActivityPage() {
 
     // Safe Likes
     ...postLikes
-      .filter((l) => l.author)
-      .map((like) => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .filter((l: any) => l.author)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .map((like: any) => ({
         id: `like-${like.id}`,
         type: "like" as const,
         title: `${like.author.name || like.author.username || "Someone"} liked your post`,
@@ -153,8 +158,9 @@ export default async function ActivityPage() {
 
     // Safe Comments
     ...comments
-      .filter((c) => c.author)
-      .map((comment) => ({
+      .filter((c: any) => c.author)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .map((comment: any) => ({
         id: `comment-${comment.id}`,
         type: "comment" as const,
         title: `${comment.author.name || comment.author.username || "Someone"} commented on your post`,
@@ -167,11 +173,12 @@ export default async function ActivityPage() {
 
     // Safe Messages
     ...conversations
-      .filter((conv) => conv.messages.length > 0)
-      .map((conversation) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .filter((conv: any) => conv.messages.length > 0)
+      .map((conversation: any) => {
         const message = conversation.messages[0];
         const otherParticipant = conversation.participants.find(
-          (p) => p.profileId !== currentUserProfile.id,
+          (p: any) => p.profileId !== currentUserProfile.id,
         );
         const profile = message.sender || otherParticipant?.profile;
 

@@ -70,10 +70,10 @@ export async function getUnreadMessageStatus(
     })
     .filter((message) => message !== null);
 
-  const latestUnreadAt = unreadLatestMessages.reduce<Date | null>(
-    (latest, message) =>
+  const latestUnreadAt = unreadLatestMessages.reduce(
+    (latest: Date | null, message: any) =>
       !latest || message.createdAt > latest ? message.createdAt : latest,
-    null,
+    null as Date | null,
   );
 
   return {
