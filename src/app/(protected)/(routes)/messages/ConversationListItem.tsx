@@ -53,8 +53,14 @@ export default function ConversationListItem({
         } ring-offset-white dark:ring-offset-gray-800`}
       >
         <Image
-          src={conversation.isGroup ? img1.src : otherProfile?.avatar || img1.src}
-          alt={conversation.isGroup ? `${conversation.name || "Group"} avatar` : otherProfile?.name || "User avatar"}
+          src={
+            conversation.isGroup ? img1.src : otherProfile?.avatar || img1.src
+          }
+          alt={
+            conversation.isGroup
+              ? `${conversation.name || "Group"} avatar`
+              : otherProfile?.name || "User avatar"
+          }
           fill
           className="object-cover"
           unoptimized
@@ -93,7 +99,13 @@ export default function ConversationListItem({
               {latestMessage ? (
                 <LocalTime
                   iso={latestMessage.createdAt}
-                  options={{ year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }}
+                  options={{
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  }}
                 />
               ) : (
                 ""
@@ -112,7 +124,10 @@ export default function ConversationListItem({
             latestMessage ? (
               <>
                 <span className="font-semibold text-slate-900 dark:text-slate-100 mr-1">
-                  {latestMessage.sender?.name || latestMessage.sender?.username || "Someone"}:
+                  {latestMessage.sender?.name ||
+                    latestMessage.sender?.username ||
+                    "Someone"}
+                  :
                 </span>
                 <span className="truncate">{latestMessage.body}</span>
               </>
