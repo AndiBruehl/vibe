@@ -170,9 +170,18 @@ export default async function ConversationPage({
             />
           </div>
           <div className="min-w-0 text-right">
-            <p className="truncate font-semibold text-slate-800 dark:text-slate-100">
-              {conversationTitle}
-            </p>
+            {conversation.isGroup ? (
+              <Link
+                href={`/messages/group/${conversation.id}`}
+                className="truncate font-semibold text-slate-800 dark:text-slate-100 no-underline hover:underline"
+              >
+                {conversationTitle}
+              </Link>
+            ) : (
+              <p className="truncate font-semibold text-slate-800 dark:text-slate-100">
+                {conversationTitle}
+              </p>
+            )}
             {conversationSubtitle ? (
               <p className="truncate text-sm text-slate-500 dark:text-slate-400">
                 {conversationSubtitle}
@@ -182,14 +191,7 @@ export default async function ConversationPage({
         </div>
       </section>
 
-      {conversation.isGroup ? (
-        <GroupSettings
-          conversationId={conversation.id}
-          initialName={conversation.name}
-          participants={conversation.participants.map((p) => p.profile)}
-          currentUserId={currentUserProfile.id}
-        />
-      ) : null}
+      {/* Group settings moved to a dedicated page to avoid clutter for large groups. */}
 
       <section className="flex-1 space-y-3 overflow-y-auto py-6">
         {conversation.messages.length === 0 ? (
