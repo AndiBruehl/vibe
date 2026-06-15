@@ -811,7 +811,9 @@ export async function createGroupConversation(
   );
 
   if (participantUsernames.length < 2) {
-    throw new Error("A group chat needs at least two other participants.");
+    throw new Error(
+      "Please add at least two other members, separated by commas.",
+    );
   }
 
   const participants = await prisma.profile.findMany({
