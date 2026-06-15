@@ -3,6 +3,7 @@ import { prisma } from "@/db";
 import { revalidatePath } from "next/cache";
 
 export async function POST(req: Request) {
+  try {
   const session = await auth();
   const userEmail = session?.user?.email;
   if (!userEmail) return new Response("Unauthorized", { status: 401 });
@@ -83,4 +84,15 @@ export async function POST(req: Request) {
   return new Response(JSON.stringify({ id: conversation.id }), {
     headers: { "content-type": "application/json" },
   });
+  } catch (err: any) {
+    console.error("/api/conversations/create error:", err);
+    const body = {
+      error: err?.message || "Unknown error",
+      stack: process.env.NODE_ENV === "production" ? undefined : err?.stack,
+    };
+    return new Response(JSON.stringify(body), {
+      status: 500,
+      headers: { "content-type": "application/json" },
+    });
+  }
 }
