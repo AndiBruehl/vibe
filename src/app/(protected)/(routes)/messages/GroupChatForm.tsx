@@ -21,7 +21,9 @@ export default function GroupChatForm({ action }: GroupChatFormProps) {
     return () => clearTimeout(timeout);
   }, [toastMessage]);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
     const form = event.currentTarget;
     const groupName = (
       form.elements.namedItem("name") as HTMLInputElement | null
@@ -37,17 +39,25 @@ export default function GroupChatForm({ action }: GroupChatFormProps) {
         .filter(Boolean) ?? [];
 
     if (!groupName) {
-      event.preventDefault();
       setToastMessage("Group name is required.");
       return;
     }
 
     if (participantUsernames.length < 2) {
-      event.preventDefault();
       setToastMessage(
         "Please add at least two other members, separated by commas.",
       );
       return;
+    }
+
+    try {
+      await action(new FormData(form));
+    } catch (error) {
+      setToastMessage(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong. Please try again.",
+      );
     }
   };
 

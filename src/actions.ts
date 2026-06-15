@@ -820,6 +820,7 @@ export async function createGroupConversation(
     where: {
       username: {
         in: participantUsernames,
+        mode: "insensitive",
       },
     },
     select: {
@@ -828,9 +829,16 @@ export async function createGroupConversation(
     },
   });
 
-  if (participants.length !== participantUsernames.length) {
+  const foundUsernames = participants
+    .map((participant) => participant.username?.toLowerCase())
+    .filter(Boolean);
+  const missingUsernames = participantUsernames.filter(
+    (username) => !foundUsernames.includes(username.toLowerCase()),
+  );
+
+  if (missingUsernames.length > 0) {
     throw new Error(
-      "One or more usernames could not be found. Please verify the participant list.",
+      `Usernames not found: ${missingUsernames.join(", ")}. Please verify the participant list.`,
     );
   }
 
