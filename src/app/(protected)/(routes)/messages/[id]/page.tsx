@@ -8,6 +8,7 @@ import { MoveLeft, Send } from "lucide-react";
 import img1 from "../../profile/default.jpg";
 import ConversationLiveRefresh from "@/app/components/ConversationLiveRefresh";
 import ConversationAutoScroll from "@/app/components/ConversationAutoScroll";
+import GroupSettings from "@/app/(protected)/(routes)/messages/GroupSettings";
 
 type ConversationPageProps = {
   params: Promise<{
@@ -180,6 +181,15 @@ export default async function ConversationPage({
           </div>
         </div>
       </section>
+
+      {conversation.isGroup ? (
+        <GroupSettings
+          conversationId={conversation.id}
+          initialName={conversation.name}
+          participants={conversation.participants.map((p) => p.profile)}
+          currentUserId={currentUserProfile.id}
+        />
+      ) : null}
 
       <section className="flex-1 space-y-3 overflow-y-auto py-6">
         {conversation.messages.length === 0 ? (
