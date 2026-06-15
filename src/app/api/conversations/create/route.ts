@@ -53,19 +53,26 @@ export async function POST(req: Request) {
     });
   }
 
-  const conversation = await prisma.conversation.create({
-    data: {
-      name: name.trim(),
-      isGroup: true,
-      participants: {
-        create: [
-          { profileId: currentUserProfile.id },
-          ...participants.map((p) => ({ profileId: p.id })),
-        ],
+    const directKey =
+      typeof globalThis !== "undefined" &&
+      typeof (globalThis as any).crypto?.randomUUID === "function"
+        ? (globalThis as any).crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+
+    const conversation = await prisma.conversation.create({
+      data: {
+        name: name.trim(),
+        isGroup: true,
+        directKey,
+        participants: {
+          create: [
+            { profileId: currentUserProfile.id },
+            ...participants.map((p) => ({ profileId: p.id })),
+          ],
+        },
       },
-    },
-    select: { id: true },
-  });
+      select: { id: true },
+    });
 
   if (initialMessage && initialMessage.trim()) {
     await prisma.message.create({
