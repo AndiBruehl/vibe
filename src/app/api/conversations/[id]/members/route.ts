@@ -48,7 +48,9 @@ export async function POST(req: Request, context: any) {
   const existingIds = new Set(existingParts.map((p) => p.profileId));
   const toAdd = profiles.filter((p) => !existingIds.has(p.id));
   if (!toAdd.length)
-    return new Response("All provided users are already members", { status: 400 });
+    return new Response("All provided users are already members", {
+      status: 400,
+    });
   const foundUsernames = profiles
     .map((p) => p.username?.toLowerCase())
     .filter(Boolean as any);

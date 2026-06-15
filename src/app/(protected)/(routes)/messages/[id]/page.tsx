@@ -101,10 +101,14 @@ export default async function ConversationPage({
   );
   // derive a fallback display name/username from messages if participant profile is missing
   const fallbackOtherFromMessages = conversation.messages.find(
-    (m) => m.senderId !== currentUserProfile.id && (m.sender?.name || m.sender?.username),
+    (m) =>
+      m.senderId !== currentUserProfile.id &&
+      (m.sender?.name || m.sender?.username),
   )?.sender;
   const fallbackOtherName =
-    fallbackOtherFromMessages?.name || fallbackOtherFromMessages?.username || null;
+    fallbackOtherFromMessages?.name ||
+    fallbackOtherFromMessages?.username ||
+    null;
   const conversationTitle = conversation.isGroup
     ? conversation.name ||
       otherParticipants
@@ -116,13 +120,15 @@ export default async function ConversationPage({
         )
         .slice(0, 3)
         .join(", ")
-    :
-      // for direct conversations prefer profile name/username, fallback to message sender info
-      otherProfile?.name || otherProfile?.username || fallbackOtherName || "Unknown user";
+    : // for direct conversations prefer profile name/username, fallback to message sender info
+      otherProfile?.name ||
+      otherProfile?.username ||
+      fallbackOtherName ||
+      "Unknown user";
 
   const conversationSubtitle = conversation.isGroup
     ? `${conversation.participants.length} members`
-    : (otherProfile?.username || fallbackOtherFromMessages?.username)
+    : otherProfile?.username || fallbackOtherFromMessages?.username
       ? `@${otherProfile?.username || fallbackOtherFromMessages?.username}`
       : "";
   const hasUnreadMessages = conversation.messages.some(
