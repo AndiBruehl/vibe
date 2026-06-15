@@ -7,6 +7,7 @@ import { MessageCircle, MoveLeft } from "lucide-react";
 import img1 from "../profile/default.jpg";
 import MessagesToast from "./MessagesToast";
 import ConversationListItem from "./ConversationListItem";
+import GroupChatForm from "./GroupChatForm";
 
 export default async function MessagesPage() {
   const session = await auth();
@@ -91,6 +92,8 @@ export default async function MessagesPage() {
 
         <div className="w-24" />
       </section>
+
+      <GroupChatForm />
 
       <section className="mt-6 overflow-hidden rounded-2xl bg-white shadow-md shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
         {conversations.length === 0 ? (

@@ -185,7 +185,12 @@ export default async function ConversationPage({
               >
                 {conversation.name ||
                   conversation.participants
-                    .map((p: any) => p.profile?.name || p.profile?.username || "Unknown user")
+                    .map(
+                      (p: any) =>
+                        p.profile?.name ||
+                        p.profile?.username ||
+                        "Unknown user",
+                    )
                     .slice(0, 3)
                     .join(", ")}
               </Link>

@@ -37,7 +37,8 @@ export default function ConversationListItem({
       tabIndex={0}
       onClick={() => router.push(`/messages/${conversation.id}`)}
       onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") router.push(`/messages/${conversation.id}`);
+        if (e.key === "Enter" || e.key === " ")
+          router.push(`/messages/${conversation.id}`);
       }}
       className={`flex items-center gap-4 px-5 py-4 transition cursor-pointer ${
         isUnread
@@ -86,13 +87,17 @@ export default function ConversationListItem({
               </span>
             ) : null}
             <span className="text-xs text-slate-400">
-              {latestMessage ? new Date(latestMessage.createdAt).toLocaleDateString() : ""}
+              {latestMessage
+                ? new Date(latestMessage.createdAt).toLocaleDateString()
+                : ""}
             </span>
           </div>
         </div>
         <p
           className={`truncate text-sm ${
-            isUnread ? "font-semibold text-slate-900 dark:text-slate-100" : "text-slate-500 dark:text-slate-400"
+            isUnread
+              ? "font-semibold text-slate-900 dark:text-slate-100"
+              : "text-slate-500 dark:text-slate-400"
           }`}
         >
           {latestMessage?.body || "Start the conversation."}

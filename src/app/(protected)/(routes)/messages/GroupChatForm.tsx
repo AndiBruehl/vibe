@@ -2,9 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
-type GroupChatFormProps = {
-  action: (formData: FormData) => Promise<void>;
-};
+type GroupChatFormProps = {};
 
 type ProfileSuggestion = {
   id: string;
@@ -13,7 +11,7 @@ type ProfileSuggestion = {
   avatar: string | null;
 };
 
-export default function GroupChatForm({ action }: GroupChatFormProps) {
+export default function GroupChatForm(_: GroupChatFormProps) {
   const [toastMessage, setToastMessage] = useState("");
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<ProfileSuggestion[]>([]);
@@ -94,11 +92,21 @@ export default function GroupChatForm({ action }: GroupChatFormProps) {
     if (hidden) hidden.value = hiddenParticipantValue;
 
     try {
-      await action(new FormData(form));
+      const res = await fetch(`/api/conversations/create`, {
+        method: "POST",
+        body: new FormData(form),
+      });
+      if (!res.ok) {
+        const err = await res.text();
+        setToastMessage(err || "Could not create group");
+        return;
+      }
+      const data = await res.json();
+      if (data?.id) {
+        window.location.href = `/messages/${data.id}`;
+      }
     } catch (err) {
-      setToastMessage(
-        err instanceof Error ? err.message : "Something went wrong",
-      );
+      setToastMessage(err instanceof Error ? err.message : "Network error");
     }
   };
 
@@ -194,6 +202,15 @@ export default function GroupChatForm({ action }: GroupChatFormProps) {
             Create Group
           </button>
         </div>
+        <label className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+          <span>Initial message (optional)</span>
+          <textarea
+            name="initialMessage"
+            className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+            placeholder="Say something to the group..."
+            rows={2}
+          />
+        </label>
       </form>
     </section>
   );
