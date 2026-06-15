@@ -87,10 +87,7 @@ export default async function MessagesPage() {
         <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
           Add at least two usernames separated by commas to start a new group.
         </p>
-        <form
-          action={createGroupConversation}
-          className="mt-4 grid gap-3"
-        >
+        <form action={createGroupConversation} className="mt-4 grid gap-3">
           <label className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
             <span>Group name</span>
             <input
@@ -146,7 +143,8 @@ export default async function MessagesPage() {
               );
               const otherProfile = otherParticipant?.profile;
               const otherParticipants = conversation.participants.filter(
-                (participant) => participant.profileId !== currentUserProfile.id,
+                (participant) =>
+                  participant.profileId !== currentUserProfile.id,
               );
               const conversationTitle = conversation.isGroup
                 ? conversation.name ||
@@ -165,8 +163,8 @@ export default async function MessagesPage() {
               const conversationSubtitle = conversation.isGroup
                 ? `${otherParticipants.length + 1} members`
                 : otherProfile?.username
-                ? `@${otherProfile.username}`
-                : "";
+                  ? `@${otherProfile.username}`
+                  : "";
               const latestMessage = conversation.messages[0];
               const isUnread =
                 latestMessage &&

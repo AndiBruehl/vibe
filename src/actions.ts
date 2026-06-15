@@ -803,11 +803,10 @@ export async function createGroupConversation(
 
   const participantUsernames = Array.from(
     new Set(
-      rawUsernames
-        .filter(
-          (username) =>
-            username !== currentUserProfile.username && username !== userEmail,
-        ),
+      rawUsernames.filter(
+        (username) =>
+          username !== currentUserProfile.username && username !== userEmail,
+      ),
     ),
   );
 

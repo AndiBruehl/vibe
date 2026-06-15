@@ -114,8 +114,8 @@ export default async function ConversationPage({
   const conversationSubtitle = conversation.isGroup
     ? `${conversation.participants.length} members`
     : otherProfile?.username
-    ? `@${otherProfile.username}`
-    : "";
+      ? `@${otherProfile.username}`
+      : "";
   const hasUnreadMessages = conversation.messages.some(
     (message) =>
       message.senderId !== currentUserProfile.id &&
