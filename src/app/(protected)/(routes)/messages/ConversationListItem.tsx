@@ -102,7 +102,20 @@ export default function ConversationListItem({
               : "text-slate-500 dark:text-slate-400"
           }`}
         >
-          {latestMessage?.body || "Start the conversation."}
+          {conversation.isGroup ? (
+            latestMessage ? (
+              <>
+                <span className="font-semibold text-slate-900 dark:text-slate-100 mr-1">
+                  {latestMessage.sender?.name || latestMessage.sender?.username || "Someone"}:
+                </span>
+                <span className="truncate">{latestMessage.body}</span>
+              </>
+            ) : (
+              "Start the conversation."
+            )
+          ) : (
+            latestMessage?.body || "Start the conversation."
+          )}
         </p>
       </div>
     </div>
