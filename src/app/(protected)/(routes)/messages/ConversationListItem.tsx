@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MessageCircle } from "lucide-react";
 import img1 from "../profile/default.jpg";
+import LocalTime from "@/app/components/LocalTime";
 
 type Props = {
   conversation: any;
@@ -89,9 +90,14 @@ export default function ConversationListItem({
               </span>
             ) : null}
             <span className="text-xs text-slate-400">
-              {latestMessage
-                ? new Date(latestMessage.createdAt).toLocaleDateString()
-                : ""}
+              {latestMessage ? (
+                <LocalTime
+                  iso={latestMessage.createdAt}
+                  options={{ year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }}
+                />
+              ) : (
+                ""
+              )}
             </span>
           </div>
         </div>

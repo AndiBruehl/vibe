@@ -8,6 +8,7 @@ import { MoveLeft, Send } from "lucide-react";
 import img1 from "../../profile/default.jpg";
 import ConversationLiveRefresh from "@/app/components/ConversationLiveRefresh";
 import ConversationAutoScroll from "@/app/components/ConversationAutoScroll";
+import LocalTime from "@/app/components/LocalTime";
 
 type ConversationPageProps = {
   params: Promise<{
@@ -144,8 +145,8 @@ export default async function ConversationPage({
           {conversation.isGroup ? (
             <div className="relative size-10 shrink-0 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
               <Image
-                src={otherProfile?.avatar || img1.src}
-                alt={otherProfile?.name || "Conversation avatar"}
+                src={img1.src}
+                alt={conversation.name || "Group avatar"}
                 fill
                 className="object-cover"
                 unoptimized
@@ -245,6 +246,22 @@ export default async function ConversationPage({
                       : "bg-white text-slate-800 dark:bg-gray-800 dark:text-slate-100"
                   }`}
                 >
+                    {!isOwnMessage && conversation.isGroup ? (
+                      <div className="mb-1">
+                        {message.sender?.username ? (
+                          <Link
+                            href={`/profile/${message.sender.username}`}
+                            className="text-sm font-semibold text-slate-800 dark:text-slate-100 no-underline hover:underline"
+                          >
+                            {message.sender?.name || message.sender?.username}
+                          </Link>
+                        ) : (
+                          <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                            {message.sender?.name || message.sender?.username || "Someone"}
+                          </span>
+                        )}
+                      </div>
+                    ) : null}
                   <p className="whitespace-pre-wrap wrap-break-word text-sm leading-6">
                     {message.body}
                   </p>
@@ -253,10 +270,10 @@ export default async function ConversationPage({
                       isOwnMessage ? "text-white/75" : "text-slate-400"
                     }`}
                   >
-                    {new Date(message.createdAt).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
+                    <LocalTime
+                      iso={message.createdAt}
+                      options={{ hour: "2-digit", minute: "2-digit" }}
+                    />
                   </p>
                 </div>
               </article>
