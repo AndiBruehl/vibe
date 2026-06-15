@@ -91,13 +91,31 @@ export default async function ConversationPage({
     notFound();
   }
 
-  const otherParticipant = conversation.participants.find(
+  const otherParticipants = conversation.participants.filter(
     (participant) => participant.profileId !== currentUserProfile.id,
   );
+  const otherParticipant = otherParticipants[0];
   const otherProfile = otherParticipant?.profile;
   const currentParticipant = conversation.participants.find(
     (participant) => participant.profileId === currentUserProfile.id,
   );
+  const conversationTitle = conversation.isGroup
+    ? conversation.name ||
+      otherParticipants
+        .map(
+          (participant) =>
+            participant.profile?.name ||
+            participant.profile?.username ||
+            "Unknown user",
+        )
+        .slice(0, 3)
+        .join(", ")
+    : otherProfile?.name || otherProfile?.username || "Unknown user";
+  const conversationSubtitle = conversation.isGroup
+    ? `${conversation.participants.length} members`
+    : otherProfile?.username
+    ? `@${otherProfile.username}`
+    : "";
   const hasUnreadMessages = conversation.messages.some(
     (message) =>
       message.senderId !== currentUserProfile.id &&

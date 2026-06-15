@@ -20,6 +20,7 @@ type Reply = {
   author: Author;
   likesCount: number;
   isLikedByViewer: boolean;
+  isOwned: boolean;
 };
 
 type CommentData = {

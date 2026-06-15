@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { prisma } from "@/db";
+import { createGroupConversation } from "@/actions";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -79,6 +80,46 @@ export default async function MessagesPage() {
         <div className="w-24" />
       </section>
 
+      <section className="mt-6 overflow-hidden rounded-2xl bg-white p-6 shadow-md shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
+        <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+          Create a group chat
+        </h2>
+        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+          Add at least two usernames separated by commas to start a new group.
+        </p>
+        <form
+          action={createGroupConversation}
+          className="mt-4 grid gap-3"
+        >
+          <label className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
+            <span>Group name</span>
+            <input
+              name="name"
+              required
+              className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+              placeholder="My friends group"
+            />
+          </label>
+
+          <label className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
+            <span>Participant usernames</span>
+            <input
+              name="participantUsernames"
+              required
+              className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+              placeholder="alice, bob, charlie"
+            />
+          </label>
+
+          <button
+            type="submit"
+            className="inline-flex items-center justify-center rounded-2xl bg-black px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-900 dark:bg-white dark:text-black dark:hover:bg-slate-200"
+          >
+            Create Group
+          </button>
+        </form>
+      </section>
+
       <section className="mt-6 overflow-hidden rounded-2xl bg-white shadow-md shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
         {conversations.length === 0 ? (
           <div className="flex flex-col items-center gap-3 px-6 py-12 text-center">
@@ -104,6 +145,28 @@ export default async function MessagesPage() {
                   participant.profileId === currentUserProfile.id,
               );
               const otherProfile = otherParticipant?.profile;
+              const otherParticipants = conversation.participants.filter(
+                (participant) => participant.profileId !== currentUserProfile.id,
+              );
+              const conversationTitle = conversation.isGroup
+                ? conversation.name ||
+                  otherParticipants
+                    .map(
+                      (participant) =>
+                        participant.profile?.name ||
+                        participant.profile?.username ||
+                        "Unknown user",
+                    )
+                    .slice(0, 2)
+                    .join(", ")
+                : otherProfile?.name ||
+                  otherProfile?.username ||
+                  "Unknown user";
+              const conversationSubtitle = conversation.isGroup
+                ? `${otherParticipants.length + 1} members`
+                : otherProfile?.username
+                ? `@${otherProfile.username}`
+                : "";
               const latestMessage = conversation.messages[0];
               const isUnread =
                 latestMessage &&
@@ -142,9 +205,7 @@ export default async function MessagesPage() {
                           isUnread ? "font-bold" : "font-semibold"
                         }`}
                       >
-                        {otherProfile?.name ||
-                          otherProfile?.username ||
-                          "Unknown user"}
+                        {conversationTitle}
                       </p>
                       <div className="flex shrink-0 items-center gap-2">
                         {isUnread ? (
@@ -161,6 +222,9 @@ export default async function MessagesPage() {
                         </span>
                       </div>
                     </div>
+                    <p className="truncate text-sm text-slate-500 dark:text-slate-400">
+                      {conversationSubtitle}
+                    </p>
                     <p
                       className={`truncate text-sm ${
                         isUnread

@@ -680,8 +680,9 @@ function isObjectId(value: string) {
 
 export async function startConversation(formData: FormData): Promise<void> {
   const session = await auth();
+  const userEmail = session?.user?.email;
 
-  if (!session?.user?.email) {
+  if (!userEmail) {
     redirect("/");
   }
 
@@ -696,7 +697,7 @@ export async function startConversation(formData: FormData): Promise<void> {
 
   const currentUserProfile = await prisma.profile.findUnique({
     where: {
-      email: session.user.email,
+      email: userEmail,
     },
     select: {
       id: true,
@@ -736,6 +737,7 @@ export async function startConversation(formData: FormData): Promise<void> {
     update: {},
     create: {
       directKey,
+      isGroup: false,
       participants: {
         create: [
           {
@@ -756,10 +758,110 @@ export async function startConversation(formData: FormData): Promise<void> {
   redirect(`/messages/${conversation.id}`);
 }
 
+export async function createGroupConversation(
+  formData: FormData,
+): Promise<void> {
+  const session = await auth();
+  const userEmail = session?.user?.email;
+
+  if (!userEmail) {
+    redirect("/");
+  }
+
+  const nameValue = formData.get("name");
+  const participantUsernamesValue = formData.get("participantUsernames");
+
+  if (typeof nameValue !== "string" || !nameValue.trim()) {
+    throw new Error("Group name is required.");
+  }
+
+  if (
+    typeof participantUsernamesValue !== "string" ||
+    !participantUsernamesValue.trim()
+  ) {
+    throw new Error("Participant usernames are required.");
+  }
+
+  const rawUsernames = participantUsernamesValue
+    .split(",")
+    .map((username) => username.trim())
+    .filter(Boolean);
+
+  const currentUserProfile = await prisma.profile.findUnique({
+    where: {
+      email: userEmail,
+    },
+    select: {
+      id: true,
+      username: true,
+    },
+  });
+
+  if (!currentUserProfile) {
+    throw new Error("Current user profile not found.");
+  }
+
+  const participantUsernames = Array.from(
+    new Set(
+      rawUsernames
+        .filter(
+          (username) =>
+            username !== currentUserProfile.username && username !== userEmail,
+        ),
+    ),
+  );
+
+  if (participantUsernames.length < 2) {
+    throw new Error("A group chat needs at least two other participants.");
+  }
+
+  const participants = await prisma.profile.findMany({
+    where: {
+      username: {
+        in: participantUsernames,
+      },
+    },
+    select: {
+      id: true,
+      username: true,
+    },
+  });
+
+  if (participants.length !== participantUsernames.length) {
+    throw new Error(
+      "One or more usernames could not be found. Please verify the participant list.",
+    );
+  }
+
+  const conversation = await prisma.conversation.create({
+    data: {
+      name: nameValue.trim(),
+      isGroup: true,
+      participants: {
+        create: [
+          {
+            profileId: currentUserProfile.id,
+          },
+          ...participants.map((participant) => ({
+            profileId: participant.id,
+          })),
+        ],
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  revalidatePath("/messages");
+  redirect(`/messages/${conversation.id}`);
+}
+
 export async function sendMessage(formData: FormData): Promise<void> {
   const session = await auth();
+  const userEmail = session?.user?.email;
 
-  if (!session?.user?.email) {
+  if (!userEmail) {
     redirect("/");
   }
 
@@ -785,7 +887,7 @@ export async function sendMessage(formData: FormData): Promise<void> {
 
   const currentUserProfile = await prisma.profile.findUnique({
     where: {
-      email: session.user.email,
+      email: userEmail,
     },
     select: {
       id: true,
