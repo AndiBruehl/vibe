@@ -131,8 +131,8 @@ export default function GroupSettings({
         setMessage(await res.text());
         return;
       }
-      // redirect to messages
-      window.location.href = "/messages";
+      // redirect to messages and show toast
+      window.location.href = "/messages?msg=group-deleted";
     } catch (e) {
       setMessage("Network error");
     }

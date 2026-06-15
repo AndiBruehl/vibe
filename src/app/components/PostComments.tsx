@@ -21,6 +21,7 @@ export default async function PostComments({ postId }: PostCommentsProps) {
           username: true,
           name: true,
           avatar: true,
+          email: true,
         },
       },
       likes: {
@@ -35,6 +36,7 @@ export default async function PostComments({ postId }: PostCommentsProps) {
               username: true,
               name: true,
               avatar: true,
+              email: true,
             },
           },
           likes: {
@@ -72,12 +74,16 @@ export default async function PostComments({ postId }: PostCommentsProps) {
                 username: comment.author.username,
                 name: comment.author.name,
                 avatar: comment.author.avatar,
+                email: comment.author.email,
               },
               likesCount: comment.likes.length,
               isLikedByViewer: currentUserEmail
                 ? comment.likes.some(
                     (like) => like.authorEmail === currentUserEmail,
                   )
+                : false,
+              isOwned: currentUserEmail
+                ? comment.author.email === currentUserEmail
                 : false,
               replies: comment.replies.map((reply) => ({
                 id: reply.id,
@@ -87,12 +93,16 @@ export default async function PostComments({ postId }: PostCommentsProps) {
                   username: reply.author.username,
                   name: reply.author.name,
                   avatar: reply.author.avatar,
+                  email: reply.author.email,
                 },
                 likesCount: reply.likes.length,
                 isLikedByViewer: currentUserEmail
                   ? reply.likes.some(
                       (like) => like.authorEmail === currentUserEmail,
                     )
+                  : false,
+                isOwned: currentUserEmail
+                  ? reply.author.email === currentUserEmail
                   : false,
               })),
             }}

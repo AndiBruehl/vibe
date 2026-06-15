@@ -5,6 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MessageCircle, MoveLeft } from "lucide-react";
 import img1 from "../profile/default.jpg";
+import MessagesToast from "./MessagesToast";
 
 export default async function MessagesPage() {
   const session = await auth();
@@ -52,6 +53,16 @@ export default async function MessagesPage() {
           createdAt: "desc",
         },
         take: 1,
+        include: {
+          sender: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              avatar: true,
+            },
+          },
+        },
       },
     },
     orderBy: {
@@ -61,6 +72,7 @@ export default async function MessagesPage() {
 
   return (
     <main className="mx-auto w-full max-w-3xl pb-24 md:pb-8">
+      <MessagesToast />
       <section className="flex items-center justify-between">
         <Link
           href="/home"

@@ -5,11 +5,13 @@ import Image from "next/image";
 import Link from "next/link";
 import CommentLikeButton from "./CommentLikeButton";
 import ReplyForm from "./ReplyForm";
+import { deleteComment, editComment } from "@/actions";
 
 type Author = {
   username: string | null;
   name: string | null;
   avatar: string | null;
+  email?: string | null;
 };
 
 type Reply = {
@@ -28,6 +30,7 @@ type CommentData = {
   author: Author;
   likesCount: number;
   isLikedByViewer: boolean;
+  isOwned?: boolean;
   replies: Reply[];
 };
 
@@ -43,6 +46,7 @@ export default function CommentItem({
   isReply = false,
 }: CommentItemProps) {
   const [showReplyForm, setShowReplyForm] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   const profileHref = comment.author.username
     ? `/profile/${comment.author.username}`
@@ -122,11 +126,44 @@ export default function CommentItem({
               </span>
             </div>
 
-            <p className="mt-2 text-sm text-gray-700 dark:text-gray-200">
-              {comment.text}
-            </p>
+            {!isEditing ? (
+              <p className="mt-2 text-sm text-gray-700 dark:text-gray-200">
+                {comment.text}
+              </p>
+            ) : null}
 
-            <div className="mt-3 flex items-center gap-4">
+            {isEditing ? (
+              <form action={editComment} className="mt-3 space-y-3">
+                <input type="hidden" name="commentId" value={comment.id} />
+                <input type="hidden" name="postId" value={postId} />
+
+                <textarea
+                  name="text"
+                  defaultValue={comment.text}
+                  rows={3}
+                  className="w-full resize-none rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-slate-500 dark:border-gray-600 dark:bg-gray-900 dark:text-white"
+                  required
+                />
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="submit"
+                    className="rounded-xl bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 dark:bg-white dark:text-black dark:hover:bg-slate-200"
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing(false)}
+                    className="rounded-xl border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            ) : null}
+
+            <div className="mt-3 flex flex-wrap items-center gap-3">
               <CommentLikeButton
                 commentId={comment.id}
                 postId={postId}
@@ -134,7 +171,7 @@ export default function CommentItem({
                 initialLikes={comment.likesCount}
               />
 
-              {!isReply ? (
+              {!isReply && !isEditing ? (
                 <button
                   type="button"
                   onClick={() => setShowReplyForm((prev) => !prev)}
@@ -142,6 +179,28 @@ export default function CommentItem({
                 >
                   {showReplyForm ? "Cancel" : "Reply"}
                 </button>
+              ) : null}
+
+              {comment.isOwned && !isEditing ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing(true)}
+                    className="text-xs font-medium text-gray-500 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                  >
+                    Edit
+                  </button>
+                  <form action={deleteComment} className="m-0">
+                    <input type="hidden" name="commentId" value={comment.id} />
+                    <input type="hidden" name="postId" value={postId} />
+                    <button
+                      type="submit"
+                      className="text-xs font-medium text-red-600 transition hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                    >
+                      Delete
+                    </button>
+                  </form>
+                </>
               ) : null}
             </div>
 
