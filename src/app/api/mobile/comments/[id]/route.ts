@@ -28,7 +28,10 @@ export async function PATCH(request: NextRequest, { params }: Props) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const updated = await prisma.comment.update({ where: { id }, data: { text } });
+  const updated = await prisma.comment.update({
+    where: { id },
+    data: { text },
+  });
   return NextResponse.json(updated);
 }
 
@@ -50,7 +53,9 @@ export async function DELETE(_request: NextRequest, { params }: Props) {
   }
 
   // delete the comment and its direct replies
-  await prisma.comment.deleteMany({ where: { OR: [{ id }, { parentCommentId: id }] } });
+  await prisma.comment.deleteMany({
+    where: { OR: [{ id }, { parentCommentId: id }] },
+  });
 
   return NextResponse.json({ ok: true });
 }

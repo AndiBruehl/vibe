@@ -12,7 +12,10 @@ function isObjectId(value: string) {
   return /^[a-f\d]{24}$/i.test(value);
 }
 
-export async function GET(_request: NextRequest, { params }: MobilePostRouteProps) {
+export async function GET(
+  _request: NextRequest,
+  { params }: MobilePostRouteProps,
+) {
   const { id } = await params;
 
   if (!isObjectId(id)) {
@@ -41,7 +44,10 @@ export async function GET(_request: NextRequest, { params }: MobilePostRouteProp
   return NextResponse.json(post);
 }
 
-export async function PATCH(request: NextRequest, { params }: MobilePostRouteProps) {
+export async function PATCH(
+  request: NextRequest,
+  { params }: MobilePostRouteProps,
+) {
   const { id } = await params;
   const session = await auth();
 
@@ -65,7 +71,10 @@ export async function PATCH(request: NextRequest, { params }: MobilePostRoutePro
   return NextResponse.json(updated);
 }
 
-export async function DELETE(_request: NextRequest, { params }: MobilePostRouteProps) {
+export async function DELETE(
+  _request: NextRequest,
+  { params }: MobilePostRouteProps,
+) {
   const { id } = await params;
   const session = await auth();
 
@@ -88,4 +97,3 @@ export async function DELETE(_request: NextRequest, { params }: MobilePostRouteP
 
   return NextResponse.json({ ok: true });
 }
-
