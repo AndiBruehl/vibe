@@ -739,7 +739,7 @@ export async function startConversation(formData: FormData): Promise<void> {
     update: {},
     create: {
       directKey,
-      isGroup: false,
+      // isGroup: false,
       participants: {
         create: [
           {
