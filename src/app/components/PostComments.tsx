@@ -15,7 +15,11 @@ export default async function PostComments({ postId }: PostCommentsProps) {
       postId,
       parentCommentId: null,
     },
-    include: {
+    select: {
+      id: true,
+      text: true,
+      createdAt: true,
+      authorEmail: true,
       author: {
         select: {
           username: true,
@@ -29,7 +33,11 @@ export default async function PostComments({ postId }: PostCommentsProps) {
         },
       },
       replies: {
-        include: {
+        select: {
+          id: true,
+          text: true,
+          createdAt: true,
+          authorEmail: true,
           author: {
             select: {
               username: true,
@@ -76,8 +84,12 @@ export default async function PostComments({ postId }: PostCommentsProps) {
               likesCount: comment.likes.length,
               isLikedByViewer: currentUserEmail
                 ? comment.likes.some(
-                    (like) => like.authorEmail === currentUserEmail,
+                    (like: { authorEmail: string }) =>
+                      like.authorEmail === currentUserEmail,
                   )
+                : false,
+              isOwned: currentUserEmail
+                ? comment.authorEmail === currentUserEmail
                 : false,
               replies: comment.replies.map((reply) => ({
                 id: reply.id,
@@ -91,8 +103,12 @@ export default async function PostComments({ postId }: PostCommentsProps) {
                 likesCount: reply.likes.length,
                 isLikedByViewer: currentUserEmail
                   ? reply.likes.some(
-                      (like) => like.authorEmail === currentUserEmail,
+                      (like: { authorEmail: string }) =>
+                        like.authorEmail === currentUserEmail,
                     )
+                  : false,
+                isOwned: currentUserEmail
+                  ? reply.authorEmail === currentUserEmail
                   : false,
               })),
             }}

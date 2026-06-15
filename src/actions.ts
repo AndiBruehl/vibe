@@ -77,6 +77,119 @@ export async function postEntry(formData: FormData) {
   redirect(`/posts/${postDoc.id}`);
 }
 
+export async function editPost(formData: FormData): Promise<void> {
+  const session = await auth();
+
+  if (!session?.user?.email) {
+    redirect("/");
+  }
+
+  const postIdValue = formData.get("postId");
+  const imageValue = formData.get("image");
+  const descriptionValue = formData.get("description");
+
+  if (typeof postIdValue !== "string" || !postIdValue) {
+    throw new Error("Post ID is missing.");
+  }
+
+  if (imageValue !== null && typeof imageValue !== "string") {
+    throw new Error("Invalid image value.");
+  }
+
+  if (descriptionValue !== null && typeof descriptionValue !== "string") {
+    throw new Error("Invalid description value.");
+  }
+
+  const cleanedImage =
+    typeof imageValue === "string" ? imageValue.trim() : undefined;
+  const cleanedDescription =
+    typeof descriptionValue === "string" ? descriptionValue.trim() : undefined;
+
+  if (cleanedImage === undefined && cleanedDescription === undefined) {
+    throw new Error("Nothing to update.");
+  }
+
+  if (cleanedImage !== undefined && !cleanedImage) {
+    throw new Error("Image cannot be empty.");
+  }
+
+  const post = await prisma.post.findUnique({
+    where: { id: postIdValue },
+    select: { id: true, authorEmail: true },
+  });
+
+  if (!post) {
+    throw new Error("Post not found.");
+  }
+
+  if (post.authorEmail !== session.user.email) {
+    throw new Error("You are not authorized to edit this post.");
+  }
+
+  await prisma.post.update({
+    where: { id: postIdValue },
+    data: {
+      ...(cleanedImage !== undefined ? { image: cleanedImage } : {}),
+      ...(cleanedDescription !== undefined
+        ? { description: cleanedDescription }
+        : {}),
+    },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/profile");
+  revalidatePath(`/posts/${postIdValue}`);
+
+  redirect(`/posts/${postIdValue}`);
+}
+
+export async function deletePost(formData: FormData): Promise<void> {
+  const session = await auth();
+
+  if (!session?.user?.email) {
+    redirect("/");
+  }
+
+  const postIdValue = formData.get("postId");
+
+  if (typeof postIdValue !== "string" || !postIdValue) {
+    throw new Error("Post ID is missing.");
+  }
+
+  const post = await prisma.post.findUnique({
+    where: { id: postIdValue },
+    select: { id: true, authorEmail: true },
+  });
+
+  if (!post) {
+    throw new Error("Post not found.");
+  }
+
+  if (post.authorEmail !== session.user.email) {
+    throw new Error("You are not authorized to delete this post.");
+  }
+
+  const commentIds = await prisma.comment.findMany({
+    where: { postId: postIdValue },
+    select: { id: true },
+  });
+
+  await prisma.$transaction([
+    prisma.commentLike.deleteMany({
+      where: { commentId: { in: commentIds.map((comment) => comment.id) } },
+    }),
+    prisma.comment.deleteMany({ where: { postId: postIdValue } }),
+    prisma.postLike.deleteMany({ where: { postId: postIdValue } }),
+    prisma.postBookmark.deleteMany({ where: { postId: postIdValue } }),
+    prisma.post.delete({ where: { id: postIdValue } }),
+  ]);
+
+  revalidatePath("/");
+  revalidatePath("/profile");
+
+  redirect("/");
+}
+
 export async function togglePostLike(formData: FormData): Promise<void> {
   const session = await auth();
 
@@ -248,6 +361,112 @@ export async function postReply(formData: FormData): Promise<void> {
   });
 
   revalidatePath(`/posts/${postIdValue}`);
+}
+
+export async function editComment(formData: FormData): Promise<void> {
+  const session = await auth();
+
+  if (!session?.user?.email) {
+    redirect("/");
+  }
+
+  const commentIdValue = formData.get("commentId");
+  const postIdValue = formData.get("postId");
+  const textValue = formData.get("text");
+
+  if (typeof commentIdValue !== "string" || !commentIdValue) {
+    throw new Error("Comment ID is missing.");
+  }
+
+  if (typeof postIdValue !== "string" || !postIdValue) {
+    throw new Error("Post ID is missing.");
+  }
+
+  if (typeof textValue !== "string") {
+    throw new Error("Comment text is missing.");
+  }
+
+  const text = textValue.trim();
+
+  if (!text) {
+    throw new Error("Comment cannot be empty.");
+  }
+
+  const comment = await prisma.comment.findUnique({
+    where: { id: commentIdValue },
+    select: { id: true, authorEmail: true, postId: true },
+  });
+
+  if (!comment) {
+    throw new Error("Comment not found.");
+  }
+
+  if (comment.authorEmail !== session.user.email) {
+    throw new Error("You are not authorized to edit this comment.");
+  }
+
+  if (comment.postId !== postIdValue) {
+    throw new Error("Comment does not belong to this post.");
+  }
+
+  await prisma.comment.update({
+    where: { id: commentIdValue },
+    data: { text },
+  });
+
+  revalidatePath(`/posts/${postIdValue}`);
+  redirect(`/posts/${postIdValue}`);
+}
+
+export async function deleteComment(formData: FormData): Promise<void> {
+  const session = await auth();
+
+  if (!session?.user?.email) {
+    redirect("/");
+  }
+
+  const commentIdValue = formData.get("commentId");
+  const postIdValue = formData.get("postId");
+
+  if (typeof commentIdValue !== "string" || !commentIdValue) {
+    throw new Error("Comment ID is missing.");
+  }
+
+  if (typeof postIdValue !== "string" || !postIdValue) {
+    throw new Error("Post ID is missing.");
+  }
+
+  const comment = await prisma.comment.findUnique({
+    where: { id: commentIdValue },
+    select: { id: true, authorEmail: true, postId: true },
+  });
+
+  if (!comment) {
+    throw new Error("Comment not found.");
+  }
+
+  if (comment.authorEmail !== session.user.email) {
+    throw new Error("You are not authorized to delete this comment.");
+  }
+
+  if (comment.postId !== postIdValue) {
+    throw new Error("Comment does not belong to this post.");
+  }
+
+  await prisma.$transaction([
+    prisma.commentLike.deleteMany({
+      where: { commentId: commentIdValue },
+    }),
+    prisma.comment.deleteMany({
+      where: { parentCommentId: commentIdValue },
+    }),
+    prisma.comment.delete({
+      where: { id: commentIdValue },
+    }),
+  ]);
+
+  revalidatePath(`/posts/${postIdValue}`);
+  redirect(`/posts/${postIdValue}`);
 }
 
 export async function likeComment(formData: FormData): Promise<void> {
