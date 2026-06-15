@@ -52,8 +52,8 @@ export default function ConversationListItem({
         } ring-offset-white dark:ring-offset-gray-800`}
       >
         <Image
-          src={otherProfile?.avatar || img1.src}
-          alt={otherProfile?.name || "User avatar"}
+          src={conversation.isGroup ? img1.src : otherProfile?.avatar || img1.src}
+          alt={conversation.isGroup ? `${conversation.name || "Group"} avatar` : otherProfile?.name || "User avatar"}
           fill
           className="object-cover"
           unoptimized
@@ -67,7 +67,9 @@ export default function ConversationListItem({
               isUnread ? "font-bold" : "font-semibold"
             }`}
           >
-            {otherProfile?.username ? (
+            {conversation.isGroup ? (
+              conversation.name || "Group"
+            ) : otherProfile?.username ? (
               <Link
                 href={`/profile/${otherProfile.username}`}
                 onClick={(e) => e.stopPropagation()}
