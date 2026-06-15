@@ -59,7 +59,11 @@ export default function ConversationListItem({
       >
         <Image
           src={isGroup ? img1.src : otherProfile?.avatar || img1.src}
-          alt={isGroup ? `${conversation.name || "Group"} avatar` : otherProfile?.name || "User avatar"}
+          alt={
+            isGroup
+              ? `${conversation.name || "Group"} avatar`
+              : otherProfile?.name || "User avatar"
+          }
           fill
           className="object-cover"
           unoptimized
@@ -74,9 +78,19 @@ export default function ConversationListItem({
             }`}
           >
             {isGroup ? (
-              conversation.name || conversation.participants.map((p: any) => p.profile?.name || p.profile?.username || "Unknown user").slice(0, 3).join(", ")
+              conversation.name ||
+              conversation.participants
+                .map(
+                  (p: any) =>
+                    p.profile?.name || p.profile?.username || "Unknown user",
+                )
+                .slice(0, 3)
+                .join(", ")
             ) : otherProfile?.username ? (
-              <Link href={`/profile/${otherProfile.username}`} className="no-underline hover:underline">
+              <Link
+                href={`/profile/${otherProfile.username}`}
+                className="no-underline hover:underline"
+              >
                 {otherProfile?.name || otherProfile?.username}
               </Link>
             ) : (
