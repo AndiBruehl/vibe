@@ -9,11 +9,13 @@ export async function POST(req: Request) {
 
   const form = await req.formData();
   const name = (form.get("name") as string) || "";
-  const participantUsernames = (form.get("participantUsernames") as string) || "";
+  const participantUsernames =
+    (form.get("participantUsernames") as string) || "";
   const initialMessage = (form.get("initialMessage") as string) || "";
 
   if (!name.trim()) return new Response("Group name required", { status: 400 });
-  if (!participantUsernames.trim()) return new Response("Participants required", { status: 400 });
+  if (!participantUsernames.trim())
+    return new Response("Participants required", { status: 400 });
 
   const rawUsernames = participantUsernames
     .split(",")
@@ -24,23 +26,30 @@ export async function POST(req: Request) {
     where: { email: userEmail },
     select: { id: true, username: true },
   });
-  if (!currentUserProfile) return new Response("Profile not found", { status: 404 });
+  if (!currentUserProfile)
+    return new Response("Profile not found", { status: 404 });
 
   const participantUsernamesFiltered = Array.from(new Set(rawUsernames)).filter(
     (u) => u !== currentUserProfile.username && u !== userEmail,
   );
 
   if (participantUsernamesFiltered.length < 1) {
-    return new Response("A group chat needs at least one other participant.", { status: 400 });
+    return new Response("A group chat needs at least one other participant.", {
+      status: 400,
+    });
   }
 
   const participants = await prisma.profile.findMany({
-    where: { username: { in: participantUsernamesFiltered, mode: "insensitive" } },
+    where: {
+      username: { in: participantUsernamesFiltered, mode: "insensitive" },
+    },
     select: { id: true },
   });
 
   if (participants.length !== participantUsernamesFiltered.length) {
-    return new Response("One or more usernames could not be found", { status: 400 });
+    return new Response("One or more usernames could not be found", {
+      status: 400,
+    });
   }
 
   const conversation = await prisma.conversation.create({
