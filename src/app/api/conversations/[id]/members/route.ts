@@ -40,6 +40,15 @@ export async function POST(req: Request, context: any) {
     where: { username: { in: filtered, mode: "insensitive" } },
     select: { id: true, username: true, name: true, avatar: true },
   });
+  // exclude users already in the conversation
+  const existingParts = await prisma.conversationParticipant.findMany({
+    where: { conversationId: id },
+    select: { profileId: true },
+  });
+  const existingIds = new Set(existingParts.map((p) => p.profileId));
+  const toAdd = profiles.filter((p) => !existingIds.has(p.id));
+  if (!toAdd.length)
+    return new Response("All provided users are already members", { status: 400 });
   const foundUsernames = profiles
     .map((p) => p.username?.toLowerCase())
     .filter(Boolean as any);
@@ -51,17 +60,19 @@ export async function POST(req: Request, context: any) {
       status: 400,
     });
 
-  // add participants
+  // add participants (only those not already present)
   await prisma.conversation.update({
     where: { id },
     data: {
-      participants: { create: profiles.map((p) => ({ profileId: p.id })) },
+      participants: { create: toAdd.map((p) => ({ profileId: p.id })) },
     },
   });
+  // revalidate both conversation and group pages
   revalidatePath(`/messages/${id}`);
+  revalidatePath(`/messages/group/${id}`);
   revalidatePath("/messages");
 
-  return new Response(JSON.stringify(profiles), {
+  return new Response(JSON.stringify(toAdd), {
     headers: { "content-type": "application/json" },
   });
 }

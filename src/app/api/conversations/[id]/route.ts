@@ -31,7 +31,9 @@ export async function DELETE(req: Request, context: any) {
     prisma.conversation.delete({ where: { id } }),
   ]);
 
+  // revalidate messages index and group page
   revalidatePath("/messages");
+  revalidatePath(`/messages/group/${id}`);
 
   return new Response(JSON.stringify({ ok: true }), {
     headers: { "content-type": "application/json" },

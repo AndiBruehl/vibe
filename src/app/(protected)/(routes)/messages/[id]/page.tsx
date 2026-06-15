@@ -8,7 +8,6 @@ import { MoveLeft, Send } from "lucide-react";
 import img1 from "../../profile/default.jpg";
 import ConversationLiveRefresh from "@/app/components/ConversationLiveRefresh";
 import ConversationAutoScroll from "@/app/components/ConversationAutoScroll";
-import GroupSettings from "@/app/(protected)/(routes)/messages/GroupSettings";
 
 type ConversationPageProps = {
   params: Promise<{
@@ -100,6 +99,12 @@ export default async function ConversationPage({
   const currentParticipant = conversation.participants.find(
     (participant) => participant.profileId === currentUserProfile.id,
   );
+  // derive a fallback display name/username from messages if participant profile is missing
+  const fallbackOtherFromMessages = conversation.messages.find(
+    (m) => m.senderId !== currentUserProfile.id && (m.sender?.name || m.sender?.username),
+  )?.sender;
+  const fallbackOtherName =
+    fallbackOtherFromMessages?.name || fallbackOtherFromMessages?.username || null;
   const conversationTitle = conversation.isGroup
     ? conversation.name ||
       otherParticipants
@@ -111,11 +116,14 @@ export default async function ConversationPage({
         )
         .slice(0, 3)
         .join(", ")
-    : otherProfile?.name || otherProfile?.username || "Unknown user";
+    :
+      // for direct conversations prefer profile name/username, fallback to message sender info
+      otherProfile?.name || otherProfile?.username || fallbackOtherName || "Unknown user";
+
   const conversationSubtitle = conversation.isGroup
     ? `${conversation.participants.length} members`
-    : otherProfile?.username
-      ? `@${otherProfile.username}`
+    : (otherProfile?.username || fallbackOtherFromMessages?.username)
+      ? `@${otherProfile?.username || fallbackOtherFromMessages?.username}`
       : "";
   const hasUnreadMessages = conversation.messages.some(
     (message) =>
