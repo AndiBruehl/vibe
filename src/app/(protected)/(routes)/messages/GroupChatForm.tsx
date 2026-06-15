@@ -23,14 +23,18 @@ export default function GroupChatForm({ action }: GroupChatFormProps) {
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     const form = event.currentTarget;
-    const groupName = (form.elements.namedItem("name") as HTMLInputElement | null)
-      ?.value.trim();
-    const participantUsernames = (
-      form.elements.namedItem("participantUsernames") as HTMLInputElement | null
-    )?.value
-      .split(",")
-      .map((username) => username.trim())
-      .filter(Boolean) ?? [];
+    const groupName = (
+      form.elements.namedItem("name") as HTMLInputElement | null
+    )?.value.trim();
+    const participantUsernames =
+      (
+        form.elements.namedItem(
+          "participantUsernames",
+        ) as HTMLInputElement | null
+      )?.value
+        .split(",")
+        .map((username) => username.trim())
+        .filter(Boolean) ?? [];
 
     if (!groupName) {
       event.preventDefault();
