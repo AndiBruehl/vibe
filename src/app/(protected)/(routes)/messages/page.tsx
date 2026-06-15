@@ -1,7 +1,5 @@
 import { auth } from "@/auth";
 import { prisma } from "@/db";
-import { createGroupConversation } from "@/actions";
-import GroupChatForm from "./GroupChatForm";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -81,8 +79,6 @@ export default async function MessagesPage() {
         <div className="w-24" />
       </section>
 
-      <GroupChatForm action={createGroupConversation} />
-
       <section className="mt-6 overflow-hidden rounded-2xl bg-white shadow-md shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
         {conversations.length === 0 ? (
           <div className="flex flex-col items-center gap-3 px-6 py-12 text-center">
@@ -108,29 +104,6 @@ export default async function MessagesPage() {
                   participant.profileId === currentUserProfile.id,
               );
               const otherProfile = otherParticipant?.profile;
-              const otherParticipants = conversation.participants.filter(
-                (participant) =>
-                  participant.profileId !== currentUserProfile.id,
-              );
-              const conversationTitle = conversation.isGroup
-                ? conversation.name ||
-                  otherParticipants
-                    .map(
-                      (participant) =>
-                        participant.profile?.name ||
-                        participant.profile?.username ||
-                        "Unknown user",
-                    )
-                    .slice(0, 2)
-                    .join(", ")
-                : otherProfile?.name ||
-                  otherProfile?.username ||
-                  "Unknown user";
-              const conversationSubtitle = conversation.isGroup
-                ? `${otherParticipants.length + 1} members`
-                : otherProfile?.username
-                  ? `@${otherProfile.username}`
-                  : "";
               const latestMessage = conversation.messages[0];
               const isUnread =
                 latestMessage &&
@@ -169,7 +142,9 @@ export default async function MessagesPage() {
                           isUnread ? "font-bold" : "font-semibold"
                         }`}
                       >
-                        {conversationTitle}
+                        {otherProfile?.name ||
+                          otherProfile?.username ||
+                          "Unknown user"}
                       </p>
                       <div className="flex shrink-0 items-center gap-2">
                         {isUnread ? (
@@ -186,9 +161,6 @@ export default async function MessagesPage() {
                         </span>
                       </div>
                     </div>
-                    <p className="truncate text-sm text-slate-500 dark:text-slate-400">
-                      {conversationSubtitle}
-                    </p>
                     <p
                       className={`truncate text-sm ${
                         isUnread

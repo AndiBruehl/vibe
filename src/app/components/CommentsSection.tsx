@@ -81,7 +81,6 @@ export default async function CommentsSection({
                     )
                   : false,
                 likesCount: comment.likes.length,
-                isOwned: viewerEmail === comment.authorEmail,
                 replies: comment.replies.map((reply) => ({
                   ...reply,
                   isLikedByViewer: viewerEmail
@@ -90,7 +89,6 @@ export default async function CommentsSection({
                       )
                     : false,
                   likesCount: reply.likes.length,
-                  isOwned: viewerEmail === reply.authorEmail,
                 })),
               }}
               postId={postId}

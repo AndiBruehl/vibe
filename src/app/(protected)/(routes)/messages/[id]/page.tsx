@@ -91,46 +91,13 @@ export default async function ConversationPage({
     notFound();
   }
 
-  const otherParticipants = conversation.participants.filter(
+  const otherParticipant = conversation.participants.find(
     (participant) => participant.profileId !== currentUserProfile.id,
   );
-  const otherParticipant = otherParticipants[0];
   const otherProfile = otherParticipant?.profile;
   const currentParticipant = conversation.participants.find(
     (participant) => participant.profileId === currentUserProfile.id,
   );
-  // derive a fallback display name/username from messages if participant profile is missing
-  const fallbackOtherFromMessages = conversation.messages.find(
-    (m) =>
-      m.senderId !== currentUserProfile.id &&
-      (m.sender?.name || m.sender?.username),
-  )?.sender;
-  const fallbackOtherName =
-    fallbackOtherFromMessages?.name ||
-    fallbackOtherFromMessages?.username ||
-    null;
-  const conversationTitle = conversation.isGroup
-    ? conversation.name ||
-      otherParticipants
-        .map(
-          (participant) =>
-            participant.profile?.name ||
-            participant.profile?.username ||
-            "Unknown user",
-        )
-        .slice(0, 3)
-        .join(", ")
-    : // for direct conversations prefer profile name/username, fallback to message sender info
-      otherProfile?.name ||
-      otherProfile?.username ||
-      fallbackOtherName ||
-      "Unknown user";
-
-  const conversationSubtitle = conversation.isGroup
-    ? `${conversation.participants.length} members`
-    : otherProfile?.username || fallbackOtherFromMessages?.username
-      ? `@${otherProfile?.username || fallbackOtherFromMessages?.username}`
-      : "";
   const hasUnreadMessages = conversation.messages.some(
     (message) =>
       message.senderId !== currentUserProfile.id &&
@@ -177,35 +144,24 @@ export default async function ConversationPage({
           <div className="relative size-10 shrink-0 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
             <Image
               src={otherProfile?.avatar || img1.src}
-              alt={conversationTitle || "Conversation avatar"}
+              alt={otherProfile?.name || "User avatar"}
               fill
               className="object-cover"
               unoptimized
             />
           </div>
           <div className="min-w-0 text-right">
-            {conversation.isGroup ? (
-              <Link
-                href={`/messages/group/${conversation.id}`}
-                className="truncate font-semibold text-slate-800 dark:text-slate-100 no-underline hover:underline"
-              >
-                {conversationTitle}
-              </Link>
-            ) : (
-              <p className="truncate font-semibold text-slate-800 dark:text-slate-100">
-                {conversationTitle}
-              </p>
-            )}
-            {conversationSubtitle ? (
+            <p className="truncate font-semibold text-slate-800 dark:text-slate-100">
+              {otherProfile?.name || otherProfile?.username || "Unknown user"}
+            </p>
+            {otherProfile?.username ? (
               <p className="truncate text-sm text-slate-500 dark:text-slate-400">
-                {conversationSubtitle}
+                @{otherProfile.username}
               </p>
             ) : null}
           </div>
         </div>
       </section>
-
-      {/* Group settings moved to a dedicated page to avoid clutter for large groups. */}
 
       <section className="flex-1 space-y-3 overflow-y-auto py-6">
         {conversation.messages.length === 0 ? (

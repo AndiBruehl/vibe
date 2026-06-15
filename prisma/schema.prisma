@@ -30,9 +30,7 @@ model Profile {
 
 model Conversation {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  directKey String?  @unique
-  name      String?
-  isGroup   Boolean  @default(false)
+  directKey String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

@@ -6,18 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "desktop": "npm --prefix electron-app start",
-    "desktop:install": "npm --prefix electron-app install",
-    "desktop:build": "npm --prefix electron-app run build",
-    "desktop:build:win": "npm --prefix electron-app run build:win",
-    "desktop:build:linux": "npm --prefix electron-app run build:linux",
-    "desktop:build:mac": "npm --prefix electron-app run build:mac"
+    "lint": "eslint"
   },
   "dependencies": {
     "@prisma/client": "^6.19.2",
     "@radix-ui/themes": "^3.3.0",
-    "google-auth-library": "^10.7.0",
     "lucide-react": "^0.577.0",
     "monorepo": "github:radix-ui/themes",
     "next": "16.1.6",

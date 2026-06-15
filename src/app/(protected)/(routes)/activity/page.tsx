@@ -28,209 +28,150 @@ function formatActivityDate(date: Date) {
 
 function ActivityIcon({ type }: { type: ActivityItem["type"] }) {
   const className = "size-4";
-
-  if (type === "follow") {
-    return <UserPlus className={className} />;
-  }
-
-  if (type === "like") {
-    return <Heart className={className} />;
-  }
-
-  if (type === "message") {
-    return <MessageCircle className={className} />;
-  }
-
+  if (type === "follow") return <UserPlus className={className} />;
+  if (type === "like") return <Heart className={className} />;
+  if (type === "message") return <MessageCircle className={className} />;
   return <Bell className={className} />;
 }
 
 export default async function ActivityPage() {
   const session = await auth();
-
-  if (!session?.user?.email) {
-    notFound();
-  }
+  if (!session?.user?.email) notFound();
 
   const currentUserProfile = await prisma.profile.findUnique({
-    where: {
-      email: session.user.email,
-    },
-    select: {
-      id: true,
-      email: true,
-    },
+    where: { email: session.user.email },
+    select: { id: true, email: true },
   });
 
-  if (!currentUserProfile) {
-    notFound();
-  }
+  if (!currentUserProfile) notFound();
 
   const [follows, postLikes, comments, conversations] = await Promise.all([
-    prisma.follow.findMany({
-      where: {
-        followingId: currentUserProfile.id,
-      },
-      include: {
-        follower: {
-          select: {
-            name: true,
-            username: true,
-            avatar: true,
+    // Safe Follows
+    prisma.follow
+      .findMany({
+        where: { followingId: currentUserProfile.id },
+        include: {
+          follower: {
+            select: { name: true, username: true, avatar: true },
           },
         },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      take: 15,
-    }),
-    prisma.postLike.findMany({
-      where: {
-        authorEmail: {
-          not: currentUserProfile.email,
+        orderBy: { createdAt: "desc" },
+        take: 15,
+      })
+      .catch(() => []), // fallback if error
+
+    // Safe Post Likes
+    prisma.postLike
+      .findMany({
+        where: {
+          authorEmail: { not: currentUserProfile.email },
+          post: { authorEmail: currentUserProfile.email },
         },
-        post: {
-          authorEmail: currentUserProfile.email,
+        include: {
+          author: { select: { name: true, username: true, avatar: true } },
+          post: { select: { id: true, image: true, description: true } },
         },
-      },
-      include: {
-        author: {
-          select: {
-            name: true,
-            username: true,
-            avatar: true,
-          },
+        orderBy: { createdAt: "desc" },
+        take: 15,
+      })
+      .catch(() => []),
+
+    // Safe Comments
+    prisma.comment
+      .findMany({
+        where: {
+          authorEmail: { not: currentUserProfile.email },
+          post: { authorEmail: currentUserProfile.email },
         },
-        post: {
-          select: {
-            id: true,
-            image: true,
-            description: true,
-          },
+        include: {
+          author: { select: { name: true, username: true, avatar: true } },
+          post: { select: { id: true, image: true, description: true } },
         },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      take: 15,
-    }),
-    prisma.comment.findMany({
-      where: {
-        authorEmail: {
-          not: currentUserProfile.email,
+        orderBy: { createdAt: "desc" },
+        take: 15,
+      })
+      .catch(() => []),
+
+    // Safe Conversations
+    prisma.conversation
+      .findMany({
+        where: {
+          participants: { some: { profileId: currentUserProfile.id } },
         },
-        post: {
-          authorEmail: currentUserProfile.email,
-        },
-      },
-      include: {
-        author: {
-          select: {
-            name: true,
-            username: true,
-            avatar: true,
-          },
-        },
-        post: {
-          select: {
-            id: true,
-            image: true,
-            description: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      take: 15,
-    }),
-    prisma.conversation.findMany({
-      where: {
-        participants: {
-          some: {
-            profileId: currentUserProfile.id,
-          },
-        },
-      },
-      include: {
-        participants: {
-          include: {
-            profile: {
-              select: {
-                id: true,
-                name: true,
-                username: true,
-                avatar: true,
+        include: {
+          participants: {
+            include: {
+              profile: {
+                select: { id: true, name: true, username: true, avatar: true },
               },
             },
           },
-        },
-        messages: {
-          where: {
-            senderId: {
-              not: currentUserProfile.id,
+          messages: {
+            where: { senderId: { not: currentUserProfile.id } },
+            include: {
+              sender: { select: { name: true, username: true, avatar: true } },
             },
+            orderBy: { createdAt: "desc" },
+            take: 1,
           },
-          include: {
-            sender: {
-              select: {
-                name: true,
-                username: true,
-                avatar: true,
-              },
-            },
-          },
-          orderBy: {
-            createdAt: "desc",
-          },
-          take: 1,
         },
-      },
-      orderBy: {
-        updatedAt: "desc",
-      },
-      take: 15,
-    }),
+        orderBy: { updatedAt: "desc" },
+        take: 15,
+      })
+      .catch(() => []),
   ]);
 
   const items: ActivityItem[] = [
-    ...follows.map((follow) => ({
-      id: `follow-${follow.id}`,
-      type: "follow" as const,
-      title: `${follow.follower.name || follow.follower.username || "Someone"} followed you`,
-      body: follow.follower.username ? `@${follow.follower.username}` : "",
-      href: follow.follower.username
-        ? `/profile/${follow.follower.username}`
-        : "/profile",
-      createdAt: follow.createdAt,
-      avatar: follow.follower.avatar,
-    })),
-    ...postLikes.map((like) => ({
-      id: `like-${like.id}`,
-      type: "like" as const,
-      title: `${like.author.name || like.author.username || "Someone"} liked your post`,
-      body: like.post.description || "View post",
-      href: `/posts/${like.post.id}`,
-      createdAt: like.createdAt,
-      avatar: like.author.avatar,
-      image: like.post.image,
-    })),
-    ...comments.map((comment) => ({
-      id: `comment-${comment.id}`,
-      type: "comment" as const,
-      title: `${comment.author.name || comment.author.username || "Someone"} commented on your post`,
-      body: comment.text,
-      href: `/posts/${comment.post.id}`,
-      createdAt: comment.createdAt,
-      avatar: comment.author.avatar,
-      image: comment.post.image,
-    })),
+    // Safe Follows
+    ...follows
+      .filter((f) => f.follower) // ← Safety
+      .map((follow) => ({
+        id: `follow-${follow.id}`,
+        type: "follow" as const,
+        title: `${follow.follower.name || follow.follower.username || "Someone"} followed you`,
+        body: follow.follower.username ? `@${follow.follower.username}` : "",
+        href: follow.follower.username
+          ? `/profile/${follow.follower.username}`
+          : "/profile",
+        createdAt: follow.createdAt,
+        avatar: follow.follower.avatar,
+      })),
+
+    // Safe Likes
+    ...postLikes
+      .filter((l) => l.author)
+      .map((like) => ({
+        id: `like-${like.id}`,
+        type: "like" as const,
+        title: `${like.author.name || like.author.username || "Someone"} liked your post`,
+        body: like.post.description || "View post",
+        href: `/posts/${like.post.id}`,
+        createdAt: like.createdAt,
+        avatar: like.author.avatar,
+        image: like.post.image,
+      })),
+
+    // Safe Comments
+    ...comments
+      .filter((c) => c.author)
+      .map((comment) => ({
+        id: `comment-${comment.id}`,
+        type: "comment" as const,
+        title: `${comment.author.name || comment.author.username || "Someone"} commented on your post`,
+        body: comment.text,
+        href: `/posts/${comment.post.id}`,
+        createdAt: comment.createdAt,
+        avatar: comment.author.avatar,
+        image: comment.post.image,
+      })),
+
+    // Safe Messages
     ...conversations
-      .filter((conversation) => conversation.messages.length > 0)
+      .filter((conv) => conv.messages.length > 0)
       .map((conversation) => {
         const message = conversation.messages[0];
         const otherParticipant = conversation.participants.find(
-          (participant) => participant.profileId !== currentUserProfile.id,
+          (p) => p.profileId !== currentUserProfile.id,
         );
         const profile = message.sender || otherParticipant?.profile;
 
@@ -253,10 +194,10 @@ export default async function ActivityPage() {
       <section className="flex items-center justify-between">
         <Link
           href="/home"
-          className="group flex items-center gap-2 text-slate-800 no-underline visited:text-slate-800 hover:text-slate-600 dark:text-slate-200 dark:visited:text-slate-400 dark:hover:text-slate-500"
+          className="group flex items-center gap-2 text-slate-800 no-underline hover:text-slate-600 dark:text-slate-200 dark:hover:text-slate-500"
         >
           <MoveLeft />
-          <span className="opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+          <span className="opacity-0 transition-opacity group-hover:opacity-100">
             Back to Home
           </span>
         </Link>
@@ -264,14 +205,13 @@ export default async function ActivityPage() {
         <h1 className="text-lg font-bold text-slate-800 dark:text-slate-100">
           Activity
         </h1>
-
         <div className="w-24" />
       </section>
 
       <section className="mt-6 overflow-hidden rounded-2xl bg-white shadow-md shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
         {items.length === 0 ? (
           <div className="flex flex-col items-center gap-3 px-6 py-12 text-center">
-            <div className="flex size-12 items-center justify-center rounded-full bg-linear-to-tr from-(--ig-orange) to-(--ig-red) text-white">
+            <div className="flex size-12 items-center justify-center rounded-full bg-gradient-to-tr from-orange-500 to-red-500 text-white">
               <Bell size={24} />
             </div>
             <p className="font-semibold text-slate-800 dark:text-slate-100">
@@ -316,7 +256,7 @@ export default async function ActivityPage() {
                   </p>
                 </div>
 
-                {item.image ? (
+                {item.image && (
                   <div className="relative size-14 shrink-0 overflow-hidden rounded-md bg-slate-200 dark:bg-slate-700">
                     <Image
                       src={item.image}
@@ -326,7 +266,7 @@ export default async function ActivityPage() {
                       unoptimized
                     />
                   </div>
-                ) : null}
+                )}
               </Link>
             ))}
           </div>

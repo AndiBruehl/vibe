@@ -2,8 +2,6 @@
 
 # dependencies
 /node_modules
-electron-app/node_modules/
-electron-app/dist/
 /.pnp
 .pnp.*
 .yarn/*
