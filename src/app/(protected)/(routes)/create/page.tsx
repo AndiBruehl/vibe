@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { PinataSDK } from "pinata";
 
 import { postEntry } from "@/actions";
+import TopicPicker from "@/app/components/TopicPicker";
 
 const MAX_IMAGE_SIZE_BYTES = 25 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set([
@@ -83,9 +84,7 @@ export default function CreatePage() {
     }
 
     if (fileValue.size > MAX_IMAGE_SIZE_BYTES) {
-      setUploadError(
-        "Image is too large. Please upload an image under 25 MB.",
-      );
+      setUploadError("Image is too large. Please upload an image under 25 MB.");
       return;
     }
 
@@ -184,6 +183,7 @@ export default function CreatePage() {
               className="h-52"
               placeholder="Describe your image..."
             />
+            <TopicPicker />
             <Button
               type="submit"
               className="mt-2 w-full"

@@ -51,6 +51,7 @@ export async function postEntry(formData: FormData) {
 
   const image = formData.get("image");
   const description = formData.get("description");
+  const topicsValue = formData.get("topics");
 
   if (!image || typeof image !== "string") {
     throw new Error("Image is missing.");
@@ -69,6 +70,35 @@ export async function postEntry(formData: FormData) {
       description: typeof description === "string" ? description.trim() : "",
     },
   });
+
+  // handle topics (comma-separated slugs or names)
+  try {
+    if (typeof topicsValue === "string" && topicsValue.trim()) {
+      const raw = topicsValue
+        .split(",")
+        .map((t) => (t || "").trim())
+        .filter(Boolean);
+
+      for (const t of Array.from(new Set(raw)).slice(0, 10)) {
+        const normalized = t
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "");
+
+        const topic = await prisma.topic.upsert({
+          where: { slug: normalized },
+          update: {},
+          create: { name: t, slug: normalized },
+        });
+
+        await prisma.postTopic.create({
+          data: { postId: postDoc.id, topicId: topic.id },
+        });
+      }
+    }
+  } catch (err) {
+    console.error("postEntry: topic linking failed", err);
+  }
 
   revalidatePath("/");
   revalidatePath("/profile");

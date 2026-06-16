@@ -212,7 +212,7 @@ export default function GroupSettings({
         </ul>
       </div>
 
-      <div className="mb-3">
+      {/* <div className="mb-3">
         <label className="text-xs text-slate-500 dark:text-slate-400">
           Add member
         </label>
@@ -240,7 +240,7 @@ export default function GroupSettings({
             ))}
           </ul>
         )}
-      </div>
+      </div> */}
 
       <div className="flex justify-between">
         <button onClick={deleteGroup} className="text-sm text-red-600">
