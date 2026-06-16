@@ -84,7 +84,7 @@ export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
         ))}
       </div>
 
-      <div className="relative">
+      {/* <div className="relative">
         <input
           ref={inputRef}
           value={query}
@@ -115,7 +115,7 @@ export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
             ))}
           </ul>
         )}
-      </div>
+      </div> */}
 
       <input type="hidden" name="topics" value={selected.join(",")} />
     </div>
