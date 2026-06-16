@@ -133,7 +133,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
             Bookmarks
           </Link>
 
-          <Link
+          {/* <Link
             className={
               activeTab === "topics"
                 ? "font-bold underline text-(--ig-red)"
@@ -142,7 +142,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
             href="/profile?tab=topics"
           >
             Topics
-          </Link>
+          </Link> */}
         </div>
       </section>
 
