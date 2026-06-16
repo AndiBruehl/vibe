@@ -66,7 +66,7 @@ export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
 
   return (
     <div className="w-full">
-      <div className="flex flex-wrap gap-2 mb-2">
+      <div className="flex flex-wrap gap-2">
         {selected.map((t, i) => (
           <span
             key={t}
