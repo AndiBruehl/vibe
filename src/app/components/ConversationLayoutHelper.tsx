@@ -4,8 +4,12 @@ import { useEffect } from "react";
 
 export default function ConversationLayoutHelper() {
   useEffect(() => {
-    const messagesEl = document.querySelector<HTMLElement>(".conversation-messages");
-    const composerEl = document.querySelector<HTMLElement>(".conversation-composer");
+    const messagesEl = document.querySelector<HTMLElement>(
+      ".conversation-messages",
+    );
+    const composerEl = document.querySelector<HTMLElement>(
+      ".conversation-composer",
+    );
 
     if (!messagesEl || !composerEl) return;
 
@@ -39,7 +43,10 @@ export default function ConversationLayoutHelper() {
         }
 
         // fallback: scroll page to bottom
-        const docHeight = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
+        const docHeight = Math.max(
+          document.documentElement.scrollHeight,
+          document.body.scrollHeight,
+        );
         window.scrollTo({ top: docHeight, behavior: "smooth" });
         return false;
       };

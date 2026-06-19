@@ -24,7 +24,9 @@ export default function ConversationAutoScroll({
       while (parent) {
         const style = getComputedStyle(parent);
         const overflowY = style.overflowY;
-        const isScrollable = parent.scrollHeight > parent.clientHeight && (overflowY === "auto" || overflowY === "scroll");
+        const isScrollable =
+          parent.scrollHeight > parent.clientHeight &&
+          (overflowY === "auto" || overflowY === "scroll");
         if (isScrollable) {
           // Force the scroll to absolute bottom to avoid markers hidden by sticky footer
           parent.scrollTop = parent.scrollHeight - parent.clientHeight;

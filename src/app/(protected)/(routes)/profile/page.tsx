@@ -6,7 +6,7 @@ import { prisma } from "@/db";
 import ProfilePosts from "@/app/components/ProfilePosts";
 import BookmarkPosts from "@/app/components/BookmarkPosts";
 import HighlightsPosts from "@/app/components/HighlightsPosts";
-import ProfileTopics from "@/app/components/ProfileTopics";
+// ProfileTopics temporarily removed from profile page
 import { Suspense } from "react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
@@ -26,10 +26,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
 
   const { tab } = await searchParams;
 
-  const activeTab =
-    tab === "bookmarks" || tab === "highlights" || tab === "topics"
-      ? tab
-      : "posts";
+  const activeTab = tab === "bookmarks" || tab === "highlights" ? tab : "posts";
 
   const profile = await prisma.profile.upsert({
     where: {
@@ -133,16 +130,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
             Bookmarks
           </Link>
 
-          {/* <Link
-            className={
-              activeTab === "topics"
-                ? "font-bold underline text-(--ig-red)"
-                : "font-medium text-slate-700 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
-            }
-            href="/profile?tab=topics"
-          >
-            Topics
-          </Link> */}
+          {/* Topics tab removed temporarily */}
         </div>
       </section>
 
@@ -152,10 +140,8 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
             <ProfilePosts email={session.user.email} />
           ) : activeTab === "bookmarks" ? (
             <BookmarkPosts email={session.user.email} />
-          ) : activeTab === "highlights" ? (
-            <HighlightsPosts />
           ) : (
-            <ProfileTopics email={session.user.email} />
+            <HighlightsPosts />
           )}
         </Suspense>
       </section>

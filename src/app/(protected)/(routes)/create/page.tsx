@@ -7,7 +7,8 @@ import { useRouter } from "next/navigation";
 import { PinataSDK } from "pinata";
 
 import { postEntry } from "@/actions";
-import TopicPicker from "@/app/components/TopicPicker";
+// TopicPicker temporarily disabled
+// import TopicPicker from "@/app/components/TopicPicker";
 
 const MAX_IMAGE_SIZE_BYTES = 25 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set([
@@ -183,7 +184,7 @@ export default function CreatePage() {
               className="h-52"
               placeholder="Describe your image..."
             />
-            <TopicPicker />
+            {/* TopicPicker disabled temporarily */}
             <Button
               type="submit"
               className="mt-2 w-full"

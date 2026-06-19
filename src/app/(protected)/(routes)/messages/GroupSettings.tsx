@@ -83,22 +83,44 @@ export default function GroupSettings({
   };
 
   const addMember = async (username: string) => {
+    if (!username) {
+      setMessage("Invalid username");
+      return;
+    }
+
     try {
+      console.debug("GroupSettings.addMember -> sending", {
+        username,
+        conversationId,
+        url: `/api/conversations/${conversationId}/members`,
+      });
       const res = await fetch(`/api/conversations/${conversationId}/members`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ usernames: [username] }),
       });
       if (!res.ok) {
-        setMessage(await res.text());
+        const txt = await res.text();
+        console.debug("GroupSettings.addMember -> error response:", txt);
+        setMessage(txt || "Could not add member");
         return;
       }
       const added = await res.json();
-      setMembers((m) => [...m, ...added]);
+      console.debug("GroupSettings.addMember -> added:", added);
+      // merge added members (avoid duplicates)
+      setMembers((m) => {
+        const ids = new Set(m.map((x) => x.id));
+        const merged = [...m];
+        for (const a of added) {
+          if (!ids.has(a.id)) merged.push(a as Profile);
+        }
+        return merged;
+      });
       setSuggestions((s) => s.filter((x) => x.username !== username));
       setQuery("");
       setMessage("Member added");
     } catch (e) {
+      console.error("GroupSettings.addMember error", e);
       setMessage("Network error");
     }
   };
@@ -141,7 +163,9 @@ export default function GroupSettings({
   return (
     <section className="mt-4 rounded-2xl bg-white p-4 shadow-sm dark:bg-gray-800">
       {message ? (
-        <div className="mb-3 text-sm text-red-600 dark:text-red-400">
+        <div
+          className={`mb-3 text-sm ${/added/i.test(message) ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
+        >
           {message}
         </div>
       ) : null}
@@ -212,7 +236,7 @@ export default function GroupSettings({
         </ul>
       </div>
 
-      {/* <div className="mb-3">
+      <div className="mb-3">
         <label className="text-xs text-slate-500 dark:text-slate-400">
           Add member
         </label>
@@ -226,13 +250,21 @@ export default function GroupSettings({
           <div className="text-sm text-slate-500 mt-2">Searching…</div>
         ) : null}
         {suggestions.length > 0 && (
-          <ul className="mt-2 max-h-40 overflow-auto rounded border bg-white p-2 text-sm">
+          <ul className="mt-2 max-h-40 overflow-auto rounded border bg-white p-2 text-sm z-50">
             {suggestions.map((s) => (
               <li key={s.id}>
                 <button
                   type="button"
-                  onClick={() => addMember(s.username || "")}
-                  className="w-full text-left px-2 py-2 hover:bg-slate-50"
+                  // use onMouseDown to avoid input blur removing the suggestion
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    if (!s.username) {
+                      setMessage("Cannot add: username missing");
+                      return;
+                    }
+                    addMember(s.username);
+                  }}
+                  className="w-full text-left px-2 py-2 hover:bg-slate-50 text-slate-800"
                 >
                   {s.name || s.username}
                 </button>
@@ -240,7 +272,7 @@ export default function GroupSettings({
             ))}
           </ul>
         )}
-      </div> */}
+      </div>
 
       <div className="flex justify-between">
         <button onClick={deleteGroup} className="text-sm text-red-600">

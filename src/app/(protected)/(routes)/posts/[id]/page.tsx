@@ -10,6 +10,8 @@ import CommentForm from "@/app/components/CommentForm";
 import PostComments from "@/app/components/PostComments";
 import ExpandablePostImage from "@/app/components/ExpandablePostImage";
 import { deletePost, editPost } from "@/actions";
+// TopicPicker temporarily disabled
+// import TopicPicker from "@/app/components/TopicPicker";
 
 export default async function SinglePostPage({
   params,
@@ -50,6 +52,14 @@ export default async function SinglePostPage({
   if (!post) {
     notFound();
   }
+
+  // load topics for this post
+  const postWithTopics = await prisma.post.findUnique({
+    where: { id },
+    include: { topics: { include: { topic: true } } },
+  });
+
+  const topics = postWithTopics?.topics?.map((pt) => pt.topic) ?? [];
 
   const author = await prisma.profile.findUnique({
     where: { email: post.authorEmail },
@@ -112,6 +122,8 @@ export default async function SinglePostPage({
                   {post.description}
                 </p>
 
+                {/* topics disabled temporarily */}
+
                 {isOwner ? (
                   <section className="rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-sm shadow-gray-200/50 dark:border-gray-700 dark:bg-gray-900 dark:shadow-gray-950">
                     <div className="mb-4 flex items-center justify-between gap-3">
@@ -150,6 +162,8 @@ export default async function SinglePostPage({
                         rows={3}
                         className="w-full rounded-2xl border border-gray-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-black focus:ring-2 focus:ring-black/10 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-white dark:focus:ring-white/10"
                       />
+
+                      <div>{/* TopicPicker disabled temporarily */}</div>
 
                       <button
                         type="submit"

@@ -10,6 +10,7 @@ export default async function ProfilePosts({ email }: { email: string }) {
     orderBy: {
       createdAt: "desc",
     },
+    include: { topics: { include: { topic: true } } },
   });
 
   if (posts.length === 0) {
@@ -42,6 +43,8 @@ export default async function ProfilePosts({ email }: { email: string }) {
               <p className="line-clamp-2 text-sm text-gray-700 dark:text-gray-200">
                 {post.description || "No description"}
               </p>
+
+              {/* topics disabled temporarily */}
 
               <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                 <span>{post.likesCount} likes</span>

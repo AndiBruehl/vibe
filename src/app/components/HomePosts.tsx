@@ -40,6 +40,9 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
         { authorEmail: { in: followedEmails } },
       ],
     },
+    include: {
+      topics: { include: { topic: true } },
+    },
     orderBy: {
       createdAt: "desc",
     },
@@ -290,6 +293,8 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
               <div className="text-xs text-zinc-500">
                 {new Date(post.createdAt).toLocaleDateString()}
               </div>
+
+              {/* topics disabled temporarily */}
             </div>
           </article>
         );

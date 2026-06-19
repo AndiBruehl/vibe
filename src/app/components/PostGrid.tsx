@@ -1,6 +1,5 @@
 "use client";
 
-import { Post } from "@prisma/client";
 import Link from "next/link";
 import Masonry from "react-masonry-css";
 
@@ -10,7 +9,7 @@ const breakpointColumnsObj = {
   500: 2,
 };
 
-export default function PostGrid({ posts }: { posts: Post[] }) {
+export default function PostGrid({ posts }: { posts: any[] }) {
   return (
     <div className=" max-w-7xl mx-auto">
       <Masonry
@@ -19,12 +18,12 @@ export default function PostGrid({ posts }: { posts: Post[] }) {
         columnClassName="pl-4"
       >
         {posts.map((post) => (
-          <Link href={`/posts/${post.id}`} key={post.id}>
-            <img
-              key={post.id}
-              src={post.image}
-              className="w-full mb-4 rounded-lg"
-            />
+          <Link href={`/posts/${post.id}`} key={post.id} className="block">
+            <div className="relative mb-4">
+              <img src={post.image} className="w-full rounded-lg" />
+
+              {/* topics disabled temporarily */}
+            </div>
           </Link>
         ))}
       </Masonry>

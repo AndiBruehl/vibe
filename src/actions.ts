@@ -5,6 +5,40 @@ import { prisma } from "@/db";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 
+// Helper: upsert topics and link them to a post
+async function linkTopicsForPost(postId: string, topicsValue: unknown) {
+  if (typeof topicsValue !== "string" || !topicsValue.trim()) return;
+
+  const raw = topicsValue
+    .split(",")
+    .map((t) => (t || "").trim())
+    .filter(Boolean);
+
+  for (const t of Array.from(new Set(raw)).slice(0, 10)) {
+    const normalized = t
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+
+    const topic = await prisma.topic.upsert({
+      where: { slug: normalized },
+      update: {},
+      create: { name: t, slug: normalized },
+    });
+
+    // create linking row; ignore duplicate errors
+    try {
+      await prisma.postTopic.create({ data: { postId, topicId: topic.id } });
+    } catch (err) {
+      // if unique constraint violation, ignore
+      console.debug(
+        `linkTopicsForPost: linking failed (maybe exists): ${postId} -> ${topic.id}`,
+        err?.message || err,
+      );
+    }
+  }
+}
+
 export async function upsertProfile(formData: FormData) {
   const session = await auth();
 
@@ -70,32 +104,9 @@ export async function postEntry(formData: FormData) {
       description: typeof description === "string" ? description.trim() : "",
     },
   });
-
-  // handle topics (comma-separated slugs or names)
+  // handle topics (upsert + link)
   try {
-    if (typeof topicsValue === "string" && topicsValue.trim()) {
-      const raw = topicsValue
-        .split(",")
-        .map((t) => (t || "").trim())
-        .filter(Boolean);
-
-      for (const t of Array.from(new Set(raw)).slice(0, 10)) {
-        const normalized = t
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/^-|-$/g, "");
-
-        const topic = await prisma.topic.upsert({
-          where: { slug: normalized },
-          update: {},
-          create: { name: t, slug: normalized },
-        });
-
-        await prisma.postTopic.create({
-          data: { postId: postDoc.id, topicId: topic.id },
-        });
-      }
-    }
+    await linkTopicsForPost(postDoc.id, topicsValue);
   } catch (err) {
     console.error("postEntry: topic linking failed", err);
   }
@@ -165,6 +176,30 @@ export async function editPost(formData: FormData): Promise<void> {
         : {}),
     },
   });
+
+  // handle topics for edits
+  try {
+    console.log("editPost: form entries:");
+    for (const [k, v] of formData.entries()) {
+      console.log("editPost form:", k, v);
+    }
+    const topicsSet = formData.get("topicsSet");
+    const topicsValue = formData.get("topics");
+    console.log("editPost: topicsSet:", topicsSet, "topicsValue:", topicsValue);
+
+    // Only modify topic links when the client explicitly changed topics.
+    if (topicsSet === "1") {
+      // remove existing links then upsert & link new topics
+      await prisma.postTopic.deleteMany({ where: { postId: postIdValue } });
+      try {
+        await linkTopicsForPost(postIdValue, topicsValue);
+      } catch (err) {
+        console.error("editPost: topic linking failed", err);
+      }
+    }
+  } catch (err) {
+    console.error("editPost: topic linking failed", err);
+  }
 
   revalidatePath("/");
   revalidatePath("/profile");
