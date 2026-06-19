@@ -294,7 +294,19 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
                 {new Date(post.createdAt).toLocaleDateString()}
               </div>
 
-              {/* topics disabled temporarily */}
+              {post.topics?.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {post.topics.map((t: any) => (
+                    <Link
+                      key={t.id}
+                      href={`/topics/${t.slug}`}
+                      className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700 no-underline hover:underline"
+                    >
+                      #{t.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
           </article>
         );

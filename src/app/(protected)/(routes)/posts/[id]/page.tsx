@@ -10,8 +10,7 @@ import CommentForm from "@/app/components/CommentForm";
 import PostComments from "@/app/components/PostComments";
 import ExpandablePostImage from "@/app/components/ExpandablePostImage";
 import { deletePost, editPost } from "@/actions";
-// TopicPicker temporarily disabled
-// import TopicPicker from "@/app/components/TopicPicker";
+import TopicPicker from "@/app/components/TopicPicker";
 
 export default async function SinglePostPage({
   params,
@@ -122,7 +121,19 @@ export default async function SinglePostPage({
                   {post.description}
                 </p>
 
-                {/* topics disabled temporarily */}
+                {topics.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {topics.map((t) => (
+                      <Link
+                        key={t.id}
+                        href={`/topics/${t.slug}`}
+                        className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-700 no-underline hover:underline"
+                      >
+                        #{t.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
 
                 {isOwner ? (
                   <section className="rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-sm shadow-gray-200/50 dark:border-gray-700 dark:bg-gray-900 dark:shadow-gray-950">
@@ -163,7 +174,12 @@ export default async function SinglePostPage({
                         className="w-full rounded-2xl border border-gray-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-black focus:ring-2 focus:ring-black/10 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-white dark:focus:ring-white/10"
                       />
 
-                      <div>{/* TopicPicker disabled temporarily */}</div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                          Topics
+                        </label>
+                        <TopicPicker initial={topics.map((t) => t.name)} />
+                      </div>
 
                       <button
                         type="submit"

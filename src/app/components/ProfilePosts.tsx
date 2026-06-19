@@ -1,6 +1,6 @@
 import { prisma } from "@/db";
 import Image from "next/image";
-import Link from "next/link";
+import Link from "next/link"; // Re-enable topic chips
 
 export default async function ProfilePosts({ email }: { email: string }) {
   const posts = await prisma.post.findMany({
@@ -44,7 +44,19 @@ export default async function ProfilePosts({ email }: { email: string }) {
                 {post.description || "No description"}
               </p>
 
-              {/* topics disabled temporarily */}
+              {post.topics?.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {post.topics.map((t) => (
+                    <Link
+                      key={t.id}
+                      href={`/topics/${t.slug}`}
+                      className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700 no-underline hover:underline"
+                    >
+                      #{t.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
 
               <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                 <span>{post.likesCount} likes</span>

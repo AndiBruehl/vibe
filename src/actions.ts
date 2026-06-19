@@ -31,9 +31,10 @@ async function linkTopicsForPost(postId: string, topicsValue: unknown) {
       await prisma.postTopic.create({ data: { postId, topicId: topic.id } });
     } catch (err) {
       // if unique constraint violation, ignore
+      const message = err instanceof Error ? err.message : err;
       console.debug(
         `linkTopicsForPost: linking failed (maybe exists): ${postId} -> ${topic.id}`,
-        err?.message || err,
+        message,
       );
     }
   }

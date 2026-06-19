@@ -4,8 +4,7 @@ import { notFound } from "next/navigation";
 import DesktopNav from "@/app/components/DesktopNav";
 import MobileNav from "@/app/components/MobileNav";
 
-// TopicFollowButton temporarily disabled
-// import TopicFollowButton from "@/app/components/TopicFollowButton";
+import TopicFollowButton from "@/app/components/TopicFollowButton";
 import LocalTime from "@/app/components/LocalTime";
 import { prisma } from "@/db";
 import { auth } from "@/auth";
@@ -81,7 +80,13 @@ export default async function TopicPage({ params }: Props) {
                 {topic.followers.length} followers
               </p>
             </div>
-            <div>{/* TopicFollowButton disabled temporarily */}</div>
+            <div>
+              <TopicFollowButton
+                topicId={topic.id}
+                slug={topic.slug}
+                initiallyFollowing={initiallyFollowing}
+              />
+            </div>
           </div>
 
           <div className="space-y-6">
