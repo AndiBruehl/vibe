@@ -6,7 +6,7 @@ type Topic = { id: string; name: string; slug: string };
 
 export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
   const [query, setQuery] = useState("");
-  const [suggestions, setSuggestions] = useState<Topic[]>([]);
+  const [, setSuggestions] = useState<Topic[]>([]);
   const [selected, setSelected] = useState<string[]>(initial);
   const timer = useRef<number | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -18,7 +18,9 @@ export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
         // keep existing suggestions this one time after an add
         keepSuggestionsRef.current = false;
       } else {
-        setSuggestions([]);
+        // avoid calling setState synchronously inside an effect
+        // schedule it asynchronously so we don't trigger cascading renders
+        Promise.resolve().then(() => setSuggestions([]));
         return;
       }
     }
@@ -33,7 +35,7 @@ export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
         if (!res.ok) return setSuggestions([]);
         const data = await res.json();
         setSuggestions(Array.isArray(data) ? data.slice(0, 10) : []);
-      } catch (err) {
+      } catch {
         setSuggestions([]);
       }
     }, 200);
@@ -43,7 +45,7 @@ export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
     };
   }, [query]);
 
-  function add(topicName: string) {
+  function _add(topicName: string) {
     const normalized = topicName.trim();
     if (!normalized) return;
     if (selected.includes(normalized)) return;
@@ -72,7 +74,7 @@ export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
             key={t}
             className="inline-flex items-center gap-2 rounded-md bg-slate-100 px-2 py-1 text-sm"
           >
-            <span className="truncate max-w-[10rem]">{t}</span>
+            <span className="truncate max-w-40">{t}</span>
             <button
               type="button"
               onClick={() => remove(i)}

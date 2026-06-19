@@ -8,6 +8,7 @@ import { MoveLeft, Send } from "lucide-react";
 import img1 from "../../profile/default.jpg";
 import ConversationLiveRefresh from "@/app/components/ConversationLiveRefresh";
 import ConversationAutoScroll from "@/app/components/ConversationAutoScroll";
+import ConversationLayoutHelper from "@/app/components/ConversationLayoutHelper";
 import LocalTime from "@/app/components/LocalTime";
 
 type ConversationPageProps = {
@@ -225,7 +226,7 @@ export default async function ConversationPage({
         </div>
       </section>
 
-      <section className="flex-1 space-y-3 overflow-y-auto py-6">
+      <section className="conversation-messages flex-1 space-y-3 overflow-y-auto py-6">
         {conversation.messages.length === 0 ? (
           <div className="rounded-2xl bg-white p-8 text-center shadow-md shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
             <p className="text-slate-700 dark:text-slate-300">
@@ -289,9 +290,15 @@ export default async function ConversationPage({
         <ConversationAutoScroll latestMessageId={latestMessage?.id} />
       </section>
 
+      {/* helper adjusts padding and auto-scrolls when messages change */}
+      <script suppressHydrationWarning>{""}</script>
+      {/* client helper component */}
+      {/* eslint-disable-next-line @next/next/no-typos */}
+      <ConversationLayoutHelper />
+
       <form
         action={sendMessage}
-        className="sticky bottom-20 flex items-end gap-3 rounded-2xl bg-white p-3 shadow-lg shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900 md:bottom-4"
+        className="conversation-composer sticky bottom-20 flex items-end gap-3 rounded-2xl bg-white p-3 shadow-lg shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900 md:bottom-4"
       >
         <input type="hidden" name="conversationId" value={conversation.id} />
         <textarea
