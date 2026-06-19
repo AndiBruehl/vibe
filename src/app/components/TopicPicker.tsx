@@ -133,7 +133,7 @@ export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
               if (topicsSetRef.current)
                 topicsSetRef.current.value = filtered.length > 0 ? "1" : "";
             }
-          } catch (err) {
+          } catch {
             // ignore fallback errors
           }
         }
@@ -168,7 +168,7 @@ export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
         "topicsSet:",
         topicsSetRef.current?.value,
       );
-    } catch (err) {
+    } catch {
       // ignore
     }
   }, [selected, changed]);

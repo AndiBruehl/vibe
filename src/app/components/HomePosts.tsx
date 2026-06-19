@@ -2,16 +2,30 @@ import { auth } from "@/auth";
 import BookmarkButton from "./../components/BookmarkButton";
 import LikesInfo from "./../components/LikesInfo";
 import { prisma } from "@/db";
-type Follow = any;
-type Profile = any;
 import { Avatar } from "@radix-ui/themes";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Camera as CameraIcon, Search, UserPlus } from "lucide-react";
 
+type Follow = {
+  followingId: string;
+};
+
+type Profile = {
+  email?: string | null;
+};
+
 type HomePostsProps = {
   follows: Follow[];
   profiles: Profile[];
+};
+
+type PostTopicWithTopic = {
+  id: string;
+  topic: {
+    name: string;
+    slug: string;
+  };
 };
 
 export default async function HomePosts({ follows, profiles }: HomePostsProps) {
@@ -296,7 +310,7 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
 
               {post.topics?.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {post.topics.map((postTopic: any) => (
+                  {post.topics.map((postTopic: PostTopicWithTopic) => (
                     <Link
                       key={postTopic.id}
                       href={`/topics/${postTopic.topic.slug}`}

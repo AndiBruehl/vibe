@@ -9,7 +9,20 @@ const breakpointColumnsObj = {
   500: 2,
 };
 
-export default function PostGrid({ posts }: { posts: any[] }) {
+type GridPost = {
+  id: string;
+  image: string;
+  description?: string | null;
+  topics?: {
+    id: string;
+    topic: {
+      name: string;
+      slug: string;
+    };
+  }[];
+};
+
+export default function PostGrid({ posts }: { posts: GridPost[] }) {
   return (
     <div className=" max-w-7xl mx-auto">
       <Masonry
@@ -20,11 +33,15 @@ export default function PostGrid({ posts }: { posts: any[] }) {
         {posts.map((post) => (
           <Link href={`/posts/${post.id}`} key={post.id} className="block">
             <div className="relative mb-4">
-              <img src={post.image} className="w-full rounded-lg" />
+              <img
+                src={post.image}
+                alt={post.description || "Post image"}
+                className="w-full rounded-lg"
+              />
 
               {post.topics?.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {post.topics.map((postTopic: any) => (
+                  {post.topics.map((postTopic) => (
                     <Link
                       key={postTopic.id}
                       href={`/topics/${postTopic.topic.slug}`}
