@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type Topic = { id: string; name: string; slug: string };
 
@@ -15,6 +15,16 @@ export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
   const [changed, setChanged] = useState(false);
   const hiddenRef = useRef<HTMLInputElement | null>(null);
   const topicsSetRef = useRef<HTMLInputElement | null>(null);
+
+  const pendingTopics = useMemo(() => {
+    const pendingQuery = query.trim();
+    return [
+      ...selected,
+      ...(pendingQuery && !selected.includes(pendingQuery)
+        ? [pendingQuery]
+        : []),
+    ];
+  }, [query, selected]);
 
   useEffect(() => {
     if (!query) {
@@ -94,9 +104,9 @@ export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
     const onSubmit = (e: Event) => {
       try {
         // ensure hidden inputs reflect latest React state just before serialization
-        if (hiddenRef.current) hiddenRef.current.value = selected.join(",");
+        if (hiddenRef.current) hiddenRef.current.value = pendingTopics.join(",");
         if (topicsSetRef.current)
-          topicsSetRef.current.value = changed ? "1" : "";
+          topicsSetRef.current.value = changed || query.trim() ? "1" : "";
 
         // fallback: if React state is empty but DOM shows chips (possible race),
         // read chips first from the component container, then from the form.
@@ -145,7 +155,7 @@ export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
 
     form.addEventListener("submit", onSubmit, true);
     return () => form.removeEventListener("submit", onSubmit, true);
-  }, [selected, changed]);
+  }, [selected, changed, pendingTopics, query]);
 
   // debug: log hidden input value whenever selection changes
   useEffect(() => {
@@ -225,14 +235,14 @@ export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
         ref={hiddenRef}
         type="hidden"
         name="topics"
-        value={selected.join(",")}
+        value={pendingTopics.join(",")}
         readOnly
       />
       <input
         ref={topicsSetRef}
         type="hidden"
         name="topicsSet"
-        value={changed ? "1" : ""}
+        value={changed || query.trim() ? "1" : ""}
         readOnly
       />
     </div>

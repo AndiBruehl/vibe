@@ -46,13 +46,13 @@ export default async function ProfilePosts({ email }: { email: string }) {
 
               {post.topics?.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {post.topics.map((t) => (
+                  {post.topics.map((postTopic) => (
                     <Link
-                      key={t.id}
-                      href={`/topics/${t.slug}`}
+                      key={postTopic.id}
+                      href={`/topics/${postTopic.topic.slug}`}
                       className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700 no-underline hover:underline"
                     >
-                      #{t.name}
+                      #{postTopic.topic.name}
                     </Link>
                   ))}
                 </div>

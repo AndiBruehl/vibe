@@ -20,6 +20,8 @@ async function linkTopicsForPost(postId: string, topicsValue: unknown) {
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "");
 
+    if (!normalized) continue;
+
     const topic = await prisma.topic.upsert({
       where: { slug: normalized },
       update: {},
