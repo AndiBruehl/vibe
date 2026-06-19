@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import DesktopNav from "@/app/components/DesktopNav";
@@ -51,7 +50,7 @@ export default async function TopicPage({ params }: Props) {
 
   const posts = await prisma.post.findMany({
     where: { topics: { some: { topic: { slug } } } },
-    orderBy: { createdAt: "desc" },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     take: 30,
     select: {
       id: true,

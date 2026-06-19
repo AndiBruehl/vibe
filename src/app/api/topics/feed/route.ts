@@ -12,17 +12,12 @@ export async function GET(req: Request) {
         headers: { "content-type": "application/json" },
       });
 
-    const where: any = {
-      topics: { some: { topic: { slug } } },
-    };
-
-    if (cursor) {
-      where.id = { lt: cursor };
-    }
-
     const posts = await prisma.post.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
+      where: {
+        topics: { some: { topic: { slug } } },
+      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
       take: limit,
       select: {
         id: true,
@@ -39,9 +34,10 @@ export async function GET(req: Request) {
     return new Response(JSON.stringify({ posts }), {
       headers: { "content-type": "application/json" },
     });
-  } catch (err: any) {
+  } catch (err) {
     console.error("/api/topics/feed error:", err);
-    return new Response(JSON.stringify({ error: err?.message || "Unknown" }), {
+    const message = err instanceof Error ? err.message : "Unknown";
+    return new Response(JSON.stringify({ error: message }), {
       status: 500,
       headers: { "content-type": "application/json" },
     });
