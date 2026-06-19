@@ -34,13 +34,15 @@ export default function PostGrid({ posts }: { posts: GridPost[] }) {
           const topics = post.topics ?? [];
 
           return (
-            <Link href={`/posts/${post.id}`} key={post.id} className="block">
+            <div key={post.id} className="block">
               <div className="relative mb-4">
-                <img
-                  src={post.image}
-                  alt={post.description || "Post image"}
-                  className="w-full rounded-lg"
-                />
+                <Link href={`/posts/${post.id}`} className="block">
+                  <img
+                    src={post.image}
+                    alt={post.description || "Post image"}
+                    className="w-full rounded-lg"
+                  />
+                </Link>
 
                 {topics.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-2">
@@ -56,7 +58,7 @@ export default function PostGrid({ posts }: { posts: GridPost[] }) {
                   </div>
                 )}
               </div>
-            </Link>
+            </div>
           );
         })}
       </Masonry>

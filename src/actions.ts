@@ -14,14 +14,19 @@ async function linkTopicsForPost(postId: string, topicsValue: unknown) {
     .map((t) => (t || "").trim())
     .filter(Boolean);
 
-  for (const t of Array.from(new Set(raw)).slice(0, 10)) {
+  const uniqueTopics = new Map<string, string>();
+
+  for (const t of raw) {
     const normalized = t
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "");
 
     if (!normalized) continue;
+    if (!uniqueTopics.has(normalized)) uniqueTopics.set(normalized, t);
+  }
 
+  for (const [normalized, t] of Array.from(uniqueTopics).slice(0, 5)) {
     const topic = await prisma.topic.upsert({
       where: { slug: normalized },
       update: {},

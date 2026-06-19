@@ -9,6 +9,8 @@ import LocalTime from "@/app/components/LocalTime";
 import { prisma } from "@/db";
 import { auth } from "@/auth";
 
+export const dynamic = "force-dynamic";
+
 type Props = {
   params: Promise<{ slug: string }>;
 };

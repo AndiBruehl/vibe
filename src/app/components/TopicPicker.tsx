@@ -3,11 +3,20 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 type Topic = { id: string; name: string; slug: string };
+const MAX_TOPICS = 5;
+const TOPIC_LIMIT_MESSAGE =
+  "Du kannst bis zu 5 Topics pro Beitrag verwenden. Entferne erst eines, wenn du ein anderes hinzufügen möchtest.";
 
 export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<Topic[]>([]);
-  const [selected, setSelected] = useState<string[]>(initial);
+  const [selected, setSelected] = useState<string[]>(() =>
+    Array.from(new Set(initial.map((topic) => topic.trim()).filter(Boolean))).slice(
+      0,
+      MAX_TOPICS,
+    ),
+  );
+  const [limitMessage, setLimitMessage] = useState("");
   const timer = useRef<number | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -18,13 +27,18 @@ export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
 
   const pendingTopics = useMemo(() => {
     const pendingQuery = query.trim();
-    return [
-      ...selected,
-      ...(pendingQuery && !selected.includes(pendingQuery)
-        ? [pendingQuery]
-        : []),
-    ];
+    const canAppendPending =
+      pendingQuery &&
+      !selected.includes(pendingQuery) &&
+      selected.length < MAX_TOPICS;
+
+    return [...selected, ...(canAppendPending ? [pendingQuery] : [])];
   }, [query, selected]);
+
+  const hasPendingTopicChange =
+    query.trim() !== "" &&
+    !selected.includes(query.trim()) &&
+    selected.length < MAX_TOPICS;
 
   useEffect(() => {
     if (!query) {
@@ -63,6 +77,11 @@ export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
     const normalized = topicName.trim();
     if (!normalized) return;
     if (selected.includes(normalized)) return;
+    if (selected.length >= MAX_TOPICS) {
+      setLimitMessage(TOPIC_LIMIT_MESSAGE);
+      return;
+    }
+
     setSelected((s) => {
       const next = [...s, normalized];
       // filter suggestions against new selection
@@ -73,6 +92,7 @@ export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
 
     // keep suggestions visible one more cycle and clear input, then refocus
     keepSuggestionsRef.current = true;
+    setLimitMessage("");
     setQuery("");
     setTimeout(() => inputRef.current?.focus(), 0);
   }
@@ -80,6 +100,7 @@ export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
   function remove(idx: number) {
     setSelected((s) => {
       setChanged(true);
+      setLimitMessage("");
       return s.filter((_, i) => i !== idx);
     });
   }
@@ -106,7 +127,7 @@ export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
         // ensure hidden inputs reflect latest React state just before serialization
         if (hiddenRef.current) hiddenRef.current.value = pendingTopics.join(",");
         if (topicsSetRef.current)
-          topicsSetRef.current.value = changed || query.trim() ? "1" : "";
+          topicsSetRef.current.value = changed || hasPendingTopicChange ? "1" : "";
 
         // fallback: if React state is empty but DOM shows chips (possible race),
         // read chips first from the component container, then from the form.
@@ -128,7 +149,7 @@ export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
               chipEls.forEach((el) =>
                 names.push((el as HTMLElement).dataset.topic || ""),
               );
-              const filtered = names.filter(Boolean);
+              const filtered = names.filter(Boolean).slice(0, MAX_TOPICS);
               hiddenRef.current.value = filtered.join(",");
               if (topicsSetRef.current)
                 topicsSetRef.current.value = filtered.length > 0 ? "1" : "";
@@ -155,7 +176,7 @@ export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
 
     form.addEventListener("submit", onSubmit, true);
     return () => form.removeEventListener("submit", onSubmit, true);
-  }, [selected, changed, pendingTopics, query]);
+  }, [selected, changed, pendingTopics, hasPendingTopicChange]);
 
   // debug: log hidden input value whenever selection changes
   useEffect(() => {
@@ -198,7 +219,19 @@ export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
         <input
           ref={inputRef}
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            const nextQuery = e.target.value;
+            setQuery(nextQuery);
+            if (
+              selected.length >= MAX_TOPICS &&
+              nextQuery.trim() &&
+              !selected.includes(nextQuery.trim())
+            ) {
+              setLimitMessage(TOPIC_LIMIT_MESSAGE);
+            } else {
+              setLimitMessage("");
+            }
+          }}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();
@@ -208,6 +241,12 @@ export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
           placeholder="Add topics (type and press Enter or pick suggestion)"
           className="w-full rounded-md border px-3 py-2 text-sm"
         />
+
+        {limitMessage ? (
+          <p className="mt-2 rounded-md bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800 dark:bg-amber-500/10 dark:text-amber-300">
+            {limitMessage}
+          </p>
+        ) : null}
 
         {suggestions.length > 0 && (
           <ul className="absolute z-40 mt-1 max-h-48 w-full overflow-auto rounded-md bg-white shadow ring-1 ring-black/5">
@@ -242,7 +281,7 @@ export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
         ref={topicsSetRef}
         type="hidden"
         name="topicsSet"
-        value={changed || query.trim() ? "1" : ""}
+        value={changed || hasPendingTopicChange ? "1" : ""}
         readOnly
       />
     </div>
