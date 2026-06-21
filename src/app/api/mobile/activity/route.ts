@@ -1,17 +1,17 @@
-import { auth } from "@/auth";
+import { getMobileSession } from "@/mobile-auth";
 import { prisma } from "@/db";
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
-export async function GET() {
-  const session = await auth();
+export async function GET(request: NextRequest) {
+  const session = await getMobileSession(request);
 
-  if (!session?.user?.email) {
+  if (!session) {
     return NextResponse.json([], { status: 200 });
   }
 
   const currentUserProfile = await prisma.profile.findUnique({
     where: {
-      email: session.user.email,
+      email: session.email,
     },
     select: {
       id: true,

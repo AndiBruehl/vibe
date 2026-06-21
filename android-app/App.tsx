@@ -1,22 +1,27 @@
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { Ionicons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { AuthProvider, useAuth } from "@/auth/AuthContext";
 import ActivityScreen from "@/screens/ActivityScreen";
 import BrowseScreen from "@/screens/BrowseScreen";
 import CreateScreen from "@/screens/CreateScreen";
 import HomeScreen from "@/screens/HomeScreen";
+import LoadingState from "@/components/LoadingState";
+import LoginScreen from "@/screens/LoginScreen";
 import MessagesScreen from "@/screens/MessagesScreen";
 import ProfileScreen from "@/screens/ProfileScreen";
 import SearchScreen from "@/screens/SearchScreen";
 import PostDetailScreen from "@/screens/PostDetailScreen";
 import ConversationScreen from "@/screens/ConversationScreen";
+import Screen from "@/components/Screen";
+import VibeTabBar from "@/components/VibeTabBar";
 import { colors } from "@/theme";
 
 export type RootStackParamList = {
+  Login: undefined;
   Tabs: undefined;
   PostDetail: { postId: string };
   Conversation: { conversationId: string; title?: string };
@@ -38,35 +43,12 @@ const Tab = createBottomTabNavigator<TabParamList>();
 function Tabs() {
   return (
     <Tab.Navigator
-      screenOptions={({ route }) => ({
+      tabBar={(props) => <VibeTabBar {...props} />}
+      screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.red,
-        tabBarInactiveTintColor: colors.muted,
-        tabBarStyle: {
-          backgroundColor: colors.surface,
-          borderTopColor: colors.border,
-          height: 66,
-          paddingBottom: 8,
-          paddingTop: 8,
-        },
-        tabBarLabelStyle: {
-          fontSize: 10,
-          fontWeight: "700",
-        },
-        tabBarIcon: ({ color, size }) => {
-          const iconByRoute: Record<keyof TabParamList, keyof typeof Ionicons.glyphMap> = {
-            Home: "home-outline",
-            Activity: "notifications-outline",
-            Search: "search-outline",
-            Create: "camera-outline",
-            Browse: "grid-outline",
-            Messages: "chatbubble-ellipses-outline",
-            Profile: "person-outline",
-          };
-
-          return <Ionicons name={iconByRoute[route.name]} color={color} size={size} />;
-        },
-      })}
+        tabBarHideOnKeyboard: true,
+        tabBarShowLabel: false,
+      }}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Activity" component={ActivityScreen} />
@@ -79,35 +61,62 @@ function Tabs() {
   );
 }
 
+function RootNavigator() {
+  const { isReady, isSignedIn } = useAuth();
+
+  if (!isReady) {
+    return (
+      <Screen>
+        <LoadingState />
+      </Screen>
+    );
+  }
+
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerBackTitle: "",
+        headerShadowVisible: false,
+        headerStyle: { backgroundColor: colors.background },
+        headerTitle: "",
+        headerTintColor: colors.text,
+        contentStyle: { backgroundColor: colors.background },
+      }}
+    >
+      {isSignedIn ? (
+        <>
+          <Stack.Screen name="Tabs" component={Tabs} options={{ headerShown: false }} />
+          <Stack.Screen name="PostDetail" component={PostDetailScreen} />
+          <Stack.Screen name="Conversation" component={ConversationScreen} />
+        </>
+      ) : (
+        <Stack.Screen
+          name="Login"
+          component={LoginScreen}
+          options={{ headerShown: false }}
+        />
+      )}
+    </Stack.Navigator>
+  );
+}
+
 export default function App() {
   return (
     <SafeAreaProvider>
-      <NavigationContainer
-        theme={{
-          ...DefaultTheme,
-          colors: {
-            ...DefaultTheme.colors,
-            background: colors.background,
-          },
-        }}
-      >
-        <StatusBar style="light" />
-        <Stack.Navigator
-          screenOptions={{
-            headerStyle: { backgroundColor: colors.background },
-            headerTintColor: colors.text,
-            contentStyle: { backgroundColor: colors.background },
+      <AuthProvider>
+        <NavigationContainer
+          theme={{
+            ...DefaultTheme,
+            colors: {
+              ...DefaultTheme.colors,
+              background: colors.background,
+            },
           }}
         >
-          <Stack.Screen name="Tabs" component={Tabs} options={{ headerShown: false }} />
-          <Stack.Screen name="PostDetail" component={PostDetailScreen} options={{ title: "Post" }} />
-          <Stack.Screen
-            name="Conversation"
-            component={ConversationScreen}
-            options={({ route }) => ({ title: route.params.title || "Messages" })}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
+          <StatusBar style="light" />
+          <RootNavigator />
+        </NavigationContainer>
+      </AuthProvider>
     </SafeAreaProvider>
   );
 }

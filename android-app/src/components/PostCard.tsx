@@ -1,4 +1,12 @@
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Image,
+  Pressable,
+  StyleProp,
+  StyleSheet,
+  Text,
+  View,
+  ViewStyle,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -7,36 +15,40 @@ import { Post } from "@/lib/api";
 import { colors } from "@/theme";
 
 type PostCardProps = {
+  compact?: boolean;
   post: Post;
+  style?: StyleProp<ViewStyle>;
 };
 
-export default function PostCard({ post }: PostCardProps) {
+export default function PostCard({ compact = false, post, style }: PostCardProps) {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   return (
     <Pressable
-      style={styles.card}
+      style={[styles.card, style]}
       onPress={() => navigation.navigate("PostDetail", { postId: post.id })}
     >
       <Image source={{ uri: post.image }} style={styles.image} />
       <View style={styles.body}>
-        <View style={styles.authorRow}>
-          {post.author.avatar ? (
-            <Image source={{ uri: post.author.avatar }} style={styles.avatar} />
-          ) : (
-            <View style={styles.avatarFallback} />
-          )}
-          <View style={styles.authorText}>
-            <Text style={styles.name} numberOfLines={1}>
-              {post.author.name || "Unknown"}
-            </Text>
-            <Text style={styles.username} numberOfLines={1}>
-              @{post.author.username || "user"}
-            </Text>
+        {!compact ? (
+          <View style={styles.authorRow}>
+            {post.author.avatar ? (
+              <Image source={{ uri: post.author.avatar }} style={styles.avatar} />
+            ) : (
+              <View style={styles.avatarFallback} />
+            )}
+            <View style={styles.authorText}>
+              <Text style={styles.name} numberOfLines={1}>
+                {post.author.name || "Unknown"}
+              </Text>
+              <Text style={styles.username} numberOfLines={1}>
+                @{post.author.username || "user"}
+              </Text>
+            </View>
           </View>
-        </View>
-        <Text style={styles.description} numberOfLines={2}>
+        ) : null}
+        <Text style={[styles.description, compact && styles.compactDescription]} numberOfLines={2}>
           {post.description}
         </Text>
         <View style={styles.metaRow}>
@@ -96,6 +108,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     marginTop: 10,
+  },
+  compactDescription: {
+    marginTop: 0,
   },
   metaRow: {
     alignItems: "center",

@@ -3,7 +3,6 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useEffect, useState } from "react";
 import { FlatList, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import EmptyState from "@/components/EmptyState";
-import Header from "@/components/Header";
 import LoadingState from "@/components/LoadingState";
 import Screen from "@/components/Screen";
 import { api, ConversationSummary } from "@/lib/api";
@@ -37,7 +36,7 @@ export default function MessagesScreen() {
       <FlatList
         data={conversations}
         keyExtractor={(item) => item.id}
-        ListHeaderComponent={<Header title="Messages" subtitle="Private conversations" />}
+        contentContainerStyle={styles.list}
         ListEmptyComponent={
           <EmptyState
             icon="chatbubble-ellipses-outline"
@@ -71,6 +70,10 @@ export default function MessagesScreen() {
 }
 
 const styles = StyleSheet.create({
+  list: {
+    paddingBottom: 16,
+    paddingTop: 4,
+  },
   row: {
     alignItems: "center",
     backgroundColor: colors.card,

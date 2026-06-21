@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
-import { FlatList } from "react-native";
+import { FlatList, StyleSheet, View } from "react-native";
 import EmptyState from "@/components/EmptyState";
-import Header from "@/components/Header";
 import LoadingState from "@/components/LoadingState";
 import PostCard from "@/components/PostCard";
 import Screen from "@/components/Screen";
+import { useAdaptiveLayout } from "@/hooks/useAdaptiveLayout";
 import { api, Post } from "@/lib/api";
 
 export default function BrowseScreen() {
+  const { gridColumns } = useAdaptiveLayout();
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -30,13 +31,17 @@ export default function BrowseScreen() {
   return (
     <Screen>
       <FlatList
+        key={gridColumns}
         data={posts}
         keyExtractor={(item) => item.id}
-        numColumns={2}
-        columnWrapperStyle={{ gap: 12 }}
-        contentContainerStyle={{ gap: 12 }}
-        renderItem={({ item }) => <PostCard post={item} />}
-        ListHeaderComponent={<Header title="Browse" subtitle="Explore recent posts" />}
+        numColumns={gridColumns}
+        columnWrapperStyle={gridColumns > 1 ? styles.row : undefined}
+        contentContainerStyle={styles.list}
+        renderItem={({ item }) => (
+          <View style={styles.gridItem}>
+            <PostCard compact={gridColumns > 1} post={item} />
+          </View>
+        )}
         ListEmptyComponent={
           <EmptyState
             icon="grid-outline"
@@ -49,3 +54,17 @@ export default function BrowseScreen() {
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  gridItem: {
+    flex: 1,
+  },
+  list: {
+    gap: 12,
+    paddingBottom: 16,
+    paddingTop: 4,
+  },
+  row: {
+    gap: 12,
+  },
+});

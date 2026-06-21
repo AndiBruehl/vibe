@@ -1,5 +1,5 @@
 import { prisma } from "@/db";
-import { auth } from "@/auth";
+import { getMobileSession } from "@/mobile-auth";
 import { NextResponse, type NextRequest } from "next/server";
 
 type MobilePostRouteProps = {
@@ -49,16 +49,16 @@ export async function PATCH(
   { params }: MobilePostRouteProps,
 ) {
   const { id } = await params;
-  const session = await auth();
+  const session = await getMobileSession(request);
 
-  if (!session?.user?.email) {
+  if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const post = await prisma.post.findUnique({ where: { id } });
   if (!post) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  if (post.authorEmail !== session.user.email) {
+  if (post.authorEmail !== session.email) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -72,20 +72,20 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: MobilePostRouteProps,
 ) {
   const { id } = await params;
-  const session = await auth();
+  const session = await getMobileSession(request);
 
-  if (!session?.user?.email) {
+  if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const post = await prisma.post.findUnique({ where: { id } });
   if (!post) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  if (post.authorEmail !== session.user.email) {
+  if (post.authorEmail !== session.email) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

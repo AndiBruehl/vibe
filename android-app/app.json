@@ -3,10 +3,12 @@
     "name": "Vibe",
     "slug": "vibe-android",
     "version": "0.1.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "scheme": "vibe",
     "userInterfaceStyle": "automatic",
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "android": {
       "package": "com.vibe.social",
       "adaptiveIcon": {
@@ -15,6 +17,9 @@
     },
     "extra": {
       "apiUrl": "https://vibe-social-network.vercel.app"
-    }
+    },
+    "plugins": [
+      "expo-font"
+    ]
   }
 }

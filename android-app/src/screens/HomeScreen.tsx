@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { FlatList, RefreshControl } from "react-native";
+import { FlatList, RefreshControl, StyleSheet } from "react-native";
 import EmptyState from "@/components/EmptyState";
-import Header from "@/components/Header";
 import LoadingState from "@/components/LoadingState";
 import PostCard from "@/components/PostCard";
 import Screen from "@/components/Screen";
@@ -38,7 +37,7 @@ export default function HomeScreen() {
         data={posts}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <PostCard post={item} />}
-        ListHeaderComponent={<Header title="Vibe" subtitle="Fresh posts from the network" />}
+        contentContainerStyle={styles.list}
         ListEmptyComponent={
           <EmptyState
             icon="images-outline"
@@ -63,3 +62,10 @@ export default function HomeScreen() {
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  list: {
+    paddingBottom: 16,
+    paddingTop: 4,
+  },
+});

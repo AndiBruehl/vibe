@@ -1,5 +1,8 @@
+import Constants from "expo-constants";
+
 export type Profile = {
   id: string;
+  email?: string | null;
   name?: string | null;
   username?: string | null;
   avatar?: string | null;
@@ -42,29 +45,75 @@ export type Message = {
   isOwnMessage: boolean;
 };
 
+export type AuthResponse = {
+  profile: Profile;
+  token: string;
+};
+
+export type UploadUrlResponse = {
+  gatewayBaseUrl: string;
+  url: string;
+};
+
+const expoExtra = Constants.expoConfig?.extra as { apiUrl?: string } | undefined;
+
 const apiUrl =
-  process.env.EXPO_PUBLIC_API_URL || "https://vibe-social-network.vercel.app";
+  process.env.EXPO_PUBLIC_API_URL ||
+  expoExtra?.apiUrl ||
+  "https://vibe-social-network.vercel.app";
+
+export class ApiError extends Error {
+  status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const { getStoredToken } = await import("@/lib/sessionStore");
+  const token = await getStoredToken();
+  const headers = new Headers(init?.headers);
+
+  headers.set("Accept", "application/json");
+
+  if (init?.body && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+
+  if (token && !headers.has("Authorization")) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+
   const response = await fetch(`${apiUrl}${path}`, {
     ...init,
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-      ...init?.headers,
-    },
+    headers,
   });
 
   if (!response.ok) {
-    throw new Error(`Request failed: ${response.status}`);
+    const body = await response.json().catch(() => null);
+    const message =
+      typeof body?.error === "string"
+        ? body.error
+        : `Request failed: ${response.status}`;
+
+    throw new ApiError(response.status, message);
   }
 
   return (await response.json()) as T;
 }
 
 export const api = {
+  createPost: (input: { description: string; image: string; topics?: string }) =>
+    request<Post>("/api/mobile/posts", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
   getHomePosts: () => request<Post[]>("/api/mobile/posts"),
   getBrowsePosts: () => request<Post[]>("/api/mobile/posts?mode=browse"),
+  getPost: (postId: string) => request<Post>(`/api/mobile/posts/${postId}`),
   search: (query: string) =>
     request<{ users: Profile[]; posts: Post[] }>(
       `/api/mobile/search?q=${encodeURIComponent(query)}`,
@@ -82,6 +131,12 @@ export const api = {
       body: JSON.stringify({ body }),
     }),
   getProfile: () => request<Profile>("/api/mobile/profile"),
+  getUploadUrl: () => request<UploadUrlResponse>("/api/mobile/upload/url"),
+  loginWithGoogle: (idToken: string) =>
+    request<AuthResponse>("/api/mobile/auth/google", {
+      method: "POST",
+      body: JSON.stringify({ idToken }),
+    }),
 };
 
 export { apiUrl };

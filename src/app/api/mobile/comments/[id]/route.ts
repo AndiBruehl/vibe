@@ -1,14 +1,14 @@
 import { prisma } from "@/db";
-import { auth } from "@/auth";
+import { getMobileSession } from "@/mobile-auth";
 import { NextResponse, type NextRequest } from "next/server";
 
 type Props = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: NextRequest, { params }: Props) {
   const { id } = await params;
-  const session = await auth();
+  const session = await getMobileSession(request);
 
-  if (!session?.user?.email) {
+  if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -24,7 +24,7 @@ export async function PATCH(request: NextRequest, { params }: Props) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  if (comment.authorEmail !== session.user.email) {
+  if (comment.authorEmail !== session.email) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -35,11 +35,11 @@ export async function PATCH(request: NextRequest, { params }: Props) {
   return NextResponse.json(updated);
 }
 
-export async function DELETE(_request: NextRequest, { params }: Props) {
+export async function DELETE(request: NextRequest, { params }: Props) {
   const { id } = await params;
-  const session = await auth();
+  const session = await getMobileSession(request);
 
-  if (!session?.user?.email) {
+  if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -48,7 +48,7 @@ export async function DELETE(_request: NextRequest, { params }: Props) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  if (comment.authorEmail !== session.user.email) {
+  if (comment.authorEmail !== session.email) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { FlatList, StyleSheet, TextInput, View } from "react-native";
 import EmptyState from "@/components/EmptyState";
-import Header from "@/components/Header";
 import PostCard from "@/components/PostCard";
 import Screen from "@/components/Screen";
 import { api, Post } from "@/lib/api";
@@ -29,9 +28,9 @@ export default function SearchScreen() {
         data={posts}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <PostCard post={item} />}
+        contentContainerStyle={styles.list}
         ListHeaderComponent={
           <View>
-            <Header title="Search" subtitle="Find people and posts" />
             <TextInput
               value={query}
               onChangeText={(value) => void runSearch(value)}
@@ -55,6 +54,10 @@ export default function SearchScreen() {
 }
 
 const styles = StyleSheet.create({
+  list: {
+    paddingBottom: 16,
+    paddingTop: 4,
+  },
   input: {
     backgroundColor: colors.card,
     borderColor: colors.border,

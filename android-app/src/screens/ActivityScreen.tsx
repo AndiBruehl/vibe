@@ -2,7 +2,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import { FlatList, Image, StyleSheet, Text, View } from "react-native";
 import EmptyState from "@/components/EmptyState";
-import Header from "@/components/Header";
 import LoadingState from "@/components/LoadingState";
 import Screen from "@/components/Screen";
 import { ActivityItem, api } from "@/lib/api";
@@ -40,7 +39,7 @@ export default function ActivityScreen() {
       <FlatList
         data={items}
         keyExtractor={(item) => item.id}
-        ListHeaderComponent={<Header title="Activity" subtitle="What happened around you" />}
+        contentContainerStyle={styles.list}
         ListEmptyComponent={
           <EmptyState
             icon="notifications-outline"
@@ -70,6 +69,10 @@ export default function ActivityScreen() {
 }
 
 const styles = StyleSheet.create({
+  list: {
+    paddingBottom: 16,
+    paddingTop: 4,
+  },
   item: {
     alignItems: "center",
     backgroundColor: colors.card,
