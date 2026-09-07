@@ -1,3 +1,5 @@
+import PostImageCount from "@/app/components/PostImageCount";
+import SortablePosts from "./SortablePosts";
 import { prisma } from "@/db";
 import Image from "next/image";
 import Link from "next/link";
@@ -26,7 +28,7 @@ export default async function BookmarkPosts({ email }: { email: string }) {
   }
 
   return (
-    <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+    <SortablePosts posts={bookmarks.map(({ post }) => ({ id: post.id, description: post.description, createdAt: post.createdAt }))} className="grid grid-cols-2 gap-4 md:grid-cols-3">
       {bookmarks.map(({ post }) => (
         <Link
           key={post.id}
@@ -35,6 +37,7 @@ export default async function BookmarkPosts({ email }: { email: string }) {
         >
           <article>
             <div className="relative aspect-square w-full overflow-hidden">
+              <PostImageCount images={post.images}/>
               <Image
                 src={post.image}
                 alt={post.description || "Bookmarked post image"}
@@ -57,6 +60,6 @@ export default async function BookmarkPosts({ email }: { email: string }) {
           </article>
         </Link>
       ))}
-    </div>
+    </SortablePosts>
   );
 }

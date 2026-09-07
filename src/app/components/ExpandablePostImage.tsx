@@ -39,7 +39,7 @@ export default function ExpandablePostImage({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="block w-full cursor-zoom-in"
+        className="block aspect-square w-full cursor-zoom-in"
         aria-label="Open image preview"
       >
         <Image
@@ -47,7 +47,7 @@ export default function ExpandablePostImage({
           alt={alt}
           width={800}
           height={800}
-          className="h-auto w-full object-contain"
+          className="h-full w-full object-contain"
           priority
           unoptimized
         />

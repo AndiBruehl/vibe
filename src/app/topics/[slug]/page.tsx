@@ -1,3 +1,6 @@
+import SortablePosts from "@/app/components/SortablePosts";
+import PostCarousel from "@/app/components/PostCarousel";
+import { getPostImages } from "@/post-images";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import DesktopNav from "@/app/components/DesktopNav";
@@ -51,11 +54,11 @@ export default async function TopicPage({ params }: Props) {
   const posts = await prisma.post.findMany({
     where: { topics: { some: { topic: { slug } } } },
     orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-    take: 30,
     select: {
       id: true,
       description: true,
       image: true,
+      images: true,
       createdAt: true,
       likesCount: true,
       author: {
@@ -90,7 +93,7 @@ export default async function TopicPage({ params }: Props) {
             </div>
           </div>
 
-          <div className="space-y-6">
+          <SortablePosts posts={posts.map((post) => ({ id: post.id, description: post.description, createdAt: post.createdAt }))} className="space-y-6">
             {posts.length === 0 ? (
               <div className="rounded-md border p-6 text-center text-slate-500">
                 No posts for this topic yet.
@@ -144,22 +147,16 @@ export default async function TopicPage({ params }: Props) {
                           className="no-underline hover:underline"
                         >
                           <p className="text-slate-800">{p.description}</p>
-                          {p.image && (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={p.image}
-                              alt="post"
-                              className="mt-3 max-h-64 w-full object-contain"
-                            />
-                          )}
+
                         </Link>
+                        <PostCarousel images={getPostImages(p)} alt={p.description || "Post image"} href={`/posts/${p.id}`}/>
                       </div>
                     </div>
                   </div>
                 </article>
               ))
             )}
-          </div>
+          </SortablePosts>
         </main>
       </div>
     </>

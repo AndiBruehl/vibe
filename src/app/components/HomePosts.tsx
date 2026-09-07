@@ -1,3 +1,6 @@
+import SortablePosts from "./SortablePosts";
+import PostCarousel from "./PostCarousel";
+import { getPostImages } from "@/post-images";
 import { auth } from "@/auth";
 import BookmarkButton from "./../components/BookmarkButton";
 import LikesInfo from "./../components/LikesInfo";
@@ -60,7 +63,6 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
     orderBy: {
       createdAt: "desc",
     },
-    take: 100,
   });
 
   const likes = await prisma.postLike.findMany({
@@ -234,7 +236,7 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
   }
 
   return (
-    <section className="mx-auto flex w-full max-w-2xl flex-col gap-8">
+    <SortablePosts posts={posts.map((post) => ({ id: post.id, description: post.description, createdAt: post.createdAt }))} className="mx-auto flex w-full max-w-2xl flex-col gap-8">
       {posts.map((post) => {
         const profile =
           authors.find((author) => author.email === post.authorEmail) || null;
@@ -291,13 +293,8 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
               </div>
             </div>
 
-            <Link href={`/posts/${post.id}`} className="relative z-0 block">
-              <img
-                className="block aspect-square w-full object-cover"
-                src={post.image}
-                alt={post.description || "Post image"}
-              />
-            </Link>
+            <PostCarousel images={getPostImages(post)} alt={post.description || "Post image"} href={`/posts/${post.id}`}/>
+
 
             <div className="space-y-3 px-4 py-4 sm:px-5">
               <p className="text-sm leading-6 text-slate-900 dark:text-slate-200">
@@ -325,6 +322,6 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
           </article>
         );
       })}
-    </section>
+    </SortablePosts>
   );
 }

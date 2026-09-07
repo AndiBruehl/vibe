@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/db";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
+import { parsePostImages } from "@/post-images";
 
 // Helper: upsert topics and link them to a post
 async function linkTopicsForPost(postId: string, topicsValue: unknown) {
@@ -91,24 +92,15 @@ export async function postEntry(formData: FormData) {
     redirect("/");
   }
 
-  const image = formData.get("image");
+  const images = parsePostImages(formData.has("imagesSet") ? formData.getAll("images") : [formData.get("image")]);
   const description = formData.get("description");
   const topicsValue = formData.get("topics");
-
-  if (!image || typeof image !== "string") {
-    throw new Error("Image is missing.");
-  }
-
-  const cleanedImage = image.trim();
-
-  if (!cleanedImage) {
-    throw new Error("Image cannot be empty.");
-  }
 
   const postDoc = await prisma.post.create({
     data: {
       authorEmail: session.user.email,
-      image: cleanedImage,
+      image: images[0],
+      images,
       description: typeof description === "string" ? description.trim() : "",
     },
   });
@@ -135,6 +127,7 @@ export async function editPost(formData: FormData): Promise<void> {
 
   const postIdValue = formData.get("postId");
   const imageValue = formData.get("image");
+  const gallery = formData.has("imagesSet") ? parsePostImages(formData.getAll("images")) : undefined;
   const descriptionValue = formData.get("description");
 
   if (typeof postIdValue !== "string" || !postIdValue) {
@@ -154,7 +147,7 @@ export async function editPost(formData: FormData): Promise<void> {
   const cleanedDescription =
     typeof descriptionValue === "string" ? descriptionValue.trim() : undefined;
 
-  if (cleanedImage === undefined && cleanedDescription === undefined) {
+  if (!gallery && cleanedImage === undefined && cleanedDescription === undefined) {
     throw new Error("Nothing to update.");
   }
 
@@ -178,7 +171,7 @@ export async function editPost(formData: FormData): Promise<void> {
   await prisma.post.update({
     where: { id: postIdValue },
     data: {
-      ...(cleanedImage !== undefined ? { image: cleanedImage } : {}),
+      ...(gallery ? { image: gallery[0], images: gallery } : cleanedImage !== undefined ? { image: cleanedImage, images: parsePostImages([cleanedImage]) } : {}),
       ...(cleanedDescription !== undefined
         ? { description: cleanedDescription }
         : {}),

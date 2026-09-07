@@ -1,3 +1,5 @@
+import PostImageCount from "@/app/components/PostImageCount";
+import SortablePosts from "./SortablePosts";
 import { prisma } from "@/db";
 import Image from "next/image";
 import Link from "next/link"; // Re-enable topic chips
@@ -22,7 +24,7 @@ export default async function ProfilePosts({ email }: { email: string }) {
   }
 
   return (
-    <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+    <SortablePosts posts={posts.map((post) => ({ id: post.id, description: post.description, createdAt: post.createdAt }))} className="grid grid-cols-2 gap-4 md:grid-cols-3">
       {posts.map((post) => (
         <article
           key={post.id}
@@ -30,6 +32,7 @@ export default async function ProfilePosts({ email }: { email: string }) {
         >
           <Link href={`/posts/${post.id}`} className="block">
             <div className="relative aspect-square w-full overflow-hidden">
+              <PostImageCount images={post.images}/>
               <Image
                 src={post.image}
                 alt={post.description || "Post image"}
@@ -69,6 +72,6 @@ export default async function ProfilePosts({ email }: { email: string }) {
           </div>
         </article>
       ))}
-    </div>
+    </SortablePosts>
   );
 }

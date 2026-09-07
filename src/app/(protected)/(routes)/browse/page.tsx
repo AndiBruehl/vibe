@@ -1,3 +1,5 @@
+import PostImageCount from "@/app/components/PostImageCount";
+import SortablePosts from "@/app/components/SortablePosts";
 import { prisma } from "@/db";
 import Image from "next/image";
 import Link from "next/link";
@@ -47,7 +49,7 @@ export default async function BrowsePage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+          <SortablePosts posts={posts.map((post) => ({ id: post.id, description: post.description, createdAt: post.createdAt }))} className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
             {posts.map((post: any) => (
               <Link
                 key={post.id}
@@ -55,7 +57,8 @@ export default async function BrowsePage() {
                 className="group overflow-hidden rounded-2xl bg-white shadow-md shadow-gray-200 transition hover:shadow-lg dark:bg-gray-800 dark:shadow-gray-900"
               >
                 <div className="relative aspect-square w-full overflow-hidden bg-slate-200 dark:bg-slate-700">
-                  <Image
+                  <PostImageCount images={post.images}/>
+              <Image
                     src={post.image}
                     alt={post.description || "Post image"}
                     fill
@@ -99,7 +102,7 @@ export default async function BrowsePage() {
                 </div>
               </Link>
             ))}
-          </div>
+          </SortablePosts>
         )}
       </section>
     </main>

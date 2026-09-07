@@ -8,9 +8,11 @@ import LikeButton from "@/app/components/LikeButton";
 import BookmarkButton from "@/app/components/BookmarkButton";
 import CommentForm from "@/app/components/CommentForm";
 import PostComments from "@/app/components/PostComments";
-import ExpandablePostImage from "@/app/components/ExpandablePostImage";
+import PostCarousel from "@/app/components/PostCarousel";
+import PostComposer from "@/app/components/PostComposer";
+import { getPostImages } from "@/post-images";
 import { deletePost, editPost } from "@/actions";
-import TopicPicker from "@/app/components/TopicPicker";
+
 
 export default async function SinglePostPage({
   params,
@@ -93,8 +95,8 @@ export default async function SinglePostPage({
           <div className="self-start md:sticky md:top-8">
             <article className="overflow-hidden rounded-2xl bg-white shadow-lg shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
               <div className="w-full">
-                <ExpandablePostImage
-                  src={post.image}
+                <PostCarousel
+                  images={getPostImages(post)}
                   alt={post.description || "Post image"}
                 />
               </div>
@@ -152,42 +154,8 @@ export default async function SinglePostPage({
                       </form>
                     </div>
 
-                    <form action={editPost} className="space-y-3">
-                      <input type="hidden" name="postId" value={post.id} />
+                    <PostComposer key={post.updatedAt.toISOString()} action={editPost} postId={post.id} initialImages={getPostImages(post)} description={post.description} topics={topics.map((t) => t.name)}/>
 
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
-                        Image URL
-                      </label>
-                      <input
-                        name="image"
-                        defaultValue={post.image}
-                        className="w-full rounded-2xl border border-gray-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-black focus:ring-2 focus:ring-black/10 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-white dark:focus:ring-white/10"
-                      />
-
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
-                        Description
-                      </label>
-                      <textarea
-                        name="description"
-                        defaultValue={post.description}
-                        rows={3}
-                        className="w-full rounded-2xl border border-gray-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-black focus:ring-2 focus:ring-black/10 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-white dark:focus:ring-white/10"
-                      />
-
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-2">
-                          Topics
-                        </label>
-                        <TopicPicker initial={topics.map((t) => t.name)} />
-                      </div>
-
-                      <button
-                        type="submit"
-                        className="inline-flex items-center justify-center rounded-full bg-black px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-900 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100"
-                      >
-                        Save changes
-                      </button>
-                    </form>
                   </section>
                 ) : null}
               </div>

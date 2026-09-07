@@ -1,3 +1,5 @@
+import PostImageCount from "@/app/components/PostImageCount";
+import SortablePosts from "./SortablePosts";
 import { prisma } from "@/db";
 import Image from "next/image";
 import Link from "next/link";
@@ -23,7 +25,7 @@ export default async function HighlightsPosts() {
   }
 
   return (
-    <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+    <SortablePosts posts={posts.map((post) => ({ id: post.id, description: post.description, createdAt: post.createdAt }))} className="grid grid-cols-2 gap-4 md:grid-cols-3">
       {posts.map((post) => (
         <Link
           key={post.id}
@@ -32,6 +34,7 @@ export default async function HighlightsPosts() {
         >
           <article>
             <div className="relative aspect-square w-full overflow-hidden">
+              <PostImageCount images={post.images}/>
               <Image
                 src={post.image}
                 alt={post.description || "Highlight post image"}
@@ -54,6 +57,6 @@ export default async function HighlightsPosts() {
           </article>
         </Link>
       ))}
-    </div>
+    </SortablePosts>
   );
 }

@@ -94,6 +94,7 @@ model Post {
   author      Profile @relation(fields: [authorEmail], references: [email])
 
   image       String
+  images      String[] @default([])
   description String
   likesCount  Int      @default(0)
   createdAt   DateTime @default(now())
