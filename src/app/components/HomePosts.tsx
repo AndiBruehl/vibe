@@ -124,7 +124,7 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
     return (
       <section className="mx-auto flex min-h-[70vh] w-full max-w-2xl items-center justify-center">
         <div className="flex w-full max-w-2xl flex-col gap-6">
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-center shadow-xl backdrop-blur-xl">
+          <div className="rounded-3xl border border-slate-200 bg-white dark:border-white/10 dark:bg-white/5 p-8 text-center shadow-xl backdrop-blur-xl">
             <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-500">
               Nothing here yet
             </h2>
@@ -160,14 +160,14 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
                   <CameraIcon className="relative z-10 size-5 text-white transition-transform duration-200 group-hover:scale-90" />
                 </div>
 
-                <span className="text-[18px] font-normal text-black transition-all duration-200 group-hover:bg-linear-to-tr group-hover:from-(--ig-orange) group-hover:to-(--ig-red) group-hover:bg-clip-text group-hover:text-transparent dark: dark:text-slate-500">
+                <span className="text-[18px] font-normal text-slate-900 transition-all duration-200 group-hover:bg-linear-to-tr group-hover:from-(--ig-orange) group-hover:to-(--ig-red) group-hover:bg-clip-text group-hover:text-transparent dark:text-slate-100">
                   Create your first entry
                 </span>
               </Link>
 
               <Link
                 href="/search"
-                className="inline-flex items-center gap-2 text-sm text-slate-500 transition hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-900"
+                className="inline-flex items-center gap-2 text-sm text-slate-500 transition hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100"
               >
                 <Search size={16} />
                 Find people to follow
@@ -175,13 +175,13 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-xl backdrop-blur-xl">
+          <div className="rounded-3xl border border-slate-200 bg-white dark:border-white/10 dark:bg-white/5 p-6 shadow-xl backdrop-blur-xl">
             <div className="mb-4 flex items-center gap-2">
               <UserPlus
                 size={18}
                 className="text-slate-700 dark:text-slate-200"
               />
-              <h3 className="text-lg font-semibold text-slate-900 dark: dark:text-slate-500">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                 Suggested users
               </h3>
             </div>
@@ -196,7 +196,7 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
                   <Link
                     key={user.id}
                     href={user.username ? `/profile/${user.username}` : "#"}
-                    className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 transition hover:bg-white/10"
+                    className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white dark:border-white/10 dark:bg-white/5 px-4 py-3 transition hover:bg-slate-50 dark:hover:bg-white/10"
                   >
                     <div className="flex min-w-0 items-center gap-3">
                       <Avatar
@@ -211,7 +211,7 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
                       />
 
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-slate-900 dark: dark:text-slate-500">
+                        <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
                           {user.name || user.username || "Unknown user"}
                         </p>
                         <p className="truncate text-xs text-slate-500 dark:text-slate-400">
@@ -249,7 +249,7 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
         return (
           <article
             key={post.id}
-            className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-xl backdrop-blur-xl"
+            className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white dark:border-white/10 dark:bg-white/5 shadow-xl backdrop-blur-xl"
           >
             <div className="relative z-20 flex items-center justify-between px-4 py-4 sm:px-5">
               <div className="flex min-w-0 items-center gap-3">
@@ -262,7 +262,7 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
 
                 <div className="min-w-0">
                   <Link
-                    className="relative z-20 block truncate text-sm font-semibold  dark:text-slate-500 transition hover:text-zinc-300"
+                    className="relative z-20 block truncate text-sm font-semibold text-slate-900 dark:text-slate-100 transition hover:text-slate-600 dark:hover:text-slate-300"
                     href={
                       profile?.username ? `/profile/${profile.username}` : "#"
                     }
@@ -271,7 +271,7 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
                   </Link>
 
                   {profile?.username && (
-                    <p className="truncate text-xs text-zinc-400">
+                    <p className="truncate text-xs text-slate-600 dark:text-slate-400">
                       @{profile.username}
                     </p>
                   )}
@@ -300,11 +300,11 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
             </Link>
 
             <div className="space-y-3 px-4 py-4 sm:px-5">
-              <p className="text-sm leading-6 text-zinc-200">
+              <p className="text-sm leading-6 text-slate-900 dark:text-slate-200">
                 {post.description}
               </p>
 
-              <div className="text-xs text-zinc-500">
+              <div className="text-xs text-slate-500 dark:text-slate-400">
                 {new Date(post.createdAt).toLocaleDateString()}
               </div>
 

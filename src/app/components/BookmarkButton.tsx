@@ -60,8 +60,8 @@ export default function BookmarkButton({
       <Bookmark
         className={`size-5 transition ${
           optimisticState.bookmarked
-            ? "fill-white text-white dark:fill-white dark:text-white"
-            : "fill-transparent text-black dark:text-white"
+            ? "fill-slate-900 text-slate-900 dark:fill-white dark:text-white"
+            : "fill-transparent text-slate-900 dark:text-white"
         }`}
       />
     </button>

@@ -150,7 +150,7 @@ export default function GroupChatForm(_: GroupChatFormProps) {
                 className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-sm dark:bg-gray-700"
               >
                 <span>{s.name || s.username}</span>
-                <span className="text-xs text-gray-500">✕</span>
+                <span className="text-xs text-slate-500">✕</span>
               </button>
             ))}
           </div>
@@ -197,7 +197,7 @@ export default function GroupChatForm(_: GroupChatFormProps) {
         <div className="flex items-center gap-3">
           <button
             type="submit"
-            className="inline-flex items-center justify-center rounded-2xl bg-black px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-900 dark:bg-white dark:text-black dark:hover:bg-slate-200"
+            className="inline-flex items-center justify-center rounded-2xl bg-black px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-900 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
           >
             Create Group
           </button>

@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --ig-red: rgb(207, 33, 66);
   --ig-orange: rgb(230, 173, 77);
@@ -26,16 +28,33 @@
 
   --ig-gradient: var(--ig-gradient-lm);
 
-  --ig-body-bg: rgb(255, 255, 255);
-  --ig-nav-bg: rgb(245, 245, 245);
+  --ig-body-bg: #f3f6fb;
+  --ig-page-bg: radial-gradient(ellipse at 90% 0%, #e5edf9 0%, transparent 55%), linear-gradient(145deg, #f7f9fc, #eef3fa);
+  --ig-nav-bg: #e9edf3;
   --ig-surface-bg: rgb(255, 255, 255);
   --ig-surface-hover-bg: rgb(248, 250, 252);
-  --ig-text: rgb(17, 24, 39);
+  --ig-text: #24456b;
+}
+
+.light {
+  --color-slate-900: #24456b;
+  --color-slate-800: #2c4c72;
+  --color-slate-700: #38577b;
+}
+
+.light .radix-themes {
+  --gray-12: #24456b;
+  --gray-11: #506987;
+  --accent-12: #24456b;
 }
 
 html,
 body {
   height: 100%;
+}
+
+.radix-themes {
+  color: var(--ig-text);
 }
 
 body {
@@ -46,7 +65,8 @@ body {
 .dark {
   --ig-gradient: var(--ig-gradient-dm);
   --ig-body-bg: rgb(3, 7, 18);
-  --ig-nav-bg: rgb(17, 24, 39);
+  --ig-nav-bg: rgb(31, 41, 55);
+  --ig-page-bg: rgb(17, 24, 39);
   --ig-surface-bg: rgb(17, 24, 39);
   --ig-surface-hover-bg: rgb(31, 41, 55);
   --ig-text: rgb(243, 244, 246);
@@ -58,6 +78,10 @@ body {
 
 .bg-ig-nav {
   background: var(--ig-nav-bg);
+}
+
+.ig-page {
+  background: var(--ig-page-bg);
 }
 
 .bg-ig-surface {

@@ -20,7 +20,7 @@ export default function MobileNav({
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 block md:hidden">
       {" "}
-      <div className="flex text-gray-700 dark:text-gray-300 *:flex *:items-center">
+      <div className="flex text-slate-700 dark:text-slate-300 *:flex *:items-center">
         <div className="pl-2 bg-white dark:bg-gray-800 rounded-t-xl w-full relative z-10 *:size-12 *:flex *:flex-col *:items-center *:justify-center justify-around pt-4">
           <Link href="/home" className="group">
             <HomeIcon className="transition-transform duration-200 group-hover:scale-90" />

@@ -25,7 +25,7 @@ export default function PostActions({
         <>
           <button
             onClick={() => setIsEditing(true)}
-            className="text-sm font-medium text-gray-600"
+            className="text-sm font-medium text-slate-600"
           >
             Edit
           </button>
@@ -57,13 +57,13 @@ export default function PostActions({
               setIsEditing(false);
               window.location.reload();
             }}
-            className="text-sm font-medium text-gray-600"
+            className="text-sm font-medium text-slate-600"
           >
             Save
           </button>
           <button
             onClick={() => setIsEditing(false)}
-            className="text-sm font-medium text-gray-600"
+            className="text-sm font-medium text-slate-600"
           >
             Cancel
           </button>

@@ -16,7 +16,7 @@ export default async function ProfilePosts({ email }: { email: string }) {
   if (posts.length === 0) {
     return (
       <div className="rounded-2xl bg-white p-8 text-center shadow-md shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
-        <p className="text-gray-600 dark:text-gray-300">No posts yet.</p>
+        <p className="text-slate-600 dark:text-slate-300">No posts yet.</p>
       </div>
     );
   }
@@ -39,7 +39,7 @@ export default async function ProfilePosts({ email }: { email: string }) {
             </div>
 
             <div className="space-y-2 p-3">
-              <p className="line-clamp-2 text-sm text-gray-700 dark:text-gray-200">
+              <p className="line-clamp-2 text-sm text-slate-700 dark:text-slate-200">
                 {post.description || "No description"}
               </p>
             </div>
@@ -61,7 +61,7 @@ export default async function ProfilePosts({ email }: { email: string }) {
             )}
 
             <Link href={`/posts/${post.id}`} className="block">
-              <div className="flex items-center justify-between text-xs text-gray-500 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+              <div className="flex items-center justify-between text-xs text-slate-500 transition hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">
                 <span>{post.likesCount} likes</span>
                 <span>{new Date(post.createdAt).toLocaleDateString()}</span>
               </div>

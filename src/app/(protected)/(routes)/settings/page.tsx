@@ -52,7 +52,7 @@ export default async function SettingsPage() {
       </section>
 
       <section className="mt-8 flex items-center justify-center">
-        <div className="mx-auto w-full max-w-md">
+        <div className="mx-auto w-full max-w-md rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-sm shadow-slate-200/60 sm:p-8 dark:border-transparent dark:bg-transparent dark:shadow-none">
           <h1 className="mb-4 text-center text-2xl font-bold">
             Profile Settings
           </h1>

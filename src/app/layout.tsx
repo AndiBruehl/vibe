@@ -61,7 +61,7 @@ export default function RootLayout({
           scaling="100%"
         >
           <ThemeObserver />
-          <div className="min-h-screen bg-ig-surface">{children}</div>
+          <div className="min-h-screen ig-page">{children}</div>
         </Theme>
       </body>
     </html>

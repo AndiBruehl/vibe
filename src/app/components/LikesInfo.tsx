@@ -46,7 +46,7 @@ export default function LikesInfo({
           className={
             likedByMe
               ? "fill-red-500 text-red-500"
-              : "text-white dark:text-white"
+              : "text-slate-900 dark:text-white"
           }
         />
       </button>

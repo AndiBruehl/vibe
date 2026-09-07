@@ -62,10 +62,10 @@ export default function LikeButton({
         className={`size-5 transition ${
           optimisticState.liked
             ? "fill-red-500 text-red-500"
-            : "fill-transparent text-white dark:text-white"
+            : "fill-transparent text-slate-900 dark:text-white"
         }`}
       />
-      <span className="font-medium text-gray-900 dark:text-white">
+      <span className="font-medium text-slate-900 dark:text-white">
         {optimisticState.likes}
       </span>
     </button>

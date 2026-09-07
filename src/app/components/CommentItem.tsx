@@ -98,12 +98,12 @@ export default function CommentItem({
               {profileHref ? (
                 <Link
                   href={profileHref}
-                  className="font-semibold text-gray-900 transition hover:text-slate-700 dark:text-white dark:hover:text-slate-300"
+                  className="font-semibold text-slate-900 transition hover:text-slate-700 dark:text-white dark:hover:text-slate-300"
                 >
                   {comment.author.name || "Unknown"}
                 </Link>
               ) : (
-                <p className="font-semibold text-gray-900 dark:text-white">
+                <p className="font-semibold text-slate-900 dark:text-white">
                   {comment.author.name || "Unknown"}
                 </p>
               )}
@@ -111,23 +111,23 @@ export default function CommentItem({
               {profileHref ? (
                 <Link
                   href={profileHref}
-                  className="text-sm text-gray-500 transition hover:text-slate-700 dark:text-gray-400 dark:hover:text-slate-300"
+                  className="text-sm text-slate-500 transition hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
                 >
                   @{comment.author.username}
                 </Link>
               ) : (
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-sm text-slate-500 dark:text-slate-400">
                   @{comment.author.username || "user"}
                 </p>
               )}
 
-              <span className="text-xs text-gray-400 dark:text-gray-500">
+              <span className="text-xs text-slate-400 dark:text-slate-500">
                 {new Date(comment.createdAt).toLocaleDateString()}
               </span>
             </div>
 
             {!isEditing ? (
-              <p className="mt-2 text-sm text-gray-700 dark:text-gray-200">
+              <p className="mt-2 text-sm text-slate-700 dark:text-slate-200">
                 {comment.text}
               </p>
             ) : null}
@@ -141,21 +141,21 @@ export default function CommentItem({
                   name="text"
                   defaultValue={comment.text}
                   rows={3}
-                  className="w-full resize-none rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-slate-500 dark:border-gray-600 dark:bg-gray-900 dark:text-white"
+                  className="w-full resize-none rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-500 dark:border-gray-600 dark:bg-gray-900 dark:text-white"
                   required
                 />
 
                 <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="submit"
-                    className="rounded-xl bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 dark:bg-white dark:text-black dark:hover:bg-slate-200"
+                    className="rounded-xl bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
                   >
                     Save
                   </button>
                   <button
                     type="button"
                     onClick={() => setIsEditing(false)}
-                    className="rounded-xl border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800"
+                    className="rounded-xl border border-gray-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-slate-200 dark:hover:bg-gray-800"
                   >
                     Cancel
                   </button>
@@ -175,7 +175,7 @@ export default function CommentItem({
                 <button
                   type="button"
                   onClick={() => setShowReplyForm((prev) => !prev)}
-                  className="text-xs font-medium text-gray-500 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                  className="text-xs font-medium text-slate-500 transition hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
                 >
                   {showReplyForm ? "Cancel" : "Reply"}
                 </button>
@@ -186,7 +186,7 @@ export default function CommentItem({
                   <button
                     type="button"
                     onClick={() => setIsEditing(true)}
-                    className="text-xs font-medium text-gray-500 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                    className="text-xs font-medium text-slate-500 transition hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
                   >
                     Edit
                   </button>

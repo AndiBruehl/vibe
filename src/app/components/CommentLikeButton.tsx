@@ -59,7 +59,7 @@ export default function CommentLikeButton({
       type="button"
       onClick={handleClick}
       disabled={isPending}
-      className="inline-flex items-center gap-1 text-xs text-gray-500 transition hover:text-gray-700 disabled:opacity-60 dark:text-gray-400 dark:hover:text-gray-200"
+      className="inline-flex items-center gap-1 text-xs text-slate-500 transition hover:text-slate-700 disabled:opacity-60 dark:text-slate-400 dark:hover:text-slate-200"
     >
       <Heart
         className={`size-4 transition ${

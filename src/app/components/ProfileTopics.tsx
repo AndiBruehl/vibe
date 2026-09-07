@@ -7,7 +7,7 @@ type Props = {
 
 export default async function ProfileTopics({ email }: Props) {
   const profile = await prisma.profile.findUnique({ where: { email } });
-  if (!profile) return <p className="text-gray-600">No topics found.</p>;
+  if (!profile) return <p className="text-slate-600">No topics found.</p>;
 
   const follows = await prisma.topicFollow.findMany({
     where: { profileId: profile.id },
@@ -18,7 +18,7 @@ export default async function ProfileTopics({ email }: Props) {
   if (follows.length === 0) {
     return (
       <div className="text-center">
-        <p className="text-gray-600">You are not following any topics yet.</p>
+        <p className="text-slate-600">You are not following any topics yet.</p>
         <Link
           href="/topics"
           className="mt-3 inline-block text-sm text-slate-600 hover:underline"

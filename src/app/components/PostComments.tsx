@@ -58,7 +58,7 @@ export default async function PostComments({ postId }: PostCommentsProps) {
   return (
     <div className="space-y-4">
       {comments.length === 0 ? (
-        <p className="text-sm text-gray-500 dark:text-gray-400">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           No comments yet.
         </p>
       ) : (

@@ -58,7 +58,7 @@ export default async function CommentsSection({
 
   return (
     <section className="rounded-2xl bg-white p-5 shadow-md shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
-      <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
+      <h2 className="mb-4 text-lg font-semibold text-slate-900 dark:text-white">
         Comments
       </h2>
 
@@ -66,7 +66,7 @@ export default async function CommentsSection({
 
       <div className="mt-6 space-y-4">
         {comments.length === 0 ? (
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             No comments yet.
           </p>
         ) : (

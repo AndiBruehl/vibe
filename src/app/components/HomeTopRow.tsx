@@ -36,7 +36,7 @@ export default async function HomeTopRow({
                 className="transition duration-200 group-hover:rotate-90"
               />
             </button>
-            <p className="mt-2 text-center text-xs font-medium text-zinc-400">
+            <p className="mt-2 text-center text-xs font-medium text-slate-600 dark:text-slate-400">
               New Story
             </p>
           </div> */}
@@ -59,7 +59,7 @@ export default async function HomeTopRow({
                 </div>
               </div>
 
-              <p className="mt-2 w-full truncate px-1 text-center text-xs font-medium text-zinc-400 transition duration-200 group-hover:text-white">
+              <p className="mt-2 w-full truncate px-1 text-center text-xs font-medium text-slate-600 dark:text-slate-400 transition duration-200 group-hover:text-slate-900 dark:group-hover:text-white">
                 {profile.username || profile.name || "Unknown"}
               </p>
             </Link>
