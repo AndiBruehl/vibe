@@ -1,4 +1,5 @@
 import { prisma } from "@/db";
+import { withViewerLikes } from "@/mobile-post-likes";
 import { getMobileSession } from "@/mobile-auth";
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -41,7 +42,7 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  return NextResponse.json(post);
+  return NextResponse.json((await withViewerLikes(_request, [post]))[0]);
 }
 
 export async function PATCH(

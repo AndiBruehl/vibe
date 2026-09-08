@@ -1,4 +1,5 @@
 import { prisma } from "@/db";
+import { withViewerLikes } from "@/mobile-post-likes";
 import { getMobileSession } from "@/mobile-auth";
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -69,7 +70,7 @@ export async function GET(request: NextRequest) {
     take: 50,
   });
 
-  return NextResponse.json(posts);
+  return NextResponse.json(await withViewerLikes(request, posts));
 }
 
 export async function POST(request: NextRequest) {

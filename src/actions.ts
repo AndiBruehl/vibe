@@ -256,7 +256,7 @@ export async function deletePost(formData: FormData): Promise<void> {
   redirect("/");
 }
 
-export async function togglePostLike(formData: FormData): Promise<void> {
+export async function togglePostLike(formData: FormData): Promise<{ liked: boolean; likes: number }> {
   const session = await auth();
 
   if (!session?.user?.email) {
@@ -328,6 +328,8 @@ export async function togglePostLike(formData: FormData): Promise<void> {
   revalidatePath("/");
   revalidatePath("/profile");
   revalidatePath(`/posts/${postIdValue}`);
+  const updated = await prisma.post.findUniqueOrThrow({ where: { id: postIdValue }, select: { likesCount: true } });
+  return { liked: !existingLike, likes: updated.likesCount };
 }
 
 export async function postComment(formData: FormData): Promise<void> {

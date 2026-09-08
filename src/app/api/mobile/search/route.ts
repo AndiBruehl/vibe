@@ -1,4 +1,5 @@
 import { prisma } from "@/db";
+import { withViewerLikes } from "@/mobile-post-likes";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -57,6 +58,6 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({
     users,
-    posts,
+    posts: await withViewerLikes(request, posts),
   });
 }
