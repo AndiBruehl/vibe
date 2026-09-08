@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json([]);
   }
 
-  const [follows, likes, comments] = await Promise.all([
+  const [follows, likes, comments, participants] = await Promise.all([
     prisma.follow.findMany({
       where: {
         followingId: currentUserProfile.id,
@@ -101,7 +101,26 @@ export async function GET(request: NextRequest) {
       },
       take: 20,
     }),
+    prisma.conversationParticipant.findMany({
+      where: { profileId: currentUserProfile.id },
+      include: {
+        conversation: {
+          include: {
+            participants: { include: { profile: { select: { name: true, username: true, avatar: true } } } },
+            messages: { orderBy: { createdAt: "desc" }, take: 1, include: { sender: { select: { id: true, name: true, username: true, avatar: true } } } },
+          },
+        },
+      },
+      take: 20,
+    }),
   ]);
+
+  const messages = participants.flatMap((participant) => {
+    const latest = participant.conversation.messages[0];
+    if (!latest || latest.senderId === currentUserProfile.id || (participant.lastReadAt && latest.createdAt <= participant.lastReadAt)) return [];
+    const other = participant.conversation.participants.find(item => item.profileId !== currentUserProfile.id)?.profile;
+    return [{ id: `message-${latest.id}`, type: "message" as const, title: `${latest.sender.name || latest.sender.username || other?.name || "Someone"} sent you a message`, body: latest.body, createdAt: latest.createdAt, avatar: latest.sender.avatar || other?.avatar, conversationId: participant.conversationId, conversationTitle: participant.conversation.name || other?.name || other?.username || "Conversation" }];
+  });
 
   const items = [
     ...follows.map((follow) => ({
@@ -120,6 +139,7 @@ export async function GET(request: NextRequest) {
       createdAt: like.createdAt,
       avatar: like.author.avatar,
       image: like.post.image,
+      postId: like.post.id,
     })),
     ...comments.map((comment) => ({
       id: `comment-${comment.id}`,
@@ -129,7 +149,9 @@ export async function GET(request: NextRequest) {
       createdAt: comment.createdAt,
       avatar: comment.author.avatar,
       image: comment.post.image,
+      postId: comment.post.id,
     })),
+    ...messages,
   ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
   return NextResponse.json(items.slice(0, 40));
