@@ -38,7 +38,7 @@ export default async function BrowsePage() {
           Browse
         </h1>
 
-        <div className="w-24" />
+        <Link href="/profiles" className="inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-4 font-medium text-slate-800 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800">Profiles</Link>
       </section>
 
       <section className="mt-6">
