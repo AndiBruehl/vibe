@@ -2,7 +2,7 @@ import { getProfileDirectory } from "@/profile-directory";
 import { profileSortOptions } from "@/profile-directory-order";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Users } from "lucide-react";
+import { MoveLeft, Users } from "lucide-react";
 
 export default async function ProfilesPage({ searchParams }: {
   searchParams: Promise<{ q?: string; sort?: string }>;
@@ -12,8 +12,8 @@ export default async function ProfilesPage({ searchParams }: {
   const sort = profileSortOptions.some(option => option.value === params.sort) ? params.sort! : "newest";
   const profiles = await getProfileDirectory(q, sort);
   return <main className="pb-24 md:pb-8">
-    <Link href="/browse" className="group inline-flex min-h-11 items-center gap-2 text-slate-700 dark:text-slate-300">
-      <ArrowLeft size={20} />
+    <Link href="/browse" className="group inline-flex min-h-11 items-center gap-2 text-slate-800 no-underline visited:text-slate-800 hover:text-slate-600 dark:text-slate-200 dark:visited:text-slate-400 dark:hover:text-slate-500">
+      <MoveLeft />
       <span className="opacity-0 transition-opacity duration-200 group-hover:opacity-100">Back to Browse</span>
     </Link>
     <h1 className="mt-4 flex items-center gap-3 text-2xl font-bold text-slate-900 dark:text-white"><Users />Profiles</h1>
