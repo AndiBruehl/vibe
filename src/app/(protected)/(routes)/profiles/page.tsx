@@ -12,7 +12,10 @@ export default async function ProfilesPage({ searchParams }: {
   const sort = profileSortOptions.some(option => option.value === params.sort) ? params.sort! : "newest";
   const profiles = await getProfileDirectory(q, sort);
   return <main className="pb-24 md:pb-8">
-    <Link href="/browse" className="inline-flex min-h-11 items-center gap-2 text-slate-700 dark:text-slate-300"><ArrowLeft size={20} />Back to Browse</Link>
+    <Link href="/browse" className="group inline-flex min-h-11 items-center gap-2 text-slate-700 dark:text-slate-300">
+      <ArrowLeft size={20} />
+      <span className="opacity-0 transition-opacity duration-200 group-hover:opacity-100">Back to Browse</span>
+    </Link>
     <h1 className="mt-4 flex items-center gap-3 text-2xl font-bold text-slate-900 dark:text-white"><Users />Profiles</h1>
     <p className="mt-2 text-slate-600 dark:text-slate-400">Find people and discover their vibes.</p>
     <form action="/profiles" className="my-6 flex flex-wrap items-end gap-3">
