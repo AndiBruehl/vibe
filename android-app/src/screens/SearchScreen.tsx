@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import ErrorState from "@/components/ErrorState";
+import LoadingState from "@/components/LoadingState";
 import { FlatList, StyleSheet, TextInput, View } from "react-native";
 import EmptyState from "@/components/EmptyState";
 import PostCard from "@/components/PostCard";
@@ -9,18 +11,28 @@ import { colors } from "@/theme";
 export default function SearchScreen() {
   const [query, setQuery] = useState("");
   const [posts, setPosts] = useState<Post[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [retry, setRetry] = useState(0);
 
-  async function runSearch(value: string) {
-    setQuery(value);
-
-    if (!value.trim()) {
-      setPosts([]);
-      return;
-    }
-
-    const results = await api.search(value);
-    setPosts(results.posts);
-  }
+  useEffect(() => {
+    let active = true;
+    setPosts([]);
+    setError(null);
+    setIsLoading(Boolean(query.trim()));
+    const timer = setTimeout(async () => {
+      if (!query.trim()) return;
+      try {
+        const results = await api.search(query.trim());
+        if (active) setPosts(results.posts);
+      } catch (failure) {
+        if (active) setError(failure instanceof Error ? failure.message : "Search failed.");
+      } finally {
+        if (active) setIsLoading(false);
+      }
+    }, 300);
+    return () => { active = false; clearTimeout(timer); };
+  }, [query, retry]);
 
   return (
     <Screen>
@@ -33,14 +45,19 @@ export default function SearchScreen() {
           <View>
             <TextInput
               value={query}
-              onChangeText={(value) => void runSearch(value)}
+              onChangeText={setQuery}
+              returnKeyType="search"
+              autoCapitalize="none"
+              autoCorrect={false}
               placeholder="Search vibes..."
               placeholderTextColor={colors.muted}
               style={styles.input}
             />
           </View>
         }
-        ListEmptyComponent={
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        ListEmptyComponent={isLoading ? <LoadingState /> : error ? <ErrorState message={error} onRetry={() => setRetry((value) => value + 1)} /> :
           <EmptyState
             icon="search-outline"
             title={query ? "No results" : "Start typing"}

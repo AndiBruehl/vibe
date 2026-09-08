@@ -1,6 +1,7 @@
+import ErrorState from "@/components/ErrorState";
+import { useRemoteData } from "@/hooks/useRemoteData";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { useEffect, useState } from "react";
 import { FlatList, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import EmptyState from "@/components/EmptyState";
 import LoadingState from "@/components/LoadingState";
@@ -12,16 +13,7 @@ import type { RootStackParamList } from "../../App";
 export default function MessagesScreen() {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const [conversations, setConversations] = useState<ConversationSummary[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    api
-      .getConversations()
-      .then(setConversations)
-      .catch(console.error)
-      .finally(() => setIsLoading(false));
-  }, []);
+  const { data: conversations, isLoading, isRefreshing, error, refresh } = useRemoteData<ConversationSummary[]>(api.getConversations, []);
 
   if (isLoading) {
     return (
@@ -34,10 +26,13 @@ export default function MessagesScreen() {
   return (
     <Screen>
       <FlatList
+        refreshing={isRefreshing}
+        onRefresh={() => void refresh()}
+        ListHeaderComponent={error ? <ErrorState message={error} onRetry={() => void refresh()} /> : null}
         data={conversations}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
-        ListEmptyComponent={
+        ListEmptyComponent={error ? null :
           <EmptyState
             icon="chatbubble-ellipses-outline"
             title="No messages yet"

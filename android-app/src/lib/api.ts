@@ -13,6 +13,8 @@ export type Profile = {
 export type Post = {
   id: string;
   image: string;
+  images?: string[];
+  liked?: boolean;
   description: string;
   likesCount: number;
   createdAt: string;
@@ -72,9 +74,15 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+const sessionExpiredListeners = new Set<(token: string) => void>();
+export function onSessionExpired(listener: (token: string) => void) {
+  sessionExpiredListeners.add(listener);
+  return () => { sessionExpiredListeners.delete(listener); };
+}
+
+async function request<T>(path: string, init?: RequestInit, sessionToken?: string): Promise<T> {
   const { getStoredToken } = await import("@/lib/sessionStore");
-  const token = await getStoredToken();
+  const token = sessionToken ?? await getStoredToken();
   const headers = new Headers(init?.headers);
 
   headers.set("Accept", "application/json");
@@ -87,12 +95,17 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  const response = await fetch(`${apiUrl}${path}`, {
-    ...init,
-    headers,
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 20000);
+  try {
+  const response = await fetch(`${apiUrl.replace(/\/$/, "")}${path}`, {
+    ...init, headers, signal: controller.signal,
   });
 
   if (!response.ok) {
+    if (response.status === 401 && token && !sessionToken) {
+      sessionExpiredListeners.forEach(listener => listener(token));
+    }
     const body = await response.json().catch(() => null);
     const message =
       typeof body?.error === "string"
@@ -103,9 +116,21 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
 
   return (await response.json()) as T;
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    throw new ApiError(0, controller.signal.aborted
+      ? "The server took too long to respond. Please try again."
+      : "Could not connect to VIBE. Check your connection and try again.");
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 export const api = {
+  getProfiles: (query: string, sort: string) => request<Profile[]>(`/api/mobile/profiles?q=${encodeURIComponent(query)}&sort=${encodeURIComponent(sort)}`),
+  setPostLiked: (postId: string, liked: boolean) => request<{ liked: boolean; likes: number }>(`/api/mobile/posts/${postId}/like`, {
+    method: "PUT", body: JSON.stringify({ liked }),
+  }),
   createPost: (input: { description: string; image: string; topics?: string }) =>
     request<Post>("/api/mobile/posts", {
       method: "POST",
@@ -130,7 +155,7 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ body }),
     }),
-  getProfile: () => request<Profile>("/api/mobile/profile"),
+  getProfile: (token?: string) => request<Profile>("/api/mobile/profile", undefined, token),
   getUploadUrl: () => request<UploadUrlResponse>("/api/mobile/upload/url"),
   loginWithGoogle: (idToken: string) =>
     request<AuthResponse>("/api/mobile/auth/google", {

@@ -84,10 +84,7 @@ export async function POST(request: NextRequest) {
     const profile = existingProfile
       ? await prisma.profile.update({
           where: { email },
-          data: {
-            avatar: payload.picture,
-            name: payload.name,
-          },
+          data: {},
           select: {
             avatar: true,
             bio: true,

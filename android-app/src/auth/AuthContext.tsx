@@ -7,13 +7,12 @@ import {
   useMemo,
   useState,
 } from "react";
-import { ApiError, api, Profile } from "@/lib/api";
+import { ApiError, api, Profile, onSessionExpired } from "@/lib/api";
 import {
   clearSession,
   getStoredProfile,
   getStoredToken,
   storeSession,
-  storeToken,
 } from "@/lib/sessionStore";
 
 type AuthContextValue = {
@@ -37,8 +36,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile(null);
   }, []);
 
+  useEffect(() => onSessionExpired(token => {
+    void getStoredToken().then(current => {
+      if (current === token) return signOut();
+    }).catch(console.error);
+  }), [signOut]);
+
   const refreshProfile = useCallback(async () => {
     const nextProfile = await api.getProfile();
+    const token = await getStoredToken();
+    if (token) await storeSession(token, nextProfile);
     setProfile(nextProfile);
   }, []);
 
@@ -49,8 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signInWithMobileToken = useCallback(async (token: string) => {
-    await storeToken(token);
-    const nextProfile = await api.getProfile();
+    const nextProfile = await api.getProfile(token);
     await storeSession(token, nextProfile);
     setProfile(nextProfile);
   }, []);
@@ -76,6 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const freshProfile = await api.getProfile();
 
         if (isMounted) {
+          await storeSession(storedToken, freshProfile);
           setProfile(freshProfile);
         }
       } catch (error) {

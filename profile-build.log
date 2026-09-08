@@ -1,0 +1,83 @@
+
+> vibe@0.1.0 build
+> next build
+
+⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of C:\Users\andiw\package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * C:\Users\andiw\Desktop\Code\VIBE\vibe\package-lock.json
+
+▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local, .env
+- Experiments (use with caution):
+  · proxyClientMaxBodySize: "30mb"
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 19.5s
+  Running TypeScript ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/33) ...
+  Generating static pages using 11 workers (8/33) 
+  Generating static pages using 11 workers (16/33) 
+prisma:query db.Post.aggregate([ { $sort: { createdAt: -1, }, }, { $project: { _id: 1, authorEmail: 1, image: 1, images: 1, description: 1, likesCount: 1, createdAt: 1, updatedAt: 1, }, }, ])
+prisma:query db.Profile.aggregate([ { $match: { $expr: { $and: [ { $or: [ { $eq: [ "$email", { $literal: "anna.lpunkt2003@gmail.com", }, ], }, { $eq: [ "$email", { $literal: "violett.ai.2025@gmail.com", }, ], }, { $eq: [ "$email", { $literal: "liana.weiss.ai@gmail.com", }, ], }, { $eq: [ "$email", { $literal: "a.bruehl2019@gmail.com", }, ], }, { $eq: [ "$email", { $literal: "deleted@vibe.local", }, ], }, ], }, { $ne: [ "$email", "$$REMOVE", ], }, ], }, }, }, { $project: { _id: 1, username: 1, name: 1, avatar: 1, email: 1, }, }, ])
+  Generating static pages using 11 workers (24/33) 
+✓ Generating static pages using 11 workers (33/33) in 854.0ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ○ /_not-found
+├ ƒ /activity
+├ ƒ /api/auth/[...nextauth]
+├ ƒ /api/conversations/[id]
+├ ƒ /api/conversations/[id]/members
+├ ƒ /api/conversations/[id]/name
+├ ƒ /api/conversations/create
+├ ƒ /api/messages/[id]/status
+├ ƒ /api/messages/unread
+├ ƒ /api/mobile/activity
+├ ƒ /api/mobile/auth/google
+├ ƒ /api/mobile/auth/google/callback
+├ ƒ /api/mobile/auth/google/start
+├ ƒ /api/mobile/comments/[id]
+├ ƒ /api/mobile/messages
+├ ƒ /api/mobile/messages/[id]
+├ ƒ /api/mobile/posts
+├ ƒ /api/mobile/posts/[id]
+├ ƒ /api/mobile/posts/[id]/like
+├ ƒ /api/mobile/profile
+├ ƒ /api/mobile/profiles
+├ ƒ /api/mobile/search
+├ ƒ /api/mobile/upload/url
+├ ƒ /api/profiles/search
+├ ƒ /api/topics/create
+├ ƒ /api/topics/feed
+├ ƒ /api/topics/follow
+├ ƒ /api/topics/search
+├ ƒ /api/topics/unfollow
+├ ƒ /api/upload
+├ ƒ /api/upload/url
+├ ƒ /browse
+├ ƒ /create
+├ ƒ /home
+├ ƒ /messages
+├ ƒ /messages/[id]
+├ ƒ /messages/group/[id]
+├ ƒ /posts/[id]
+├ ƒ /profile
+├ ƒ /profile/[username]
+├ ƒ /profiles
+├ ƒ /search
+├ ƒ /settings
+├ ƒ /topics
+└ ƒ /topics/[slug]
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

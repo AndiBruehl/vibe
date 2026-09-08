@@ -1,5 +1,5 @@
 import * as ImagePicker from "expo-image-picker";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -58,6 +58,7 @@ export default function CreateScreen() {
   const [topics, setTopics] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPublishing, setIsPublishing] = useState(false);
+  const publishing = useRef(false);
 
   const topicCount = topics
     .split(",")
@@ -66,15 +67,20 @@ export default function CreateScreen() {
   const tooManyTopics = topicCount > 5;
 
   async function pickImage() {
+    if (publishing.current) return;
+    try {
     const result = await ImagePicker.launchImageLibraryAsync({
       allowsEditing: true,
       aspect: [1, 1],
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ["images"],
       quality: 0.9,
     });
 
     if (!result.canceled) {
       setImageUri(result.assets[0].uri);
+    }
+    } catch {
+      setError("Your photo library could not be opened. Please try again.");
     }
   }
 
@@ -108,11 +114,12 @@ export default function CreateScreen() {
   }
 
   async function publish() {
-    if (!imageUri || tooManyTopics || isPublishing) {
+    if (!imageUri || tooManyTopics || publishing.current) {
       return;
     }
 
     setError(null);
+    publishing.current = true;
     setIsPublishing(true);
 
     try {
@@ -134,6 +141,7 @@ export default function CreateScreen() {
           : "Could not publish this post.";
       setError(message);
     } finally {
+      publishing.current = false;
       setIsPublishing(false);
     }
   }
@@ -149,7 +157,7 @@ export default function CreateScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <Pressable style={styles.imageBox} onPress={pickImage}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Choose image" disabled={isPublishing} style={styles.imageBox} onPress={() => void pickImage()}>
             {imageUri ? (
               <Image source={{ uri: imageUri }} style={styles.image} />
             ) : (
@@ -160,6 +168,7 @@ export default function CreateScreen() {
             )}
           </Pressable>
           <TextInput
+            editable={!isPublishing}
             value={description}
             onChangeText={setDescription}
             placeholder="Describe your image..."
@@ -168,6 +177,7 @@ export default function CreateScreen() {
             multiline
           />
           <TextInput
+            editable={!isPublishing}
             value={topics}
             onChangeText={setTopics}
             placeholder="Topics, comma separated"

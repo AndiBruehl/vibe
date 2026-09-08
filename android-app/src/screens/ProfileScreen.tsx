@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import EmptyState from "@/components/EmptyState";
+import { useState } from "react";
+import { Image, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import ErrorState from "@/components/ErrorState";
+import { useRemoteData } from "@/hooks/useRemoteData";
 import LoadingState from "@/components/LoadingState";
 import Screen from "@/components/Screen";
 import { useAuth } from "@/auth/AuthContext";
@@ -8,19 +9,11 @@ import { api, Profile } from "@/lib/api";
 import { colors } from "@/theme";
 
 export default function ProfileScreen() {
-  const { signOut } = useAuth();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { signOut, profile: cachedProfile } = useAuth();
+  const { data: profile, isLoading, isRefreshing, error, refresh } = useRemoteData<Profile | null>(api.getProfile, cachedProfile);
+  const [signOutError, setSignOutError] = useState<string | null>(null);
 
-  useEffect(() => {
-    api
-      .getProfile()
-      .then(setProfile)
-      .catch(console.error)
-      .finally(() => setIsLoading(false));
-  }, []);
-
-  if (isLoading) {
+  if (isLoading && !profile) {
     return (
       <Screen>
         <LoadingState />
@@ -31,18 +24,16 @@ export default function ProfileScreen() {
   if (!profile) {
     return (
       <Screen>
-        <EmptyState
-          icon="person-outline"
-          title="Sign in needed"
-          body="Connect auth endpoints to load your profile."
-        />
+        <ErrorState message={error || "Your profile could not be loaded."} onRetry={() => void refresh()} />
       </Screen>
     );
   }
 
   return (
     <Screen>
-      <ScrollView contentContainerStyle={styles.wrap} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={styles.wrap} showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={() => void refresh()} tintColor={colors.red} colors={[colors.red]} />}>
+        {error ? <ErrorState message={error} onRetry={() => void refresh()} /> : null}
         <View style={styles.card}>
           {profile.avatar ? (
             <Image source={{ uri: profile.avatar }} style={styles.avatar} />
@@ -52,9 +43,10 @@ export default function ProfileScreen() {
           <Text style={styles.name}>{profile.name || "Unknown"}</Text>
           <Text style={styles.subtitle}>{profile.subtitle}</Text>
           <Text style={styles.bio}>{profile.bio}</Text>
-          <Pressable style={styles.signOutButton} onPress={() => void signOut()}>
+          <Pressable accessibilityRole="button" style={styles.signOutButton} onPress={() => void signOut().catch(() => setSignOutError("Could not sign out. Please try again."))}>
             <Text style={styles.signOutText}>Sign out</Text>
           </Pressable>
+          {signOutError ? <Text accessibilityRole="alert" style={styles.bio}>{signOutError}</Text> : null}
         </View>
       </ScrollView>
     </Screen>

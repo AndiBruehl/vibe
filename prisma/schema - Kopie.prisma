@@ -89,9 +89,9 @@ model Follow {
 }
 
 model Post {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  authorEmail String?
-  author      Profile? @relation(fields: [authorEmail], references: [email])
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  authorEmail String
+  author      Profile @relation(fields: [authorEmail], references: [email])
 
   image       String
   images      String[] @default([])

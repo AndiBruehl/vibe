@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import ErrorState from "@/components/ErrorState";
+import { useRemoteData } from "@/hooks/useRemoteData";
 import { FlatList, RefreshControl, StyleSheet } from "react-native";
 import EmptyState from "@/components/EmptyState";
 import LoadingState from "@/components/LoadingState";
@@ -8,20 +9,7 @@ import { api, Post } from "@/lib/api";
 import { colors } from "@/theme";
 
 export default function HomeScreen() {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
-  const loadPosts = useCallback(async () => {
-    const data = await api.getHomePosts();
-    setPosts(data);
-  }, []);
-
-  useEffect(() => {
-    loadPosts()
-      .catch(console.error)
-      .finally(() => setIsLoading(false));
-  }, [loadPosts]);
+  const { data: posts, isLoading, isRefreshing, error, refresh } = useRemoteData<Post[]>(api.getHomePosts, []);
 
   if (isLoading) {
     return (
@@ -34,11 +22,12 @@ export default function HomeScreen() {
   return (
     <Screen>
       <FlatList
+        ListHeaderComponent={error ? <ErrorState message={error} onRetry={() => void refresh()} /> : null}
         data={posts}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <PostCard post={item} />}
         contentContainerStyle={styles.list}
-        ListEmptyComponent={
+        ListEmptyComponent={error ? null :
           <EmptyState
             icon="images-outline"
             title="No posts yet"
@@ -49,12 +38,7 @@ export default function HomeScreen() {
           <RefreshControl
             refreshing={isRefreshing}
             tintColor={colors.red}
-            onRefresh={() => {
-              setIsRefreshing(true);
-              loadPosts()
-                .catch(console.error)
-                .finally(() => setIsRefreshing(false));
-            }}
+            onRefresh={() => void refresh()}
           />
         }
         showsVerticalScrollIndicator={false}

@@ -48,58 +48,62 @@ async function createUniqueUsername(email: string) {
 
 export async function GET(request: NextRequest) {
   const redirectUrl = new URL(getRedirectUri(request));
-  const session = await auth();
-  const user = session?.user;
-  const email = user?.email;
 
-  if (!email) {
-    redirectUrl.searchParams.set("error", "Google sign-in was cancelled.");
+  try {
+    const session = await auth();
+    const user = session?.user;
+    const email = user?.email;
+
+    if (!email) {
+      redirectUrl.searchParams.set("error", "Google sign-in was cancelled.");
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    const existingProfile = await prisma.profile.findUnique({
+      select: { id: true },
+      where: { email },
+    });
+    const profile = existingProfile
+      ? await prisma.profile.update({
+          data: {},
+          select: {
+            avatar: true,
+            bio: true,
+            email: true,
+            id: true,
+            name: true,
+            subtitle: true,
+            username: true,
+          },
+          where: { email },
+        })
+      : await prisma.profile.create({
+          data: {
+            avatar: user.image,
+            email,
+            name: user.name,
+            username: await createUniqueUsername(email),
+          },
+          select: {
+            avatar: true,
+            bio: true,
+            email: true,
+            id: true,
+            name: true,
+            subtitle: true,
+            username: true,
+          },
+        });
+
+    redirectUrl.searchParams.set(
+      "token",
+      createMobileToken({ email: profile.email, profileId: profile.id }),
+    );
+
+    return NextResponse.redirect(redirectUrl);
+  } catch (error) {
+    console.error("Mobile Google callback failed:", error);
+    redirectUrl.searchParams.set("error", "Google sign-in failed.");
     return NextResponse.redirect(redirectUrl);
   }
-
-  const existingProfile = await prisma.profile.findUnique({
-    select: { id: true },
-    where: { email },
-  });
-  const profile = existingProfile
-    ? await prisma.profile.update({
-        data: {
-          avatar: user.image,
-          name: user.name,
-        },
-        select: {
-          avatar: true,
-          bio: true,
-          email: true,
-          id: true,
-          name: true,
-          subtitle: true,
-          username: true,
-        },
-        where: { email },
-      })
-    : await prisma.profile.create({
-        data: {
-          avatar: user.image,
-          email,
-          name: user.name,
-          username: await createUniqueUsername(email),
-        },
-        select: {
-          avatar: true,
-          bio: true,
-          email: true,
-          id: true,
-          name: true,
-          subtitle: true,
-          username: true,
-        },
-      });
-
-  redirectUrl.searchParams.set(
-    "token",
-    createMobileToken({ email: profile.email, profileId: profile.id }),
-  );
-
-  return NextResponse.redirect(redirectUrl);
 }

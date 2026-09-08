@@ -10,6 +10,7 @@ import ProfileTopics from "@/app/components/ProfileTopics";
 import { Suspense } from "react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import { randomUUID } from "crypto";
 
 type ProfilePageProps = {
   searchParams: Promise<{
@@ -31,6 +32,18 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
       ? tab
       : "posts";
 
+  // Aus der E-Mail einen einfachen Basisnamen erzeugen.
+  // Beispiel:
+  // andreas@example.com -> andreas-a1b2c3d4
+  const emailBase =
+    session.user.email
+      .split("@")[0]
+      .toLowerCase()
+      .replace(/[^a-z0-9_-]/g, "")
+      .slice(0, 20) || "user";
+
+  const generatedUsername = `${emailBase}-${randomUUID().slice(0, 8)}`;
+
   const profile = await prisma.profile.upsert({
     where: {
       email: session.user.email,
@@ -38,6 +51,8 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
     update: {},
     create: {
       email: session.user.email,
+      username: generatedUsername,
+      name: session.user.name || null,
     },
   });
 
@@ -55,7 +70,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         </Link>
 
         <div className="flex items-center gap-2 text-lg font-semibold text-slate-700 dark:text-slate-200">
-          {profile.username}
+          {profile.username || "user"}
           <div className="inline-flex size-5 items-center justify-center rounded-full bg-linear-to-tr from-(--ig-orange) to-(--ig-red) text-white">
             <Check size={16} />
           </div>
@@ -90,12 +105,16 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
 
       <section className="mt-8 text-center">
         <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">
-          {profile.name}
+          {profile.name || "User"}
         </h1>
+
         <p className="my-1 text-slate-600 dark:text-slate-300">
-          {profile.subtitle}
+          {profile.subtitle || ""}
         </p>
-        <p className="text-slate-700 dark:text-slate-300">{profile.bio}</p>
+
+        <p className="text-slate-700 dark:text-slate-300">
+          {profile.bio || ""}
+        </p>
       </section>
 
       <section className="mt-4">

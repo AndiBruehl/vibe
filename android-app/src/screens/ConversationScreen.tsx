@@ -1,7 +1,7 @@
 import type { RouteProp } from "@react-navigation/native";
 import { useRoute } from "@react-navigation/native";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import LoadingState from "@/components/LoadingState";
 import Screen from "@/components/Screen";
 import { api, Message } from "@/lib/api";
@@ -16,6 +16,9 @@ export default function ConversationScreen() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isSending, setIsSending] = useState(false);
+  const sending = useRef(false);
 
   const loadMessages = useCallback(async () => {
     const data = await api.getConversation(route.params.conversationId);
@@ -30,11 +33,11 @@ export default function ConversationScreen() {
 
   useEffect(() => {
     loadMessages()
-      .catch(console.error)
+      .catch(() => setError("Messages could not be loaded. Retrying…"))
       .finally(() => setIsLoading(false));
 
     const interval = setInterval(() => {
-      void loadMessages();
+      if (!sending.current) void loadMessages().then(() => setError(null)).catch(() => setError("Messages could not be loaded. Retrying…"));
     }, 3000);
 
     return () => clearInterval(interval);
@@ -43,14 +46,24 @@ export default function ConversationScreen() {
   async function send() {
     const body = draft.trim();
 
-    if (!body) {
+    if (!body || sending.current) {
       return;
     }
 
-    setDraft("");
-    const message = await api.sendMessage(route.params.conversationId, body);
-    setMessages((current) => [...current, message]);
-    scrollToLatestMessage();
+    sending.current = true;
+    setIsSending(true);
+    setError(null);
+    try {
+      const message = await api.sendMessage(route.params.conversationId, body);
+      setMessages((current) => current.some((item) => item.id === message.id) ? current : [...current, message]);
+      setDraft("");
+      scrollToLatestMessage();
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : "Message was not sent. Please try again.");
+    } finally {
+      sending.current = false;
+      setIsSending(false);
+    }
   }
 
   if (isLoading) {
@@ -63,6 +76,7 @@ export default function ConversationScreen() {
 
   return (
     <Screen>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <FlatList
         ref={listRef}
         data={messages}
@@ -79,15 +93,18 @@ export default function ConversationScreen() {
       <View style={styles.composer}>
         <TextInput
           value={draft}
+          editable={!isSending}
           onChangeText={setDraft}
           placeholder="Message"
           placeholderTextColor={colors.muted}
           style={styles.input}
         />
-        <Pressable style={styles.send} onPress={() => void send()}>
-          <Text style={styles.sendText}>Send</Text>
+        <Pressable accessibilityRole="button" disabled={isSending || !draft.trim()} style={[styles.send, (isSending || !draft.trim()) && { opacity: 0.5 }]} onPress={() => void send()}>
+          <Text style={styles.sendText}>{isSending ? "Sending…" : "Send"}</Text>
         </Pressable>
       </View>
+      {error ? <Text accessibilityRole="alert" style={{ color: colors.textSoft, paddingBottom: 12 }}>{error}</Text> : null}
+      </KeyboardAvoidingView>
     </Screen>
   );
 }

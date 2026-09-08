@@ -1,9 +1,11 @@
 import type { RouteProp } from "@react-navigation/native";
 import { useRoute } from "@react-navigation/native";
-import { useEffect, useState } from "react";
+import { useCallback } from "react";
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import EmptyState from "@/components/EmptyState";
+import PostLikeButton from "@/components/PostLikeButton";
+import ErrorState from "@/components/ErrorState";
+import PostImages from "@/components/PostImages";
+import { useRemoteData } from "@/hooks/useRemoteData";
 import LoadingState from "@/components/LoadingState";
 import Screen from "@/components/Screen";
 import { api, Post } from "@/lib/api";
@@ -14,20 +16,8 @@ type PostDetailRoute = RouteProp<RootStackParamList, "PostDetail">;
 
 export default function PostDetailScreen() {
   const route = useRoute<PostDetailRoute>();
-  const [post, setPost] = useState<Post | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    api
-      .getPost(route.params.postId)
-      .then(setPost)
-      .catch((nextError) => {
-        console.error(nextError);
-        setError("This post could not be loaded.");
-      })
-      .finally(() => setIsLoading(false));
-  }, [route.params.postId]);
+  const load = useCallback(() => api.getPost(route.params.postId), [route.params.postId]);
+  const { data: post, isLoading, error, refresh } = useRemoteData<Post | null>(load, null);
 
   if (isLoading) {
     return (
@@ -40,11 +30,7 @@ export default function PostDetailScreen() {
   if (!post) {
     return (
       <Screen>
-        <EmptyState
-          icon="image-outline"
-          title="Post unavailable"
-          body={error || "This post could not be loaded."}
-        />
+        <ErrorState message={error || "This post could not be loaded."} onRetry={() => void refresh()} />
       </Screen>
     );
   }
@@ -53,7 +39,7 @@ export default function PostDetailScreen() {
     <Screen>
       <ScrollView contentContainerStyle={styles.wrap} showsVerticalScrollIndicator={false}>
         <View style={styles.card}>
-          <Image source={{ uri: post.image }} style={styles.image} />
+          <PostImages key={post.id} image={post.image} images={post.images} description={post.description} />
           <View style={styles.body}>
             <View style={styles.authorRow}>
               {post.author.avatar ? (
@@ -72,8 +58,7 @@ export default function PostDetailScreen() {
               <Text style={styles.text}>{post.description}</Text>
             ) : null}
             <View style={styles.metaRow}>
-              <Ionicons name="heart-outline" color={colors.red} size={18} />
-              <Text style={styles.metaText}>{post.likesCount} likes</Text>
+              <PostLikeButton key={post.id} post={post} />
             </View>
           </View>
         </View>

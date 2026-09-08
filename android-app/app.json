@@ -2,10 +2,10 @@
   "expo": {
     "name": "Vibe",
     "slug": "vibe-android",
-    "version": "0.1.0",
+    "version": "0.1.4",
     "orientation": "default",
     "scheme": "vibe",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "dark",
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -13,13 +13,15 @@
       "package": "com.vibe.social",
       "adaptiveIcon": {
         "backgroundColor": "#111827"
-      }
+      },
+      "versionCode": 5
     },
     "extra": {
       "apiUrl": "https://vibe-social-network.vercel.app"
     },
     "plugins": [
-      "expo-font"
+      "expo-font",
+      "expo-secure-store"
     ]
   }
 }

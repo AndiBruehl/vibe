@@ -1,5 +1,6 @@
+import ErrorState from "@/components/ErrorState";
+import { useRemoteData } from "@/hooks/useRemoteData";
 import { Ionicons } from "@expo/vector-icons";
-import { useEffect, useState } from "react";
 import { FlatList, Image, StyleSheet, Text, View } from "react-native";
 import EmptyState from "@/components/EmptyState";
 import LoadingState from "@/components/LoadingState";
@@ -15,16 +16,7 @@ const iconByType: Record<ActivityItem["type"], keyof typeof Ionicons.glyphMap> =
 };
 
 export default function ActivityScreen() {
-  const [items, setItems] = useState<ActivityItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    api
-      .getActivity()
-      .then(setItems)
-      .catch(console.error)
-      .finally(() => setIsLoading(false));
-  }, []);
+  const { data: items, isLoading, isRefreshing, error, refresh } = useRemoteData<ActivityItem[]>(api.getActivity, []);
 
   if (isLoading) {
     return (
@@ -37,10 +29,13 @@ export default function ActivityScreen() {
   return (
     <Screen>
       <FlatList
+        refreshing={isRefreshing}
+        onRefresh={() => void refresh()}
+        ListHeaderComponent={error ? <ErrorState message={error} onRetry={() => void refresh()} /> : null}
         data={items}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
-        ListEmptyComponent={
+        ListEmptyComponent={error ? null :
           <EmptyState
             icon="notifications-outline"
             title="No activity yet"

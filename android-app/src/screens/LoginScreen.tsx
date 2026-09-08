@@ -1,31 +1,68 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as WebBrowser from "expo-web-browser";
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import * as Crypto from "expo-crypto";
+import * as SecureStore from "expo-secure-store";
+import { parseLoginCallback, type PendingLogin } from "@/lib/loginCallback";
 import {
   ActivityIndicator,
+  Linking,
   Pressable,
   StyleSheet,
   Text,
   View,
 } from "react-native";
 import Screen from "@/components/Screen";
+import VibeLogo from "@/components/VibeLogo";
 import { useAuth } from "@/auth/AuthContext";
 import { apiUrl } from "@/lib/api";
 import { colors } from "@/theme";
 
 WebBrowser.maybeCompleteAuthSession();
+const PENDING_LOGIN_KEY = "vibe.pendingLogin";
 
 export default function LoginScreen() {
   const { signInWithMobileToken } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const signingIn = useRef(false);
+  const completing = useRef(false);
+
+  const completeLogin = useCallback(async (url: string) => {
+    if (completing.current) return;
+    completing.current = true;
+    setIsSigningIn(true);
+    try {
+      const stored = await SecureStore.getItemAsync(PENDING_LOGIN_KEY);
+      const pending = stored ? JSON.parse(stored) as PendingLogin : null;
+      const token = parseLoginCallback(url, pending);
+      await signInWithMobileToken(token);
+      await SecureStore.deleteItemAsync(PENDING_LOGIN_KEY);
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : "Google sign-in failed.");
+    } finally {
+      completing.current = false;
+      setIsSigningIn(false);
+    }
+  }, [signInWithMobileToken]);
+
+  useEffect(() => {
+    // The browser promise is lost if Android terminates the app during sign-in.
+    void Linking.getInitialURL().then(url => {
+      if (url?.startsWith("vibe://auth")) void completeLogin(url);
+    }).catch(() => setError("Could not resume sign-in. Please try again."));
+  }, [completeLogin]);
 
   async function startGoogleLogin() {
+    if (signingIn.current) return;
+    signingIn.current = true;
     setError(null);
     setIsSigningIn(true);
 
     try {
-      const redirectUri = "vibe://auth";
+      const state = Crypto.randomUUID();
+      await SecureStore.setItemAsync(PENDING_LOGIN_KEY, JSON.stringify({ state, startedAt: Date.now() }));
+      const redirectUri = `vibe://auth?state=${encodeURIComponent(state)}`;
       const loginUrl = `${apiUrl}/api/mobile/auth/google/start?redirectUri=${encodeURIComponent(
         redirectUri,
       )}`;
@@ -35,24 +72,10 @@ export default function LoginScreen() {
       );
 
       if (result.type !== "success") {
+        setError("Sign-in was cancelled. You can try again.");
         return;
       }
-
-      const callbackUrl = new URL(result.url);
-      const token = callbackUrl.searchParams.get("token");
-      const callbackError = callbackUrl.searchParams.get("error");
-
-      if (callbackError) {
-        setError(callbackError);
-        return;
-      }
-
-      if (!token) {
-        setError("Google did not return a mobile session.");
-        return;
-      }
-
-      await signInWithMobileToken(token);
+      await completeLogin(result.url);
     } catch (nextError) {
       const message =
         nextError instanceof Error
@@ -60,22 +83,22 @@ export default function LoginScreen() {
           : "Google sign-in failed.";
       setError(message);
     } finally {
+      signingIn.current = false;
       setIsSigningIn(false);
     }
   }
 
   return (
-    <Screen maxWidth={520}>
+    <Screen maxWidth={520} insetTop>
       <View style={styles.wrap}>
-        <View style={styles.logoMark}>
-          <Text style={styles.logoMarkText}>V</Text>
-        </View>
+        <VibeLogo />
         <View style={styles.panel}>
           <Text style={styles.title}>VIBE</Text>
           <Text style={styles.subtitle}>
             Sign in to see your feed, messages and profile.
           </Text>
           <Pressable
+            accessibilityRole="button"
             disabled={isSigningIn}
             onPress={() => void startGoogleLogin()}
             style={({ pressed }) => [
@@ -127,23 +150,6 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontSize: 16,
     fontWeight: "900",
-  },
-  logoMark: {
-    alignItems: "center",
-    backgroundColor: colors.red,
-    borderRadius: 34,
-    height: 68,
-    justifyContent: "center",
-    shadowColor: colors.red,
-    shadowOpacity: 0.32,
-    shadowRadius: 18,
-    width: 68,
-  },
-  logoMarkText: {
-    color: colors.white,
-    fontSize: 34,
-    fontWeight: "900",
-    letterSpacing: 0,
   },
   panel: {
     alignSelf: "stretch",

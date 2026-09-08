@@ -7,12 +7,13 @@ import {
   View,
   ViewStyle,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import PostLikeButton from "@/components/PostLikeButton";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../../App";
 import { Post } from "@/lib/api";
 import { colors } from "@/theme";
+import PostImages from "@/components/PostImages";
 
 type PostCardProps = {
   compact?: boolean;
@@ -29,7 +30,8 @@ export default function PostCard({ compact = false, post, style }: PostCardProps
       style={[styles.card, style]}
       onPress={() => navigation.navigate("PostDetail", { postId: post.id })}
     >
-      <Image source={{ uri: post.image }} style={styles.image} />
+      {compact ? <Image source={{ uri: post.image }} style={styles.image} /> :
+        <PostImages key={post.id} image={post.image} images={post.images} description={post.description} />}
       <View style={styles.body}>
         {!compact ? (
           <View style={styles.authorRow}>
@@ -52,8 +54,7 @@ export default function PostCard({ compact = false, post, style }: PostCardProps
           {post.description}
         </Text>
         <View style={styles.metaRow}>
-          <Ionicons name="heart-outline" color={colors.red} size={16} />
-          <Text style={styles.metaText}>{post.likesCount} likes</Text>
+          <PostLikeButton key={post.id} post={post} />
         </View>
       </View>
     </Pressable>

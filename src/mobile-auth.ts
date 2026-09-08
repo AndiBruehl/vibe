@@ -60,7 +60,9 @@ export function createMobileToken(payload: { email: string; profileId: string })
 }
 
 function verifyMobileToken(token: string) {
-  const [header, body, signature] = token.split(".");
+  const parts = token.split(".");
+  if (parts.length !== 3) return null;
+  const [header, body, signature] = parts;
 
   if (!header || !body || !signature) {
     return null;
@@ -84,9 +86,14 @@ function verifyMobileToken(token: string) {
     return null;
   }
 
-  const payload = JSON.parse(base64UrlDecode(body)) as MobileTokenPayload;
+  let payload: MobileTokenPayload;
+  try {
+    payload = JSON.parse(base64UrlDecode(body));
+  } catch {
+    return null;
+  }
 
-  if (!payload.email || !payload.sub || payload.exp < Math.floor(Date.now() / 1000)) {
+  if (!payload || typeof payload.email !== "string" || !payload.email || typeof payload.sub !== "string" || !payload.sub || !Number.isFinite(payload.exp) || payload.exp <= Math.floor(Date.now() / 1000)) {
     return null;
   }
 
@@ -94,7 +101,8 @@ function verifyMobileToken(token: string) {
 }
 
 export async function getMobileSession(request: NextRequest): Promise<MobileSession | null> {
-  const webSession = await auth();
+  const authorization = request.headers.get("authorization");
+  const webSession = authorization ? null : await auth();
 
   if (webSession?.user?.email) {
     const profile = await prisma.profile.findUnique({
@@ -105,7 +113,6 @@ export async function getMobileSession(request: NextRequest): Promise<MobileSess
     return profile ? { email: profile.email, profileId: profile.id } : null;
   }
 
-  const authorization = request.headers.get("authorization");
   const token = authorization?.startsWith("Bearer ")
     ? authorization.slice("Bearer ".length)
     : null;

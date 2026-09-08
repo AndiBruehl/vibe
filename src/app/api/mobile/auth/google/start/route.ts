@@ -1,3 +1,4 @@
+import { signIn } from "@/auth";
 import { NextResponse, type NextRequest } from "next/server";
 
 function getRedirectUri(request: NextRequest) {
@@ -13,15 +14,29 @@ function getRedirectUri(request: NextRequest) {
   return "vibe://auth";
 }
 
-export function GET(request: NextRequest) {
+export async function GET(request: NextRequest) {
   const callbackUrl = new URL(
     "/api/mobile/auth/google/callback",
     request.nextUrl.origin,
   );
   callbackUrl.searchParams.set("redirectUri", getRedirectUri(request));
 
-  const signInUrl = new URL("/api/auth/signin/google", request.nextUrl.origin);
-  signInUrl.searchParams.set("callbackUrl", callbackUrl.toString());
+  try {
+    return await signIn("google", {
+      redirectTo: callbackUrl.toString(),
+    });
+  } catch (error) {
+    const redirectUrl = new URL(getRedirectUri(request));
+    const digest =
+      error instanceof Error && "digest" in error
+        ? String(error.digest)
+        : "";
 
-  return NextResponse.redirect(signInUrl);
+    if (digest.startsWith("NEXT_REDIRECT")) {
+      throw error;
+    }
+
+    redirectUrl.searchParams.set("error", "Google sign-in could not start.");
+    return NextResponse.redirect(redirectUrl);
+  }
 }
