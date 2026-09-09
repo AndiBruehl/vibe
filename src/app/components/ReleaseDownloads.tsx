@@ -15,11 +15,17 @@ type Releases = {
 
 export default function ReleaseDownloads() {
   const [releases, setReleases] = useState<Releases | null>(null);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    void fetch("/api/releases/latest", { cache: "no-store" })
-      .then((response) => (response.ok ? response.json() : null))
-      .then((data: Releases | null) => setReleases(data));
+    void fetch("/releases/latest.json", { cache: "no-store" })
+      .then((response) => {
+        if (!response.ok) throw new Error("release manifest unavailable");
+        return response.json() as Promise<Releases>;
+      })
+      .then(setReleases)
+      .catch(() => setReleases({ windows: null, android: null }))
+      .finally(() => setLoaded(true));
   }, []);
 
   const downloadOptions = [
@@ -73,12 +79,12 @@ export default function ReleaseDownloads() {
                   {label}
                 </span>
                 <span className="block text-xs text-slate-500 dark:text-slate-400">
-                  {release ? `Version ${release.version}` : "Checking for a release…"}
+                  {release ? `Version ${release.version}` : loaded ? "No release available" : "Checking for a release…"}
                 </span>
               </span>
             </span>
             <span className="text-xs font-semibold text-orange-600 dark:text-orange-300">
-              {release ? `Download ${detail}` : "…"}
+              {release ? `Download ${detail}` : loaded ? "Unavailable" : "…"}
             </span>
           </a>
         ))}
