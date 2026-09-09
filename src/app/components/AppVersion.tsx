@@ -6,16 +6,22 @@ const WEB_VERSION = "0.1.17";
 
 export default function AppVersion() {
   const [desktopVersion, setDesktopVersion] = useState<string | null>(null);
+  const [androidVersion, setAndroidVersion] = useState<string | null>(null);
 
   useEffect(() => {
-    const match = navigator.userAgent.match(/VibeDesktop\/(\d+\.\d+\.\d+)/);
-    setDesktopVersion(match?.[1] ?? null);
+    setDesktopVersion(
+      navigator.userAgent.match(/VibeDesktop\/(\d+\.\d+\.\d+)/)?.[1] ?? null,
+    );
+    setAndroidVersion(
+      navigator.userAgent.match(/VibeAndroid\/(\d+\.\d+\.\d+)/)?.[1] ?? null,
+    );
   }, []);
 
   return (
-    <div className="mt-6 text-center text-xs text-slate-500 dark:text-slate-400">
+    <div className="mt-3 text-center text-xs text-slate-500 dark:text-slate-400">
       <p>Web version {WEB_VERSION}</p>
       {desktopVersion && <p>Desktop app version {desktopVersion}</p>}
+      {androidVersion && <p>Android app version {androidVersion}</p>}
     </div>
   );
 }
