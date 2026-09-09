@@ -7,6 +7,53 @@ let appUrl = DEFAULT_APP_URL;
 let mainWindow = null;
 let showingError = false;
 let logFile;
+let updateCheckStarted = false;
+
+const DESKTOP_RELEASES_URL = "https://api.github.com/repos/AndiBruehl/vibe/contents/electron-app/dist?ref=main";
+
+function compareVersions(left, right) {
+  const leftParts = left.split(".").map(Number);
+  const rightParts = right.split(".").map(Number);
+  const length = Math.max(leftParts.length, rightParts.length);
+  for (let index = 0; index < length; index += 1) {
+    const difference = (leftParts[index] ?? 0) - (rightParts[index] ?? 0);
+    if (difference !== 0) return difference;
+  }
+  return 0;
+}
+
+async function getLatestDesktopRelease() {
+  if (typeof fetch !== "function") return null;
+  try {
+    const response = await fetch(DESKTOP_RELEASES_URL, { headers: { Accept: "application/vnd.github+json" } });
+    if (!response.ok) return null;
+    const files = await response.json();
+    const releases = files.flatMap((file) => {
+      const match = file.type === "file" && typeof file.name === "string"
+        ? file.name.match(/^Vibe-Setup-(\d+(?:\.\d+){2,3})-x64\.exe$/)
+        : null;
+      return match && file.download_url ? [{ version: match[1], downloadUrl: file.download_url }] : [];
+    });
+    return releases.sort((left, right) => compareVersions(right.version, left.version))[0] ?? null;
+  } catch {
+    log("update-check-failed");
+    return null;
+  }
+}
+
+async function checkForUpdates({ interactive = false } = {}) {
+  const release = await getLatestDesktopRelease();
+  if (!release || !mainWindow || mainWindow.isDestroyed()) return;
+  if (compareVersions(release.version, app.getVersion()) <= 0) {
+    if (interactive) await dialog.showMessageBox(mainWindow, { type: "info", title: "VIBE is up to date", message: `You are using VIBE ${app.getVersion()}.` });
+    return;
+  }
+  const response = await dialog.showMessageBox(mainWindow, {
+    type: "info", title: "A VIBE update is available", message: `Version ${release.version} is ready to download.`,
+    detail: `You are currently using version ${app.getVersion()}.`, buttons: ["Download update", "Later"], defaultId: 0, cancelId: 1,
+  });
+  if (response.response === 0) openWebUrl(release.downloadUrl);
+}
 
 function setLoadingProgress(value) {
   if (!mainWindow || mainWindow.isDestroyed() || typeof mainWindow.setProgressBar !== "function") return;
@@ -102,6 +149,12 @@ function createWindow() {
     setLoadingProgress(1);
     setTimeout(() => setLoadingProgress(-1), 180);
   });
+  mainWindow.webContents.on("did-finish-load", () => {
+    if (!updateCheckStarted && !showingError) {
+      updateCheckStarted = true;
+      void checkForUpdates();
+    }
+  });
   mainWindow.webContents.on("render-process-gone", (_event, details) => {
     log("renderer-stopped", { reason: details.reason, exitCode: details.exitCode });
     showingError = false;
@@ -124,6 +177,7 @@ function createMenu() {
     { label: "Window", submenu: [{ role: "minimize" }, { role: "close" }] },
     { label: "Help", submenu: [
       { label: "Open web version", click: () => openWebUrl(appUrl) },
+      { label: "Check for updates", click: () => { void checkForUpdates({ interactive: true }); } },
       { label: "Open logs folder", click: () => { void shell.openPath(app.getPath("logs")).then(error => { if (error) log("open-logs-failed"); }); } },
       { label: "About VIBE", click: () => { void dialog.showMessageBox({ type: "info", title: "About VIBE", message: `VIBE ${app.getVersion()}`, detail: `Desktop app · ${process.platform} ${process.arch}` }); } },
     ] },
