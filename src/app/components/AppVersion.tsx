@@ -11,10 +11,10 @@ export default function AppVersion() {
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setDesktopVersion(
-        navigator.userAgent.match(/VibeDesktop\/(\d+\.\d+\.\d+)/)?.[1] ?? null,
+        navigator.userAgent.match(/VibeDesktop\/(\d+(?:\.\d+){2,3})/)?.[1] ?? null,
       );
       setAndroidVersion(
-        navigator.userAgent.match(/VibeAndroid\/(\d+\.\d+\.\d+)/)?.[1] ?? null,
+        navigator.userAgent.match(/VibeAndroid\/(\d+(?:\.\d+){2,3})/)?.[1] ?? null,
       );
     }, 0);
 
