@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { unstable_rethrow } from "next/navigation";
 import { PinataSDK } from "pinata";
@@ -14,6 +14,7 @@ const ALLOWED_IMAGE_TYPES = new Set([
   "image/gif",
   "image/avif",
 ]);
+const DRAFT_KEY = "vibe.postDraft.v1";
 
 function getUploadErrorMessage(result: { error?: unknown; details?: unknown }) {
   const error = typeof result.error === "string" ? result.error : null;
@@ -59,13 +60,7 @@ const pinata = new PinataSDK({
   pinataGateway: process.env.NEXT_PUBLIC_GATEWAY_URL,
 });
 
-function Submit({
-  disabled,
-  editing,
-}: {
-  disabled: boolean;
-  editing: boolean;
-}) {
+function Submit({ disabled, editing }: { disabled: boolean; editing: boolean }) {
   const { pending } = useFormStatus();
   return (
     <button
@@ -91,11 +86,29 @@ export default function PostComposer({
   topics?: string[];
 }) {
   const [images, setImages] = useState(initialImages);
+  const [draftDescription, setDraftDescription] = useState(description);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [progress, setProgress] = useState("");
   const uploading = useRef(false);
   const fileInput = useRef<HTMLInputElement>(null);
+  const isDraftable = !postId;
+
+  useEffect(() => {
+    if (!isDraftable) return;
+    try {
+      const value = localStorage.getItem(DRAFT_KEY);
+      if (!value) return;
+      const draft = JSON.parse(value) as { images?: unknown; description?: unknown };
+      if (Array.isArray(draft.images) && draft.images.every((image) => typeof image === "string")) setImages(draft.images.slice(0, MAX_POST_IMAGES));
+      if (typeof draft.description === "string") setDraftDescription(draft.description);
+    } catch { localStorage.removeItem(DRAFT_KEY); }
+  }, [isDraftable]);
+
+  function saveDraft() {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ images, description: draftDescription, savedAt: Date.now() }));
+    setProgress("Draft saved on this device.");
+  }
   async function upload(files: File[]) {
     if (!files.length || uploading.current) return;
     setError("");
@@ -137,6 +150,7 @@ export default function PostComposer({
         if (uploading.current || !images.length) return;
         setError("");
         try {
+          if (isDraftable) localStorage.removeItem(DRAFT_KEY);
           await action(data);
         } catch (failure) {
           unstable_rethrow(failure);
@@ -242,7 +256,8 @@ export default function PostComposer({
         Description
         <textarea
           name="description"
-          defaultValue={description}
+          value={draftDescription}
+          onChange={(event) => setDraftDescription(event.target.value)}
           rows={4}
           className="mt-2 block w-full rounded-xl border border-slate-300 bg-white p-3 text-slate-900 dark:border-slate-700 dark:bg-gray-900 dark:text-white"
         />
@@ -253,7 +268,10 @@ export default function PostComposer({
           {error}
         </p>
       )}
-      <Submit disabled={busy || !images.length} editing={!!postId} />
+      <div className={`grid gap-3 ${isDraftable ? "sm:grid-cols-2" : ""}`}>
+        {isDraftable && <button type="button" onClick={saveDraft} className="min-h-12 rounded-xl border-2 border-red-500 bg-red-50 px-4 py-3 text-base font-bold text-red-700 transition hover:bg-red-100 dark:bg-red-950/30 dark:text-red-300 dark:hover:bg-red-950/50">Save draft</button>}
+        <Submit disabled={busy || !images.length} editing={!!postId} />
+      </div>
     </form>
   );
 }
