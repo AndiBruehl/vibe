@@ -6,7 +6,6 @@ import "./globals.css";
 import Script from "next/script";
 import ThemeObserver from "@/app/components/ThemeObserver";
 import OrientationLock from "@/app/components/OrientationLock";
-import LanguageRuntime from "@/app/components/LanguageRuntime";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -63,7 +62,6 @@ export default function RootLayout({
           scaling="100%"
         >
           <ThemeObserver />
-          <LanguageRuntime />
           <OrientationLock />
           <div className="min-h-screen ig-page">{children}</div>
         </Theme>

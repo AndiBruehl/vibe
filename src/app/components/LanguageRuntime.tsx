@@ -30,10 +30,12 @@ function translate(root: ParentNode, enabled: boolean) {
   });
 }
 
-export default function LanguageRuntime() {
+export default function LanguageRuntime({ initialLanguage }: { initialLanguage: "en" | "de" }) {
   useEffect(() => {
     const apply = () => {
-      const active = localStorage.getItem("vibe-language") === "de";
+      const saved = localStorage.getItem("vibe-language");
+      const active = (saved ?? initialLanguage) === "de";
+      if (!saved) localStorage.setItem("vibe-language", initialLanguage);
       document.documentElement.lang = active ? "de" : "en";
       // A page reload restores original server text before applying the selected language.
       if (active) translate(document.body, true);
@@ -43,6 +45,6 @@ export default function LanguageRuntime() {
     observer.observe(document.body, { childList: true, subtree: true });
     window.addEventListener("vibe-language-change", () => window.location.reload());
     return () => observer.disconnect();
-  }, []);
+  }, [initialLanguage]);
   return null;
 }
