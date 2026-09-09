@@ -1,5 +1,6 @@
 import SortablePosts from "./SortablePosts";
 import PostCarousel from "./PostCarousel";
+import CommentForm from "./CommentForm";
 import { getPostImages } from "@/post-images";
 import { auth } from "@/auth";
 import BookmarkButton from "./../components/BookmarkButton";
@@ -356,6 +357,7 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
                   ) : (
                     <p className="text-sm text-slate-500 dark:text-slate-400">No comments yet. Be the first to join the conversation.</p>
                   )}
+                  <CommentForm postId={post.id} compact />
                 </div>
 
                 <Link href={`/posts/${post.id}`} className="mt-4 flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-orange-600 dark:text-slate-300 dark:hover:text-orange-300 lg:hidden">

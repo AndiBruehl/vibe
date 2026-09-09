@@ -375,6 +375,7 @@ export async function postComment(formData: FormData): Promise<void> {
   });
 
   revalidatePath(`/posts/${postIdValue}`);
+  revalidatePath("/home");
 }
 
 export async function postReply(formData: FormData): Promise<void> {
