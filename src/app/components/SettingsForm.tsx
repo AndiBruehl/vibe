@@ -78,7 +78,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
   const avatarSrc = previewUrl || profile?.avatar || defaultImg.src;
 
   return (
-    <form action={upsertProfile} className="space-y-7 lg:grid lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-x-8 lg:gap-y-7 lg:space-y-0">
+    <form action={upsertProfile} className="space-y-5 lg:grid lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-x-6 lg:gap-y-5 lg:space-y-0">
       <section className="flex flex-col items-center gap-4 border-b border-slate-200 pb-7 dark:border-slate-700/80 lg:row-span-3 lg:self-start lg:border-b-0 lg:border-r lg:pb-0 lg:pr-8">
         <div className="size-44 shrink-0 overflow-hidden rounded-full border-4 border-white bg-slate-200 shadow-lg shadow-slate-900/15 dark:border-slate-700 dark:bg-slate-800 dark:shadow-black/30">
           <img
