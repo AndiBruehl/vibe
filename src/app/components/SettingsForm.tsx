@@ -5,6 +5,7 @@ import { Switch } from "@radix-ui/themes";
 import type { Profile } from "@prisma/client";
 import { upsertProfile } from "@/actions";
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
+import LanguageSwitcher from "@/app/components/LanguageSwitcher";
 
 import defaultImg from "./default.jpg";
 
@@ -188,11 +189,12 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
         />
       </section>
 
-      <div className="flex justify-end border-t border-slate-200 pt-6 dark:border-slate-700/80 lg:col-start-2">
+      <div className="flex flex-col-reverse gap-3 border-t border-slate-200 pt-6 dark:border-slate-700/80 sm:flex-row sm:items-center sm:justify-between lg:col-start-2">
+        <LanguageSwitcher />
         <button
           type="submit"
           disabled={isUploading}
-          className="rounded-xl bg-linear-to-r from-orange-500 to-pink-500 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-orange-500/25 transition hover:scale-[1.02] hover:shadow-xl disabled:cursor-wait disabled:opacity-60"
+          className="self-end rounded-xl bg-linear-to-r from-orange-500 to-pink-500 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-orange-500/25 transition hover:scale-[1.02] hover:shadow-xl disabled:cursor-wait disabled:opacity-60 sm:self-auto"
         >
           Save Settings
         </button>
