@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth, signOut } from "@/auth";
 import { prisma } from "@/db";
+import AppVersion from "@/app/components/AppVersion";
 import SettingsForm from "@/app/components/SettingsForm";
 
 export default async function SettingsPage() {
@@ -58,9 +59,7 @@ export default async function SettingsPage() {
           </h1>
 
           <SettingsForm profile={profile} />
-          <p className="mt-6 text-center text-xs text-slate-500 dark:text-slate-400">
-            Web version 0.1.15 · Desktop app version 0.1.15
-          </p>
+          <AppVersion />
         </div>
       </section>
     </main>
