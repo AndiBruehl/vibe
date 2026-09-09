@@ -25,7 +25,7 @@ function compareVersions(left, right) {
 async function getLatestDesktopRelease() {
   if (typeof fetch !== "function") return null;
   try {
-    const response = await fetch(RELEASE_MANIFEST_URL, { cache: "no-store" });
+    const response = await fetch(`${RELEASE_MANIFEST_URL}?v=${encodeURIComponent(app.getVersion())}`, { cache: "no-store" });
     if (!response.ok) throw new Error(`release-manifest-${response.status}`);
     const manifest = await response.json();
     const release = manifest?.windows;

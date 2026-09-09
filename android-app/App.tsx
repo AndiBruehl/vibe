@@ -35,7 +35,7 @@ function compareVersions(left: string, right: string) {
 
 async function getLatestAndroidRelease(): Promise<UpdateRelease | null> {
   try {
-    const response = await fetch(releaseManifestUrl, { cache: "no-store" });
+    const response = await fetch(`${releaseManifestUrl}?v=${Date.now()}`, { cache: "no-store" });
     if (!response.ok) return null;
     const manifest = await response.json() as { android?: UpdateRelease };
     return typeof manifest.android?.version === "string" && typeof manifest.android?.downloadUrl === "string"
