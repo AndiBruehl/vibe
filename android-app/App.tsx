@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Animated, BackHandler, Easing, Linking, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Animated, BackHandler, Easing, Linking, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { WebView } from "react-native-webview";
@@ -8,12 +8,14 @@ import Constants from "expo-constants";
 import * as Crypto from "expo-crypto";
 import * as SecureStore from "expo-secure-store";
 import * as WebBrowser from "expo-web-browser";
+import * as FileSystem from "expo-file-system/legacy";
+import * as IntentLauncher from "expo-intent-launcher";
 import { colors } from "@/theme";
 import { parseLoginCallback, type PendingLogin } from "@/lib/loginCallback";
 
 const extra = Constants.expoConfig?.extra as { apiUrl?: string } | undefined;
 const vibeUrl = (process.env.EXPO_PUBLIC_API_URL || extra?.apiUrl || "https://vibe-social-network.vercel.app").replace(/\/$/, "");
-const appVersion = Constants.expoConfig?.version || "0.1.25";
+const appVersion = Constants.expoConfig?.version || "0.1.26";
 const mobileTokenKey = "vibe.webMobileToken";
 const pendingLoginKey = "vibe.pendingLogin";
 const androidReleasesUrl = "https://api.github.com/repos/AndiBruehl/vibe/contents/android-app/dist?ref=main";
@@ -70,6 +72,8 @@ export default function App() {
   const [loginError, setLoginError] = useState<string | null>(null);
   const [update, setUpdate] = useState<UpdateRelease | null>(null);
   const [webDarkMode, setWebDarkMode] = useState(true);
+  const [downloadingUpdate, setDownloadingUpdate] = useState(false);
+  const [updateError, setUpdateError] = useState<string | null>(null);
 
   useEffect(() => {
     void SecureStore.getItemAsync(mobileTokenKey)
@@ -150,6 +154,29 @@ export default function App() {
       new MutationObserver(sendTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
     })(); true;
   `, []);
+  const downloadUpdate = useCallback(async () => {
+    if (!update || downloadingUpdate) return;
+    if (Platform.OS !== "android") {
+      await Linking.openURL(update.downloadUrl);
+      return;
+    }
+    setDownloadingUpdate(true);
+    setUpdateError(null);
+    try {
+      const destination = `${FileSystem.cacheDirectory}Vibe-${update.version}.apk`;
+      const result = await FileSystem.downloadAsync(update.downloadUrl, destination);
+      const contentUri = await FileSystem.getContentUriAsync(result.uri);
+      await IntentLauncher.startActivityAsync("android.intent.action.VIEW", {
+        data: contentUri,
+        flags: 1,
+        type: "application/vnd.android.package-archive",
+      });
+    } catch {
+      setUpdateError("The update could not be downloaded. Please try again.");
+    } finally {
+      setDownloadingUpdate(false);
+    }
+  }, [downloadingUpdate, update]);
 
   if (mobileToken === undefined) return <SafeAreaProvider><SafeAreaView style={styles.safe}><View style={styles.loading}><ActivityIndicator color={colors.red} size="large" /></View></SafeAreaView></SafeAreaProvider>;
 
@@ -190,10 +217,10 @@ export default function App() {
       <View style={styles.updateTextWrap}>
         <Text style={styles.updateEyebrow}>VIBE UPDATE</Text>
         <Text style={[styles.updateTitle, webDarkMode ? styles.updateTitleDark : styles.updateTitleLight]}>Update available</Text>
-        <Text style={[styles.updateText, webDarkMode ? styles.updateTextDark : styles.updateTextLight]}>VIBE {update.version} is ready to download.</Text>
+        <Text style={[styles.updateText, webDarkMode ? styles.updateTextDark : styles.updateTextLight]}>{updateError ?? `VIBE ${update.version} is ready to download.`}</Text>
       </View>
-      <Pressable accessibilityRole="button" style={styles.updateButton} onPress={() => void Linking.openURL(update.downloadUrl)}>
-        <Text style={styles.updateButtonText}>Download</Text>
+      <Pressable accessibilityRole="button" disabled={downloadingUpdate} style={[styles.updateButton, downloadingUpdate && styles.updateButtonDisabled]} onPress={() => void downloadUpdate()}>
+        {downloadingUpdate ? <ActivityIndicator color={colors.white} size="small" /> : <Text style={styles.updateButtonText}>Download</Text>}
       </Pressable>
       <Pressable accessibilityRole="button" hitSlop={8} onPress={() => setUpdate(null)}>
         <Text style={[styles.updateDismiss, webDarkMode ? styles.updateTextDark : styles.updateTextLight]}>×</Text>
@@ -222,6 +249,7 @@ const styles = StyleSheet.create({
   updateTextDark: { color: "#b4c2d9" },
   updateTextLight: { color: "#54779a" },
   updateButton: { borderRadius: 10, backgroundColor: colors.red, paddingHorizontal: 11, paddingVertical: 8 },
+  updateButtonDisabled: { opacity: 0.7 },
   updateButtonText: { color: colors.white, fontSize: 12, fontWeight: "800" },
   updateDismiss: { fontSize: 24, lineHeight: 24 },
   error: { ...StyleSheet.absoluteFillObject, alignItems: "center", justifyContent: "center", gap: 12, padding: 28, backgroundColor: colors.background },

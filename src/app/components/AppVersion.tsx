@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-const WEB_VERSION = "0.1.25";
+const WEB_VERSION = "0.1.26";
 
 export default function AppVersion() {
   const [desktopVersion, setDesktopVersion] = useState<string | null>(null);
