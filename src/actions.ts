@@ -834,6 +834,7 @@ export async function sendMessage(formData: FormData): Promise<void> {
 
   const conversationIdValue = formData.get("conversationId");
   const bodyValue = formData.get("body");
+  const imageUrlValue = formData.get("imageUrl");
 
   if (
     typeof conversationIdValue !== "string" ||
@@ -847,9 +848,12 @@ export async function sendMessage(formData: FormData): Promise<void> {
   }
 
   const body = bodyValue.trim();
+  const imageUrl = typeof imageUrlValue === "string" && imageUrlValue.trim()
+    ? imageUrlValue.trim()
+    : null;
 
-  if (!body) {
-    throw new Error("Message cannot be empty.");
+  if (!body && !imageUrl) {
+    throw new Error("A message needs text or an image.");
   }
 
   const currentUserProfile = await prisma.profile.findUnique({
@@ -891,6 +895,7 @@ export async function sendMessage(formData: FormData): Promise<void> {
         conversationId: conversation.id,
         senderId: currentUserProfile.id,
         body,
+        imageUrl,
       },
     }),
     prisma.conversation.update({

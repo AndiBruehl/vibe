@@ -83,6 +83,7 @@ export async function GET(
     messages: conversation.messages.map((message) => ({
       id: message.id,
       body: message.body,
+      imageUrl: message.imageUrl,
       createdAt: message.createdAt,
       isOwnMessage: message.senderId === currentUserProfile.id,
     })),
@@ -105,11 +106,12 @@ export async function POST(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { body } = (await request.json()) as { body?: unknown };
+  const { body, imageUrl } = (await request.json()) as { body?: unknown; imageUrl?: unknown };
   const text = typeof body === "string" ? body.trim() : "";
+  const image = typeof imageUrl === "string" && imageUrl.trim() ? imageUrl.trim() : null;
 
-  if (!text) {
-    return NextResponse.json({ error: "Message cannot be empty" }, { status: 400 });
+  if (!text && !image) {
+    return NextResponse.json({ error: "A message needs text or an image" }, { status: 400 });
   }
 
   const conversation = await prisma.conversation.findFirst({
@@ -136,6 +138,7 @@ export async function POST(
       conversationId: conversation.id,
       senderId: currentUserProfile.id,
       body: text,
+      imageUrl: image,
     },
   });
 
@@ -164,6 +167,7 @@ export async function POST(
   return NextResponse.json({
     id: message.id,
     body: message.body,
+    imageUrl: message.imageUrl,
     createdAt: message.createdAt,
     isOwnMessage: true,
   });

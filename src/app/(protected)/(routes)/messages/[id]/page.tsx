@@ -1,15 +1,15 @@
-import { sendMessage } from "@/actions";
 import { auth } from "@/auth";
 import { prisma } from "@/db";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MoveLeft, Send } from "lucide-react";
+import { MoveLeft } from "lucide-react";
 import img1 from "../../profile/default.jpg";
 import ConversationLiveRefresh from "@/app/components/ConversationLiveRefresh";
 import ConversationAutoScroll from "@/app/components/ConversationAutoScroll";
 import ConversationLayoutHelper from "@/app/components/ConversationLayoutHelper";
 import LocalTime from "@/app/components/LocalTime";
+import MessageComposer from "@/app/components/MessageComposer";
 
 type ConversationPageProps = {
   params: Promise<{
@@ -272,6 +272,16 @@ export default async function ConversationPage({
                   <p className="whitespace-pre-wrap wrap-break-word text-sm leading-6">
                     {message.body}
                   </p>
+                  {message.imageUrl ? (
+                    <Image
+                      src={message.imageUrl}
+                      alt="Image attachment"
+                      width={520}
+                      height={520}
+                      className="mt-2 max-h-96 w-auto max-w-full rounded-xl object-contain"
+                      unoptimized
+                    />
+                  ) : null}
                   <p
                     className={`mt-1 text-right text-[11px] ${
                       isOwnMessage ? "text-white/75" : "text-slate-400"
@@ -296,26 +306,7 @@ export default async function ConversationPage({
       {/* eslint-disable-next-line @next/next/no-typos */}
       <ConversationLayoutHelper />
 
-      <form
-        action={sendMessage}
-        className="conversation-composer sticky bottom-20 flex items-end gap-3 rounded-2xl bg-white p-3 shadow-lg shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900 md:bottom-4"
-      >
-        <input type="hidden" name="conversationId" value={conversation.id} />
-        <textarea
-          name="body"
-          rows={1}
-          placeholder="Message"
-          className="max-h-32 min-h-11 flex-1 resize-y rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-red-400 dark:border-slate-700 dark:bg-gray-900 dark:text-slate-100"
-          required
-        />
-        <button
-          type="submit"
-          className="flex size-11 shrink-0 items-center justify-center rounded-full bg-linear-to-tr from-(--ig-orange) to-(--ig-red) text-white transition hover:scale-105"
-          aria-label="Send message"
-        >
-          <Send size={18} />
-        </button>
-      </form>
+      <MessageComposer conversationId={conversation.id} />
     </main>
   );
 }

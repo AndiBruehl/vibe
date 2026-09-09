@@ -67,6 +67,7 @@ model Message {
   sender   Profile @relation("SentMessages", fields: [senderId], references: [id])
 
   body      String
+  imageUrl  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
