@@ -25,7 +25,14 @@ export default async function ProfileByUsernamePage({
   const session = await auth();
   const viewerEmail = session?.user?.email ?? null;
 
-  const { username } = await params;
+  const { username: routeUsername } = await params;
+  let username = routeUsername;
+
+  try {
+    username = decodeURIComponent(routeUsername);
+  } catch {
+    // Next.js normally decodes route segments. Keep the original value for malformed URLs.
+  }
   const { tab } = await searchParams;
 
   const profile = await prisma.profile.findUnique({
@@ -157,7 +164,7 @@ export default async function ProfileByUsernamePage({
           <div className="border-t border-gray-200 dark:border-gray-700">
             <div className="flex">
               <Link
-                href={`/profile/${profile.username}`}
+                href={`/profile/${encodeURIComponent(profile.username ?? "")}`}
                 className={`flex items-center gap-2 px-5 py-4 text-sm font-medium transition ${
                   activeTab === "posts"
                     ? "border-b-2 border-black text-slate-900 dark:border-white dark:text-white"
@@ -170,7 +177,7 @@ export default async function ProfileByUsernamePage({
 
               {isOwnProfile ? (
                 <Link
-                  href={`/profile/${profile.username}?tab=bookmarks`}
+                  href={`/profile/${encodeURIComponent(profile.username)}?tab=bookmarks`}
                   className={`flex items-center gap-2 px-5 py-4 text-sm font-medium transition ${
                     activeTab === "bookmarks"
                       ? "border-b-2 border-black text-slate-900 dark:border-white dark:text-white"

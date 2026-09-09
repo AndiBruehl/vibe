@@ -271,7 +271,7 @@ export default async function HomePosts({
                 {suggestedUsers.map((user) => (
                   <Link
                     key={user.id}
-                    href={user.username ? `/profile/${user.username}` : "#"}
+                    href={user.username ? `/profile/${encodeURIComponent(user.username)}` : "#"}
                     className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 transition hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
                   >
                     <div className="flex min-w-0 items-center gap-3">
@@ -350,7 +350,7 @@ export default async function HomePosts({
                       className="relative z-20 block truncate text-sm font-semibold text-slate-900 transition hover:text-slate-600 dark:text-slate-100 dark:hover:text-slate-300"
                       href={
                         profile?.username
-                          ? `/profile/${profile.username}`
+                          ? `/profile/${encodeURIComponent(profile.username)}`
                           : "#"
                       }
                     >
@@ -470,7 +470,7 @@ export default async function HomePosts({
                             >
                               {commentAuthor?.username ? (
                                 <Link
-                                  href={`/profile/${commentAuthor.username}`}
+                                  href={`/profile/${encodeURIComponent(commentAuthor.username)}`}
                                   className="mr-1 font-semibold text-slate-900 hover:underline dark:text-white"
                                 >
                                   {commentAuthor.name ||

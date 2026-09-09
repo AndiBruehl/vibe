@@ -159,7 +159,7 @@ export default async function ConversationPage({
             </div>
           ) : otherProfile?.username ? (
             <Link
-              href={`/profile/${otherProfile.username}`}
+              href={`/profile/${encodeURIComponent(otherProfile.username)}`}
               className="block relative size-10 shrink-0 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700"
             >
               <div className="absolute inset-0">
@@ -202,7 +202,7 @@ export default async function ConversationPage({
               </Link>
             ) : otherProfile?.username ? (
               <Link
-                href={`/profile/${otherProfile.username}`}
+                href={`/profile/${encodeURIComponent(otherProfile.username)}`}
                 className="truncate font-semibold text-slate-800 dark:text-slate-100 no-underline hover:underline"
               >
                 {otherProfile?.name || otherProfile?.username || "Unknown user"}
@@ -255,7 +255,7 @@ export default async function ConversationPage({
                     <div className="mb-1">
                       {message.sender?.username ? (
                         <Link
-                          href={`/profile/${message.sender.username}`}
+                          href={`/profile/${encodeURIComponent(message.sender.username)}`}
                           className="text-sm font-semibold text-slate-800 dark:text-slate-100 no-underline hover:underline"
                         >
                           {message.sender?.name || message.sender?.username}

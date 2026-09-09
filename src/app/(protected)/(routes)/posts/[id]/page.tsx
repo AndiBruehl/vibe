@@ -165,7 +165,7 @@ export default async function SinglePostPage({
 
           <div className="flex flex-col gap-4">
             <Link
-              href={author?.username ? `/profile/${author.username}` : "#"}
+              href={author?.username ? `/profile/${encodeURIComponent(author.username)}` : "#"}
               className="group"
             >
               <article className="flex h-28 items-center justify-between rounded-2xl bg-white px-5 shadow-md shadow-gray-200 transition hover:shadow-lg dark:bg-gray-800 dark:shadow-gray-900">

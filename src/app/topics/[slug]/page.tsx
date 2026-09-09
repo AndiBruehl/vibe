@@ -118,7 +118,7 @@ export default async function TopicPage({ params }: Props) {
                       <div className="flex items-center justify-between">
                         <div>
                           <Link
-                            href={`/profile/${p.author.username}`}
+                            href={`/profile/${encodeURIComponent(p.author.username)}`}
                             className="font-semibold text-slate-900 no-underline hover:underline"
                           >
                             {p.author.name || p.author.username}

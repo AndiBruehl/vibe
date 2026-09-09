@@ -51,7 +51,7 @@ export default function CommentItem({
   const [isEditing, setIsEditing] = useState(false);
 
   const profileHref = comment.author.username
-    ? `/profile/${comment.author.username}`
+    ? `/profile/${encodeURIComponent(comment.author.username)}`
     : null;
 
   return (

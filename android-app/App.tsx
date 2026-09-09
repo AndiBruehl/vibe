@@ -15,7 +15,7 @@ import { parseLoginCallback, type PendingLogin } from "@/lib/loginCallback";
 
 const extra = Constants.expoConfig?.extra as { apiUrl?: string } | undefined;
 const vibeUrl = (process.env.EXPO_PUBLIC_API_URL || extra?.apiUrl || "https://vibe-social-network.vercel.app").replace(/\/$/, "");
-const appVersion = Constants.expoConfig?.version || "0.1.40";
+const appVersion = Constants.expoConfig?.version || "0.1.40.1";
 const mobileTokenKey = "vibe.webMobileToken";
 const pendingLoginKey = "vibe.pendingLogin";
 const releaseManifestUrl = "https://raw.githubusercontent.com/AndiBruehl/vibe/main/public/releases/latest.json";

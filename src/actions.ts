@@ -57,8 +57,10 @@ export async function upsertProfile(formData: FormData) {
 
   const username = ((formData.get("username") as string) || "").trim();
 
-  if (/\s/.test(username)) {
-    throw new Error("Invalid username: spaces are not allowed.");
+  if (!username || username.length > 80 || /[\\/\u0000-\u001F\u007F]/.test(username)) {
+    throw new Error(
+      "Invalid username. Use up to 80 characters without slashes or control characters.",
+    );
   }
 
   const newUserInfo = {

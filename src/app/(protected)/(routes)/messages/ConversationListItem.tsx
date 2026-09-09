@@ -81,7 +81,7 @@ export default function ConversationListItem({
                 .join(", ")
             ) : otherProfile?.username ? (
               <Link
-                href={`/profile/${otherProfile.username}`}
+                href={`/profile/${encodeURIComponent(otherProfile.username)}`}
                 className="no-underline hover:underline"
               >
                 {otherProfile?.name || otherProfile?.username}

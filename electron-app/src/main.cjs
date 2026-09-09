@@ -11,9 +11,13 @@ let updateCheckStarted = false;
 
 const RELEASE_MANIFEST_URL = "https://api.github.com/repos/AndiBruehl/vibe/contents/public/releases/latest.json";
 
+function displayVersion(version = app.getVersion()) {
+  return version.replace(/-(\d+)$/, ".$1");
+}
+
 function compareVersions(left, right) {
-  const leftParts = left.split(".").map(Number);
-  const rightParts = right.split(".").map(Number);
+  const leftParts = left.split(/[.-]/).map(Number);
+  const rightParts = right.split(/[.-]/).map(Number);
   const length = Math.max(leftParts.length, rightParts.length);
   for (let index = 0; index < length; index += 1) {
     const difference = (leftParts[index] ?? 0) - (rightParts[index] ?? 0);
@@ -32,7 +36,7 @@ async function getLatestDesktopRelease() {
     const manifest = JSON.parse(Buffer.from(payload.content, "base64").toString("utf8"));
     const release = manifest?.windows;
     if (typeof release?.version !== "string" || typeof release?.downloadUrl !== "string") throw new Error("invalid-release-manifest");
-    log("update-release-found", { currentVersion: app.getVersion(), latestVersion: release.version });
+    log("update-release-found", { currentVersion: displayVersion(), latestVersion: release.version });
     return release;
   } catch (error) {
     log("update-check-failed", { message: error instanceof Error ? error.message : String(error) });
@@ -56,7 +60,7 @@ async function checkForUpdates({ interactive = false } = {}) {
     if (interactive) showWebDialog({
       eyebrow: "VIBE DESKTOP",
       title: "You’re up to date",
-      message: `VIBE ${app.getVersion()} is the latest desktop version.`,
+      message: `VIBE ${displayVersion()} is the latest desktop version.`,
       detail: "We’ll let you know when a new update is ready.",
     });
     return;
@@ -65,7 +69,7 @@ async function checkForUpdates({ interactive = false } = {}) {
     eyebrow: "VIBE UPDATE",
     title: "Update available",
     message: `Version ${release.version} is ready to download.`,
-    detail: `You’re currently using version ${app.getVersion()}.`,
+    detail: `You’re currently using version ${displayVersion()}.`,
     downloadUrl: release.downloadUrl,
     primaryLabel: "Download update",
   });
@@ -187,7 +191,7 @@ function createWindow() {
   });
   if (typeof mainWindow.webContents.getUserAgent === "function" && typeof mainWindow.webContents.setUserAgent === "function") {
     const currentUserAgent = mainWindow.webContents.getUserAgent();
-    mainWindow.webContents.setUserAgent(`${currentUserAgent} VibeDesktop/${app.getVersion()}`);
+    mainWindow.webContents.setUserAgent(`${currentUserAgent} VibeDesktop/${displayVersion()}`);
   }
   mainWindow.once("ready-to-show", () => mainWindow?.show());
   mainWindow.on("closed", () => { mainWindow = null; });
@@ -250,7 +254,7 @@ function createMenu() {
       { label: "Open web version", click: () => openWebUrl(appUrl) },
       { label: "Check for updates", click: () => { void checkForUpdates({ interactive: true }); } },
       { label: "Open logs folder", click: () => { void shell.openPath(app.getPath("logs")).then(error => { if (error) log("open-logs-failed"); }); } },
-      { label: "About VIBE", click: () => showWebDialog({ eyebrow: "VIBE DESKTOP", title: "About VIBE", message: `VIBE ${app.getVersion()}`, detail: `Desktop app · ${process.platform} ${process.arch}` }) },
+      { label: "About VIBE", click: () => showWebDialog({ eyebrow: "VIBE DESKTOP", title: "About VIBE", message: `VIBE ${displayVersion()}`, detail: `Desktop app · ${process.platform} ${process.arch}` }) },
     ] },
   ]));
 }
@@ -271,7 +275,7 @@ if (!app.requestSingleInstanceLock()) {
         fs.writeFileSync(logFile, "");
       }
     } catch { /* Continue without a log file if the directory is unavailable. */ }
-    log("startup", { version: app.getVersion(), platform: process.platform, arch: process.arch });
+    log("startup", { version: displayVersion(), platform: process.platform, arch: process.arch });
     try { appUrl = resolveAppUrl(process.env.VIBE_DESKTOP_URL || DEFAULT_APP_URL); }
     catch {
       log("invalid-app-url");

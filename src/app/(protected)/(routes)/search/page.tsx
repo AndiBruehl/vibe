@@ -135,7 +135,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                   <Link
                     key={user.id}
                     href={
-                      user.username ? `/profile/${user.username}` : "/profile"
+                      user.username ? `/profile/${encodeURIComponent(user.username)}` : "/profile"
                     }
                     className="group block"
                   >

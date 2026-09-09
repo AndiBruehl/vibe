@@ -137,7 +137,7 @@ export default async function ActivityPage() {
         title: `${follow.follower.name || follow.follower.username || "Someone"} followed you`,
         body: follow.follower.username ? `@${follow.follower.username}` : "",
         href: follow.follower.username
-          ? `/profile/${follow.follower.username}`
+          ? `/profile/${encodeURIComponent(follow.follower.username)}`
           : "/profile",
         createdAt: follow.createdAt,
         avatar: follow.follower.avatar,

@@ -44,7 +44,7 @@ export default async function HomeTopRow({
           {followedProfiles.map((profile) => (
             <Link
               key={profile.id}
-              href={profile.username ? `/profile/${profile.username}` : "#"}
+              href={profile.username ? `/profile/${encodeURIComponent(profile.username)}` : "#"}
               className="group flex w-24 shrink-0 flex-col items-center"
             >
               <div className="rounded-full bg-linear-to-br from-red-500 to-yellow-500 p-0.75 shadow-md shadow-black/20 transition duration-200 group-hover:scale-[1.01]">
