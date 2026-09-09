@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { MessageCircle } from "lucide-react";
 import img1 from "../profile/default.jpg";
 import LocalTime from "@/app/components/LocalTime";
 
@@ -21,16 +20,10 @@ export default function ConversationListItem({
   const otherParticipant = conversation.participants.find(
     (participant: any) => participant.profileId !== currentUserId,
   );
-  const currentParticipant = conversation.participants.find(
-    (participant: any) => participant.profileId === currentUserId,
-  );
   const otherProfile = otherParticipant?.profile;
   const latestMessage = conversation.messages[0];
-  const isUnread =
-    latestMessage &&
-    latestMessage.senderId !== currentUserId &&
-    (!currentParticipant?.lastReadAt ||
-      latestMessage.createdAt > currentParticipant.lastReadAt);
+  const unreadCount = Number(conversation.unreadCount ?? 0);
+  const isUnread = unreadCount > 0;
 
   const isGroup =
     Boolean(conversation.isGroup) ||
@@ -101,7 +94,7 @@ export default function ConversationListItem({
           <div className="flex shrink-0 items-center gap-2">
             {isUnread ? (
               <span className="rounded-full bg-red-600 px-2 py-0.5 text-[11px] font-bold leading-none text-white">
-                New
+                {unreadCount > 9 ? "9+" : unreadCount} new
               </span>
             ) : null}
             <span className="text-xs text-slate-400">

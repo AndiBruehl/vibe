@@ -26,21 +26,8 @@ export async function getUnreadMessageStatus(
       id: true,
       conversations: {
         select: {
+          conversationId: true,
           lastReadAt: true,
-          conversation: {
-            select: {
-              messages: {
-                orderBy: {
-                  createdAt: "desc",
-                },
-                take: 1,
-                select: {
-                  senderId: true,
-                  createdAt: true,
-                },
-              },
-            },
-          },
         },
       },
     },
@@ -53,31 +40,43 @@ export async function getUnreadMessageStatus(
     };
   }
 
-  const unreadLatestMessages = currentUserProfile.conversations
-    .map((participant) => {
-      const latestMessage = participant.conversation.messages[0];
+  const unreadConversationStatus = await Promise.all(
+    currentUserProfile.conversations.map(async (participant) => {
+      const where = {
+        conversationId: participant.conversationId,
+        senderId: { not: currentUserProfile.id },
+        ...(participant.lastReadAt
+          ? { createdAt: { gt: participant.lastReadAt } }
+          : {}),
+      };
 
-      if (
-        !latestMessage ||
-        latestMessage.senderId === currentUserProfile.id ||
-        (participant.lastReadAt &&
-          latestMessage.createdAt <= participant.lastReadAt)
-      ) {
-        return null;
-      }
+      const [count, latestMessage] = await Promise.all([
+        prisma.message.count({ where }),
+        prisma.message.findFirst({
+          where,
+          orderBy: { createdAt: "desc" },
+          select: { createdAt: true },
+        }),
+      ]);
 
-      return latestMessage;
-    })
-    .filter((message) => message !== null);
+      return { count, latestMessage };
+    }),
+  );
 
-  const latestUnreadAt = unreadLatestMessages.reduce(
-    (latest: Date | null, message: any) =>
-      !latest || message.createdAt > latest ? message.createdAt : latest,
+  const unreadConversations = unreadConversationStatus.filter(
+    ({ count }) => count > 0,
+  );
+
+  const latestUnreadAt = unreadConversations.reduce(
+    (latest: Date | null, { latestMessage }) =>
+      latestMessage && (!latest || latestMessage.createdAt > latest)
+        ? latestMessage.createdAt
+        : latest,
     null as Date | null,
   );
 
   return {
-    count: unreadLatestMessages.length,
+    count: unreadConversations.length,
     latestUnreadAt: latestUnreadAt?.toISOString() ?? null,
   };
 }

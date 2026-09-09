@@ -72,6 +72,24 @@ export default async function MessagesPage() {
     },
   });
 
+  const unreadCounts = await Promise.all(
+    conversations.map((conversation) => {
+      const currentParticipant = conversation.participants.find(
+        (participant) => participant.profileId === currentUserProfile.id,
+      );
+
+      return prisma.message.count({
+        where: {
+          conversationId: conversation.id,
+          senderId: { not: currentUserProfile.id },
+          ...(currentParticipant?.lastReadAt
+            ? { createdAt: { gt: currentParticipant.lastReadAt } }
+            : {}),
+        },
+      });
+    }),
+  );
+
   return (
     <main className="mx-auto w-full max-w-3xl pb-24 md:pb-8">
       <MessagesToast />
@@ -110,10 +128,10 @@ export default async function MessagesPage() {
           </div>
         ) : (
           <div className="divide-y divide-slate-100 dark:divide-slate-700">
-            {conversations.map((conversation: any) => (
+            {conversations.map((conversation: any, index) => (
               <ConversationListItem
                 key={conversation.id}
-                conversation={conversation}
+                conversation={{ ...conversation, unreadCount: unreadCounts[index] }}
                 currentUserId={currentUserProfile.id}
               />
             ))}

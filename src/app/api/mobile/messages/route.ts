@@ -55,20 +55,30 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  return NextResponse.json(
+  const unreadCounts = await Promise.all(
     conversations.map((conversation) => {
       const currentParticipant = conversation.participants.find(
         (participant) => participant.profileId === currentUserProfile.id,
       );
+      return prisma.message.count({
+        where: {
+          conversationId: conversation.id,
+          senderId: { not: currentUserProfile.id },
+          ...(currentParticipant?.lastReadAt
+            ? { createdAt: { gt: currentParticipant.lastReadAt } }
+            : {}),
+        },
+      });
+    }),
+  );
+
+  return NextResponse.json(
+    conversations.map((conversation, index) => {
       const otherParticipant = conversation.participants.find(
         (participant) => participant.profileId !== currentUserProfile.id,
       );
       const latestMessage = conversation.messages[0];
-      const unread =
-        latestMessage &&
-        latestMessage.senderId !== currentUserProfile.id &&
-        (!currentParticipant?.lastReadAt ||
-          latestMessage.createdAt > currentParticipant.lastReadAt);
+      const unreadCount = unreadCounts[index];
 
       return {
         id: conversation.id,
@@ -79,7 +89,8 @@ export async function GET(request: NextRequest) {
         avatar: otherParticipant?.profile.avatar,
         latestMessage: latestMessage?.body,
         updatedAt: conversation.updatedAt,
-        unread: !!unread,
+        unread: unreadCount > 0,
+        unreadCount,
       };
     }),
   );
