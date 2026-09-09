@@ -2,19 +2,23 @@
 
 import { useEffect, useState } from "react";
 
-const WEB_VERSION = "0.1.17";
+const WEB_VERSION = "0.1.18";
 
 export default function AppVersion() {
   const [desktopVersion, setDesktopVersion] = useState<string | null>(null);
   const [androidVersion, setAndroidVersion] = useState<string | null>(null);
 
   useEffect(() => {
-    setDesktopVersion(
-      navigator.userAgent.match(/VibeDesktop\/(\d+\.\d+\.\d+)/)?.[1] ?? null,
-    );
-    setAndroidVersion(
-      navigator.userAgent.match(/VibeAndroid\/(\d+\.\d+\.\d+)/)?.[1] ?? null,
-    );
+    const timer = window.setTimeout(() => {
+      setDesktopVersion(
+        navigator.userAgent.match(/VibeDesktop\/(\d+\.\d+\.\d+)/)?.[1] ?? null,
+      );
+      setAndroidVersion(
+        navigator.userAgent.match(/VibeAndroid\/(\d+\.\d+\.\d+)/)?.[1] ?? null,
+      );
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, []);
 
   return (
