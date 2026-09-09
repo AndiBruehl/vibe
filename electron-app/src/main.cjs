@@ -9,7 +9,7 @@ let showingError = false;
 let logFile;
 let updateCheckStarted = false;
 
-const DESKTOP_RELEASES_URL = "https://api.github.com/repos/AndiBruehl/vibe/contents/electron-app/dist?ref=main";
+const RELEASE_MANIFEST_URL = "https://vibe-social-network.vercel.app/releases/latest.json";
 
 function compareVersions(left, right) {
   const leftParts = left.split(".").map(Number);
@@ -25,16 +25,12 @@ function compareVersions(left, right) {
 async function getLatestDesktopRelease() {
   if (typeof fetch !== "function") return null;
   try {
-    const response = await fetch(DESKTOP_RELEASES_URL, { headers: { Accept: "application/vnd.github+json" } });
-    if (!response.ok) return null;
-    const files = await response.json();
-    const releases = files.flatMap((file) => {
-      const match = file.type === "file" && typeof file.name === "string"
-        ? file.name.match(/^Vibe-Setup-(\d+(?:\.\d+){2,3})-x64\.exe$/)
-        : null;
-      return match && file.download_url ? [{ version: match[1], downloadUrl: file.download_url }] : [];
-    });
-    return releases.sort((left, right) => compareVersions(right.version, left.version))[0] ?? null;
+    const response = await fetch(RELEASE_MANIFEST_URL, { cache: "no-store" });
+    if (!response.ok) throw new Error(`release-manifest-${response.status}`);
+    const manifest = await response.json();
+    const release = manifest?.windows;
+    if (typeof release?.version !== "string" || typeof release?.downloadUrl !== "string") throw new Error("invalid-release-manifest");
+    return release;
   } catch {
     log("update-check-failed");
     return null;
@@ -43,7 +39,16 @@ async function getLatestDesktopRelease() {
 
 async function checkForUpdates({ interactive = false } = {}) {
   const release = await getLatestDesktopRelease();
-  if (!release || !mainWindow || mainWindow.isDestroyed()) return;
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  if (!release) {
+    if (interactive) showWebDialog({
+      eyebrow: "VIBE DESKTOP",
+      title: "Update check unavailable",
+      message: "VIBE could not check for updates right now.",
+      detail: "Please check your connection and try again shortly.",
+    });
+    return;
+  }
   if (compareVersions(release.version, app.getVersion()) <= 0) {
     if (interactive) showWebDialog({
       eyebrow: "VIBE DESKTOP",

@@ -1,0 +1,10 @@
+{
+  "windows": {
+    "version": "0.1.27",
+    "downloadUrl": "https://raw.githubusercontent.com/AndiBruehl/vibe/main/electron-app/dist/Vibe-Setup-0.1.27-x64.exe"
+  },
+  "android": {
+    "version": "0.1.27",
+    "downloadUrl": "https://raw.githubusercontent.com/AndiBruehl/vibe/main/android-app/dist/Vibe-0.1.27.apk"
+  }
+}

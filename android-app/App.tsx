@@ -15,10 +15,10 @@ import { parseLoginCallback, type PendingLogin } from "@/lib/loginCallback";
 
 const extra = Constants.expoConfig?.extra as { apiUrl?: string } | undefined;
 const vibeUrl = (process.env.EXPO_PUBLIC_API_URL || extra?.apiUrl || "https://vibe-social-network.vercel.app").replace(/\/$/, "");
-const appVersion = Constants.expoConfig?.version || "0.1.26";
+const appVersion = Constants.expoConfig?.version || "0.1.27";
 const mobileTokenKey = "vibe.webMobileToken";
 const pendingLoginKey = "vibe.pendingLogin";
-const androidReleasesUrl = "https://api.github.com/repos/AndiBruehl/vibe/contents/android-app/dist?ref=main";
+const releaseManifestUrl = "https://vibe-social-network.vercel.app/releases/latest.json";
 
 type UpdateRelease = { version: string; downloadUrl: string };
 
@@ -35,14 +35,12 @@ function compareVersions(left: string, right: string) {
 
 async function getLatestAndroidRelease(): Promise<UpdateRelease | null> {
   try {
-    const response = await fetch(androidReleasesUrl, { headers: { Accept: "application/vnd.github+json" } });
+    const response = await fetch(releaseManifestUrl, { cache: "no-store" });
     if (!response.ok) return null;
-    const files = await response.json() as { name?: string; type?: string; download_url?: string | null }[];
-    const releases = files.flatMap((file) => {
-      const match = file.type === "file" ? file.name?.match(/^Vibe-(\d+(?:\.\d+){2,3})\.apk$/) : null;
-      return match && file.download_url ? [{ version: match[1], downloadUrl: file.download_url }] : [];
-    });
-    return releases.sort((left, right) => compareVersions(right.version, left.version))[0] ?? null;
+    const manifest = await response.json() as { android?: UpdateRelease };
+    return typeof manifest.android?.version === "string" && typeof manifest.android?.downloadUrl === "string"
+      ? manifest.android
+      : null;
   } catch {
     return null;
   }
