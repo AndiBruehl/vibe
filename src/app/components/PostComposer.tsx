@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type DragEvent } from "react";
 import { useFormStatus } from "react-dom";
 import { unstable_rethrow } from "next/navigation";
 import { PinataSDK } from "pinata";
@@ -90,6 +90,7 @@ export default function PostComposer({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [progress, setProgress] = useState("");
+  const [isDragging, setIsDragging] = useState(false);
   const uploading = useRef(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const isDraftable = !postId;
@@ -143,6 +144,11 @@ export default function PostComposer({
       setBusy(false);
       setProgress("");
     }
+  }
+  function handleDrop(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    setIsDragging(false);
+    void upload(Array.from(event.dataTransfer.files));
   }
   return (
     <form
@@ -218,17 +224,18 @@ export default function PostComposer({
           ))}
         </div>
         {images.length < MAX_POST_IMAGES && (
-          <div className="relative overflow-hidden rounded-2xl bg-gray-400 shadow-lg dark:bg-slate-700">
+          <div onDragEnter={(event) => { event.preventDefault(); setIsDragging(true); }} onDragOver={(event) => event.preventDefault()} onDragLeave={(event) => { if (event.currentTarget === event.target) setIsDragging(false); }} onDrop={handleDrop}
+            className={`relative overflow-hidden rounded-2xl bg-gray-400 shadow-lg transition dark:bg-slate-700 ${isDragging ? "ring-4 ring-orange-400 ring-offset-2 dark:ring-offset-slate-950" : ""}`}>
             <button
               type="button"
               onClick={() => fileInput.current?.click()}
               className="flex min-h-48 w-full flex-col items-center justify-center gap-3 p-6 from-(--ig-orange) to-(--ig-red) enabled:hover:bg-linear-to-tr focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
             >
               <span className="rounded-xl bg-white/95 px-5 py-3 font-semibold text-slate-900">
-                Upload images
+                {isDragging ? "Drop images to upload" : "Upload images"}
               </span>
               <span className="rounded-full bg-slate-900/70 px-3 py-1 text-xs text-white">
-                Up to 4 images · 25 MB each
+                Drag & drop or choose files · Up to 4 images · 25 MB each
               </span>
             </button>
             <input
