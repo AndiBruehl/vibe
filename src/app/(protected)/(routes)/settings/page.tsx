@@ -58,6 +58,9 @@ export default async function SettingsPage() {
           </h1>
 
           <SettingsForm profile={profile} />
+          <p className="mt-6 text-center text-xs text-slate-500 dark:text-slate-400">
+            App version 0.1.14
+          </p>
         </div>
       </section>
     </main>
