@@ -6,6 +6,7 @@ import { prisma } from "@/db";
 import AppVersion from "@/app/components/AppVersion";
 import ReleaseDownloads from "@/app/components/ReleaseDownloads";
 import SettingsForm from "@/app/components/SettingsForm";
+import LanguageSwitcher from "@/app/components/LanguageSwitcher";
 
 export default async function SettingsPage() {
   const session = await auth();
@@ -63,6 +64,7 @@ export default async function SettingsPage() {
 
           <div className="p-5 sm:p-6">
             <SettingsForm profile={profile} />
+            <LanguageSwitcher />
             <ReleaseDownloads />
             <AppVersion />
           </div>
