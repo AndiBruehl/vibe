@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { auth, signOut } from "@/auth";
 import { prisma } from "@/db";
 import AppVersion from "@/app/components/AppVersion";
+import ReleaseDownloads from "@/app/components/ReleaseDownloads";
 import SettingsForm from "@/app/components/SettingsForm";
 
 export default async function SettingsPage() {
@@ -62,6 +63,7 @@ export default async function SettingsPage() {
 
           <div className="p-5 sm:p-6">
             <SettingsForm profile={profile} />
+            <ReleaseDownloads />
             <AppVersion />
           </div>
         </div>
