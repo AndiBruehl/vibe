@@ -9,7 +9,7 @@ let showingError = false;
 let logFile;
 let updateCheckStarted = false;
 
-const RELEASE_MANIFEST_URL = "https://raw.githubusercontent.com/AndiBruehl/vibe/main/public/releases/latest.json";
+const RELEASE_MANIFEST_URL = "https://api.github.com/repos/AndiBruehl/vibe/contents/public/releases/latest.json";
 
 function compareVersions(left, right) {
   const leftParts = left.split(".").map(Number);
@@ -25,9 +25,11 @@ function compareVersions(left, right) {
 async function getLatestDesktopRelease() {
   if (typeof fetch !== "function") return null;
   try {
-    const response = await fetch(`${RELEASE_MANIFEST_URL}?v=${Date.now()}`, { cache: "no-store", headers: { "Cache-Control": "no-cache" } });
+    const response = await fetch(`${RELEASE_MANIFEST_URL}?ref=main&v=${Date.now()}`, { cache: "no-store", headers: { "Accept": "application/vnd.github+json", "Cache-Control": "no-cache" } });
     if (!response.ok) throw new Error(`release-manifest-${response.status}`);
-    const manifest = await response.json();
+    const payload = await response.json();
+    if (typeof payload?.content !== "string") throw new Error("invalid-release-content");
+    const manifest = JSON.parse(Buffer.from(payload.content, "base64").toString("utf8"));
     const release = manifest?.windows;
     if (typeof release?.version !== "string" || typeof release?.downloadUrl !== "string") throw new Error("invalid-release-manifest");
     log("update-release-found", { currentVersion: app.getVersion(), latestVersion: release.version });
