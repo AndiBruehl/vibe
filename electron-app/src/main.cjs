@@ -25,14 +25,15 @@ function compareVersions(left, right) {
 async function getLatestDesktopRelease() {
   if (typeof fetch !== "function") return null;
   try {
-    const response = await fetch(`${RELEASE_MANIFEST_URL}?v=${encodeURIComponent(app.getVersion())}`, { cache: "no-store" });
+    const response = await fetch(`${RELEASE_MANIFEST_URL}?v=${Date.now()}`, { cache: "no-store", headers: { "Cache-Control": "no-cache" } });
     if (!response.ok) throw new Error(`release-manifest-${response.status}`);
     const manifest = await response.json();
     const release = manifest?.windows;
     if (typeof release?.version !== "string" || typeof release?.downloadUrl !== "string") throw new Error("invalid-release-manifest");
+    log("update-release-found", { currentVersion: app.getVersion(), latestVersion: release.version });
     return release;
-  } catch {
-    log("update-check-failed");
+  } catch (error) {
+    log("update-check-failed", { message: error instanceof Error ? error.message : String(error) });
     return null;
   }
 }
