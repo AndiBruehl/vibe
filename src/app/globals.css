@@ -166,3 +166,7 @@ body {
 .border-ig-gradient {
   border-image: var(--ig-gradient) 1;
 }
+@keyframes vibe-navigation-progress {
+  0% { transform: translateX(-105%); }
+  100% { transform: translateX(135%); }
+}

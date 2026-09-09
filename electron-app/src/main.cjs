@@ -8,6 +8,11 @@ let mainWindow = null;
 let showingError = false;
 let logFile;
 
+function setLoadingProgress(value) {
+  if (!mainWindow || mainWindow.isDestroyed() || typeof mainWindow.setProgressBar !== "function") return;
+  mainWindow.setProgressBar(value);
+}
+
 function log(event, details = {}) {
   // Only operational codes are recorded, never visited URLs, cookies or messages.
   if (!logFile) return;
@@ -62,6 +67,10 @@ function createWindow() {
       webviewTag: false,
     },
   });
+  if (typeof mainWindow.webContents.getUserAgent === "function" && typeof mainWindow.webContents.setUserAgent === "function") {
+    const currentUserAgent = mainWindow.webContents.getUserAgent();
+    mainWindow.webContents.setUserAgent(`${currentUserAgent} VibeDesktop/${app.getVersion()}`);
+  }
   mainWindow.once("ready-to-show", () => mainWindow?.show());
   mainWindow.on("closed", () => { mainWindow = null; });
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
@@ -85,6 +94,13 @@ function createWindow() {
     if (!isMainFrame || code === -3) return;
     log("page-load-failed", { code });
     showConnectionError(code);
+  });
+  mainWindow.webContents.on("did-start-loading", () => {
+    if (!showingError) setLoadingProgress(0.55);
+  });
+  mainWindow.webContents.on("did-stop-loading", () => {
+    setLoadingProgress(1);
+    setTimeout(() => setLoadingProgress(-1), 180);
   });
   mainWindow.webContents.on("render-process-gone", (_event, details) => {
     log("renderer-stopped", { reason: details.reason, exitCode: details.exitCode });
