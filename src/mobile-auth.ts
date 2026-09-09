@@ -59,7 +59,7 @@ export function createMobileToken(payload: { email: string; profileId: string })
   return `${unsignedToken}.${sign(unsignedToken)}`;
 }
 
-function verifyMobileToken(token: string) {
+export function verifyMobileToken(token: string) {
   const parts = token.split(".");
   if (parts.length !== 3) return null;
   const [header, body, signature] = parts;
