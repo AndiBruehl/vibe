@@ -1,6 +1,6 @@
 {
   "name": "vibe-desktop",
-  "version": "0.1.4",
+  "version": "0.1.25",
   "description": "Vibe desktop app",
   "private": true,
   "main": "src/main.cjs",

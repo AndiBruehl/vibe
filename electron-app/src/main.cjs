@@ -45,14 +45,77 @@ async function checkForUpdates({ interactive = false } = {}) {
   const release = await getLatestDesktopRelease();
   if (!release || !mainWindow || mainWindow.isDestroyed()) return;
   if (compareVersions(release.version, app.getVersion()) <= 0) {
-    if (interactive) await dialog.showMessageBox(mainWindow, { type: "info", title: "VIBE is up to date", message: `You are using VIBE ${app.getVersion()}.` });
+    if (interactive) showWebDialog({
+      eyebrow: "VIBE DESKTOP",
+      title: "You’re up to date",
+      message: `VIBE ${app.getVersion()} is the latest desktop version.`,
+      detail: "We’ll let you know when a new update is ready.",
+    });
     return;
   }
-  const response = await dialog.showMessageBox(mainWindow, {
-    type: "info", title: "A VIBE update is available", message: `Version ${release.version} is ready to download.`,
-    detail: `You are currently using version ${app.getVersion()}.`, buttons: ["Download update", "Later"], defaultId: 0, cancelId: 1,
+  showWebDialog({
+    eyebrow: "VIBE UPDATE",
+    title: "Update available",
+    message: `Version ${release.version} is ready to download.`,
+    detail: `You’re currently using version ${app.getVersion()}.`,
+    downloadUrl: release.downloadUrl,
+    primaryLabel: "Download update",
   });
-  if (response.response === 0) openWebUrl(release.downloadUrl);
+}
+
+function showWebDialog({ eyebrow = "VIBE", title, message, detail, downloadUrl, primaryLabel = "Close" }) {
+  if (!mainWindow || mainWindow.isDestroyed() || typeof mainWindow.webContents.executeJavaScript !== "function") return;
+  const payload = JSON.stringify({ eyebrow, title, message, detail, downloadUrl, primaryLabel });
+  const script = `(() => {
+    const existing = document.getElementById("vibe-desktop-dialog");
+    if (existing) existing.remove();
+    const payload = ${payload};
+    const overlay = document.createElement("div");
+    overlay.id = "vibe-desktop-dialog";
+    overlay.setAttribute("role", "presentation");
+    overlay.style.cssText = "position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;padding:24px;background:rgba(15,23,42,.48);backdrop-filter:blur(5px);font-family:inherit";
+    const panel = document.createElement("section");
+    panel.setAttribute("role", "dialog");
+    panel.setAttribute("aria-modal", "true");
+    panel.style.cssText = "width:min(440px,100%);border:1px solid color-mix(in srgb,var(--ig-text,#24456b) 18%,transparent);border-radius:20px;overflow:hidden;background:var(--ig-surface-bg,#fff);color:var(--ig-text,#24456b);box-shadow:0 22px 60px rgba(15,23,42,.32)";
+    const body = document.createElement("div");
+    body.style.cssText = "padding:25px 26px 23px";
+    const eyebrow = document.createElement("p");
+    eyebrow.textContent = payload.eyebrow;
+    eyebrow.style.cssText = "margin:0 0 7px;color:var(--ig-orange,#e6ad4d);font-size:11px;font-weight:800;letter-spacing:.11em";
+    const heading = document.createElement("h2");
+    heading.textContent = payload.title;
+    heading.style.cssText = "margin:0;color:inherit;font-size:24px;line-height:1.2;font-weight:800";
+    const message = document.createElement("p");
+    message.textContent = payload.message;
+    message.style.cssText = "margin:13px 0 0;color:inherit;font-size:15px;font-weight:650;line-height:1.5";
+    const detail = document.createElement("p");
+    detail.textContent = payload.detail;
+    detail.style.cssText = "margin:7px 0 0;color:var(--ig-text-muted,#54779a);font-size:13px;line-height:1.5";
+    const actions = document.createElement("div");
+    actions.style.cssText = "display:flex;justify-content:flex-end;gap:10px;margin-top:23px";
+    const close = () => overlay.remove();
+    const later = document.createElement("button");
+    later.type = "button";
+    later.textContent = payload.downloadUrl ? "Later" : "Close";
+    later.onclick = close;
+    later.style.cssText = "min-height:40px;padding:0 16px;border:1px solid color-mix(in srgb,var(--ig-text,#24456b) 22%,transparent);border-radius:10px;background:transparent;color:inherit;font:inherit;font-size:13px;font-weight:750;cursor:pointer";
+    actions.append(later);
+    if (payload.downloadUrl) {
+      const download = document.createElement("button");
+      download.type = "button";
+      download.textContent = payload.primaryLabel;
+      download.onclick = () => { window.open(payload.downloadUrl, "_blank", "noopener"); close(); };
+      download.style.cssText = "min-height:40px;padding:0 17px;border:0;border-radius:10px;background:linear-gradient(135deg,var(--ig-orange,#e6ad4d),var(--ig-red,#cf2142));color:#fff;font:inherit;font-size:13px;font-weight:800;box-shadow:0 8px 18px rgba(207,33,66,.22);cursor:pointer";
+      actions.append(download);
+    }
+    body.append(eyebrow, heading, message, detail, actions);
+    panel.append(body);
+    overlay.append(panel);
+    overlay.addEventListener("click", event => { if (event.target === overlay) close(); });
+    document.body.append(overlay);
+  })();`;
+  void mainWindow.webContents.executeJavaScript(script).catch(() => log("dialog-render-failed"));
 }
 
 function setLoadingProgress(value) {
@@ -179,7 +242,7 @@ function createMenu() {
       { label: "Open web version", click: () => openWebUrl(appUrl) },
       { label: "Check for updates", click: () => { void checkForUpdates({ interactive: true }); } },
       { label: "Open logs folder", click: () => { void shell.openPath(app.getPath("logs")).then(error => { if (error) log("open-logs-failed"); }); } },
-      { label: "About VIBE", click: () => { void dialog.showMessageBox({ type: "info", title: "About VIBE", message: `VIBE ${app.getVersion()}`, detail: `Desktop app · ${process.platform} ${process.arch}` }); } },
+      { label: "About VIBE", click: () => showWebDialog({ eyebrow: "VIBE DESKTOP", title: "About VIBE", message: `VIBE ${app.getVersion()}`, detail: `Desktop app · ${process.platform} ${process.arch}` }) },
     ] },
   ]));
 }
