@@ -10,6 +10,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import MessageUnreadBadge from "@/app/components/MessageUnreadBadge";
+import LanguageSwitcher from "@/app/components/LanguageSwitcher";
 
 type DesktopNavProps = {
   unreadConversationCount?: number;
@@ -149,6 +150,9 @@ export default function DesktopNav({
             Profile
           </span>
         </Link>
+        <div className="mt-2 border-t border-slate-300 pt-3 dark:border-slate-600">
+          <LanguageSwitcher compact />
+        </div>
       </div>
     </aside>
   );

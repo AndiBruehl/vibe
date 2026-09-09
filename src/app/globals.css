@@ -166,6 +166,9 @@ body {
 .border-ig-gradient {
   border-image: var(--ig-gradient) 1;
 }
+
+.vibe-flag-de { background: linear-gradient(to bottom, #111 0 33%, #dd1f26 33% 66%, #f5c542 66%); }
+.vibe-flag-en { background: linear-gradient(33deg, transparent 43%, #fff 44% 50%, #c8102e 51% 56%, transparent 57%), linear-gradient(-33deg, transparent 43%, #fff 44% 50%, #c8102e 51% 56%, transparent 57%), linear-gradient(to bottom, transparent 39%, #fff 40% 60%, transparent 61%), linear-gradient(to right, transparent 42%, #fff 43% 57%, transparent 58%), linear-gradient(to bottom, transparent 44%, #c8102e 45% 55%, transparent 56%), linear-gradient(to right, transparent 45%, #c8102e 46% 54%, transparent 55%), #174a9b; }
 @keyframes vibe-navigation-progress {
   0% { transform: translateX(-105%); }
   100% { transform: translateX(135%); }
