@@ -9,7 +9,7 @@ let showingError = false;
 let logFile;
 let updateCheckStarted = false;
 
-const RELEASE_MANIFEST_URL = "https://vibe-social-network.vercel.app/releases/latest.json";
+const RELEASE_MANIFEST_URL = "https://raw.githubusercontent.com/AndiBruehl/vibe/main/public/releases/latest.json";
 
 function compareVersions(left, right) {
   const leftParts = left.split(".").map(Number);
