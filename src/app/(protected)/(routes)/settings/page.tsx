@@ -52,14 +52,18 @@ export default async function SettingsPage() {
         </form>
       </section>
 
-      <section className="mt-8 flex items-center justify-center">
-        <div className="mx-auto w-full max-w-md rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-sm shadow-slate-200/60 sm:p-8 dark:border-transparent dark:bg-transparent dark:shadow-none">
-          <h1 className="mb-4 text-center text-2xl font-bold">
-            Profile Settings
-          </h1>
+      <section className="mx-auto mt-8 w-full max-w-5xl pb-12">
+        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-900/5 dark:border-slate-700/80 dark:bg-slate-900 dark:shadow-black/25">
+          <header className="border-b border-slate-200 bg-linear-to-r from-orange-50 via-white to-pink-50 px-6 py-8 dark:border-slate-700/80 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 sm:px-10">
+            <p className="text-sm font-semibold text-orange-600 dark:text-orange-300">Account</p>
+            <h1 className="mt-1 text-2xl font-bold text-slate-950 dark:text-white">Profile Settings</h1>
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Manage how your profile appears across VIBE.</p>
+          </header>
 
-          <SettingsForm profile={profile} />
-          <AppVersion />
+          <div className="p-6 sm:p-10">
+            <SettingsForm profile={profile} />
+            <AppVersion />
+          </div>
         </div>
       </section>
     </main>

@@ -8,7 +8,7 @@ import { prisma } from "@/db";
 import { Avatar } from "@radix-ui/themes";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Camera as CameraIcon, Search, UserPlus } from "lucide-react";
+import { Camera as CameraIcon, MessageCircle, Search, UserPlus } from "lucide-react";
 
 type Follow = {
   followingId: string;
@@ -59,6 +59,14 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
     },
     include: {
       topics: { include: { topic: true } },
+      comments: {
+        where: { parentCommentId: null },
+        take: 3,
+        orderBy: { createdAt: "desc" },
+        include: {
+          author: { select: { username: true, name: true } },
+        },
+      },
     },
     orderBy: {
       createdAt: "desc",
@@ -236,7 +244,7 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
   }
 
   return (
-    <SortablePosts posts={posts.map((post) => ({ id: post.id, description: post.description, createdAt: post.createdAt }))} className="mx-auto flex w-full max-w-2xl flex-col gap-8">
+    <SortablePosts posts={posts.map((post) => ({ id: post.id, description: post.description, createdAt: post.createdAt }))} className="mx-auto flex w-full max-w-5xl flex-col gap-8">
       {posts.map((post) => {
         const profile =
           authors.find((author) => author.email === post.authorEmail) || null;
@@ -253,7 +261,7 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
             key={post.id}
             className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white dark:border-white/10 dark:bg-white/5 shadow-xl backdrop-blur-xl"
           >
-            <div className="relative z-20 flex items-center justify-between px-4 py-4 sm:px-5">
+            <div className="relative z-20 flex items-center justify-between border-b border-slate-200 px-4 py-4 sm:px-5 dark:border-white/10">
               <div className="flex min-w-0 items-center gap-3">
                 <Avatar
                   radius="full"
@@ -280,44 +288,80 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
                 </div>
               </div>
 
-              <div className="relative z-20 flex items-center gap-2">
-                <LikesInfo
-                  post={post}
-                  showText={false}
-                  sessionLike={sessionLike}
-                />
-                <BookmarkButton
-                  postId={post.id}
-                  initialBookmarked={isBookmarked}
-                />
-              </div>
             </div>
 
-            <PostCarousel images={getPostImages(post)} alt={post.description || "Post image"} href={`/posts/${post.id}`}/>
-
-
-            <div className="space-y-3 px-4 py-4 sm:px-5">
-              <p className="text-sm leading-6 text-slate-900 dark:text-slate-200">
-                {post.description}
-              </p>
-
-              <div className="text-xs text-slate-500 dark:text-slate-400">
-                {new Date(post.createdAt).toLocaleDateString()}
+            <div className="lg:grid lg:grid-cols-[minmax(0,1.08fr)_minmax(22rem,0.92fr)]">
+              <div className="border-b border-slate-200 dark:border-white/10 lg:border-b-0 lg:border-r">
+                <PostCarousel images={getPostImages(post)} alt={post.description || "Post image"} href={`/posts/${post.id}`} />
+                <div className="flex items-center justify-between px-4 py-2 sm:px-5">
+                  <LikesInfo
+                    post={post}
+                    showText={false}
+                    sessionLike={sessionLike}
+                  />
+                  <BookmarkButton
+                    postId={post.id}
+                    initialBookmarked={isBookmarked}
+                  />
+                </div>
               </div>
 
-              {post.topics?.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {post.topics.map((postTopic: PostTopicWithTopic) => (
-                    <Link
-                      key={postTopic.id}
-                      href={`/topics/${postTopic.topic.slug}`}
-                      className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700 no-underline hover:underline"
-                    >
-                      #{postTopic.topic.name}
-                    </Link>
-                  ))}
+              <div className="flex min-w-0 flex-col px-4 py-5 sm:px-5 lg:max-h-[36rem]">
+                <div className="space-y-3">
+                  <p className="text-sm leading-6 text-slate-900 dark:text-slate-200">
+                    {post.description}
+                  </p>
+
+                  <div className="text-xs text-slate-500 dark:text-slate-400">
+                    {new Date(post.createdAt).toLocaleDateString()}
+                  </div>
+
+                  {post.topics?.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {post.topics.map((postTopic: PostTopicWithTopic) => (
+                        <Link
+                          key={postTopic.id}
+                          href={`/topics/${postTopic.topic.slug}`}
+                          className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700 no-underline hover:underline dark:bg-slate-800 dark:text-slate-200"
+                        >
+                          #{postTopic.topic.name}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
+
+                <div className="mt-5 hidden min-h-0 flex-1 border-t border-slate-200 pt-4 dark:border-white/10 lg:block">
+                  <div className="mb-3 flex items-center justify-between">
+                    <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
+                      <MessageCircle size={16} className="text-orange-500" />
+                      Comments
+                    </h2>
+                    <Link href={`/posts/${post.id}`} className="text-xs font-semibold text-orange-600 hover:underline dark:text-orange-300">
+                      View all
+                    </Link>
+                  </div>
+                  {post.comments.length ? (
+                    <div className="space-y-3 overflow-y-auto pr-1">
+                      {post.comments.map((comment) => (
+                        <div key={comment.id} className="text-sm leading-5 text-slate-700 dark:text-slate-300">
+                          <Link href={comment.author.username ? `/profile/${comment.author.username}` : "#"} className="mr-1 font-semibold text-slate-900 hover:underline dark:text-white">
+                            {comment.author.name || comment.author.username || "VIBE member"}
+                          </Link>
+                          <span className="break-words">{comment.text}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-500 dark:text-slate-400">No comments yet. Be the first to join the conversation.</p>
+                  )}
+                </div>
+
+                <Link href={`/posts/${post.id}`} className="mt-4 flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-orange-600 dark:text-slate-300 dark:hover:text-orange-300 lg:hidden">
+                  <MessageCircle size={16} />
+                  View comments
+                </Link>
+              </div>
             </div>
           </article>
         );

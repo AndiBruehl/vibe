@@ -1,7 +1,7 @@
 "use client";
 
-import { ImageUp } from "lucide-react";
-import { Button, Switch, TextArea, TextField } from "@radix-ui/themes";
+import { ImageUp, Moon, UserRound } from "lucide-react";
+import { Switch } from "@radix-ui/themes";
 import type { Profile } from "@prisma/client";
 import { upsertProfile } from "@/actions";
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
@@ -78,9 +78,9 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
   const avatarSrc = previewUrl || profile?.avatar || defaultImg.src;
 
   return (
-    <form action={upsertProfile}>
-      <div className="flex items-center gap-3">
-        <div className="size-24 overflow-hidden rounded-full border-2 border-slate-600 bg-slate-400 shadow-lg shadow-slate-900">
+    <form action={upsertProfile} className="space-y-7 lg:grid lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-x-8 lg:gap-y-7 lg:space-y-0">
+      <section className="flex flex-col items-center gap-4 border-b border-slate-200 pb-7 dark:border-slate-700/80 lg:row-span-3 lg:self-start lg:border-b-0 lg:border-r lg:pb-0 lg:pr-8">
+        <div className="size-44 shrink-0 overflow-hidden rounded-full border-4 border-white bg-slate-200 shadow-lg shadow-slate-900/15 dark:border-slate-700 dark:bg-slate-800 dark:shadow-black/30">
           <img
             src={avatarSrc}
             alt="Avatar"
@@ -89,7 +89,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
           />
         </div>
 
-        <div>
+        <div className="text-center sm:text-left">
           <input
             ref={fileInRef}
             type="file"
@@ -100,52 +100,76 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
 
           <input type="hidden" name="avatarUrl" value={avatarUrl} />
 
-          <Button
-            variant="surface"
+          <button
             type="button"
             onClick={() => fileInRef.current?.click()}
             disabled={isUploading}
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-orange-300 hover:text-orange-600 disabled:cursor-wait disabled:opacity-60 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-orange-400 dark:hover:text-orange-300"
           >
-            <ImageUp />
+            <ImageUp size={17} />
             {isUploading ? "Uploading..." : "Change avatar"}
-          </Button>
+          </button>
+          <p className="mt-2 text-center text-xs text-slate-500 dark:text-slate-400">JPG, PNG or WEBP</p>
         </div>
-      </div>
+      </section>
 
-      <p className="mt-2 font-bold">username</p>
-      <TextField.Root
-        name="username"
-        defaultValue={profile?.username ?? ""}
-        placeholder="your_username"
-        className="mb-4"
-      />
+      <section className="lg:col-start-2">
+        <div className="mb-4 flex items-center gap-2">
+          <UserRound size={17} className="text-orange-500" />
+          <h2 className="font-semibold text-slate-900 dark:text-white">Profile details</h2>
+        </div>
+        <div className="grid gap-5 sm:grid-cols-2">
+          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
+            Username
+            <input
+              name="username"
+              defaultValue={profile?.username ?? ""}
+              placeholder="your_username"
+              className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-orange-400 focus:ring-4 focus:ring-orange-100 dark:border-slate-600 dark:bg-slate-950/50 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-orange-400 dark:focus:ring-orange-500/15"
+            />
+          </label>
 
-      <p className="mt-2 font-bold">name</p>
-      <TextField.Root
-        name="name"
-        defaultValue={profile?.name ?? ""}
-        placeholder="John Doe"
-        className="mb-4"
-      />
+          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
+            Display name
+            <input
+              name="name"
+              defaultValue={profile?.name ?? ""}
+              placeholder="John Doe"
+              className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-orange-400 focus:ring-4 focus:ring-orange-100 dark:border-slate-600 dark:bg-slate-950/50 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-orange-400 dark:focus:ring-orange-500/15"
+            />
+          </label>
+        </div>
 
-      <p className="mt-2 font-bold">subtitle</p>
-      <TextField.Root
-        name="subtitle"
-        defaultValue={profile?.subtitle ?? ""}
-        placeholder="graphic designer"
-        className="mb-4"
-      />
+        <label className="mt-5 block text-sm font-semibold text-slate-700 dark:text-slate-200">
+          Subtitle
+          <input
+            name="subtitle"
+            defaultValue={profile?.subtitle ?? ""}
+            placeholder="Graphic designer"
+            className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-orange-400 focus:ring-4 focus:ring-orange-100 dark:border-slate-600 dark:bg-slate-950/50 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-orange-400 dark:focus:ring-orange-500/15"
+          />
+        </label>
 
-      <p className="mt-2 font-bold">bio</p>
-      <TextArea
-        name="bio"
-        defaultValue={profile?.bio ?? ""}
-        placeholder="your_description"
-        className="mb-4"
-      />
+        <label className="mt-5 block text-sm font-semibold text-slate-700 dark:text-slate-200">
+          Bio
+          <textarea
+            name="bio"
+            defaultValue={profile?.bio ?? ""}
+            placeholder="Tell people a little about yourself"
+            rows={4}
+            className="mt-2 w-full resize-y rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-orange-400 focus:ring-4 focus:ring-orange-100 dark:border-slate-600 dark:bg-slate-950/50 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-orange-400 dark:focus:ring-orange-500/15"
+          />
+        </label>
+      </section>
 
-      <label className="mt-2 flex items-center gap-2">
-        <span>Dark mode</span>
+      <section className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 dark:border-slate-700 dark:bg-slate-800/60 lg:col-start-2">
+        <div className="flex items-center gap-3">
+          <span className="grid size-9 place-items-center rounded-xl bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200"><Moon size={17} /></span>
+          <div>
+            <p className="font-semibold text-slate-900 dark:text-white">Dark mode</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Use VIBE with a darker color scheme</p>
+          </div>
+        </div>
         <Switch
           checked={isDarkMode}
           disabled={!isThemeReady}
@@ -162,12 +186,16 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
             localStorage.setItem("theme", theme);
           }}
         />
-      </label>
+      </section>
 
-      <div className="mt-2 flex justify-center">
-        <Button type="submit" variant="solid" disabled={isUploading}>
+      <div className="flex justify-end border-t border-slate-200 pt-6 dark:border-slate-700/80 lg:col-start-2">
+        <button
+          type="submit"
+          disabled={isUploading}
+          className="rounded-xl bg-linear-to-r from-orange-500 to-pink-500 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-orange-500/25 transition hover:scale-[1.02] hover:shadow-xl disabled:cursor-wait disabled:opacity-60"
+        >
           Save Settings
-        </Button>
+        </button>
       </div>
     </form>
   );
