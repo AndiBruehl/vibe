@@ -9,7 +9,12 @@ import { prisma } from "@/db";
 import { Avatar } from "@radix-ui/themes";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Camera as CameraIcon, MessageCircle, Search, UserPlus } from "lucide-react";
+import {
+  Camera as CameraIcon,
+  MessageCircle,
+  Search,
+  UserPlus,
+} from "lucide-react";
 
 type Follow = {
   followingId: string;
@@ -32,7 +37,10 @@ type PostTopicWithTopic = {
   };
 };
 
-export default async function HomePosts({ follows, profiles }: HomePostsProps) {
+export default async function HomePosts({
+  follows,
+  profiles,
+}: HomePostsProps) {
   const session = await auth();
 
   if (!session?.user?.email) {
@@ -51,6 +59,18 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
     .map((profile) => profile.email)
     .filter((email): email is string => Boolean(email));
 
+  /*
+   * WICHTIG:
+   * Kommentare laden absichtlich NICHT mehr ihre author-Relation.
+   *
+   * Alte Kommentare können auf ein inzwischen nicht mehr vorhandenes
+   * Profile zeigen. Würden wir "author" direkt über Prisma includen,
+   * könnte dadurch die komplette /home-Seite mit einem 500-Fehler
+   * abstürzen.
+   *
+   * Die Profile der Kommentar-Autoren werden weiter unten separat
+   * geladen und bekommen bei Bedarf einen Fallback.
+   */
   const posts = await prisma.post.findMany({
     where: {
       OR: [
@@ -59,14 +79,23 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
       ],
     },
     include: {
-      topics: { include: { topic: true } },
-      _count: { select: { comments: true } },
-      comments: {
-        where: { parentCommentId: null },
-        take: 3,
-        orderBy: { createdAt: "desc" },
+      topics: {
         include: {
-          author: { select: { username: true, name: true } },
+          topic: true,
+        },
+      },
+      _count: {
+        select: {
+          comments: true,
+        },
+      },
+      comments: {
+        where: {
+          parentCommentId: null,
+        },
+        take: 3,
+        orderBy: {
+          createdAt: "desc",
         },
       },
     },
@@ -93,15 +122,49 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
     },
   });
 
-  const authorEmails = [...new Set(posts.map((post) => post.authorEmail))];
+  /*
+   * Post-Autoren sammeln.
+   * authorEmail kann bei alten/verwaisten Posts null sein.
+   */
+  const postAuthorEmails = [
+    ...new Set(
+      posts
+        .map((post) => post.authorEmail)
+        .filter((email): email is string => Boolean(email)),
+    ),
+  ];
 
-  const authors = await prisma.profile.findMany({
-    where: {
-      email: {
-        in: authorEmails,
-      },
-    },
-  });
+  /*
+   * Kommentar-Autoren separat sammeln.
+   * Dadurch müssen wir die problematische Prisma-Relation nicht includen.
+   */
+  const commentAuthorEmails = [
+    ...new Set(
+      posts
+        .flatMap((post) =>
+          post.comments.map((comment) => comment.authorEmail),
+        )
+        .filter((email): email is string => Boolean(email)),
+    ),
+  ];
+
+  /*
+   * Alle benötigten Profile mit EINER sicheren Abfrage laden.
+   */
+  const allAuthorEmails = [
+    ...new Set([...postAuthorEmails, ...commentAuthorEmails]),
+  ];
+
+  const authors =
+    allAuthorEmails.length > 0
+      ? await prisma.profile.findMany({
+          where: {
+            email: {
+              in: allAuthorEmails,
+            },
+          },
+        })
+      : [];
 
   const followedProfileIds = follows.map((follow) => follow.followingId);
 
@@ -136,7 +199,7 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
     return (
       <section className="mx-auto flex min-h-[70vh] w-full max-w-2xl items-center justify-center">
         <div className="flex w-full max-w-2xl flex-col gap-6">
-          <div className="rounded-3xl border border-slate-200 bg-white dark:border-white/10 dark:bg-white/5 p-8 text-center shadow-xl backdrop-blur-xl">
+          <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-xl backdrop-blur-xl dark:border-white/10 dark:bg-white/5">
             <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-500">
               Nothing here yet
             </h2>
@@ -187,12 +250,13 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white dark:border-white/10 dark:bg-white/5 p-6 shadow-xl backdrop-blur-xl">
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl backdrop-blur-xl dark:border-white/10 dark:bg-white/5">
             <div className="mb-4 flex items-center gap-2">
               <UserPlus
                 size={18}
                 className="text-slate-700 dark:text-slate-200"
               />
+
               <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                 Suggested users
               </h3>
@@ -208,7 +272,7 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
                   <Link
                     key={user.id}
                     href={user.username ? `/profile/${user.username}` : "#"}
-                    className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white dark:border-white/10 dark:bg-white/5 px-4 py-3 transition hover:bg-slate-50 dark:hover:bg-white/10"
+                    className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 transition hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
                   >
                     <div className="flex min-w-0 items-center gap-3">
                       <Avatar
@@ -226,6 +290,7 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
                         <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
                           {user.name || user.username || "Unknown user"}
                         </p>
+
                         <p className="truncate text-xs text-slate-500 dark:text-slate-400">
                           @{user.username || "no-username"}
                         </p>
@@ -247,140 +312,207 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
 
   return (
     <section className="mx-auto w-full max-w-5xl">
-    <SortablePosts posts={posts.map((post) => ({ id: post.id, description: post.description, createdAt: post.createdAt }))} className="flex w-full flex-col gap-8">
-      {posts.map((post) => {
-        const profile =
-          authors.find((author) => author.email === post.authorEmail) || null;
+      <SortablePosts
+        posts={posts.map((post) => ({
+          id: post.id,
+          description: post.description,
+          createdAt: post.createdAt,
+        }))}
+        className="flex w-full flex-col gap-8"
+      >
+        {posts.map((post) => {
+          const profile =
+            authors.find((author) => author.email === post.authorEmail) || null;
 
-        const sessionLike =
-          likes.find((like) => like.postId === post.id) || null;
+          const sessionLike =
+            likes.find((like) => like.postId === post.id) || null;
 
-        const isBookmarked = bookmarks.some(
-          (bookmark) => bookmark.postId === post.id,
-        );
+          const isBookmarked = bookmarks.some(
+            (bookmark) => bookmark.postId === post.id,
+          );
 
-        return (
-          <article
-            key={post.id}
-            className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white dark:border-white/10 dark:bg-white/5 shadow-xl backdrop-blur-xl"
-          >
-            <div className="relative z-20 flex items-center justify-between border-b border-slate-200 px-4 py-4 sm:px-5 dark:border-white/10">
-              <div className="flex min-w-0 items-center gap-3">
-                <Avatar
-                  radius="full"
-                  src={profile?.avatar || ""}
-                  size="3"
-                  fallback={(profile?.username?.[0] || "?").toUpperCase()}
-                />
-
-                <div className="min-w-0">
-                  <Link
-                    className="relative z-20 block truncate text-sm font-semibold text-slate-900 dark:text-slate-100 transition hover:text-slate-600 dark:hover:text-slate-300"
-                    href={
-                      profile?.username ? `/profile/${profile.username}` : "#"
-                    }
-                  >
-                    {profile?.name || profile?.username || "Unknown user"}
-                  </Link>
-
-                  {profile?.username && (
-                    <p className="truncate text-xs text-slate-600 dark:text-slate-400">
-                      @{profile.username}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-            </div>
-
-            <div className="lg:grid lg:grid-cols-[minmax(0,1.08fr)_minmax(22rem,0.92fr)]">
-              <div className="border-b border-slate-200 dark:border-white/10 lg:border-b-0 lg:border-r">
-                <PostCarousel images={getPostImages(post)} alt={post.description || "Post image"} href={`/posts/${post.id}`} />
-                <div className="flex items-center justify-between gap-3 px-4 py-2 sm:px-5">
-                  <div className="flex items-center gap-1">
-                    <LikesInfo
-                      post={post}
-                      showText
-                      sessionLike={sessionLike}
-                    />
-                    <Link
-                      href={`/posts/${post.id}#comments`}
-                      className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm text-slate-600 transition hover:bg-black/5 hover:text-orange-600 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-orange-300"
-                      aria-label={`View ${post._count.comments} comments`}
-                    >
-                      <MessageCircle className="size-5" />
-                      <span>{post._count.comments} {post._count.comments === 1 ? "comment" : "comments"}</span>
-                    </Link>
-                  </div>
-                  <BookmarkButton
-                    postId={post.id}
-                    initialBookmarked={isBookmarked}
+          return (
+            <article
+              key={post.id}
+              className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl backdrop-blur-xl dark:border-white/10 dark:bg-white/5"
+            >
+              <div className="relative z-20 flex items-center justify-between border-b border-slate-200 px-4 py-4 sm:px-5 dark:border-white/10">
+                <div className="flex min-w-0 items-center gap-3">
+                  <Avatar
+                    radius="full"
+                    src={profile?.avatar || ""}
+                    size="3"
+                    fallback={(profile?.username?.[0] || "?").toUpperCase()}
                   />
-                </div>
-              </div>
 
-              <div className="flex min-w-0 flex-col px-4 py-5 sm:px-5 lg:max-h-[36rem]">
-                <div className="space-y-3">
-                  <p className="text-sm leading-6 text-slate-900 dark:text-slate-200">
-                    {post.description}
-                  </p>
-
-                  <div className="text-xs text-slate-500 dark:text-slate-400">
-                    {new Date(post.createdAt).toLocaleDateString()}
-                  </div>
-
-                  {post.topics?.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {post.topics.map((postTopic: PostTopicWithTopic) => (
-                        <Link
-                          key={postTopic.id}
-                          href={`/topics/${postTopic.topic.slug}`}
-                          className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700 no-underline hover:underline dark:bg-slate-800 dark:text-slate-200"
-                        >
-                          #{postTopic.topic.name}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div className="mt-5 hidden min-h-0 flex-1 border-t border-slate-200 pt-4 dark:border-white/10 lg:block">
-                  <div className="mb-3 flex items-center justify-between">
-                    <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
-                      <MessageCircle size={16} className="text-orange-500" />
-                      {post._count.comments} {post._count.comments === 1 ? "comment" : "comments"}
-                    </h2>
-                    <Link href={`/posts/${post.id}`} className="text-xs font-semibold text-orange-600 hover:underline dark:text-orange-300">
-                      View all
+                  <div className="min-w-0">
+                    <Link
+                      className="relative z-20 block truncate text-sm font-semibold text-slate-900 transition hover:text-slate-600 dark:text-slate-100 dark:hover:text-slate-300"
+                      href={
+                        profile?.username
+                          ? `/profile/${profile.username}`
+                          : "#"
+                      }
+                    >
+                      {profile?.name || profile?.username || "Unknown user"}
                     </Link>
+
+                    {profile?.username && (
+                      <p className="truncate text-xs text-slate-600 dark:text-slate-400">
+                        @{profile.username}
+                      </p>
+                    )}
                   </div>
-                  {post.comments.length ? (
-                    <div className="space-y-3 overflow-y-auto pr-1">
-                      {post.comments.map((comment) => (
-                        <div key={comment.id} className="text-sm leading-5 text-slate-700 dark:text-slate-300">
-                          <Link href={comment.author.username ? `/profile/${comment.author.username}` : "#"} className="mr-1 font-semibold text-slate-900 hover:underline dark:text-white">
-                            {comment.author.name || comment.author.username || "VIBE member"}
-                          </Link>
-                          <span className="break-words">{comment.text}</span>
-                        </div>
-                      ))}
+                </div>
+              </div>
+
+              <div className="lg:grid lg:grid-cols-[minmax(0,1.08fr)_minmax(22rem,0.92fr)]">
+                <div className="border-b border-slate-200 dark:border-white/10 lg:border-r lg:border-b-0">
+                  <PostCarousel
+                    images={getPostImages(post)}
+                    alt={post.description || "Post image"}
+                    href={`/posts/${post.id}`}
+                  />
+
+                  <div className="flex items-center justify-between gap-3 px-4 py-2 sm:px-5">
+                    <div className="flex items-center gap-1">
+                      <LikesInfo
+                        post={post}
+                        showText
+                        sessionLike={sessionLike}
+                      />
+
+                      <Link
+                        href={`/posts/${post.id}#comments`}
+                        className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm text-slate-600 transition hover:bg-black/5 hover:text-orange-600 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-orange-300"
+                        aria-label={`View ${post._count.comments} comments`}
+                      >
+                        <MessageCircle className="size-5" />
+
+                        <span>
+                          {post._count.comments}{" "}
+                          {post._count.comments === 1
+                            ? "comment"
+                            : "comments"}
+                        </span>
+                      </Link>
                     </div>
-                  ) : (
-                    <p className="text-sm text-slate-500 dark:text-slate-400">No comments yet. Be the first to join the conversation.</p>
-                  )}
-                  <CommentForm postId={post.id} compact />
+
+                    <BookmarkButton
+                      postId={post.id}
+                      initialBookmarked={isBookmarked}
+                    />
+                  </div>
                 </div>
 
-                <Link href={`/posts/${post.id}#comments`} className="mt-4 flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-orange-600 dark:text-slate-300 dark:hover:text-orange-300 lg:hidden">
-                  <MessageCircle size={16} />
-                  View {post._count.comments} {post._count.comments === 1 ? "comment" : "comments"}
-                </Link>
+                <div className="flex min-w-0 flex-col px-4 py-5 sm:px-5 lg:max-h-[36rem]">
+                  <div className="space-y-3">
+                    <p className="text-sm leading-6 text-slate-900 dark:text-slate-200">
+                      {post.description}
+                    </p>
+
+                    <div className="text-xs text-slate-500 dark:text-slate-400">
+                      {new Date(post.createdAt).toLocaleDateString()}
+                    </div>
+
+                    {post.topics?.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {post.topics.map(
+                          (postTopic: PostTopicWithTopic) => (
+                            <Link
+                              key={postTopic.id}
+                              href={`/topics/${postTopic.topic.slug}`}
+                              className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700 no-underline hover:underline dark:bg-slate-800 dark:text-slate-200"
+                            >
+                              #{postTopic.topic.name}
+                            </Link>
+                          ),
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-5 hidden min-h-0 flex-1 border-t border-slate-200 pt-4 dark:border-white/10 lg:block">
+                    <div className="mb-3 flex items-center justify-between">
+                      <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
+                        <MessageCircle
+                          size={16}
+                          className="text-orange-500"
+                        />
+
+                        {post._count.comments}{" "}
+                        {post._count.comments === 1
+                          ? "comment"
+                          : "comments"}
+                      </h2>
+
+                      <Link
+                        href={`/posts/${post.id}`}
+                        className="text-xs font-semibold text-orange-600 hover:underline dark:text-orange-300"
+                      >
+                        View all
+                      </Link>
+                    </div>
+
+                    {post.comments.length ? (
+                      <div className="space-y-3 overflow-y-auto pr-1">
+                        {post.comments.map((comment) => {
+                          const commentAuthor =
+                            authors.find(
+                              (author) =>
+                                author.email === comment.authorEmail,
+                            ) || null;
+
+                          return (
+                            <div
+                              key={comment.id}
+                              className="text-sm leading-5 text-slate-700 dark:text-slate-300"
+                            >
+                              {commentAuthor?.username ? (
+                                <Link
+                                  href={`/profile/${commentAuthor.username}`}
+                                  className="mr-1 font-semibold text-slate-900 hover:underline dark:text-white"
+                                >
+                                  {commentAuthor.name ||
+                                    commentAuthor.username}
+                                </Link>
+                              ) : (
+                                <span className="mr-1 font-semibold text-slate-900 dark:text-white">
+                                  {commentAuthor?.name || "VIBE member"}
+                                </span>
+                              )}
+
+                              <span className="break-words">
+                                {comment.text}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-slate-500 dark:text-slate-400">
+                        No comments yet. Be the first to join the conversation.
+                      </p>
+                    )}
+
+                    <CommentForm postId={post.id} compact />
+                  </div>
+
+                  <Link
+                    href={`/posts/${post.id}#comments`}
+                    className="mt-4 flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-orange-600 dark:text-slate-300 dark:hover:text-orange-300 lg:hidden"
+                  >
+                    <MessageCircle size={16} />
+
+                    View {post._count.comments}{" "}
+                    {post._count.comments === 1 ? "comment" : "comments"}
+                  </Link>
+                </div>
               </div>
-            </div>
-          </article>
-        );
-      })}
-    </SortablePosts>
+            </article>
+          );
+        })}
+      </SortablePosts>
     </section>
   );
 }

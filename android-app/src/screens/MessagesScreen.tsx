@@ -56,7 +56,13 @@ export default function MessagesScreen() {
                 {item.latestMessage || "Start the conversation."}
               </Text>
             </View>
-            {item.unread ? <View style={styles.dot} /> : null}
+            {item.unread ? (
+              <View style={styles.unreadBadge}>
+                <Text style={styles.unreadBadgeText}>
+                  {item.unreadCount > 9 ? "9+" : item.unreadCount}
+                </Text>
+              </View>
+            ) : null}
           </Pressable>
         )}
       />
@@ -101,10 +107,18 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginTop: 4,
   },
-  dot: {
+  unreadBadge: {
+    alignItems: "center",
     backgroundColor: colors.red,
-    borderRadius: 5,
-    height: 10,
-    width: 10,
+    borderRadius: 12,
+    justifyContent: "center",
+    minHeight: 24,
+    minWidth: 24,
+    paddingHorizontal: 6,
+  },
+  unreadBadgeText: {
+    color: "#fff",
+    fontSize: 11,
+    fontWeight: "800",
   },
 });

@@ -8,6 +8,8 @@ export type Profile = {
   avatar?: string | null;
   subtitle?: string | null;
   bio?: string | null;
+  isFollowing?: boolean;
+  isSelf?: boolean;
 };
 
 export type Post = {
@@ -29,6 +31,9 @@ export type ActivityItem = {
   createdAt: string;
   image?: string | null;
   avatar?: string | null;
+  postId?: string;
+  conversationId?: string;
+  conversationTitle?: string;
 };
 
 export type ConversationSummary = {
@@ -38,6 +43,7 @@ export type ConversationSummary = {
   latestMessage?: string | null;
   updatedAt: string;
   unread: boolean;
+  unreadCount: number;
 };
 
 export type Message = {
@@ -127,6 +133,12 @@ async function request<T>(path: string, init?: RequestInit, sessionToken?: strin
 }
 
 export const api = {
+  updateProfile: (input: Pick<Profile, "name" | "username" | "avatar" | "subtitle" | "bio">) => request<Profile>("/api/mobile/profile", {
+    method: "PATCH", body: JSON.stringify(input),
+  }),
+  setProfileFollowing: (profileId: string, following: boolean) => request<{ following: boolean; followers: number; followingCount: number }>(`/api/mobile/profiles/${profileId}/follow`, {
+    method: "PUT", body: JSON.stringify({ following }),
+  }),
   getProfiles: (query: string, sort: string) => request<Profile[]>(`/api/mobile/profiles?q=${encodeURIComponent(query)}&sort=${encodeURIComponent(sort)}`),
   setPostLiked: (postId: string, liked: boolean) => request<{ liked: boolean; likes: number }>(`/api/mobile/posts/${postId}/like`, {
     method: "PUT", body: JSON.stringify({ liked }),

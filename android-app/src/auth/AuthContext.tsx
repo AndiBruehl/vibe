@@ -20,6 +20,7 @@ type AuthContextValue = {
   isSignedIn: boolean;
   profile: Profile | null;
   refreshProfile: () => Promise<void>;
+  updateProfile: (profile: Profile) => Promise<void>;
   signInWithGoogleToken: (idToken: string) => Promise<void>;
   signInWithMobileToken: (token: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -44,6 +45,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshProfile = useCallback(async () => {
     const nextProfile = await api.getProfile();
+    const token = await getStoredToken();
+    if (token) await storeSession(token, nextProfile);
+    setProfile(nextProfile);
+  }, []);
+
+  const updateProfile = useCallback(async (nextProfile: Profile) => {
     const token = await getStoredToken();
     if (token) await storeSession(token, nextProfile);
     setProfile(nextProfile);
@@ -117,6 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isSignedIn: !!profile,
       profile,
       refreshProfile,
+      updateProfile,
       signInWithGoogleToken,
       signInWithMobileToken,
       signOut,
@@ -125,6 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isReady,
       profile,
       refreshProfile,
+      updateProfile,
       signInWithGoogleToken,
       signInWithMobileToken,
       signOut,

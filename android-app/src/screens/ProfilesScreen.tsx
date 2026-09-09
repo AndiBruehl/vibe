@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { FlatList, Image, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useNavigation, useRoute, type RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -31,10 +31,38 @@ function ProfileContent({ profile, full = false }: { profile: Profile; full?: bo
   </View>;
 }
 
+function FollowButton({ profile }: { profile: Profile }) {
+  const [following, setFollowing] = useState(!!profile.isFollowing);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState(false);
+  const busy = useRef(false);
+  async function toggle() {
+    if (busy.current) return;
+    busy.current = true;
+    const previous = following;
+    setFollowing(!previous);
+    setError(false);
+    setPending(true);
+    try { setFollowing((await api.setProfileFollowing(profile.id, !previous)).following); }
+    catch { setFollowing(previous); setError(true); }
+    finally { busy.current = false; setPending(false); }
+  }
+  if (profile.isSelf) return null;
+  return <View style={{ paddingHorizontal: 16, paddingBottom: 16, gap: 8 }}>
+    <Pressable accessibilityRole="button" accessibilityLabel={following ? "Unfollow profile" : "Follow profile"}
+      accessibilityState={{ selected: following, disabled: pending }} onPress={() => void toggle()} disabled={pending}
+      style={{ minHeight: 44, alignItems: "center", justifyContent: "center", borderRadius: 12, backgroundColor: following ? colors.cardElevated : colors.red }}>
+      <Text style={{ color: colors.white, fontWeight: "700" }}>{following ? "Following" : "Follow"}</Text>
+    </Pressable>
+    {error ? <Text accessibilityRole="alert" style={{ color: colors.textSoft }}>Follow could not be saved. Please try again.</Text> : null}
+  </View>;
+}
+
 export function PublicProfileScreen() {
   const { params } = useRoute<RouteProp<RootStackParamList, "PublicProfile">>();
   return <Screen><ScrollView><View style={{ backgroundColor: colors.card, borderRadius: 16, marginVertical: 12 }}>
     <ProfileContent profile={params.profile} full />
+    <FollowButton profile={params.profile} />
   </View></ScrollView></Screen>;
 }
 
@@ -71,8 +99,10 @@ export default function ProfilesScreen() {
         {error ? <ErrorState message={error} onRetry={() => void refresh()} /> : null}
       </View>}
       ListEmptyComponent={isLoading ? <LoadingState /> : error ? null : <EmptyState icon="people-outline" title={search ? "No matching profiles" : "No profiles yet"} body={search ? "Try another name or username." : "Profiles will appear here when people join."} />}
-      renderItem={({ item }) => <Pressable accessibilityRole="button" accessibilityLabel={`View profile: ${item.name || item.username || "Unnamed profile"}`}
-        onPress={() => navigation.navigate("PublicProfile", { profile: item })}
-        style={{ backgroundColor: colors.card, borderRadius: 16 }}><ProfileContent profile={item} /></Pressable>} />
+      renderItem={({ item }) => <View style={{ backgroundColor: colors.card, borderRadius: 16 }}>
+        <Pressable accessibilityRole="button" accessibilityLabel={`View profile: ${item.name || item.username || "Unnamed profile"}`}
+          onPress={() => navigation.navigate("PublicProfile", { profile: item })}><ProfileContent profile={item} /></Pressable>
+        <FollowButton profile={item} />
+      </View>} />
   </Screen>;
 }

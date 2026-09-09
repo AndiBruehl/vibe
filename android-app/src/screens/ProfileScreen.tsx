@@ -7,8 +7,12 @@ import Screen from "@/components/Screen";
 import { useAuth } from "@/auth/AuthContext";
 import { api, Profile } from "@/lib/api";
 import { colors } from "@/theme";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { RootStackParamList } from "../../App";
 
 export default function ProfileScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { signOut, profile: cachedProfile } = useAuth();
   const { data: profile, isLoading, isRefreshing, error, refresh } = useRemoteData<Profile | null>(api.getProfile, cachedProfile);
   const [signOutError, setSignOutError] = useState<string | null>(null);
@@ -43,6 +47,9 @@ export default function ProfileScreen() {
           <Text style={styles.name}>{profile.name || "Unknown"}</Text>
           <Text style={styles.subtitle}>{profile.subtitle}</Text>
           <Text style={styles.bio}>{profile.bio}</Text>
+          <Pressable accessibilityRole="button" style={styles.editButton} onPress={() => navigation.navigate("EditProfile", { profile })}>
+            <Text style={styles.signOutText}>Edit profile</Text>
+          </Pressable>
           <Pressable accessibilityRole="button" style={styles.signOutButton} onPress={() => void signOut().catch(() => setSignOutError("Could not sign out. Please try again."))}>
             <Text style={styles.signOutText}>Sign out</Text>
           </Pressable>
@@ -92,6 +99,13 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: 14,
     borderWidth: 1,
+    marginTop: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 11,
+  },
+  editButton: {
+    backgroundColor: colors.red,
+    borderRadius: 14,
     marginTop: 20,
     paddingHorizontal: 18,
     paddingVertical: 11,

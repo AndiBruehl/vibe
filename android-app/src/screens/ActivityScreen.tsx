@@ -1,7 +1,10 @@
 import ErrorState from "@/components/ErrorState";
 import { useRemoteData } from "@/hooks/useRemoteData";
 import { Ionicons } from "@expo/vector-icons";
-import { FlatList, Image, StyleSheet, Text, View } from "react-native";
+import { FlatList, Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { RootStackParamList } from "../../App";
 import EmptyState from "@/components/EmptyState";
 import LoadingState from "@/components/LoadingState";
 import Screen from "@/components/Screen";
@@ -16,6 +19,7 @@ const iconByType: Record<ActivityItem["type"], keyof typeof Ionicons.glyphMap> =
 };
 
 export default function ActivityScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { data: items, isLoading, isRefreshing, error, refresh } = useRemoteData<ActivityItem[]>(api.getActivity, []);
 
   if (isLoading) {
@@ -43,7 +47,9 @@ export default function ActivityScreen() {
           />
         }
         renderItem={({ item }) => (
-          <View style={styles.item}>
+          <Pressable accessibilityRole="button" accessibilityLabel={item.title} disabled={!item.postId && !item.conversationId}
+            onPress={() => item.postId ? navigation.navigate("PostDetail", { postId: item.postId }) : item.conversationId ? navigation.navigate("Conversation", { conversationId: item.conversationId, title: item.conversationTitle }) : undefined}
+            style={styles.item}>
             {item.avatar ? <Image source={{ uri: item.avatar }} style={styles.avatar} /> : <View style={styles.avatar} />}
             <View style={styles.iconWrap}>
               <Ionicons name={iconByType[item.type]} color={colors.red} size={16} />
@@ -55,7 +61,7 @@ export default function ActivityScreen() {
               </Text>
             </View>
             {item.image ? <Image source={{ uri: item.image }} style={styles.preview} /> : null}
-          </View>
+          </Pressable>
         )}
         showsVerticalScrollIndicator={false}
       />
