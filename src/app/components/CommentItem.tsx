@@ -38,12 +38,14 @@ type CommentItemProps = {
   comment: CommentData;
   postId: string;
   isReply?: boolean;
+  rootCommentId?: string;
 };
 
 export default function CommentItem({
   comment,
   postId,
   isReply = false,
+  rootCommentId,
 }: CommentItemProps) {
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -171,7 +173,7 @@ export default function CommentItem({
                 initialLikes={comment.likesCount}
               />
 
-              {!isReply && !isEditing ? (
+              {!isEditing ? (
                 <button
                   type="button"
                   onClick={() => setShowReplyForm((prev) => !prev)}
@@ -204,8 +206,8 @@ export default function CommentItem({
               ) : null}
             </div>
 
-            {!isReply && showReplyForm ? (
-              <ReplyForm postId={postId} parentCommentId={comment.id} />
+            {showReplyForm ? (
+              <ReplyForm postId={postId} parentCommentId={rootCommentId ?? comment.id} />
             ) : null}
           </div>
         </div>
@@ -222,6 +224,7 @@ export default function CommentItem({
               }}
               postId={postId}
               isReply
+              rootCommentId={comment.id}
             />
           ))}
         </div>
