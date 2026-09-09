@@ -85,7 +85,10 @@ export default async function ActivityPage() {
       .findMany({
         where: {
           authorEmail: { not: currentUserProfile.email },
-          post: { authorEmail: currentUserProfile.email },
+          OR: [
+            { post: { authorEmail: currentUserProfile.email } },
+            { parentComment: { authorEmail: currentUserProfile.email } },
+          ],
         },
         include: {
           author: { select: { name: true, username: true, avatar: true } },
