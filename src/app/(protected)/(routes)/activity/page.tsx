@@ -66,7 +66,10 @@ export default async function ActivityPage() {
       .findMany({
         where: {
           authorEmail: { not: currentUserProfile.email },
-          post: { authorEmail: currentUserProfile.email },
+          OR: [
+            { post: { authorEmail: currentUserProfile.email } },
+            { parentComment: { authorEmail: currentUserProfile.email } },
+          ],
         },
         include: {
           author: { select: { name: true, username: true, avatar: true } },
@@ -163,7 +166,7 @@ export default async function ActivityPage() {
       .map((comment: any) => ({
         id: `comment-${comment.id}`,
         type: "comment" as const,
-        title: `${comment.author.name || comment.author.username || "Someone"} commented on your post`,
+        title: `${comment.author.name || comment.author.username || "Someone"} ${comment.parentCommentId ? "replied to your comment" : "commented on your post"}`,
         body: comment.text,
         href: `/posts/${comment.post.id}`,
         createdAt: comment.createdAt,

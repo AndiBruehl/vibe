@@ -47,9 +47,10 @@ export async function GET(request: NextRequest) {
         authorEmail: {
           not: currentUserProfile.email,
         },
-        post: {
-          authorEmail: currentUserProfile.email,
-        },
+        OR: [
+          { post: { authorEmail: currentUserProfile.email } },
+          { parentComment: { authorEmail: currentUserProfile.email } },
+        ],
       },
       include: {
         author: {
@@ -144,7 +145,7 @@ export async function GET(request: NextRequest) {
     ...comments.map((comment) => ({
       id: `comment-${comment.id}`,
       type: "comment",
-      title: `${comment.author.name || comment.author.username || "Someone"} commented`,
+      title: `${comment.author.name || comment.author.username || "Someone"} ${comment.parentCommentId ? "replied to your comment" : "commented on your post"}`,
       body: comment.text,
       createdAt: comment.createdAt,
       avatar: comment.author.avatar,

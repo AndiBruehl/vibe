@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import EmojiPicker from "@/app/components/EmojiPicker";
 
 type GroupChatFormProps = {};
 
@@ -17,6 +18,16 @@ export default function GroupChatForm(_: GroupChatFormProps) {
   const [suggestions, setSuggestions] = useState<ProfileSuggestion[]>([]);
   const [selected, setSelected] = useState<ProfileSuggestion[]>([]);
   const [loading, setLoading] = useState(false);
+  const initialMessageRef = useRef<HTMLTextAreaElement>(null);
+
+  function insertInitialMessageEmoji(emoji: string) {
+    const textarea = initialMessageRef.current;
+    if (!textarea) return;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    textarea.setRangeText(emoji, start, end, "end");
+    textarea.focus();
+  }
 
   useEffect(() => {
     if (!toastMessage) return;
@@ -202,15 +213,19 @@ export default function GroupChatForm(_: GroupChatFormProps) {
             Create Group
           </button>
         </div>
-        <label className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+        <div className="mt-2 text-sm text-slate-600 dark:text-slate-300">
           <span>Initial message (optional)</span>
-          <textarea
-            name="initialMessage"
-            className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-            placeholder="Say something to the group..."
-            rows={2}
-          />
-        </label>
+          <div className="mt-1 flex items-end gap-2">
+            <EmojiPicker onSelect={insertInitialMessageEmoji} />
+            <textarea
+              ref={initialMessageRef}
+              name="initialMessage"
+              className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+              placeholder="Say something to the group..."
+              rows={2}
+            />
+          </div>
+        </div>
       </form>
     </section>
   );

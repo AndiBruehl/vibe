@@ -5,6 +5,7 @@ import DesktopNav from "@/app/components/DesktopNav";
 import MessageNotifications from "@/app/components/MessageNotifications";
 import NavigationFeedback from "@/app/components/NavigationFeedback";
 import { getUnreadMessageStatus } from "@/messages";
+import { getUnreadInteractionStatus } from "@/notifications";
 import LanguageRuntime from "@/app/components/LanguageRuntime";
 import { prisma } from "@/db";
 import { randomUUID } from "crypto";
@@ -20,9 +21,10 @@ export default async function ProtectedLayout({
     redirect("/");
   }
 
-  const unreadMessageStatus = await getUnreadMessageStatus(
-    session.user.email,
-  );
+  const [unreadMessageStatus, unreadInteractionStatus] = await Promise.all([
+    getUnreadMessageStatus(session.user.email),
+    getUnreadInteractionStatus(session.user.email),
+  ]);
 
   const emailBase =
     session.user.email
@@ -49,7 +51,10 @@ export default async function ProtectedLayout({
     <>
       <DesktopNav unreadConversationCount={unreadMessageStatus.count} />
       <MobileNav unreadConversationCount={unreadMessageStatus.count} />
-      <MessageNotifications initialStatus={unreadMessageStatus} />
+      <MessageNotifications
+        initialStatus={unreadMessageStatus}
+        initialInteractionStatus={unreadInteractionStatus}
+      />
       <NavigationFeedback />
       <LanguageRuntime
         initialLanguage={profile.language === "de" ? "de" : "en"}

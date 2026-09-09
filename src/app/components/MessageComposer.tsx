@@ -4,9 +4,11 @@ import { ImagePlus, Send, X } from "lucide-react";
 import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { sendMessage } from "@/actions";
+import EmojiPicker from "@/app/components/EmojiPicker";
 
 export default function MessageComposer({ conversationId }: { conversationId: string }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
   const [body, setBody] = useState("");
@@ -14,6 +16,19 @@ export default function MessageComposer({ conversationId }: { conversationId: st
   const [previewUrl, setPreviewUrl] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState("");
+
+  function insertEmoji(emoji: string) {
+    const textarea = textareaRef.current;
+    const start = textarea?.selectionStart ?? body.length;
+    const end = textarea?.selectionEnd ?? body.length;
+    const nextBody = `${body.slice(0, start)}${emoji}${body.slice(end)}`;
+
+    setBody(nextBody);
+    requestAnimationFrame(() => {
+      textarea?.focus();
+      textarea?.setSelectionRange(start + emoji.length, start + emoji.length);
+    });
+  }
 
   async function uploadImage(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -65,7 +80,8 @@ export default function MessageComposer({ conversationId }: { conversationId: st
       <div className="flex items-end gap-3">
         <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={uploadImage} />
         <button type="button" onClick={() => inputRef.current?.click()} disabled={isUploading} className="flex size-11 shrink-0 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100 disabled:opacity-50 dark:text-slate-300 dark:hover:bg-slate-700" aria-label="Attach image"><ImagePlus size={21} /></button>
-        <textarea name="body" value={body} onChange={(event) => setBody(event.target.value)} rows={1} placeholder={isUploading ? "Uploading image..." : "Message"} className="max-h-32 min-h-11 flex-1 resize-y rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-red-400 dark:border-slate-700 dark:bg-gray-900 dark:text-slate-100" />
+        <EmojiPicker onSelect={insertEmoji} />
+        <textarea ref={textareaRef} name="body" value={body} onChange={(event) => setBody(event.target.value)} rows={1} placeholder={isUploading ? "Uploading image..." : "Message"} className="max-h-32 min-h-11 flex-1 resize-y rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-red-400 dark:border-slate-700 dark:bg-gray-900 dark:text-slate-100" />
         <button type="submit" disabled={isUploading || (!body.trim() && !imageUrl)} className="flex size-11 shrink-0 items-center justify-center rounded-full bg-linear-to-tr from-(--ig-orange) to-(--ig-red) text-white transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50" aria-label="Send message"><Send size={18} /></button>
       </div>
       {error && <p className="mt-2 text-xs text-red-600 dark:text-red-300">{error}</p>}
