@@ -244,7 +244,8 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
   }
 
   return (
-    <SortablePosts posts={posts.map((post) => ({ id: post.id, description: post.description, createdAt: post.createdAt }))} className="mx-auto flex w-full max-w-5xl flex-col gap-8">
+    <section className="mx-auto w-full max-w-5xl">
+    <SortablePosts posts={posts.map((post) => ({ id: post.id, description: post.description, createdAt: post.createdAt }))} className="flex w-full flex-col gap-8">
       {posts.map((post) => {
         const profile =
           authors.find((author) => author.email === post.authorEmail) || null;
@@ -367,5 +368,6 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
         );
       })}
     </SortablePosts>
+    </section>
   );
 }

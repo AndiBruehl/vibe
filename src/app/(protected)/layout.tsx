@@ -24,7 +24,7 @@ export default async function ProtectedLayout({
       <MobileNav unreadConversationCount={unreadMessageStatus.count} />
       <MessageNotifications initialStatus={unreadMessageStatus} />
 
-      <div className="md:pl-48">
+      <div className="md:pl-44">
         <main className="min-h-screen p-4 pb-28 md:pb-4">{children}</main>
       </div>
     </>

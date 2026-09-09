@@ -34,6 +34,11 @@
   --ig-surface-bg: rgb(255, 255, 255);
   --ig-surface-hover-bg: rgb(248, 250, 252);
   --ig-text: #24456b;
+  --ig-scroll-track: #edf2f8;
+  --ig-scroll-thumb: #54779a;
+  --ig-scroll-thumb-hover: #365d87;
+  --ig-scroll-thumb-start: #c3d1df;
+  --ig-scroll-thumb-end: #54779a;
 }
 
 .light {
@@ -51,6 +56,51 @@
 html,
 body {
   height: 100%;
+  scrollbar-gutter: stable;
+  scrollbar-color: var(--ig-scroll-thumb) var(--ig-scroll-track);
+  scrollbar-width: auto;
+}
+
+* {
+  scrollbar-color: var(--ig-scroll-thumb) var(--ig-scroll-track);
+  scrollbar-width: auto;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  width: 28px;
+  height: 28px;
+}
+
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track,
+*::-webkit-scrollbar-track {
+  background: var(--ig-scroll-track);
+}
+
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb,
+*::-webkit-scrollbar-thumb {
+  min-height: 44px;
+  border: 4px solid var(--ig-scroll-track);
+  border-radius: 999px;
+  background-color: var(--ig-scroll-thumb);
+  background-image: linear-gradient(180deg, var(--ig-scroll-thumb-start) 0%, var(--ig-scroll-thumb-end) 100%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 18%);
+}
+
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover,
+*::-webkit-scrollbar-thumb:hover {
+  background-image: linear-gradient(180deg, var(--ig-scroll-thumb-start) 0%, var(--ig-scroll-thumb-end) 100%);
+  filter: brightness(1.16) saturate(1.12);
+}
+
+html::-webkit-scrollbar-corner,
+body::-webkit-scrollbar-corner,
+*::-webkit-scrollbar-corner {
+  background: var(--ig-scroll-track);
 }
 
 .radix-themes {
@@ -70,6 +120,21 @@ body {
   --ig-surface-bg: rgb(17, 24, 39);
   --ig-surface-hover-bg: rgb(31, 41, 55);
   --ig-text: rgb(243, 244, 246);
+  --ig-scroll-track: #0b1220;
+  --ig-scroll-thumb: #3d526d;
+  --ig-scroll-thumb-hover: #5b718d;
+  --ig-scroll-thumb-start: #6e829d;
+  --ig-scroll-thumb-end: #27364d;
+}
+
+/* Chromium gives scrollbar-color precedence over ::-webkit-scrollbar.
+   Leave the solid-color fallback to Firefox and use the full VIBE scrollbar in Chrome/Electron. */
+@supports selector(::-webkit-scrollbar) {
+  html,
+  body,
+  * {
+    scrollbar-color: auto;
+  }
 }
 
 .bg-ig-gradient {
