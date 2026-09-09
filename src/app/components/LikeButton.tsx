@@ -38,7 +38,7 @@ export default function LikeButton({ postId, initialLiked, initialLikes, showCou
       aria-pressed={state.liked} aria-label={state.liked ? "Unlike post" : "Like post"}
       className="inline-flex items-center gap-2 rounded-full px-2 py-1 text-sm transition hover:bg-black/5 dark:hover:bg-white/10">
       <Heart className="size-5" style={{ color: state.liked ? "#ef4444" : "var(--ig-text)", fill: state.liked ? "#ef4444" : "none" }} />
-      {showCount && <span>{state.likes}{showText ? " people like this" : ""}</span>}
+      {showCount && <span>{state.likes}{showText ? " likes" : ""}</span>}
     </button>
     {error && <span role="alert" className="text-xs">Like could not be saved. Please try again.</span>}
   </span>;

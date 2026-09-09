@@ -60,6 +60,7 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
     },
     include: {
       topics: { include: { topic: true } },
+      _count: { select: { comments: true } },
       comments: {
         where: { parentCommentId: null },
         take: 3,
@@ -295,12 +296,22 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
             <div className="lg:grid lg:grid-cols-[minmax(0,1.08fr)_minmax(22rem,0.92fr)]">
               <div className="border-b border-slate-200 dark:border-white/10 lg:border-b-0 lg:border-r">
                 <PostCarousel images={getPostImages(post)} alt={post.description || "Post image"} href={`/posts/${post.id}`} />
-                <div className="flex items-center justify-between px-4 py-2 sm:px-5">
-                  <LikesInfo
-                    post={post}
-                    showText={false}
-                    sessionLike={sessionLike}
-                  />
+                <div className="flex items-center justify-between gap-3 px-4 py-2 sm:px-5">
+                  <div className="flex items-center gap-1">
+                    <LikesInfo
+                      post={post}
+                      showText
+                      sessionLike={sessionLike}
+                    />
+                    <Link
+                      href={`/posts/${post.id}#comments`}
+                      className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm text-slate-600 transition hover:bg-black/5 hover:text-orange-600 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-orange-300"
+                      aria-label={`View ${post._count.comments} comments`}
+                    >
+                      <MessageCircle className="size-5" />
+                      <span>{post._count.comments} {post._count.comments === 1 ? "comment" : "comments"}</span>
+                    </Link>
+                  </div>
                   <BookmarkButton
                     postId={post.id}
                     initialBookmarked={isBookmarked}
@@ -337,7 +348,7 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
                   <div className="mb-3 flex items-center justify-between">
                     <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
                       <MessageCircle size={16} className="text-orange-500" />
-                      Comments
+                      {post._count.comments} {post._count.comments === 1 ? "comment" : "comments"}
                     </h2>
                     <Link href={`/posts/${post.id}`} className="text-xs font-semibold text-orange-600 hover:underline dark:text-orange-300">
                       View all
@@ -360,9 +371,9 @@ export default async function HomePosts({ follows, profiles }: HomePostsProps) {
                   <CommentForm postId={post.id} compact />
                 </div>
 
-                <Link href={`/posts/${post.id}`} className="mt-4 flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-orange-600 dark:text-slate-300 dark:hover:text-orange-300 lg:hidden">
+                <Link href={`/posts/${post.id}#comments`} className="mt-4 flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-orange-600 dark:text-slate-300 dark:hover:text-orange-300 lg:hidden">
                   <MessageCircle size={16} />
-                  View comments
+                  View {post._count.comments} {post._count.comments === 1 ? "comment" : "comments"}
                 </Link>
               </div>
             </div>

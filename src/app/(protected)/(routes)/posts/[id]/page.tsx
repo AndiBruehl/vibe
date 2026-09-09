@@ -106,6 +106,7 @@ export default async function SinglePostPage({
                   postId={post.id}
                   initialLiked={!!isLikedByViewer}
                   initialLikes={post.likesCount}
+                  showText
                 />
 
                 <BookmarkButton
@@ -198,7 +199,7 @@ export default async function SinglePostPage({
               </article>
             </Link>
 
-            <section className="rounded-2xl bg-white p-5 shadow-md shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
+            <section id="comments" className="rounded-2xl bg-white p-5 shadow-md shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
               <h2 className="mb-4 text-lg font-semibold text-slate-900 dark:text-white">
                 Comments
               </h2>
