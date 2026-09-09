@@ -59,7 +59,7 @@ export default async function SettingsPage() {
 
           <SettingsForm profile={profile} />
           <p className="mt-6 text-center text-xs text-slate-500 dark:text-slate-400">
-            App version 0.1.14
+            Web version 0.1.15 · Desktop app version 0.1.15
           </p>
         </div>
       </section>
