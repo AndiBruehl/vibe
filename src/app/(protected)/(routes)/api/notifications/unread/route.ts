@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import { getUnreadInteractionStatus } from "@/notifications";
+import { getUnreadInteractionStatus, markActivityRead } from "@/notifications";
 import { NextResponse } from "next/server";
 
 export async function GET() {
@@ -13,4 +13,14 @@ export async function GET() {
   }
 
   return NextResponse.json(await getUnreadInteractionStatus(session.user.email));
+}
+
+export async function PATCH() {
+  const session = await auth();
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  await markActivityRead(session.user.email);
+  return NextResponse.json({ ok: true });
 }

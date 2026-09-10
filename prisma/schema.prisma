@@ -16,6 +16,7 @@ model Profile {
   subtitle String?
   bio      String?
   language String  @default("en")
+  activityReadAt DateTime?
 
   posts         Post[]
   comments      Comment[]

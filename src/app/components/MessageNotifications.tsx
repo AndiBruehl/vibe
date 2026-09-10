@@ -71,6 +71,14 @@ function dispatchUnreadStatus(status: UnreadMessageStatus) {
   );
 }
 
+function dispatchUnreadInteractionStatus(status: UnreadInteractionStatus) {
+  window.dispatchEvent(
+    new CustomEvent("activity:unread-status", {
+      detail: { count: status.commentCount + status.replyCount },
+    }),
+  );
+}
+
 export default function MessageNotifications({
   initialStatus,
   initialInteractionStatus,
@@ -113,6 +121,8 @@ export default function MessageNotifications({
       const interactions = await fetchUnreadInteractions();
       if (!interactions) return;
 
+      dispatchUnreadInteractionStatus(interactions);
+
       const hasNewInteractions =
         interactions.latestUnreadAt &&
         interactions.latestUnreadAt !== latestInteractionAtRef.current;
@@ -129,6 +139,10 @@ export default function MessageNotifications({
   useEffect(() => {
     dispatchUnreadStatus(initialStatus);
   }, [initialStatus]);
+
+  useEffect(() => {
+    dispatchUnreadInteractionStatus(initialInteractionStatus);
+  }, [initialInteractionStatus]);
 
   useEffect(() => {
     latestInteractionAtRef.current = initialInteractionStatus.latestUnreadAt;

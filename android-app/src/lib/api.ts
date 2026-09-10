@@ -28,6 +28,7 @@ export type ActivityItem = {
   type: "follow" | "like" | "comment" | "message";
   title: string;
   body: string;
+  context?: string;
   createdAt: string;
   image?: string | null;
   avatar?: string | null;

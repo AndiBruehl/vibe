@@ -1,11 +1,11 @@
 {
-  "releaseName": "Notification Fix",
+  "releaseName": "Activity Notification Fix",
   "windows": {
-    "version": "0.1.41",
-    "downloadUrl": "https://raw.githubusercontent.com/AndiBruehl/vibe/main/electron-app/dist/Vibe-Setup-0.1.41-x64.exe"
+    "version": "0.1.42",
+    "downloadUrl": "https://raw.githubusercontent.com/AndiBruehl/vibe/main/electron-app/dist/Vibe-Setup-0.1.42-x64.exe"
   },
   "android": {
-    "version": "0.1.41",
-    "downloadUrl": "https://raw.githubusercontent.com/AndiBruehl/vibe/main/android-app/dist/Vibe-0.1.41.apk"
+    "version": "0.1.42",
+    "downloadUrl": "https://raw.githubusercontent.com/AndiBruehl/vibe/main/android-app/dist/Vibe-0.1.42.apk"
   }
 }

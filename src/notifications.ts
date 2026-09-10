@@ -16,6 +16,15 @@ export async function getUnreadInteractionStatus(
     return { commentCount: 0, replyCount: 0, latestUnreadAt: null };
   }
 
+  const profile = await prisma.profile.findUnique({
+    where: { email: sessionEmail },
+    select: { activityReadAt: true },
+  });
+
+  if (!profile) {
+    return { commentCount: 0, replyCount: 0, latestUnreadAt: null };
+  }
+
   const interactions = await prisma.comment.findMany({
     where: {
       authorEmail: { not: sessionEmail },
@@ -23,6 +32,9 @@ export async function getUnreadInteractionStatus(
         { post: { authorEmail: sessionEmail } },
         { parentComment: { authorEmail: sessionEmail } },
       ],
+      ...(profile.activityReadAt
+        ? { createdAt: { gt: profile.activityReadAt } }
+        : {}),
     },
     select: {
       createdAt: true,
@@ -48,4 +60,14 @@ export async function getUnreadInteractionStatus(
     replyCount,
     latestUnreadAt: interactions[0]?.createdAt.toISOString() ?? null,
   };
+}
+
+export async function markActivityRead(email?: string): Promise<void> {
+  const sessionEmail = email ?? (await auth())?.user?.email;
+  if (!sessionEmail) return;
+
+  await prisma.profile.update({
+    where: { email: sessionEmail },
+    data: { activityReadAt: new Date() },
+  });
 }

@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Bell, Heart, MessageCircle, MoveLeft, UserPlus } from "lucide-react";
+import MarkActivityRead from "@/app/components/MarkActivityRead";
 import img1 from "../profile/default.jpg";
 
 type ActivityItem = {
@@ -16,6 +17,7 @@ type ActivityItem = {
   createdAt: Date;
   avatar?: string | null;
   image?: string | null;
+  context?: string;
 };
 
 function formatActivityDate(date: Date) {
@@ -139,6 +141,7 @@ export default async function ActivityPage() {
         type: "follow" as const,
         title: `${follow.follower.name || follow.follower.username || "Someone"} followed you`,
         body: follow.follower.username ? `@${follow.follower.username}` : "",
+        context: "Profile activity",
         href: follow.follower.username
           ? `/profile/${encodeURIComponent(follow.follower.username)}`
           : "/profile",
@@ -156,6 +159,7 @@ export default async function ActivityPage() {
         type: "like" as const,
         title: `${like.author.name || like.author.username || "Someone"} liked your post`,
         body: like.post.description || "View post",
+        context: `On your post: ${like.post.description || "Untitled post"}`,
         href: `/posts/${like.post.id}`,
         createdAt: like.createdAt,
         avatar: like.author.avatar,
@@ -171,6 +175,9 @@ export default async function ActivityPage() {
         type: "comment" as const,
         title: `${comment.author.name || comment.author.username || "Someone"} ${comment.parentCommentId ? "replied to your comment" : "commented on your post"}`,
         body: comment.text,
+        context: comment.parentCommentId
+          ? "Reply to your comment"
+          : `On your post: ${comment.post.description || "Untitled post"}`,
         href: `/posts/${comment.post.id}`,
         createdAt: comment.createdAt,
         avatar: comment.author.avatar,
@@ -193,6 +200,7 @@ export default async function ActivityPage() {
           type: "message" as const,
           title: `${profile?.name || profile?.username || "Someone"} sent you a message`,
           body: message.body,
+          context: `Conversation: ${conversation.name || profile?.name || profile?.username || "Conversation"}`,
           href: `/messages/${conversation.id}`,
           createdAt: message.createdAt,
           avatar: profile?.avatar,
@@ -204,6 +212,7 @@ export default async function ActivityPage() {
 
   return (
     <main className="mx-auto w-full max-w-3xl pb-24 md:pb-8">
+      <MarkActivityRead />
       <section className="flex items-center justify-between">
         <Link
           href="/home"
@@ -264,6 +273,11 @@ export default async function ActivityPage() {
                   <p className="mt-1 line-clamp-2 text-sm text-slate-500 dark:text-slate-400">
                     {item.body}
                   </p>
+                  {item.context ? (
+                    <p className="mt-1 truncate text-xs font-medium text-slate-400 dark:text-slate-500">
+                      {item.context}
+                    </p>
+                  ) : null}
                   <p className="mt-1 text-xs text-slate-400">
                     {formatActivityDate(item.createdAt)}
                   </p>

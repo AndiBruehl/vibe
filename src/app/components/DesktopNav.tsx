@@ -10,13 +10,16 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import MessageUnreadBadge from "@/app/components/MessageUnreadBadge";
+import ActivityUnreadBadge from "@/app/components/ActivityUnreadBadge";
 
 type DesktopNavProps = {
   unreadConversationCount?: number;
+  unreadActivityCount?: number;
 };
 
 export default function DesktopNav({
   unreadConversationCount = 0,
+  unreadActivityCount = 0,
 }: DesktopNavProps) {
   return (
     <aside className="hidden md:fixed md:left-0 md:top-0 md:z-40 md:block md:h-screen md:w-44 bg-ig-nav border-r border-slate-200 px-3 py-4 dark:border-slate-700">
@@ -59,6 +62,7 @@ export default function DesktopNav({
               <div className="absolute inset-0 rounded-full bg-linear-to-tr from-(--ig-red) to-(--ig-orange) opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
             </div>
             <BellIcon className="relative z-10 size-4 text-slate-900 dark:text-slate-100 group-hover:text-white transition-transform duration-200 group-hover:scale-90" />
+            <ActivityUnreadBadge initialCount={unreadActivityCount} className="absolute -right-1 -top-1 z-20 flex min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-[11px] font-bold leading-none text-white ring-2 ring-white dark:ring-gray-800" />
           </div>
 
           <span className="text-sm font-normal text-slate-900 transition-all duration-200 group-hover:bg-linear-to-tr group-hover:from-(--ig-orange) group-hover:to-(--ig-red) group-hover:bg-clip-text group-hover:text-transparent dark:text-white">

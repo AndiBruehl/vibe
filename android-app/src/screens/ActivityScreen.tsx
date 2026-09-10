@@ -59,6 +59,7 @@ export default function ActivityScreen() {
               <Text style={styles.body} numberOfLines={2}>
                 {item.body}
               </Text>
+              {item.context ? <Text style={styles.context} numberOfLines={1}>{item.context}</Text> : null}
             </View>
             {item.image ? <Image source={{ uri: item.image }} style={styles.preview} /> : null}
           </Pressable>
@@ -109,6 +110,12 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontSize: 13,
     marginTop: 3,
+  },
+  context: {
+    color: colors.textSoft,
+    fontSize: 11,
+    fontWeight: "700",
+    marginTop: 4,
   },
   preview: {
     borderRadius: 8,

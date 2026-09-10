@@ -9,13 +9,16 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import MessageUnreadBadge from "@/app/components/MessageUnreadBadge";
+import ActivityUnreadBadge from "@/app/components/ActivityUnreadBadge";
 
 type MobileNavProps = {
   unreadConversationCount?: number;
+  unreadActivityCount?: number;
 };
 
 export default function MobileNav({
   unreadConversationCount = 0,
+  unreadActivityCount = 0,
 }: MobileNavProps) {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 block md:hidden">
@@ -29,8 +32,9 @@ export default function MobileNav({
             </span>
           </Link>
 
-          <Link href="/activity" className="group">
+          <Link href="/activity" className="group relative">
             <BellIcon className="transition-transform duration-200 group-hover:scale-90" />
+            <ActivityUnreadBadge initialCount={unreadActivityCount} className="absolute right-1 top-0 flex min-w-4 items-center justify-center rounded-full bg-red-600 px-1 py-0.5 text-[10px] font-bold leading-none text-white" />
             <span className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               ACTIVITY
             </span>

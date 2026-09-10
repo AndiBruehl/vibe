@@ -95,6 +95,7 @@ export async function GET(request: NextRequest) {
           select: {
             id: true,
             image: true,
+            description: true,
           },
         },
       },
@@ -130,6 +131,7 @@ export async function GET(request: NextRequest) {
       type: "follow",
       title: `${follow.follower.name || follow.follower.username || "Someone"} followed you`,
       body: follow.follower.username ? `@${follow.follower.username}` : "",
+      context: "Profile activity",
       createdAt: follow.createdAt,
       avatar: follow.follower.avatar,
     })),
@@ -138,6 +140,7 @@ export async function GET(request: NextRequest) {
       type: "like",
       title: `${like.author.name || like.author.username || "Someone"} liked your post`,
       body: like.post.description,
+      context: `On your post: ${like.post.description || "Untitled post"}`,
       createdAt: like.createdAt,
       avatar: like.author.avatar,
       image: like.post.image,
@@ -148,6 +151,9 @@ export async function GET(request: NextRequest) {
       type: "comment",
       title: `${comment.author.name || comment.author.username || "Someone"} ${comment.parentCommentId ? "replied to your comment" : "commented on your post"}`,
       body: comment.text,
+      context: comment.parentCommentId
+        ? "Reply to your comment"
+        : `On your post: ${comment.post.description || "Untitled post"}`,
       createdAt: comment.createdAt,
       avatar: comment.author.avatar,
       image: comment.post.image,
