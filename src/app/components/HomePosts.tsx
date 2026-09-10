@@ -526,4 +526,3 @@ export default async function HomePosts({
     </section>
   );
 }
-
