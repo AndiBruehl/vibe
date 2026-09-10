@@ -1,0 +1,9 @@
+# Local and generated artifacts are not part of the Next.js deployment.
+node_modules
+.next
+.git
+*.log
+
+# Android and Electron are packaged locally and published through GitHub.
+android-app
+electron-app
