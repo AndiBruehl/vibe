@@ -48,6 +48,11 @@ export default async function ActivityPage() {
 
   if (!currentUserProfile) notFound();
 
+  // Historic data can contain comments whose post was deleted. Excluding those
+  // records prevents Prisma from failing the complete activity query.
+  const validPosts = await prisma.post.findMany({ select: { id: true } });
+  const validPostIds = validPosts.map((post) => post.id);
+
   const [follows, postLikes, comments, conversations] = await Promise.all([
     // Safe Follows
     prisma.follow
@@ -68,10 +73,7 @@ export default async function ActivityPage() {
       .findMany({
         where: {
           authorEmail: { not: currentUserProfile.email },
-          OR: [
-            { post: { authorEmail: currentUserProfile.email } },
-            { parentComment: { authorEmail: currentUserProfile.email } },
-          ],
+          post: { authorEmail: currentUserProfile.email },
         },
         include: {
           author: { select: { name: true, username: true, avatar: true } },
@@ -87,6 +89,7 @@ export default async function ActivityPage() {
       .findMany({
         where: {
           authorEmail: { not: currentUserProfile.email },
+          postId: { in: validPostIds },
           OR: [
             { post: { authorEmail: currentUserProfile.email } },
             { parentComment: { authorEmail: currentUserProfile.email } },

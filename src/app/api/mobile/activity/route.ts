@@ -23,6 +23,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json([]);
   }
 
+  const validPosts = await prisma.post.findMany({ select: { id: true } });
+  const validPostIds = validPosts.map((post) => post.id);
+
   const [follows, likes, comments, participants] = await Promise.all([
     prisma.follow.findMany({
       where: {
@@ -47,10 +50,7 @@ export async function GET(request: NextRequest) {
         authorEmail: {
           not: currentUserProfile.email,
         },
-        OR: [
-          { post: { authorEmail: currentUserProfile.email } },
-          { parentComment: { authorEmail: currentUserProfile.email } },
-        ],
+        post: { authorEmail: currentUserProfile.email },
       },
       include: {
         author: {
@@ -78,6 +78,7 @@ export async function GET(request: NextRequest) {
         authorEmail: {
           not: currentUserProfile.email,
         },
+        postId: { in: validPostIds },
         OR: [
           { post: { authorEmail: currentUserProfile.email } },
           { parentComment: { authorEmail: currentUserProfile.email } },

@@ -2,7 +2,7 @@
   "expo": {
     "name": "Vibe",
     "slug": "vibe-android",
-    "version": "0.1.42",
+    "version": "0.1.42.1",
     "orientation": "portrait",
     "scheme": "vibe",
     "userInterfaceStyle": "dark",
@@ -18,7 +18,7 @@
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#111827"
       },
-      "versionCode": 43
+      "versionCode": 44
     },
     "extra": {
       "apiUrl": "https://vibe-social-network.vercel.app"
