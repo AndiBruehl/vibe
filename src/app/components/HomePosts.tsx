@@ -15,6 +15,7 @@ import {
   Search,
   UserPlus,
 } from "lucide-react";
+import FeedModeSwitch from "./FeedModeSwitch";
 
 type Follow = {
   followingId: string;
@@ -27,6 +28,7 @@ type Profile = {
 type HomePostsProps = {
   follows: Follow[];
   profiles: Profile[];
+  feedMode: "following" | "for-you";
 };
 
 type PostTopicWithTopic = {
@@ -40,6 +42,7 @@ type PostTopicWithTopic = {
 export default async function HomePosts({
   follows,
   profiles,
+  feedMode,
 }: HomePostsProps) {
   const session = await auth();
 
@@ -72,12 +75,15 @@ export default async function HomePosts({
    * geladen und bekommen bei Bedarf einen Fallback.
    */
   const posts = await prisma.post.findMany({
-    where: {
-      OR: [
-        { authorEmail: sessionEmail },
-        { authorEmail: { in: followedEmails } },
-      ],
-    },
+    where:
+      feedMode === "following"
+        ? {
+            OR: [
+              { authorEmail: sessionEmail },
+              { authorEmail: { in: followedEmails } },
+            ],
+          }
+        : undefined,
     include: {
       topics: {
         include: {
@@ -199,13 +205,16 @@ export default async function HomePosts({
     return (
       <section className="mx-auto flex min-h-[70vh] w-full max-w-2xl items-center justify-center">
         <div className="flex w-full max-w-2xl flex-col gap-6">
+          <FeedModeSwitch feedMode={feedMode} />
           <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-xl backdrop-blur-xl dark:border-white/10 dark:bg-white/5">
             <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-500">
               Nothing here yet
             </h2>
 
             <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-500">
-              Create your first entry or follow people to fill your feed.
+              {feedMode === "following"
+                ? "Create your first entry or follow people to fill your feed."
+                : "There are no posts to discover yet."}
             </p>
 
             {shouldShowNameHint ? (
@@ -277,7 +286,7 @@ export default async function HomePosts({
                     <div className="flex min-w-0 items-center gap-3">
                       <Avatar
                         radius="full"
-                        src={user.avatar || ""}
+                        src={user.avatar || undefined}
                         size="3"
                         fallback={(
                           user.username?.[0] ||
@@ -312,6 +321,7 @@ export default async function HomePosts({
 
   return (
     <section className="mx-auto w-full max-w-5xl">
+      <FeedModeSwitch feedMode={feedMode} />
       <SortablePosts
         posts={posts.map((post) => ({
           id: post.id,
@@ -340,7 +350,7 @@ export default async function HomePosts({
                 <div className="flex min-w-0 items-center gap-3">
                   <Avatar
                     radius="full"
-                    src={profile?.avatar || ""}
+                    src={profile?.avatar || undefined}
                     size="3"
                     fallback={(profile?.username?.[0] || "?").toUpperCase()}
                   />
@@ -516,3 +526,4 @@ export default async function HomePosts({
     </section>
   );
 }
+

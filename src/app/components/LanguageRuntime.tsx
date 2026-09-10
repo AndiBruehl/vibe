@@ -9,6 +9,7 @@ const german: Record<string, string> = {
   "Get the app": "App herunterladen", "Latest uploaded desktop and mobile builds.": "Neueste Desktop- und Mobilversionen.", Windows: "Windows", Android: "Android",
   "Download Setup EXE": "Setup-EXE herunterladen", "Download APK": "APK herunterladen", "No release available": "Keine Version verfügbar", Unavailable: "Nicht verfügbar", "Checking for a release…": "Suche nach Version…",
   "Create a post": "Beitrag erstellen", "Sort posts": "Beiträge sortieren", "Newest to oldest": "Neueste zuerst", "Oldest to newest": "Älteste zuerst", "A to Z": "A bis Z", "Z to A": "Z bis A",
+  Following: "Gefolgt", "For you": "Für dich",
   "Write a comment...": "Kommentar schreiben...", "Post Comment": "Kommentar veröffentlichen", "No comments yet. Be the first to join the conversation.": "Noch keine Kommentare. Starte die Unterhaltung.",
   "Search users and posts...": "Nutzer und Beiträge suchen...", "Find people and discover their vibes.": "Finde Menschen und entdecke ihre Vibes.", "Clear search": "Suche löschen", "No posts yet.": "Noch keine Beiträge.",
 };

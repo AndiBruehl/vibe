@@ -5,9 +5,10 @@ import { Session } from "next-auth";
 
 type UserHomeProps = {
   session: Session;
+  feedMode: "following" | "for-you";
 };
 
-export default async function UserHome({ session }: UserHomeProps) {
+export default async function UserHome({ session, feedMode }: UserHomeProps) {
   const viewerEmail = session.user?.email;
 
   if (!viewerEmail) {
@@ -49,7 +50,7 @@ export default async function UserHome({ session }: UserHomeProps) {
   return (
     <div className="flex flex-col gap-8">
       <HomeTopRow follows={follows} profiles={profiles} />
-      <HomePosts follows={follows} profiles={profiles} />
+      <HomePosts follows={follows} profiles={profiles} feedMode={feedMode} />
     </div>
   );
 }

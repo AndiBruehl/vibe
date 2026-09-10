@@ -53,7 +53,7 @@ export default async function HomeTopRow({
                     size="6"
                     radius="full"
                     fallback={(profile.username?.[0] || "?").toUpperCase()}
-                    src={profile.avatar || ""}
+                    src={profile.avatar || undefined}
                     className="rounded-full object-cover"
                   />
                 </div>
@@ -69,3 +69,4 @@ export default async function HomeTopRow({
     </section>
   );
 }
+
