@@ -48,11 +48,15 @@ export default async function ProfileByUsernamePage({
   const isOwnProfile = viewerEmail === profile.email;
   const activeTab = isOwnProfile && tab === "bookmarks" ? "bookmarks" : "posts";
 
-  const postsCount = await prisma.post.count({
-    where: {
-      authorEmail: profile.email,
-    },
-  });
+  const [postsCount, followersCount, followingCount] = await Promise.all([
+    prisma.post.count({
+      where: {
+        authorEmail: profile.email,
+      },
+    }),
+    prisma.follow.count({ where: { followingId: profile.id } }),
+    prisma.follow.count({ where: { followerId: profile.id } }),
+  ]);
 
   let isFollowing = false;
 
@@ -158,6 +162,24 @@ export default async function ProfileByUsernamePage({
                 </p>
                 <p className="text-slate-500 dark:text-slate-400">Posts</p>
               </div>
+              <Link
+                href={`/profile/${encodeURIComponent(profile.username ?? "")}/connections?list=followers`}
+                className="transition hover:opacity-70"
+              >
+                <p className="font-semibold text-slate-900 dark:text-white">
+                  {followersCount}
+                </p>
+                <p className="text-slate-500 dark:text-slate-400">Followers</p>
+              </Link>
+              <Link
+                href={`/profile/${encodeURIComponent(profile.username ?? "")}/connections?list=following`}
+                className="transition hover:opacity-70"
+              >
+                <p className="font-semibold text-slate-900 dark:text-white">
+                  {followingCount}
+                </p>
+                <p className="text-slate-500 dark:text-slate-400">Following</p>
+              </Link>
             </div>
           </div>
 

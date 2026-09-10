@@ -321,13 +321,13 @@ export default async function HomePosts({
 
   return (
     <section className="mx-auto w-full max-w-5xl">
-      <FeedModeSwitch feedMode={feedMode} />
       <SortablePosts
         posts={posts.map((post) => ({
           id: post.id,
           description: post.description,
           createdAt: post.createdAt,
         }))}
+        headerAfterCount={<FeedModeSwitch feedMode={feedMode} />}
         className="flex w-full flex-col gap-8"
       >
         {posts.map((post) => {

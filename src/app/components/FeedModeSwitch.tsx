@@ -15,7 +15,7 @@ export default function FeedModeSwitch({
   return (
     <nav
       aria-label="Feed selection"
-      className="mb-5 inline-flex rounded-2xl border border-slate-200 bg-white/80 p-1 shadow-sm shadow-slate-900/5 backdrop-blur dark:border-white/10 dark:bg-slate-800/70 dark:shadow-black/20"
+      className="inline-flex rounded-2xl border border-slate-200 bg-white/80 p-1 shadow-sm shadow-slate-900/5 backdrop-blur dark:border-white/10 dark:bg-slate-800/70 dark:shadow-black/20"
     >
       <Link href="/home?feed=following" className={tabClass(feedMode === "following")}>
         Following

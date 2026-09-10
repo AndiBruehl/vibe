@@ -11,19 +11,24 @@ export default function SortablePosts({
   posts,
   children,
   className,
+  headerAfterCount,
 }: {
   posts: SortablePost[];
   children: ReactNode;
   className?: string;
+  headerAfterCount?: ReactNode;
 }) {
   const [order, setOrder] = useState<PostSort>("newest");
   const items = Children.toArray(children);
   return (
     <div className="w-full">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 shadow-sm shadow-slate-900/5 backdrop-blur dark:border-white/10 dark:bg-slate-800/70 dark:shadow-black/20 sm:px-5">
-        <span className="rounded-full bg-slate-100 px-3 py-1.5 text-sm font-semibold text-slate-700 dark:bg-slate-700/80 dark:text-slate-100">
-          {posts.length} {posts.length === 1 ? "post" : "posts"}
-        </span>
+        <div className="flex min-w-0 flex-wrap items-center gap-3">
+          <span className="rounded-full bg-slate-100 px-3 py-1.5 text-sm font-semibold text-slate-700 dark:bg-slate-700/80 dark:text-slate-100">
+            {posts.length} {posts.length === 1 ? "post" : "posts"}
+          </span>
+          {headerAfterCount}
+        </div>
         <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
           <span className="hidden sm:inline">Sort posts</span>
           <select

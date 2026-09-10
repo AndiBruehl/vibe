@@ -56,6 +56,12 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
     },
   });
 
+  const [postsCount, followersCount, followingCount] = await Promise.all([
+    prisma.post.count({ where: { authorEmail: session.user.email } }),
+    prisma.follow.count({ where: { followingId: profile.id } }),
+    prisma.follow.count({ where: { followerId: profile.id } }),
+  ]);
+
   return (
     <main>
       <section className="flex items-center justify-between">
@@ -115,6 +121,27 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         <p className="text-slate-700 dark:text-slate-300">
           {profile.bio || ""}
         </p>
+      </section>
+
+      <section className="mt-6 flex justify-center gap-8 text-center text-sm">
+        <div>
+          <p className="font-bold text-slate-900 dark:text-white">{postsCount}</p>
+          <p className="text-slate-500 dark:text-slate-400">Posts</p>
+        </div>
+        <Link
+          href={`/profile/${encodeURIComponent(profile.username ?? "")}/connections?list=followers`}
+          className="transition hover:opacity-70"
+        >
+          <p className="font-bold text-slate-900 dark:text-white">{followersCount}</p>
+          <p className="text-slate-500 dark:text-slate-400">Followers</p>
+        </Link>
+        <Link
+          href={`/profile/${encodeURIComponent(profile.username ?? "")}/connections?list=following`}
+          className="transition hover:opacity-70"
+        >
+          <p className="font-bold text-slate-900 dark:text-white">{followingCount}</p>
+          <p className="text-slate-500 dark:text-slate-400">Following</p>
+        </Link>
       </section>
 
       <section className="mt-4">
