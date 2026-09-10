@@ -2,6 +2,7 @@
 node_modules
 .next
 .git
+working
 *.log
 
 # Android and Electron are packaged locally and published through GitHub.

@@ -6,6 +6,7 @@ import { prisma } from "@/db";
 import AppVersion from "@/app/components/AppVersion";
 import ReleaseDownloads from "@/app/components/ReleaseDownloads";
 import SettingsForm from "@/app/components/SettingsForm";
+import SettingsHeading from "@/app/components/SettingsHeading";
 
 export default async function SettingsPage() {
   const session = await auth();
@@ -55,11 +56,7 @@ export default async function SettingsPage() {
 
       <section className="mx-auto mt-4 w-full max-w-5xl pb-4">
         <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-900/5 dark:border-slate-700/80 dark:bg-slate-900 dark:shadow-black/25">
-          <header className="border-b border-slate-200 bg-linear-to-r from-orange-50 via-white to-pink-50 px-6 py-5 dark:border-slate-700/80 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 sm:px-8">
-            <p className="text-sm font-semibold text-orange-600 dark:text-orange-300">Account</p>
-            <h1 className="mt-1 text-2xl font-bold text-slate-950 dark:text-white">Profile Settings</h1>
-            <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Manage how your profile appears across VIBE.</p>
-          </header>
+          <SettingsHeading initialLanguage={profile.language === "de" ? "de" : "en"} />
 
           <div className="p-5 sm:p-6">
             <SettingsForm profile={profile} />

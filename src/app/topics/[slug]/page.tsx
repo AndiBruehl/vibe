@@ -10,6 +10,7 @@ import TopicFollowButton from "@/app/components/TopicFollowButton";
 import LocalTime from "@/app/components/LocalTime";
 import { prisma } from "@/db";
 import { auth } from "@/auth";
+import { MoveLeft } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -74,6 +75,10 @@ export default async function TopicPage({ params }: Props) {
 
       <div className="md:pl-48">
         <main className="mx-auto max-w-3xl px-4 py-8">
+          <Link href="/topics" className="group mb-5 inline-flex items-center gap-2 text-sm font-semibold text-slate-600 transition hover:text-orange-600 dark:text-slate-300 dark:hover:text-orange-300">
+            <MoveLeft size={18} />
+            <span>Back to Topics</span>
+          </Link>
           <div className="mb-6 flex items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl font-bold">#{topic.name}</h1>

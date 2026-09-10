@@ -15,7 +15,7 @@ import { parseLoginCallback, type PendingLogin } from "@/lib/loginCallback";
 
 const extra = Constants.expoConfig?.extra as { apiUrl?: string } | undefined;
 const vibeUrl = (process.env.EXPO_PUBLIC_API_URL || extra?.apiUrl || "https://vibe-social-network.vercel.app").replace(/\/$/, "");
-const appVersion = Constants.expoConfig?.version || "0.1.50";
+const appVersion = Constants.expoConfig?.version || "0.1.60";
 const mobileTokenKey = "vibe.webMobileToken";
 const pendingLoginKey = "vibe.pendingLogin";
 const releaseManifestUrl = "https://raw.githubusercontent.com/AndiBruehl/vibe/main/public/releases/latest.json";
@@ -161,7 +161,7 @@ export default function App() {
     setDownloadingUpdate(true);
     setUpdateError(null);
     try {
-      const destination = `${FileSystem.cacheDirectory}Vibe-${update.version}.apk`;
+      const destination = `${FileSystem.cacheDirectory}Vibe-BETA-${update.version}.apk`;
       const result = await FileSystem.downloadAsync(update.downloadUrl, destination);
       const contentUri = await FileSystem.getContentUriAsync(result.uri);
       await IntentLauncher.startActivityAsync("android.intent.action.VIEW", {
@@ -215,7 +215,7 @@ export default function App() {
       <View style={styles.updateTextWrap}>
         <Text style={styles.updateEyebrow}>VIBE UPDATE</Text>
         <Text style={[styles.updateTitle, webDarkMode ? styles.updateTitleDark : styles.updateTitleLight]}>Update available</Text>
-        <Text style={[styles.updateText, webDarkMode ? styles.updateTextDark : styles.updateTextLight]}>{updateError ?? `VIBE ${update.version} is ready to download.`}</Text>
+        <Text style={[styles.updateText, webDarkMode ? styles.updateTextDark : styles.updateTextLight]}>{updateError ?? `VIBE BETA ${update.version} is ready to download.`}</Text>
       </View>
       <Pressable accessibilityRole="button" disabled={downloadingUpdate} style={[styles.updateButton, downloadingUpdate && styles.updateButtonDisabled]} onPress={() => void downloadUpdate()}>
         {downloadingUpdate ? <ActivityIndicator color={colors.white} size="small" /> : <Text style={styles.updateButtonText}>Download</Text>}

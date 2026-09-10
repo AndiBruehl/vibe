@@ -23,8 +23,12 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isThemeReady, setIsThemeReady] = useState(false);
+  const [language, setLanguage] = useState<"en" | "de">("en");
+  const de = language === "de";
+  const copy = (english: string, german: string) => de ? german : english;
 
   useEffect(() => {
+    setLanguage(localStorage.getItem("vibe-language") === "de" ? "de" : "en");
     const html = document.documentElement;
     const savedTheme = localStorage.getItem("theme");
 
@@ -108,20 +112,20 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
             className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-orange-300 hover:text-orange-600 disabled:cursor-wait disabled:opacity-60 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-orange-400 dark:hover:text-orange-300"
           >
             <ImageUp size={17} />
-            {isUploading ? "Uploading..." : "Change avatar"}
+            {isUploading ? copy("Uploading...", "Wird hochgeladen...") : copy("Change avatar", "Avatar ändern")}
           </button>
-          <p className="mt-2 text-center text-xs text-slate-500 dark:text-slate-400">JPG, PNG or WEBP</p>
+          <p className="mt-2 text-center text-xs text-slate-500 dark:text-slate-400">{copy("JPG, PNG or WEBP", "JPG, PNG oder WEBP")}</p>
         </div>
       </section>
 
       <section className="lg:col-start-2">
         <div className="mb-4 flex items-center gap-2">
           <UserRound size={17} className="text-orange-500" />
-          <h2 className="font-semibold text-slate-900 dark:text-white">Profile details</h2>
+          <h2 className="font-semibold text-slate-900 dark:text-white">{copy("Profile details", "Profildetails")}</h2>
         </div>
         <div className="grid gap-5 sm:grid-cols-2">
           <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
-            Username
+            {copy("Username", "Benutzername")}
             <input
               name="username"
               defaultValue={profile?.username ?? ""}
@@ -131,7 +135,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
           </label>
 
           <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
-            Display name
+            {copy("Display name", "Anzeigename")}
             <input
               name="name"
               defaultValue={profile?.name ?? ""}
@@ -142,7 +146,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
         </div>
 
         <label className="mt-5 block text-sm font-semibold text-slate-700 dark:text-slate-200">
-          Subtitle
+          {copy("Subtitle", "Untertitel")}
           <input
             name="subtitle"
             defaultValue={profile?.subtitle ?? ""}
@@ -152,7 +156,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
         </label>
 
         <label className="mt-5 block text-sm font-semibold text-slate-700 dark:text-slate-200">
-          Bio
+          {copy("Bio", "Über mich")}
           <textarea
             name="bio"
             defaultValue={profile?.bio ?? ""}
@@ -167,8 +171,8 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
         <div className="flex items-center gap-3">
           <span className="grid size-9 place-items-center rounded-xl bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200"><Moon size={17} /></span>
           <div>
-            <p className="font-semibold text-slate-900 dark:text-white">Dark mode</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Use VIBE with a darker color scheme</p>
+            <p className="font-semibold text-slate-900 dark:text-white">{copy("Dark mode", "Dunkelmodus")}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">{copy("Use VIBE with a darker color scheme", "Nutze VIBE mit einem dunkleren Farbschema")}</p>
           </div>
         </div>
         <Switch
@@ -190,13 +194,13 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
       </section>
 
       <div className="flex flex-col-reverse gap-3 border-t border-slate-200 pt-6 dark:border-slate-700/80 sm:flex-row sm:items-center sm:justify-between lg:col-start-2">
-        <LanguageSwitcher />
+        <LanguageSwitcher onLanguageChange={setLanguage} />
         <button
           type="submit"
           disabled={isUploading}
           className="self-end rounded-xl bg-linear-to-r from-orange-500 to-pink-500 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-orange-500/25 transition hover:scale-[1.02] hover:shadow-xl disabled:cursor-wait disabled:opacity-60 sm:self-auto"
         >
-          Save Settings
+          {copy("Save Settings", "Einstellungen speichern")}
         </button>
       </div>
     </form>

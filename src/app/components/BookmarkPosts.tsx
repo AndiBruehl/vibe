@@ -9,15 +9,19 @@ export default async function BookmarkPosts({ email }: { email: string }) {
     where: {
       authorEmail: email,
     },
-    include: {
-      post: true,
-    },
+    select: { postId: true, createdAt: true },
     orderBy: {
       createdAt: "desc",
     },
   });
 
-  if (bookmarks.length === 0) {
+  const posts = bookmarks.length
+    ? await prisma.post.findMany({ where: { id: { in: bookmarks.map((bookmark) => bookmark.postId) } } })
+    : [];
+  const postsById = new Map(posts.map((post) => [post.id, post]));
+  const savedPosts = bookmarks.map((bookmark) => postsById.get(bookmark.postId)).filter((post): post is (typeof posts)[number] => Boolean(post));
+
+  if (savedPosts.length === 0) {
     return (
       <div className="rounded-2xl bg-white p-8 text-center shadow-md shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
         <p className="text-slate-600 dark:text-slate-300">
@@ -28,8 +32,8 @@ export default async function BookmarkPosts({ email }: { email: string }) {
   }
 
   return (
-    <SortablePosts posts={bookmarks.map(({ post }) => ({ id: post.id, description: post.description, createdAt: post.createdAt }))} className="grid grid-cols-2 gap-4 md:grid-cols-3">
-      {bookmarks.map(({ post }) => (
+    <SortablePosts posts={savedPosts.map((post) => ({ id: post.id, description: post.description, createdAt: post.createdAt }))} className="grid grid-cols-2 gap-4 md:grid-cols-3">
+      {savedPosts.map((post) => (
         <Link
           key={post.id}
           href={`/posts/${post.id}`}

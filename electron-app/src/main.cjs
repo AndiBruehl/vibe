@@ -60,7 +60,7 @@ async function checkForUpdates({ interactive = false } = {}) {
     if (interactive) showWebDialog({
       eyebrow: "VIBE DESKTOP",
       title: "You’re up to date",
-      message: `VIBE ${displayVersion()} is the latest desktop version.`,
+      message: `VIBE BETA ${displayVersion()} is the latest desktop version.`,
       detail: "We’ll let you know when a new update is ready.",
     });
     return;
@@ -68,8 +68,8 @@ async function checkForUpdates({ interactive = false } = {}) {
   showWebDialog({
     eyebrow: "VIBE UPDATE",
     title: "Update available",
-    message: `Version ${release.version} is ready to download.`,
-    detail: `You’re currently using version ${displayVersion()}.`,
+    message: `BETA ${release.version} is ready to download.`,
+    detail: `You’re currently using BETA ${displayVersion()}.`,
     downloadUrl: release.downloadUrl,
     primaryLabel: "Download update",
   });
@@ -254,7 +254,7 @@ function createMenu() {
       { label: "Open web version", click: () => openWebUrl(appUrl) },
       { label: "Check for updates", click: () => { void checkForUpdates({ interactive: true }); } },
       { label: "Open logs folder", click: () => { void shell.openPath(app.getPath("logs")).then(error => { if (error) log("open-logs-failed"); }); } },
-      { label: "About VIBE", click: () => showWebDialog({ eyebrow: "VIBE DESKTOP", title: "About VIBE", message: `VIBE ${displayVersion()}`, detail: `Desktop app · ${process.platform} ${process.arch}` }) },
+      { label: "About VIBE", click: () => showWebDialog({ eyebrow: "VIBE DESKTOP", title: "About VIBE", message: `VIBE BETA ${displayVersion()}`, detail: `Desktop app · ${process.platform} ${process.arch}` }) },
     ] },
   ]));
 }

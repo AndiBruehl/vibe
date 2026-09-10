@@ -4,6 +4,7 @@ import { useFormStatus } from "react-dom";
 import { unstable_rethrow } from "next/navigation";
 import { PinataSDK } from "pinata";
 import TopicPicker from "./TopicPicker";
+import ProfileTagPicker, { type TaggedProfile } from "./ProfileTagPicker";
 import { MAX_POST_IMAGES } from "@/post-images";
 
 const MAX_IMAGE_SIZE_BYTES = 25 * 1024 * 1024;
@@ -78,12 +79,14 @@ export default function PostComposer({
   initialImages = [],
   description = "",
   topics = [],
+  taggedProfiles = [],
 }: {
   action: (data: FormData) => Promise<void>;
   postId?: string;
   initialImages?: string[];
   description?: string;
   topics?: string[];
+  taggedProfiles?: TaggedProfile[];
 }) {
   const [images, setImages] = useState(initialImages);
   const [draftDescription, setDraftDescription] = useState(description);
@@ -270,6 +273,7 @@ export default function PostComposer({
         />
       </label>
       <TopicPicker initial={topics} />
+      <ProfileTagPicker initial={taggedProfiles} />
       {error && (
         <p role="alert" className="text-sm text-red-700 dark:text-red-400">
           {error}

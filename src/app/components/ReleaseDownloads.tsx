@@ -16,6 +16,15 @@ type Releases = {
 export default function ReleaseDownloads() {
   const [releases, setReleases] = useState<Releases | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [language, setLanguage] = useState<"en" | "de">("en");
+
+  useEffect(() => {
+    setLanguage(localStorage.getItem("vibe-language") === "de" ? "de" : "en");
+    const onChange = (event: Event) => setLanguage((event as CustomEvent<"en" | "de">).detail);
+    window.addEventListener("vibe-language-ui-change", onChange);
+    return () => window.removeEventListener("vibe-language-ui-change", onChange);
+  }, []);
+  const de = language === "de";
 
   useEffect(() => {
     void fetch("/releases/latest.json", { cache: "no-store" })
@@ -49,10 +58,10 @@ export default function ReleaseDownloads() {
         <Download className="size-4 text-orange-500" />
         <div>
           <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
-            Get the app
+            {de ? "App herunterladen" : "Get the app"}
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Latest uploaded desktop and mobile builds.
+            {de ? "Neueste Desktop- und Mobilversionen." : "Latest uploaded desktop and mobile builds."}
           </p>
         </div>
       </div>
@@ -79,12 +88,12 @@ export default function ReleaseDownloads() {
                   {label}
                 </span>
                 <span className="block text-xs text-slate-500 dark:text-slate-400">
-                  {release ? `Version ${release.version}` : loaded ? "No release available" : "Checking for a release…"}
+                  {release ? `BETA ${release.version}` : loaded ? (de ? "Keine Version verfügbar" : "No release available") : (de ? "Suche nach Version…" : "Checking for a release…")}
                 </span>
               </span>
             </span>
             <span className="text-xs font-semibold text-orange-600 dark:text-orange-300">
-              {release ? `Download ${detail}` : loaded ? "Unavailable" : "…"}
+              {release ? (de ? `${detail} herunterladen` : `Download ${detail}`) : loaded ? (de ? "Nicht verfügbar" : "Unavailable") : "…"}
             </span>
           </a>
         ))}

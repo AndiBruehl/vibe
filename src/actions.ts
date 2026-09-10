@@ -50,6 +50,12 @@ async function linkTopicsForPost(postId: string, topicsValue: unknown) {
   }
 }
 
+async function linkProfilesForPost(postId: string, profileIds: FormDataEntryValue[]) {
+  const ids = [...new Set(profileIds.filter((value): value is string => typeof value === "string" && /^[a-f\d]{24}$/i.test(value)))].slice(0, 10);
+  if (!ids.length) return;
+  const profiles = await prisma.profile.findMany({ where: { id: { in: ids } }, select: { id: true } });
+  if (profiles.length) await prisma.postProfileTag.createMany({ data: profiles.map((profile) => ({ postId, profileId: profile.id })) });
+}
 export async function upsertProfile(formData: FormData) {
   const session = await auth();
 
@@ -99,6 +105,7 @@ export async function postEntry(formData: FormData) {
   const images = parsePostImages(formData.has("imagesSet") ? formData.getAll("images") : [formData.get("image")]);
   const description = formData.get("description");
   const topicsValue = formData.get("topics");
+  const profileTags = formData.getAll("profileTags");
 
   const postDoc = await prisma.post.create({
     data: {
@@ -111,6 +118,7 @@ export async function postEntry(formData: FormData) {
   // handle topics (upsert + link)
   try {
     await linkTopicsForPost(postDoc.id, topicsValue);
+    await linkProfilesForPost(postDoc.id, profileTags);
   } catch (err) {
     console.error("postEntry: topic linking failed", err);
   }
@@ -151,7 +159,7 @@ export async function editPost(formData: FormData): Promise<void> {
   const cleanedDescription =
     typeof descriptionValue === "string" ? descriptionValue.trim() : undefined;
 
-  if (!gallery && cleanedImage === undefined && cleanedDescription === undefined) {
+  if (!gallery && cleanedImage === undefined && cleanedDescription === undefined && formData.get("profileTagsSet") !== "1") {
     throw new Error("Nothing to update.");
   }
 
@@ -206,6 +214,11 @@ export async function editPost(formData: FormData): Promise<void> {
     console.error("editPost: topic linking failed", err);
   }
 
+  if (formData.get("profileTagsSet") === "1") {
+    await prisma.postProfileTag.deleteMany({ where: { postId: postIdValue } });
+    await linkProfilesForPost(postIdValue, formData.getAll("profileTags"));
+  }
+
   revalidatePath("/");
   revalidatePath("/profile");
   revalidatePath(`/posts/${postIdValue}`);
@@ -251,6 +264,7 @@ export async function deletePost(formData: FormData): Promise<void> {
     prisma.comment.deleteMany({ where: { postId: postIdValue } }),
     prisma.postLike.deleteMany({ where: { postId: postIdValue } }),
     prisma.postBookmark.deleteMany({ where: { postId: postIdValue } }),
+    prisma.postProfileTag.deleteMany({ where: { postId: postIdValue } }),
     prisma.post.delete({ where: { id: postIdValue } }),
   ]);
 

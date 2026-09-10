@@ -11,7 +11,7 @@ function Flag({ language }: { language: Language }) {
   return <svg viewBox="0 0 30 20" className="h-4 w-6 overflow-hidden rounded-sm shadow-sm" aria-hidden="true"><rect width="30" height="20" fill="#174a9b" /><path d="M0 0 30 20M30 0 0 20" stroke="#fff" strokeWidth="5" /><path d="M0 0 30 20M30 0 0 20" stroke="#c8102e" strokeWidth="2" /><path d="M15 0v20M0 10h30" stroke="#fff" strokeWidth="6" /><path d="M15 0v20M0 10h30" stroke="#c8102e" strokeWidth="3" /></svg>;
 }
 
-export default function LanguageSwitcher() {
+export default function LanguageSwitcher({ onLanguageChange }: { onLanguageChange?: (language: Language) => void } = {}) {
   const [language, setLanguage] = useState<Language>("en");
 
   useEffect(() => {
@@ -21,10 +21,16 @@ export default function LanguageSwitcher() {
     return () => window.removeEventListener("vibe-language-change", onChange);
   }, []);
 
-  function select(next: Language) {
+  async function select(next: Language) {
     localStorage.setItem("vibe-language", next);
-    void fetch("/api/profile/language", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ language: next }) });
+    setLanguage(next);
+    await fetch("/api/profile/language", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ language: next }) });
     document.documentElement.lang = next;
+    if (onLanguageChange) {
+      onLanguageChange(next);
+      window.dispatchEvent(new CustomEvent("vibe-language-ui-change", { detail: next }));
+      return;
+    }
     window.dispatchEvent(new CustomEvent("vibe-language-change", { detail: next }));
   }
 

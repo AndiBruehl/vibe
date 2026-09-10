@@ -62,6 +62,9 @@ export default async function SinglePostPage({
 
   const topics = postWithTopics?.topics?.map((pt) => pt.topic) ?? [];
 
+  const tagRows = await prisma.postProfileTag.findMany({ where: { postId: id }, select: { profileId: true } });
+  const taggedProfiles = tagRows.length ? await prisma.profile.findMany({ where: { id: { in: tagRows.map((tag) => tag.profileId) } }, select: { id: true, username: true, name: true, avatar: true } }) : [];
+
   const author = await prisma.profile.findUnique({
     where: { email: post.authorEmail },
   });
@@ -138,6 +141,11 @@ export default async function SinglePostPage({
                   </div>
                 )}
 
+                {taggedProfiles.length > 0 && <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+                  <span>With</span>
+                  {taggedProfiles.map((profile) => profile.username ? <Link key={profile.id} href={`/profile/${encodeURIComponent(profile.username)}`} className="rounded-full bg-orange-100 px-3 py-1 font-medium text-orange-800 hover:underline dark:bg-orange-500/15 dark:text-orange-200">@{profile.username}</Link> : null)}
+                </div>}
+
                 {isOwner ? (
                   <section className="rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-sm shadow-gray-200/50 dark:border-gray-700 dark:bg-gray-900 dark:shadow-gray-950">
                     <div className="mb-4 flex items-center justify-between gap-3">
@@ -155,7 +163,7 @@ export default async function SinglePostPage({
                       </form>
                     </div>
 
-                    <PostComposer key={post.updatedAt.toISOString()} action={editPost} postId={post.id} initialImages={getPostImages(post)} description={post.description} topics={topics.map((t) => t.name)}/>
+                    <PostComposer key={post.updatedAt.toISOString()} action={editPost} postId={post.id} initialImages={getPostImages(post)} description={post.description} topics={topics.map((t) => t.name)} taggedProfiles={taggedProfiles}/>
 
                   </section>
                 ) : null}

@@ -128,6 +128,9 @@ export default async function HomePosts({
     },
   });
 
+  const tagRows = posts.length ? await prisma.postProfileTag.findMany({ where: { postId: { in: posts.map((post) => post.id) } }, select: { postId: true, profileId: true } }) : [];
+  const taggedProfiles = tagRows.length ? await prisma.profile.findMany({ where: { id: { in: [...new Set(tagRows.map((tag) => tag.profileId))] } }, select: { id: true, username: true, name: true } }) : [];
+
   /*
    * Post-Autoren sammeln.
    * authorEmail kann bei alten/verwaisten Posts null sein.
@@ -340,6 +343,7 @@ export default async function HomePosts({
           const isBookmarked = bookmarks.some(
             (bookmark) => bookmark.postId === post.id,
           );
+          const tags = tagRows.filter((tag) => tag.postId === post.id).map((tag) => taggedProfiles.find((profile) => profile.id === tag.profileId)).filter((profile): profile is (typeof taggedProfiles)[number] => Boolean(profile));
 
           return (
             <article
@@ -372,6 +376,7 @@ export default async function HomePosts({
                         @{profile.username}
                       </p>
                     )}
+                    {tags.length > 0 && <div className="mt-1 flex flex-wrap gap-1 text-[11px] text-slate-500 dark:text-slate-400">With {tags.map((tag) => tag.username ? <Link key={tag.id} href={`/profile/${encodeURIComponent(tag.username)}`} className="hover:text-orange-500 hover:underline">@{tag.username}</Link> : null)}</div>}
                   </div>
                 </div>
               </div>

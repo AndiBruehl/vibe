@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-const WEB_VERSION = "0.1.50";
+const WEB_VERSION = "0.1.60";
 
 export default function AppVersion() {
   const [desktopVersion, setDesktopVersion] = useState<string | null>(null);
@@ -23,9 +23,9 @@ export default function AppVersion() {
 
   return (
     <div className="mt-3 text-center text-xs text-slate-500 dark:text-slate-400">
-      <p>Web version {WEB_VERSION}</p>
-      {desktopVersion && <p>Desktop app version {desktopVersion}</p>}
-      {androidVersion && <p>Android app version {androidVersion}</p>}
+      <p>Web version BETA {WEB_VERSION}</p>
+      {desktopVersion && <p>Desktop app version BETA {desktopVersion}</p>}
+      {androidVersion && <p>Android app version BETA {androidVersion}</p>}
     </div>
   );
 }
