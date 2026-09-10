@@ -53,7 +53,7 @@ export default async function ActivityPage() {
   const validPosts = await prisma.post.findMany({ select: { id: true } });
   const validPostIds = validPosts.map((post) => post.id);
 
-  const [follows, postLikes, comments, conversations] = await Promise.all([
+  const [follows, postLikes, comments, commentLikes, conversations] = await Promise.all([
     // Safe Follows
     prisma.follow
       .findMany({
@@ -104,6 +104,16 @@ export default async function ActivityPage() {
       })
       .catch(() => []),
 
+    // Query scalar IDs first so historic orphaned relations cannot break Activity.
+    prisma.commentLike
+      .findMany({
+        where: { authorEmail: { not: currentUserProfile.email } },
+        select: { id: true, authorEmail: true, commentId: true, createdAt: true },
+        orderBy: { createdAt: "desc" },
+        take: 40,
+      })
+      .catch(() => []),
+
     // Safe Conversations
     prisma.conversation
       .findMany({
@@ -132,6 +142,40 @@ export default async function ActivityPage() {
       })
       .catch(() => []),
   ]);
+
+  const likedCommentIds = commentLikes.map((like) => like.commentId);
+  const likedComments = likedCommentIds.length
+    ? await prisma.comment.findMany({
+        where: { id: { in: likedCommentIds } },
+        select: { id: true, text: true, postId: true, authorEmail: true },
+      })
+    : [];
+  const likedCommentsById = new Map<
+    string,
+    { id: string; text: string; postId: string; authorEmail: string }
+  >(likedComments.map((comment) => [comment.id, comment]));
+  const likedPostIds = [...new Set(likedComments.map((comment) => comment.postId))];
+  const likedPosts = likedPostIds.length
+    ? await prisma.post.findMany({
+        where: { id: { in: likedPostIds } },
+        select: { id: true, image: true, description: true },
+      })
+    : [];
+  const likedPostsById = new Map<
+    string,
+    { id: string; image: string; description: string }
+  >(likedPosts.map((post) => [post.id, post]));
+  const likeAuthorEmails = [...new Set(commentLikes.map((like) => like.authorEmail))];
+  const likeAuthors = likeAuthorEmails.length
+    ? await prisma.profile.findMany({
+        where: { email: { in: likeAuthorEmails } },
+        select: { email: true, name: true, username: true, avatar: true },
+      })
+    : [];
+  const likeAuthorsByEmail = new Map<
+    string,
+    { email: string; name: string | null; username: string | null; avatar: string | null }
+  >(likeAuthors.map((author) => [author.email, author]));
 
   const items: ActivityItem[] = [
     // Safe Follows
@@ -168,6 +212,28 @@ export default async function ActivityPage() {
         avatar: like.author.avatar,
         image: like.post.image,
       })),
+
+    // Likes on the current user's comments
+    ...commentLikes.flatMap((like) => {
+      const comment = likedCommentsById.get(like.commentId);
+      const author = likeAuthorsByEmail.get(like.authorEmail);
+      const post = comment ? likedPostsById.get(comment.postId) : null;
+      if (!comment || !author || !post || comment.authorEmail !== currentUserProfile.email) {
+        return [];
+      }
+
+      return [{
+        id: `comment-like-${like.id}`,
+        type: "like" as const,
+        title: `${author.name || author.username || "Someone"} liked your comment`,
+        body: comment.text,
+        context: `On your comment: ${comment.text || "Untitled comment"}`,
+        href: `/posts/${post.id}`,
+        createdAt: like.createdAt,
+        avatar: author.avatar,
+        image: post.image,
+      }];
+    }),
 
     // Safe Comments
     ...comments

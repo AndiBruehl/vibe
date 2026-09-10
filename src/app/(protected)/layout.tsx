@@ -51,11 +51,11 @@ export default async function ProtectedLayout({
     <>
       <DesktopNav
         unreadConversationCount={unreadMessageStatus.count}
-        unreadActivityCount={unreadInteractionStatus.commentCount + unreadInteractionStatus.replyCount}
+        unreadActivityCount={unreadInteractionStatus.commentCount + unreadInteractionStatus.replyCount + unreadInteractionStatus.likeCount}
       />
       <MobileNav
         unreadConversationCount={unreadMessageStatus.count}
-        unreadActivityCount={unreadInteractionStatus.commentCount + unreadInteractionStatus.replyCount}
+        unreadActivityCount={unreadInteractionStatus.commentCount + unreadInteractionStatus.replyCount + unreadInteractionStatus.likeCount}
       />
       <MessageNotifications
         initialStatus={unreadMessageStatus}

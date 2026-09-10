@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
   const validPosts = await prisma.post.findMany({ select: { id: true } });
   const validPostIds = validPosts.map((post) => post.id);
 
-  const [follows, likes, comments, participants] = await Promise.all([
+  const [follows, likes, comments, commentLikes, participants] = await Promise.all([
     prisma.follow.findMany({
       where: {
         followingId: currentUserProfile.id,
@@ -105,6 +105,24 @@ export async function GET(request: NextRequest) {
       },
       take: 20,
     }),
+    prisma.commentLike.findMany({
+      where: {
+        authorEmail: { not: currentUserProfile.email },
+        comment: { authorEmail: currentUserProfile.email },
+      },
+      include: {
+        author: { select: { name: true, username: true, avatar: true } },
+        comment: {
+          select: {
+            id: true,
+            text: true,
+            post: { select: { id: true, image: true, description: true } },
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    }),
     prisma.conversationParticipant.findMany({
       where: { profileId: currentUserProfile.id },
       include: {
@@ -146,6 +164,17 @@ export async function GET(request: NextRequest) {
       avatar: like.author.avatar,
       image: like.post.image,
       postId: like.post.id,
+    })),
+    ...commentLikes.map((like) => ({
+      id: `comment-like-${like.id}`,
+      type: "like",
+      title: `${like.author.name || like.author.username || "Someone"} liked your comment`,
+      body: like.comment.text,
+      context: `On your comment: ${like.comment.text || "Untitled comment"}`,
+      createdAt: like.createdAt,
+      avatar: like.author.avatar,
+      image: like.comment.post.image,
+      postId: like.comment.post.id,
     })),
     ...comments.map((comment) => ({
       id: `comment-${comment.id}`,

@@ -17,6 +17,7 @@ type MessageNotificationsProps = {
 type UnreadInteractionStatus = {
   commentCount: number;
   replyCount: number;
+  likeCount: number;
   latestUnreadAt: string | null;
 };
 
@@ -57,6 +58,9 @@ function getInteractionText(status: UnreadInteractionStatus) {
   if (status.replyCount) {
     parts.push(`${status.replyCount} ${status.replyCount === 1 ? "reply" : "replies"} to your comments`);
   }
+  if (status.likeCount) {
+    parts.push(`${status.likeCount} new ${status.likeCount === 1 ? "like" : "likes"}`);
+  }
   return parts.join(" · ");
 }
 
@@ -74,7 +78,7 @@ function dispatchUnreadStatus(status: UnreadMessageStatus) {
 function dispatchUnreadInteractionStatus(status: UnreadInteractionStatus) {
   window.dispatchEvent(
     new CustomEvent("activity:unread-status", {
-      detail: { count: status.commentCount + status.replyCount },
+      detail: { count: status.commentCount + status.replyCount + status.likeCount },
     }),
   );
 }

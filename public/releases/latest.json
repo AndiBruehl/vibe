@@ -1,11 +1,11 @@
 {
-  "releaseName": "Activity Comment Fix",
+  "releaseName": "Stories",
   "windows": {
-    "version": "0.1.42.1",
-    "downloadUrl": "https://raw.githubusercontent.com/AndiBruehl/vibe/main/electron-app/dist/Vibe-Setup-0.1.42.1-x64.exe"
+    "version": "0.1.50",
+    "downloadUrl": "https://raw.githubusercontent.com/AndiBruehl/vibe/main/electron-app/dist/Vibe-Setup-0.1.50-x64.exe"
   },
   "android": {
-    "version": "0.1.42.1",
-    "downloadUrl": "https://raw.githubusercontent.com/AndiBruehl/vibe/main/android-app/dist/Vibe-0.1.42.1.apk"
+    "version": "0.1.50",
+    "downloadUrl": "https://raw.githubusercontent.com/AndiBruehl/vibe/main/android-app/dist/Vibe-0.1.50.apk"
   }
 }

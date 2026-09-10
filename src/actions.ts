@@ -6,6 +6,8 @@ import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { parsePostImages } from "@/post-images";
 
+const MAX_STORY_SLIDES = 4;
+
 // Helper: upsert topics and link them to a post
 async function linkTopicsForPost(postId: string, topicsValue: unknown) {
   if (typeof topicsValue !== "string" || !topicsValue.trim()) return;
@@ -332,6 +334,51 @@ export async function togglePostLike(formData: FormData): Promise<{ liked: boole
   revalidatePath(`/posts/${postIdValue}`);
   const updated = await prisma.post.findUniqueOrThrow({ where: { id: postIdValue }, select: { likesCount: true } });
   return { liked: !existingLike, likes: updated.likesCount };
+}
+
+export async function createStory(formData: FormData): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.email) redirect("/");
+
+  const images = parsePostImages(formData.getAll("images")).slice(0, MAX_STORY_SLIDES);
+  if (!images.length) throw new Error("Choose at least one image for your story.");
+
+  await prisma.story.create({
+    data: {
+      authorEmail: session.user.email,
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      slides: {
+        create: images.map((imageUrl, position) => ({ imageUrl, position })),
+      },
+    },
+  });
+
+  revalidatePath("/home");
+}
+
+export async function deleteStory(formData: FormData): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.email) redirect("/");
+  const storyId = formData.get("storyId");
+  if (typeof storyId !== "string" || !storyId) throw new Error("Story ID is missing.");
+
+  const story = await prisma.story.findFirst({
+    where: { id: storyId, authorEmail: session.user.email },
+    select: { id: true },
+  });
+  // The story can already have expired or been deleted in another tab. Treat
+  // that as a completed delete instead of surfacing an application error.
+  if (!story) {
+    revalidatePath("/home");
+    return;
+  }
+
+  await prisma.$transaction([
+    prisma.storyView.deleteMany({ where: { storyId } }),
+    prisma.storySlide.deleteMany({ where: { storyId } }),
+    prisma.story.delete({ where: { id: storyId } }),
+  ]);
+  revalidatePath("/home");
 }
 
 export async function postComment(formData: FormData): Promise<void> {
