@@ -3,7 +3,7 @@
 import { createStory, deleteStory } from "@/actions";
 import { PinataSDK } from "pinata";
 import { Plus, Trash2, X } from "lucide-react";
-import { useEffect, useRef, useState, type DragEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 
 type Story = {
   id: string;
@@ -11,7 +11,7 @@ type Story = {
   authorName: string;
   authorUsername: string;
   authorAvatar: string | null;
-  slides: { id: string; storyId: string; imageUrl: string }[];
+  slides: { id: string; storyId: string; imageUrl: string; expiresAt: string }[];
   storyIds: string[];
   seen: boolean;
 };
@@ -22,7 +22,7 @@ const gatewayUrl = (cid: string) => {
   return gateway ? `${(gateway.startsWith("http") ? gateway : `https://${gateway}`).replace(/\/$/, "")}/ipfs/${cid}` : `https://gateway.pinata.cloud/ipfs/${cid}`;
 };
 
-export default function StoriesBar({ stories, viewerEmail }: { stories: Story[]; viewerEmail: string }) {
+export default function StoriesBar({ stories: suppliedStories, viewerEmail }: { stories: Story[]; viewerEmail: string }) {
   const [openStoryIndex, setOpenStoryIndex] = useState<number | null>(null);
   const [slide, setSlide] = useState(0);
   const [slideProgress, setSlideProgress] = useState(0);
@@ -34,6 +34,34 @@ export default function StoriesBar({ stories, viewerEmail }: { stories: Story[];
   const [dragging, setDragging] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   const elapsedSlideTime = useRef(0);
+
+  const [now, setNow] = useState(0);
+  const stories = useMemo(() => suppliedStories.map((story) => ({
+    ...story, slides: story.slides.filter((item) => Date.parse(item.expiresAt) > now),
+  })).filter((story) => story.slides.length > 0), [suppliedStories, now]);
+
+  useEffect(() => {
+    const check = () => {
+      const current = Date.now();
+      const expired = stories.some((story) => story.slides.some((item) => Date.parse(item.expiresAt) <= current));
+      if (expired) {
+        setOpenStoryIndex(null);
+        setPaused(false);
+        setSlide(0);
+        setNow(current);
+      }
+    };
+    check();
+    const expiry = Math.min(...stories.flatMap((story) => story.slides.map((item) => Date.parse(item.expiresAt))));
+    const timer = Number.isFinite(expiry) ? window.setTimeout(check, Math.min(2147483647, Math.max(0, expiry - Date.now()))) : undefined;
+    window.addEventListener("focus", check);
+    document.addEventListener("visibilitychange", check);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("focus", check);
+      document.removeEventListener("visibilitychange", check);
+    };
+  }, [stories]);
 
   const openStory = openStoryIndex === null ? null : stories[openStoryIndex] ?? null;
 

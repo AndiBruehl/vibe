@@ -64,7 +64,7 @@ export default async function UserHome({ session, feedMode }: UserHomeProps) {
     authorName: string;
     authorUsername: string;
     authorAvatar: string | null;
-    slides: { id: string; storyId: string; imageUrl: string }[];
+    slides: { id: string; storyId: string; imageUrl: string; expiresAt: string }[];
     storyIds: string[];
   }>();
   // Multiple uploads by the same person belong to one visible story ring.
@@ -77,11 +77,11 @@ export default async function UserHome({ session, feedMode }: UserHomeProps) {
       authorName: author.name || "VIBE member",
       authorUsername: author.username || "",
       authorAvatar: author.avatar,
-      slides: [] as { id: string; storyId: string; imageUrl: string }[],
+      slides: [] as { id: string; storyId: string; imageUrl: string; expiresAt: string }[],
       storyIds: [] as string[],
     };
     group.storyIds.push(story.id);
-    group.slides.push(...story.slides.map((slide) => ({ id: slide.id, storyId: story.id, imageUrl: slide.imageUrl })));
+    group.slides.push(...story.slides.map((slide) => ({ id: slide.id, storyId: story.id, imageUrl: slide.imageUrl, expiresAt: story.expiresAt.toISOString() })));
     groupedStories.set(story.authorEmail, group);
   }
   const stories = [...groupedStories.values()].map((story) => ({
