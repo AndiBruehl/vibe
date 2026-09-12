@@ -4,6 +4,7 @@ import { prisma } from "@/db";
 import Image from "next/image";
 import Link from "next/link";
 import { MoveLeft } from "lucide-react";
+import LocalizedText from "@/app/components/LocalizedText";
 
 export default async function BrowsePage() {
   const posts = await prisma.post.findMany({
@@ -30,22 +31,22 @@ export default async function BrowsePage() {
         >
           <MoveLeft />
           <span className="opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-            Back to Home
+            <LocalizedText en="Back to Home" de="Zurück zur Startseite" />
           </span>
         </Link>
 
         <h1 className="text-lg font-bold text-slate-800 dark:text-slate-200">
-          Browse
+          <LocalizedText en="Browse" de="Entdecken" />
         </h1>
 
-        <Link href="/profiles" className="inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-4 font-medium text-slate-800 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800">Profiles</Link>
+        <Link href="/profiles" className="inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-4 font-medium text-slate-800 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"><LocalizedText en="Profiles" de="Profile" /></Link>
       </section>
 
       <section className="mt-6">
         {posts.length === 0 ? (
           <div className="rounded-2xl bg-white p-8 text-center shadow-md shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
             <p className="text-slate-700 dark:text-slate-300">
-              No posts available.
+              <LocalizedText en="No posts available." de="Keine Beiträge verfügbar." />
             </p>
           </div>
         ) : (
@@ -91,12 +92,10 @@ export default async function BrowsePage() {
                     </div>
                   </div>
 
-                  <p className="line-clamp-2 text-sm text-slate-700 dark:text-slate-300">
-                    {post.description || "No description"}
-                  </p>
+                  <p className="line-clamp-2 text-sm text-slate-700 dark:text-slate-300">{post.description || <LocalizedText en="No description" de="Keine Beschreibung" />}</p>
 
                   <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-                    <span>{post.likesCount} likes</span>
+                    <span>{post.likesCount} <LocalizedText en="likes" de="Likes" /></span>
                     <span>{new Date(post.createdAt).toLocaleDateString()}</span>
                   </div>
                 </div>

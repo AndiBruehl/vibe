@@ -1,3 +1,5 @@
+"use client";
+
 import {
   BellIcon,
   CameraIcon,
@@ -11,16 +13,23 @@ import Image from "next/image";
 import Link from "next/link";
 import MessageUnreadBadge from "@/app/components/MessageUnreadBadge";
 import ActivityUnreadBadge from "@/app/components/ActivityUnreadBadge";
+import useVibeLanguage, { type VibeLanguage } from "@/app/components/useVibeLanguage";
 
 type DesktopNavProps = {
   unreadConversationCount?: number;
   unreadActivityCount?: number;
+  initialLanguage?: VibeLanguage;
 };
 
 export default function DesktopNav({
   unreadConversationCount = 0,
   unreadActivityCount = 0,
+  initialLanguage = "en",
 }: DesktopNavProps) {
+  const language = useVibeLanguage(initialLanguage);
+  const labels = language === "de"
+    ? { home: "Startseite", activity: "Aktivität", search: "Suche", create: "Erstellen", browse: "Entdecken", messages: "Nachrichten", profile: "Profil" }
+    : { home: "Home", activity: "Activity", search: "Search", create: "Create", browse: "Browse", messages: "Messages", profile: "Profile" };
   return (
     <aside className="hidden md:fixed md:left-0 md:top-0 md:z-40 md:block md:h-screen md:w-44 bg-ig-nav border-r border-slate-200 px-3 py-4 dark:border-slate-700">
       <div className="flex flex-col gap-1">
@@ -49,7 +58,7 @@ export default function DesktopNav({
           </div>
 
           <span className="text-sm font-normal text-slate-900 transition-all duration-200 group-hover:bg-linear-to-tr group-hover:from-(--ig-orange) group-hover:to-(--ig-red) group-hover:bg-clip-text group-hover:text-transparent dark:text-white">
-            Home
+            {labels.home}
           </span>
         </Link>
         <Link
@@ -66,7 +75,7 @@ export default function DesktopNav({
           </div>
 
           <span className="text-sm font-normal text-slate-900 transition-all duration-200 group-hover:bg-linear-to-tr group-hover:from-(--ig-orange) group-hover:to-(--ig-red) group-hover:bg-clip-text group-hover:text-transparent dark:text-white">
-            Activity
+            {labels.activity}
           </span>
         </Link>
         <Link
@@ -82,7 +91,7 @@ export default function DesktopNav({
           </div>
 
           <span className="text-sm font-normal text-slate-900 transition-all duration-200 group-hover:bg-linear-to-tr group-hover:from-(--ig-orange) group-hover:to-(--ig-red) group-hover:bg-clip-text group-hover:text-transparent dark:text-white">
-            Search
+            {labels.search}
           </span>
         </Link>
         <Link
@@ -98,7 +107,7 @@ export default function DesktopNav({
           </div>
 
           <span className="text-sm font-normal text-slate-900 transition-all duration-200 group-hover:bg-linear-to-tr group-hover:from-(--ig-orange) group-hover:to-(--ig-red) group-hover:bg-clip-text group-hover:text-transparent dark:text-white">
-            Create
+            {labels.create}
           </span>
         </Link>
         <Link
@@ -114,7 +123,7 @@ export default function DesktopNav({
           </div>
 
           <span className="text-sm font-normal text-slate-900 transition-all duration-200 group-hover:bg-linear-to-tr group-hover:from-(--ig-orange) group-hover:to-(--ig-red) group-hover:bg-clip-text group-hover:text-transparent dark:text-white">
-            Browse
+            {labels.browse}
           </span>
         </Link>
         <Link
@@ -134,7 +143,7 @@ export default function DesktopNav({
           </div>
 
           <span className="text-sm font-normal text-slate-900 transition-all duration-200 group-hover:bg-linear-to-tr group-hover:from-(--ig-orange) group-hover:to-(--ig-red) group-hover:bg-clip-text group-hover:text-transparent dark:text-white">
-            Messages
+            {labels.messages}
           </span>
         </Link>
         <Link
@@ -150,7 +159,7 @@ export default function DesktopNav({
           </div>
 
           <span className="text-sm font-normal text-slate-900 transition-all duration-200 group-hover:bg-linear-to-tr group-hover:from-(--ig-orange) group-hover:to-(--ig-red) group-hover:bg-clip-text group-hover:text-transparent dark:text-white">
-            Profile
+            {labels.profile}
           </span>
         </Link>
       </div>

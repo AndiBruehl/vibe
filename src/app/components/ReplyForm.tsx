@@ -2,6 +2,8 @@
 
 import { useRef } from "react";
 import { postReply } from "@/actions";
+import MentionTextarea from "./MentionTextarea";
+import useVibeLanguage from "./useVibeLanguage";
 
 type ReplyFormProps = {
   postId: string;
@@ -9,6 +11,7 @@ type ReplyFormProps = {
 };
 
 export default function ReplyForm({ postId, parentCommentId }: ReplyFormProps) {
+  const de = useVibeLanguage() === "de";
   const formRef = useRef<HTMLFormElement>(null);
 
   async function action(formData: FormData) {
@@ -21,10 +24,10 @@ export default function ReplyForm({ postId, parentCommentId }: ReplyFormProps) {
       <input type="hidden" name="postId" value={postId} />
       <input type="hidden" name="parentCommentId" value={parentCommentId} />
 
-      <textarea
+      <MentionTextarea
         name="text"
         rows={2}
-        placeholder="Write a reply..."
+        placeholder={de ? "Schreibe eine Antwort..." : "Write a reply..."}
         className="w-full resize-none rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-500 dark:border-gray-600 dark:bg-gray-900 dark:text-white"
         required
       />
@@ -34,7 +37,7 @@ export default function ReplyForm({ postId, parentCommentId }: ReplyFormProps) {
           type="submit"
           className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
         >
-          Reply
+          {de ? "Antworten" : "Reply"}
         </button>
       </div>
     </form>

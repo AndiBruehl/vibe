@@ -6,6 +6,7 @@ import Link from "next/link";
 import { MoveLeft } from "lucide-react";
 import SearchInput from "./SearchInput";
 import img1 from "../profile/default.jpg";
+import LocalizedText from "@/app/components/LocalizedText";
 
 type SearchPageProps = {
   searchParams: Promise<{
@@ -88,12 +89,12 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         >
           <MoveLeft />
           <span className="opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-            Back to Home
+            <LocalizedText en="Back to Home" de="Zurück zur Startseite" />
           </span>
         </Link>
 
         <h1 className="text-lg font-bold text-slate-800 dark:text-slate-500">
-          Search
+          <LocalizedText en="Search" de="Suche" />
         </h1>
 
         <div className="w-24" />
@@ -106,7 +107,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       {!query ? (
         <section className="mt-6 rounded-2xl bg-white p-8 text-center shadow-md shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
           <p className="text-slate-700 dark:text-slate-300">
-            Search for users or words inside post descriptions.
+            <LocalizedText en="Search for users or words inside post descriptions." de="Suche nach Nutzern oder Wörtern in Beitragsbeschreibungen." />
           </p>
         </section>
       ) : null}
@@ -116,17 +117,17 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           <section className="mt-6">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-500">
-                Users
+                <LocalizedText en="Users" de="Nutzer" />
               </h2>
               <span className="text-sm text-slate-500 dark:text-slate-400">
-                {users.length} result{users.length === 1 ? "" : "s"}
+                {users.length} <LocalizedText en={users.length === 1 ? "result" : "results"} de={users.length === 1 ? "Ergebnis" : "Ergebnisse"} />
               </span>
             </div>
 
             {users.length === 0 ? (
               <div className="rounded-2xl bg-white p-6 text-center shadow-md shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
                 <p className="text-slate-700 dark:text-slate-300">
-                  No users found.
+                  <LocalizedText en="No users found." de="Keine Nutzer gefunden." />
                 </p>
               </div>
             ) : (
@@ -175,17 +176,17 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           <section className="mt-8">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-500">
-                Posts
+                <LocalizedText en="Posts" de="Beiträge" />
               </h2>
               <span className="text-sm text-slate-500 dark:text-slate-400">
-                {posts.length} result{posts.length === 1 ? "" : "s"}
+                {posts.length} <LocalizedText en={posts.length === 1 ? "result" : "results"} de={posts.length === 1 ? "Ergebnis" : "Ergebnisse"} />
               </span>
             </div>
 
             {posts.length === 0 ? (
               <div className="rounded-2xl bg-white p-6 text-center shadow-md shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
                 <p className="text-slate-700 dark:text-slate-300">
-                  No posts found.
+                  <LocalizedText en="No posts found." de="Keine Beiträge gefunden." />
                 </p>
               </div>
             ) : (
@@ -234,7 +235,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                       </p>
 
                       <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-                        <span>{post.likesCount} likes</span>
+                        <span>{post.likesCount} <LocalizedText en="likes" de="Likes" /></span>
                         <span>
                           {new Date(post.createdAt).toLocaleDateString()}
                         </span>

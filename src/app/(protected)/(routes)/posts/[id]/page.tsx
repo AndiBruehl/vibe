@@ -12,6 +12,8 @@ import PostCarousel from "@/app/components/PostCarousel";
 import PostComposer from "@/app/components/PostComposer";
 import { getPostImages } from "@/post-images";
 import { deletePost, editPost } from "@/actions";
+import LocalizedText from "@/app/components/LocalizedText";
+import MentionText from "@/app/components/MentionText";
 
 
 export default async function SinglePostPage({
@@ -92,7 +94,7 @@ export default async function SinglePostPage({
         >
           <MoveLeft className="shrink-0" />
           <span className="whitespace-nowrap opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-            Back to Profile
+            <LocalizedText en="Back to Profile" de="Zurück zum Profil" />
           </span>
         </Link>
       </section>
@@ -126,11 +128,11 @@ export default async function SinglePostPage({
 
               <div className="space-y-4 p-5 md:p-6">
                 <h1 className="text-xl font-semibold text-slate-900 dark:text-white">
-                  Post
+                  <LocalizedText en="Post" de="Beitrag" />
                 </h1>
 
                 <p className="text-slate-700 dark:text-slate-200">
-                  {post.description}
+                  <MentionText text={post.description} />
                 </p>
 
                 {topics.length > 0 && (
@@ -148,7 +150,7 @@ export default async function SinglePostPage({
                 )}
 
                 {taggedProfiles.length > 0 && <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-                  <span>With</span>
+                  <span><LocalizedText en="With" de="Mit" /></span>
                   {taggedProfiles.map((profile) => profile.username ? <Link key={profile.id} href={`/profile/${encodeURIComponent(profile.username)}`} className="rounded-full bg-orange-100 px-3 py-1 font-medium text-orange-800 hover:underline dark:bg-orange-500/15 dark:text-orange-200">@{profile.username}</Link> : null)}
                 </div>}
 
@@ -164,7 +166,7 @@ export default async function SinglePostPage({
                           type="submit"
                           className="rounded-full border border-red-300 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-100 dark:border-red-600 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900"
                         >
-                          Delete
+                          <LocalizedText en="Delete" de="Löschen" />
                         </button>
                       </form>
                     </div>
@@ -215,7 +217,7 @@ export default async function SinglePostPage({
 
             <section id="comments" className="rounded-2xl bg-white p-5 shadow-md shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
               <h2 className="mb-4 text-lg font-semibold text-slate-900 dark:text-white">
-                Comments
+                <LocalizedText en="Comments" de="Kommentare" />
               </h2>
 
               <CommentForm postId={post.id} />

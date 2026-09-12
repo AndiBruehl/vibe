@@ -5,7 +5,9 @@ import { unstable_rethrow } from "next/navigation";
 import { PinataSDK } from "pinata";
 import TopicPicker from "./TopicPicker";
 import ProfileTagPicker, { type TaggedProfile } from "./ProfileTagPicker";
+import MentionTextarea from "./MentionTextarea";
 import { MAX_POST_IMAGES } from "@/post-images";
+import useVibeLanguage from "./useVibeLanguage";
 
 const MAX_IMAGE_SIZE_BYTES = 25 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set([
@@ -63,13 +65,14 @@ const pinata = new PinataSDK({
 
 function Submit({ disabled, editing }: { disabled: boolean; editing: boolean }) {
   const { pending } = useFormStatus();
+  const de = useVibeLanguage() === "de";
   return (
     <button
       type="submit"
       disabled={disabled || pending}
       className="w-full rounded-xl bg-red-600 px-4 py-3 font-semibold text-white disabled:opacity-50"
     >
-      {pending ? "Saving…" : editing ? "Save changes" : "Publish"}
+      {pending ? (de ? "Wird gespeichert…" : "Saving…") : editing ? (de ? "Änderungen speichern" : "Save changes") : (de ? "Veröffentlichen" : "Publish")}
     </button>
   );
 }
@@ -88,6 +91,7 @@ export default function PostComposer({
   topics?: string[];
   taggedProfiles?: TaggedProfile[];
 }) {
+  const de = useVibeLanguage() === "de";
   const [images, setImages] = useState(initialImages);
   const [draftDescription, setDraftDescription] = useState(description);
   const [busy, setBusy] = useState(false);
@@ -111,13 +115,13 @@ export default function PostComposer({
 
   function saveDraft() {
     localStorage.setItem(DRAFT_KEY, JSON.stringify({ images, description: draftDescription, savedAt: Date.now() }));
-    setProgress("Draft saved on this device.");
+    setProgress(de ? "Entwurf wurde auf diesem Gerät gespeichert." : "Draft saved on this device.");
   }
   async function upload(files: File[]) {
     if (!files.length || uploading.current) return;
     setError("");
     if (images.length + files.length > MAX_POST_IMAGES) {
-      setError("A post can contain at most 4 images.");
+      setError(de ? "Ein Beitrag kann höchstens 4 Bilder enthalten." : "A post can contain at most 4 images.");
       return;
     }
     for (const file of files) {
@@ -125,7 +129,7 @@ export default function PostComposer({
         !ALLOWED_IMAGE_TYPES.has(file.type) ||
         file.size > MAX_IMAGE_SIZE_BYTES
       ) {
-        setError("Use JPG, PNG, WebP, GIF or AVIF files up to 25 MB each.");
+        setError(de ? "Nutze JPG-, PNG-, WebP-, GIF- oder AVIF-Dateien bis 25 MB pro Bild." : "Use JPG, PNG, WebP, GIF or AVIF files up to 25 MB each.");
         return;
       }
     }
@@ -133,7 +137,7 @@ export default function PostComposer({
     setBusy(true);
     try {
       for (let i = 0; i < files.length; i++) {
-        setProgress(`Uploading ${i + 1}/${files.length}…`);
+        setProgress(de ? `Wird hochgeladen ${i + 1}/${files.length}…` : `Uploading ${i + 1}/${files.length}…`);
         const url = await getSignedUploadUrl();
         const upload = await pinata.upload.public.file(files[i]).url(url);
         setImages((current) => [...current, getGatewayUrl(upload.cid)]);
@@ -179,7 +183,7 @@ export default function PostComposer({
       ))}
       <fieldset disabled={busy} className="space-y-3">
         <legend className="mb-2 font-semibold text-slate-900 dark:text-slate-100">
-          Images · {images.length}/4
+          {de ? "Bilder" : "Images"} · {images.length}/4
         </legend>
         <div className="grid grid-cols-2 gap-3">
           {images.map((url, i) => (
@@ -189,15 +193,15 @@ export default function PostComposer({
             >
               <img
                 src={url}
-                alt={`Selected image ${i + 1}`}
+                alt={`${de ? "Ausgewähltes Bild" : "Selected image"} ${i + 1}`}
                 className="aspect-square w-full bg-slate-100 object-contain dark:bg-slate-900"
               />
               <div className="flex items-center justify-between gap-1 p-2 text-xs">
-                <span>{i === 0 ? "Cover" : `Image ${i + 1}`}</span>
+                <span>{i === 0 ? (de ? "Titelbild" : "Cover") : `${de ? "Bild" : "Image"} ${i + 1}`}</span>
                 {i > 0 && (
                   <button
                     type="button"
-                    aria-label={`Move image ${i + 1} left`}
+                    aria-label={`${de ? "Bild" : "Move image"} ${i + 1} ${de ? "nach links verschieben" : "left"}`}
                     onClick={() =>
                       setImages((current) => {
                         const next = [...current];
@@ -212,7 +216,7 @@ export default function PostComposer({
                 )}
                 <button
                   type="button"
-                  aria-label={`Remove image ${i + 1}`}
+                  aria-label={`${de ? "Bild entfernen" : "Remove image"} ${i + 1}`}
                   onClick={() =>
                     setImages((current) =>
                       current.filter((_, index) => index !== i),
@@ -220,7 +224,7 @@ export default function PostComposer({
                   }
                   className="rounded p-2 text-red-600 dark:text-red-400"
                 >
-                  Remove
+                  {de ? "Entfernen" : "Remove"}
                 </button>
               </div>
             </div>
@@ -235,15 +239,15 @@ export default function PostComposer({
               className="flex min-h-48 w-full flex-col items-center justify-center gap-3 p-6 from-(--ig-orange) to-(--ig-red) enabled:hover:bg-linear-to-tr focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
             >
               <span className="rounded-xl bg-white/95 px-5 py-3 font-semibold text-slate-900">
-                {isDragging ? "Drop images to upload" : "Upload images"}
+                {isDragging ? (de ? "Bilder zum Hochladen ablegen" : "Drop images to upload") : (de ? "Bilder hochladen" : "Upload images")}
               </span>
               <span className="rounded-full bg-slate-900/70 px-3 py-1 text-xs text-white">
-                Drag & drop or choose files · Up to 4 images · 25 MB each
+                {de ? "Bilder hierher ziehen oder Dateien auswählen · Bis zu 4 Bilder · je 25 MB" : "Drag & drop or choose files · Up to 4 images · 25 MB each"}
               </span>
             </button>
             <input
               ref={fileInput}
-              aria-label="Choose images"
+              aria-label={de ? "Bilder auswählen" : "Choose images"}
               type="file"
               multiple
               accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
@@ -263,8 +267,8 @@ export default function PostComposer({
         </p>
       )}
       <label className="block text-sm font-medium">
-        Description
-        <textarea
+        {de ? "Beschreibung" : "Description"}
+        <MentionTextarea
           name="description"
           value={draftDescription}
           onChange={(event) => setDraftDescription(event.target.value)}
@@ -280,7 +284,7 @@ export default function PostComposer({
         </p>
       )}
       <div className={`grid gap-3 ${isDraftable ? "sm:grid-cols-2" : ""}`}>
-        {isDraftable && <button type="button" onClick={saveDraft} className="min-h-12 rounded-xl border-2 border-red-500 bg-red-50 px-4 py-3 text-base font-bold text-red-700 transition hover:bg-red-100 dark:bg-red-950/30 dark:text-red-300 dark:hover:bg-red-950/50">Save draft</button>}
+        {isDraftable && <button type="button" onClick={saveDraft} className="min-h-12 rounded-xl border-2 border-red-500 bg-red-50 px-4 py-3 text-base font-bold text-red-700 transition hover:bg-red-100 dark:bg-red-950/30 dark:text-red-300 dark:hover:bg-red-950/50">{de ? "Entwurf speichern" : "Save draft"}</button>}
         <Submit disabled={busy || !images.length} editing={!!postId} />
       </div>
     </form>

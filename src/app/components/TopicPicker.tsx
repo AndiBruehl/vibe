@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import useVibeLanguage from "./useVibeLanguage";
 
 type Topic = { id: string; name: string; slug: string };
 const MAX_TOPICS = 5;
@@ -8,6 +9,7 @@ const TOPIC_LIMIT_MESSAGE =
   "Du kannst bis zu 5 Topics pro Beitrag verwenden. Entferne erst eines, wenn du ein anderes hinzufügen möchtest.";
 
 export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
+  const de = useVibeLanguage() === "de";
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<Topic[]>([]);
   const [selected, setSelected] = useState<string[]>(() =>
@@ -238,7 +240,7 @@ export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
               if (query.trim()) add(query.trim());
             }
           }}
-          placeholder="Add topics (type and press Enter or pick suggestion)"
+          placeholder={de ? "Topics hinzufügen (eingeben, Enter drücken oder Vorschlag wählen)" : "Add topics (type and press Enter or pick suggestion)"}
           className="w-full rounded-md border px-3 py-2 text-sm"
         />
 

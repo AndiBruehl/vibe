@@ -4,6 +4,7 @@ import { toggleFollow } from "@/actions";
 import Link from "next/link";
 import { Search, UserRound } from "lucide-react";
 import { useMemo, useState } from "react";
+import useVibeLanguage from "./useVibeLanguage";
 
 type ConnectionProfile = {
   id: string;
@@ -21,6 +22,7 @@ export default function ProfileConnectionList({
   profiles: ConnectionProfile[];
   title: "Followers" | "Following";
 }) {
+  const de = useVibeLanguage() === "de";
   const [query, setQuery] = useState("");
   const visibleProfiles = useMemo(() => {
     const search = query.trim().toLocaleLowerCase();
@@ -35,16 +37,16 @@ export default function ProfileConnectionList({
   return (
     <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg shadow-slate-200/60 dark:border-white/10 dark:bg-slate-800 dark:shadow-black/20">
       <div className="border-b border-slate-200 px-5 py-5 dark:border-white/10 sm:px-6">
-        <h1 className="text-xl font-bold text-slate-900 dark:text-white">{title}</h1>
+        <h1 className="text-xl font-bold text-slate-900 dark:text-white">{de ? (title === "Followers" ? "Follower" : "Folgt") : title}</h1>
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-          {profiles.length} {profiles.length === 1 ? "profile" : "profiles"}
+          {profiles.length} {de ? (profiles.length === 1 ? "Profil" : "Profile") : (profiles.length === 1 ? "profile" : "profiles")}
         </p>
         <label className="relative mt-4 block">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search profiles..."
+            placeholder={de ? "Profile suchen..." : "Search profiles..."}
             className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-3 text-sm text-slate-900 outline-none transition focus:border-orange-400 focus:ring-4 focus:ring-orange-500/15 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
           />
         </label>
@@ -70,7 +72,7 @@ export default function ProfileConnectionList({
                 className="min-w-0 flex-1"
               >
                 <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">
-                  {profile.name || profile.username || "VIBE member"}
+                  {profile.name || profile.username || (de ? "VIBE-Mitglied" : "VIBE member")}
                 </p>
                 {profile.username ? (
                   <p className="truncate text-xs text-slate-500 dark:text-slate-400">@{profile.username}</p>
@@ -89,7 +91,7 @@ export default function ProfileConnectionList({
                         : "bg-linear-to-r from-(--ig-orange) to-(--ig-red) text-white shadow-sm hover:brightness-105"
                     }`}
                   >
-                    {profile.isFollowing ? "Following" : "Follow"}
+                    {profile.isFollowing ? (de ? "Folge ich" : "Following") : (de ? "Folgen" : "Follow")}
                   </button>
                 </form>
               ) : null}
@@ -98,7 +100,7 @@ export default function ProfileConnectionList({
         </ul>
       ) : (
         <div className="px-6 py-12 text-center text-sm text-slate-500 dark:text-slate-400">
-          No profiles match your search.
+          {de ? "Keine Profile passen zu deiner Suche." : "No profiles match your search."}
         </div>
       )}
     </section>

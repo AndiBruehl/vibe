@@ -56,6 +56,33 @@ async function linkProfilesForPost(postId: string, profileIds: FormDataEntryValu
   const profiles = await prisma.profile.findMany({ where: { id: { in: ids } }, select: { id: true } });
   if (profiles.length) await prisma.postProfileTag.createMany({ data: profiles.map((profile) => ({ postId, profileId: profile.id })) });
 }
+
+function extractMentionedUsernames(text: string) {
+  return [...new Set(
+    Array.from(text.matchAll(/@([^\s@/]+)/gu))
+      .map((match) => match[1].replace(/[.,!?;:)\]}]+$/u, "").trim())
+      .filter(Boolean),
+  )].slice(0, 10);
+}
+
+async function linkMentionsForComment(commentId: string, text: string, authorEmail: string) {
+  const usernames = extractMentionedUsernames(text);
+  if (!usernames.length) return;
+
+  const profiles = await prisma.profile.findMany({
+    where: {
+      email: { not: authorEmail },
+      OR: usernames.map((username) => ({ username: { equals: username, mode: "insensitive" } })),
+    },
+    select: { id: true },
+  });
+
+  if (profiles.length) {
+    await prisma.commentMention.createMany({
+      data: profiles.map((profile) => ({ commentId, profileId: profile.id })),
+    });
+  }
+}
 export async function upsertProfile(formData: FormData) {
   const session = await auth();
 
@@ -261,6 +288,9 @@ export async function deletePost(formData: FormData): Promise<void> {
     prisma.commentLike.deleteMany({
       where: { commentId: { in: commentIds.map((comment) => comment.id) } },
     }),
+    prisma.commentMention.deleteMany({
+      where: { commentId: { in: commentIds.map((comment) => comment.id) } },
+    }),
     prisma.comment.deleteMany({ where: { postId: postIdValue } }),
     prisma.postLike.deleteMany({ where: { postId: postIdValue } }),
     prisma.postBookmark.deleteMany({ where: { postId: postIdValue } }),
@@ -450,7 +480,7 @@ export async function postComment(formData: FormData): Promise<void> {
     throw new Error("Post not found.");
   }
 
-  await prisma.comment.create({
+  const comment = await prisma.comment.create({
     data: {
       authorEmail: session.user.email,
       postId: postIdValue,
@@ -458,6 +488,7 @@ export async function postComment(formData: FormData): Promise<void> {
       text,
     },
   });
+  await linkMentionsForComment(comment.id, text, session.user.email);
 
   revalidatePath(`/posts/${postIdValue}`);
   revalidatePath("/home");
@@ -505,7 +536,7 @@ export async function postReply(formData: FormData): Promise<void> {
     throw new Error("Reply does not belong to this post.");
   }
 
-  await prisma.comment.create({
+  const reply = await prisma.comment.create({
     data: {
       authorEmail: session.user.email,
       postId: postIdValue,
@@ -513,6 +544,7 @@ export async function postReply(formData: FormData): Promise<void> {
       text,
     },
   });
+  await linkMentionsForComment(reply.id, text, session.user.email);
 
   revalidatePath(`/posts/${postIdValue}`);
 }
@@ -567,6 +599,8 @@ export async function editComment(formData: FormData): Promise<void> {
     where: { id: commentIdValue },
     data: { text },
   });
+  await prisma.commentMention.deleteMany({ where: { commentId: commentIdValue } });
+  await linkMentionsForComment(commentIdValue, text, session.user.email);
 
   revalidatePath(`/posts/${postIdValue}`);
   redirect(`/posts/${postIdValue}`);
@@ -615,6 +649,7 @@ export async function deleteComment(formData: FormData): Promise<void> {
 
   await prisma.$transaction([
     prisma.commentLike.deleteMany({ where: { commentId: { in: commentIds } } }),
+    prisma.commentMention.deleteMany({ where: { commentId: { in: commentIds } } }),
     prisma.comment.deleteMany({
       where: { parentCommentId: commentIdValue },
     }),

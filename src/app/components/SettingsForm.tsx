@@ -6,6 +6,7 @@ import type { Profile } from "@prisma/client";
 import { upsertProfile } from "@/actions";
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import LanguageSwitcher from "@/app/components/LanguageSwitcher";
+import MentionTextarea from "@/app/components/MentionTextarea";
 
 import defaultImg from "./default.jpg";
 
@@ -157,7 +158,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
 
         <label className="mt-5 block text-sm font-semibold text-slate-700 dark:text-slate-200">
           {copy("Bio", "Über mich")}
-          <textarea
+          <MentionTextarea
             name="bio"
             defaultValue={profile?.bio ?? ""}
             placeholder="Tell people a little about yourself"

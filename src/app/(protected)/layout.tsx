@@ -51,11 +51,13 @@ export default async function ProtectedLayout({
     <>
       <DesktopNav
         unreadConversationCount={unreadMessageStatus.count}
-        unreadActivityCount={unreadInteractionStatus.commentCount + unreadInteractionStatus.replyCount + unreadInteractionStatus.likeCount}
+        unreadActivityCount={unreadInteractionStatus.commentCount + unreadInteractionStatus.replyCount + unreadInteractionStatus.likeCount + unreadInteractionStatus.mentionCount}
+        initialLanguage={profile.language === "de" ? "de" : "en"}
       />
       <MobileNav
         unreadConversationCount={unreadMessageStatus.count}
-        unreadActivityCount={unreadInteractionStatus.commentCount + unreadInteractionStatus.replyCount + unreadInteractionStatus.likeCount}
+        unreadActivityCount={unreadInteractionStatus.commentCount + unreadInteractionStatus.replyCount + unreadInteractionStatus.likeCount + unreadInteractionStatus.mentionCount}
+        initialLanguage={profile.language === "de" ? "de" : "en"}
       />
       <MessageNotifications
         initialStatus={unreadMessageStatus}

@@ -61,6 +61,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
     prisma.follow.count({ where: { followingId: profile.id } }),
     prisma.follow.count({ where: { followerId: profile.id } }),
   ]);
+  const de = profile.language === "de";
 
   return (
     <main>
@@ -71,7 +72,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         >
           <MoveLeft />
           <span className="opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-            Back to Home
+            {de ? "Zurück zur Startseite" : "Back to Home"}
           </span>
         </Link>
 
@@ -87,7 +88,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
           className="group flex items-center gap-2 text-slate-800 no-underline visited:text-slate-800 hover:text-slate-600 dark:text-slate-200 dark:visited:text-slate-400 dark:hover:text-slate-500"
         >
           <span className="opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-            Settings
+            {de ? "Einstellungen" : "Settings"}
           </span>
           <Settings />
         </Link>
@@ -111,7 +112,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
 
       <section className="mt-8 text-center">
         <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">
-          {profile.name || "User"}
+          {profile.name || (de ? "Nutzer" : "User")}
         </h1>
 
         <p className="my-1 text-slate-600 dark:text-slate-300">
@@ -126,21 +127,21 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
       <section className="mt-6 flex justify-center gap-8 text-center text-sm">
         <div>
           <p className="font-bold text-slate-900 dark:text-white">{postsCount}</p>
-          <p className="text-slate-500 dark:text-slate-400">Posts</p>
+          <p className="text-slate-500 dark:text-slate-400">{de ? "Beiträge" : "Posts"}</p>
         </div>
         <Link
           href={`/profile/${encodeURIComponent(profile.username ?? "")}/connections?list=followers`}
           className="transition hover:opacity-70"
         >
           <p className="font-bold text-slate-900 dark:text-white">{followersCount}</p>
-          <p className="text-slate-500 dark:text-slate-400">Followers</p>
+          <p className="text-slate-500 dark:text-slate-400">{de ? "Follower" : "Followers"}</p>
         </Link>
         <Link
           href={`/profile/${encodeURIComponent(profile.username ?? "")}/connections?list=following`}
           className="transition hover:opacity-70"
         >
           <p className="font-bold text-slate-900 dark:text-white">{followingCount}</p>
-          <p className="text-slate-500 dark:text-slate-400">Following</p>
+          <p className="text-slate-500 dark:text-slate-400">{de ? "Folgt" : "Following"}</p>
         </Link>
       </section>
 
@@ -154,7 +155,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
             }
             href="/profile?tab=posts"
           >
-            Posts
+            {de ? "Beiträge" : "Posts"}
           </Link>
 
           <Link
@@ -176,7 +177,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
             }
             href="/profile?tab=bookmarks"
           >
-            Bookmarks
+            {de ? "Gespeichert" : "Bookmarks"}
           </Link>
 
           <Link
@@ -187,13 +188,13 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
             }
             href="/profile?tab=topics"
           >
-            Topics
+            {de ? "Themen" : "Topics"}
           </Link>
         </div>
       </section>
 
       <section className="mt-4">
-        <Suspense fallback="Loading posts...">
+        <Suspense fallback={de ? "Beiträge werden geladen..." : "Loading posts..."}>
           {activeTab === "posts" ? (
             <ProfilePosts email={session.user.email} />
           ) : activeTab === "bookmarks" ? (

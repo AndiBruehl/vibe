@@ -1,3 +1,5 @@
+"use client";
+
 import {
   BellIcon,
   CameraIcon,
@@ -10,16 +12,23 @@ import {
 import Link from "next/link";
 import MessageUnreadBadge from "@/app/components/MessageUnreadBadge";
 import ActivityUnreadBadge from "@/app/components/ActivityUnreadBadge";
+import useVibeLanguage, { type VibeLanguage } from "@/app/components/useVibeLanguage";
 
 type MobileNavProps = {
   unreadConversationCount?: number;
   unreadActivityCount?: number;
+  initialLanguage?: VibeLanguage;
 };
 
 export default function MobileNav({
   unreadConversationCount = 0,
   unreadActivityCount = 0,
+  initialLanguage = "en",
 }: MobileNavProps) {
+  const language = useVibeLanguage(initialLanguage);
+  const labels = language === "de"
+    ? { home: "START", activity: "AKTIVITÄT", search: "SUCHE", create: "ERSTELLEN", browse: "ENTDECKEN", messages: "NACHRICHTEN", profile: "PROFIL" }
+    : { home: "HOME", activity: "ACTIVITY", search: "SEARCH", create: "CREATE", browse: "BROWSE", messages: "MESSAGES", profile: "PROFILE" };
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 block md:hidden">
       {" "}
@@ -28,7 +37,7 @@ export default function MobileNav({
           <Link href="/home" className="group">
             <HomeIcon className="transition-transform duration-200 group-hover:scale-90" />
             <span className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              HOME
+              {labels.home}
             </span>
           </Link>
 
@@ -36,14 +45,14 @@ export default function MobileNav({
             <BellIcon className="transition-transform duration-200 group-hover:scale-90" />
             <ActivityUnreadBadge initialCount={unreadActivityCount} className="absolute right-1 top-0 flex min-w-4 items-center justify-center rounded-full bg-red-600 px-1 py-0.5 text-[10px] font-bold leading-none text-white" />
             <span className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              ACTIVITY
+              {labels.activity}
             </span>
           </Link>
 
           <Link href="/search" className="group">
             <SearchIcon className="transition-transform duration-200 group-hover:scale-90" />
             <span className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              SEARCH
+              {labels.search}
             </span>
           </Link>
         </div>
@@ -61,7 +70,7 @@ export default function MobileNav({
                 </div>
                 <CameraIcon className="relative z-10 size-8 text-white transition-transform duration-200 group-hover:scale-90" />{" "}
                 <span className="absolute top-full mt-3 left-1/2 -translate-x-1/2 text-[13px] font-extrabold tracking-wide opacity-0 group-hover:opacity-100 transition-all duration-200 bg-linear-to-tr from-(--ig-orange) to-(--ig-red) bg-clip-text text-transparent drop-shadow-[0_1px_1px_rgba(0,0,0,0.18)] whitespace-nowrap pointer-events-none">
-                  CREATE
+                  {labels.create}
                 </span>
               </Link>
             </div>
@@ -75,7 +84,7 @@ export default function MobileNav({
           >
             <LayoutGridIcon className="transition-transform duration-200 group-hover:scale-90" />
             <span className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              BROWSE
+              {labels.browse}
             </span>
           </Link>
 
@@ -86,14 +95,14 @@ export default function MobileNav({
               className="absolute right-1 top-0 flex min-w-4 items-center justify-center rounded-full bg-red-600 px-1 py-0.5 text-[10px] font-bold leading-none text-white"
             />
             <span className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              MESSAGES
+              {labels.messages}
             </span>
           </Link>
 
           <Link href="/profile" className="group">
             <UserIcon className="transition-transform duration-200 group-hover:scale-90" />
             <span className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              PROFILE
+              {labels.profile}
             </span>
           </Link>
         </div>

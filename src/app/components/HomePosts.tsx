@@ -2,6 +2,7 @@ import SortablePosts from "./SortablePosts";
 import PostCarousel from "./PostCarousel";
 import CommentForm from "./CommentForm";
 import { getPostImages } from "@/post-images";
+import MentionText from "./MentionText";
 import { auth } from "@/auth";
 import BookmarkButton from "./../components/BookmarkButton";
 import LikesInfo from "./../components/LikesInfo";
@@ -29,6 +30,7 @@ type HomePostsProps = {
   follows: Follow[];
   profiles: Profile[];
   feedMode: "following" | "for-you";
+  language?: "en" | "de";
 };
 
 type PostTopicWithTopic = {
@@ -43,7 +45,9 @@ export default async function HomePosts({
   follows,
   profiles,
   feedMode,
+  language = "en",
 }: HomePostsProps) {
+  const de = language === "de";
   const session = await auth();
 
   if (!session?.user?.email) {
@@ -211,25 +215,25 @@ export default async function HomePosts({
           <FeedModeSwitch feedMode={feedMode} />
           <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-xl backdrop-blur-xl dark:border-white/10 dark:bg-white/5">
             <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-500">
-              Nothing here yet
+              {de ? "Noch nichts hier" : "Nothing here yet"}
             </h2>
 
             <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-500">
               {feedMode === "following"
-                ? "Create your first entry or follow people to fill your feed."
-                : "There are no posts to discover yet."}
+                ? (de ? "Erstelle deinen ersten Beitrag oder folge anderen, um deinen Feed zu füllen." : "Create your first entry or follow people to fill your feed.")
+                : (de ? "Es gibt noch keine Beiträge zu entdecken." : "There are no posts to discover yet.")}
             </p>
 
             {shouldShowNameHint ? (
               <div className="mt-5 rounded-2xl border border-amber-300/40 bg-amber-100/70 px-4 py-3 text-sm text-amber-900 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400">
-                Tip: Update your name and username under{" "}
+                {de ? "Tipp: Aktualisiere deinen Namen und Benutzernamen unter" : "Tip: Update your name and username under"}{" "}
                 <Link
                   href="/settings"
                   className="font-semibold underline underline-offset-2"
                 >
-                  Settings
+                  {de ? "Einstellungen" : "Settings"}
                 </Link>{" "}
-                so other people can find your profile more easily.
+                {de ? "damit andere dein Profil leichter finden können." : "so other people can find your profile more easily."}
               </div>
             ) : null}
 
@@ -248,7 +252,7 @@ export default async function HomePosts({
                 </div>
 
                 <span className="text-[18px] font-normal text-slate-900 transition-all duration-200 group-hover:bg-linear-to-tr group-hover:from-(--ig-orange) group-hover:to-(--ig-red) group-hover:bg-clip-text group-hover:text-transparent dark:text-slate-100">
-                  Create your first entry
+                  {de ? "Erstelle deinen ersten Beitrag" : "Create your first entry"}
                 </span>
               </Link>
 
@@ -257,7 +261,7 @@ export default async function HomePosts({
                 className="inline-flex items-center gap-2 text-sm text-slate-500 transition hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100"
               >
                 <Search size={16} />
-                Find people to follow
+                {de ? "Finde Personen zum Folgen" : "Find people to follow"}
               </Link>
             </div>
           </div>
@@ -270,13 +274,13 @@ export default async function HomePosts({
               />
 
               <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                Suggested users
+                {de ? "Vorgeschlagene Profile" : "Suggested users"}
               </h3>
             </div>
 
             {suggestedUsers.length === 0 ? (
               <p className="text-sm text-slate-600 dark:text-slate-300">
-                No suggestions yet. Try using search to discover more profiles.
+                {de ? "Noch keine Vorschläge. Nutze die Suche, um weitere Profile zu entdecken." : "No suggestions yet. Try using search to discover more profiles."}
               </p>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2">
@@ -300,7 +304,7 @@ export default async function HomePosts({
 
                       <div className="min-w-0">
                         <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
-                          {user.name || user.username || "Unknown user"}
+                          {user.name || user.username || (de ? "Unbekanntes Profil" : "Unknown user")}
                         </p>
 
                         <p className="truncate text-xs text-slate-500 dark:text-slate-400">
@@ -310,7 +314,7 @@ export default async function HomePosts({
                     </div>
 
                     <span className="rounded-xl bg-linear-to-r from-red-500 to-orange-500 px-3 py-1.5 text-xs font-semibold text-white shadow-md">
-                      View
+                      {de ? "Ansehen" : "View"}
                     </span>
                   </Link>
                 ))}
@@ -368,7 +372,7 @@ export default async function HomePosts({
                           : "#"
                       }
                     >
-                      {profile?.name || profile?.username || "Unknown user"}
+                      {profile?.name || profile?.username || (de ? "Unbekanntes Profil" : "Unknown user")}
                     </Link>
 
                     {profile?.username && (
@@ -401,15 +405,15 @@ export default async function HomePosts({
                       <Link
                         href={`/posts/${post.id}#comments`}
                         className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm text-slate-600 transition hover:bg-black/5 hover:text-orange-600 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-orange-300"
-                        aria-label={`View ${post._count.comments} comments`}
+                        aria-label={de ? `${post._count.comments} Kommentare ansehen` : `View ${post._count.comments} comments`}
                       >
                         <MessageCircle className="size-5" />
 
                         <span>
                           {post._count.comments}{" "}
                           {post._count.comments === 1
-                            ? "comment"
-                            : "comments"}
+                            ? (de ? "Kommentar" : "comment")
+                            : (de ? "Kommentare" : "comments")}
                         </span>
                       </Link>
                     </div>
@@ -424,7 +428,7 @@ export default async function HomePosts({
                 <div className="flex min-w-0 flex-col px-4 py-5 sm:px-5 lg:max-h-[36rem]">
                   <div className="space-y-3">
                     <p className="text-sm leading-6 text-slate-900 dark:text-slate-200">
-                      {post.description}
+                      <MentionText text={post.description} />
                     </p>
 
                     <div className="text-xs text-slate-500 dark:text-slate-400">
@@ -458,15 +462,15 @@ export default async function HomePosts({
 
                         {post._count.comments}{" "}
                         {post._count.comments === 1
-                          ? "comment"
-                          : "comments"}
+                          ? (de ? "Kommentar" : "comment")
+                          : (de ? "Kommentare" : "comments")}
                       </h2>
 
                       <Link
                         href={`/posts/${post.id}`}
                         className="text-xs font-semibold text-orange-600 hover:underline dark:text-orange-300"
                       >
-                        View all
+                        {de ? "Alle ansehen" : "View all"}
                       </Link>
                     </div>
 
@@ -494,12 +498,12 @@ export default async function HomePosts({
                                 </Link>
                               ) : (
                                 <span className="mr-1 font-semibold text-slate-900 dark:text-white">
-                                  {commentAuthor?.name || "VIBE member"}
+                                  {commentAuthor?.name || (de ? "VIBE-Mitglied" : "VIBE member")}
                                 </span>
                               )}
 
                               <span className="break-words">
-                                {comment.text}
+                                <MentionText text={comment.text} />
                               </span>
                             </div>
                           );
@@ -507,7 +511,7 @@ export default async function HomePosts({
                       </div>
                     ) : (
                       <p className="text-sm text-slate-500 dark:text-slate-400">
-                        No comments yet. Be the first to join the conversation.
+                        {de ? "Noch keine Kommentare. Starte die Unterhaltung." : "No comments yet. Be the first to join the conversation."}
                       </p>
                     )}
 
@@ -520,8 +524,8 @@ export default async function HomePosts({
                   >
                     <MessageCircle size={16} />
 
-                    View {post._count.comments}{" "}
-                    {post._count.comments === 1 ? "comment" : "comments"}
+                    {de ? "Ansehen:" : "View"} {post._count.comments}{" "}
+                    {post._count.comments === 1 ? (de ? "Kommentar" : "comment") : (de ? "Kommentare" : "comments")}
                   </Link>
                 </div>
               </div>

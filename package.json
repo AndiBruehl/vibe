@@ -1,6 +1,6 @@
 {
   "name": "vibe",
-  "version": "0.1.60",
+  "version": "0.1.61.1",
   "private": true,
   "scripts": {
     "dev": "next dev",

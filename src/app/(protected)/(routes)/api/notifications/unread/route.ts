@@ -7,7 +7,7 @@ export async function GET() {
 
   if (!session?.user?.email) {
     return NextResponse.json(
-      { commentCount: 0, replyCount: 0, likeCount: 0, latestUnreadAt: null },
+      { commentCount: 0, replyCount: 0, likeCount: 0, mentionCount: 0, latestUnreadAt: null },
       { status: 401 },
     );
   }

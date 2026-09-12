@@ -2,12 +2,13 @@ import { auth } from "@/auth";
 import { prisma } from "@/db";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { MoveLeft, Grid3X3, Bookmark } from "lucide-react";
 import ProfilePosts from "@/app/components/ProfilePosts";
 import BookmarkPosts from "@/app/components/BookmarkPosts";
 import FollowButton from "@/app/components/FollowButton";
 import MessageButton from "@/app/components/MessageButton";
+import MentionText from "@/app/components/MentionText";
+import BackNavigationLink from "@/app/components/BackNavigationLink";
 
 type ProfileByUsernamePageProps = {
   params: Promise<{
@@ -35,16 +36,32 @@ export default async function ProfileByUsernamePage({
   }
   const { tab } = await searchParams;
 
-  const profile = await prisma.profile.findUnique({
-    where: {
-      username,
-    },
-  });
+  const [profile, viewerProfile] = await Promise.all([
+    prisma.profile.findUnique({ where: { username } }),
+    viewerEmail
+      ? prisma.profile.findUnique({ where: { email: viewerEmail }, select: { language: true } })
+      : null,
+  ]);
 
   if (!profile) {
-    notFound();
+    const de = viewerProfile?.language === "de";
+    return (
+      <>
+        <section className="flex flex-row items-center justify-between">
+          <BackNavigationLink language={de ? "de" : "en"} />
+        </section>
+        <main className="mx-auto flex min-h-[60vh] w-full max-w-2xl items-center justify-center p-4 md:p-8">
+          <section className="w-full rounded-2xl bg-white p-8 text-center shadow-lg shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{de ? "Profil nicht gefunden" : "Profile not found"}</h1>
+            <p className="mt-3 text-slate-600 dark:text-slate-300">{de ? "Entschuldigung, es wurde kein Nutzer mit diesem Handle gefunden." : "Sorry, no user with that handle found."}</p>
+            <p className="mt-2 font-semibold text-slate-900 dark:text-white">@{username}</p>
+          </section>
+        </main>
+      </>
+    );
   }
 
+  const de = viewerProfile?.language === "de";
   const isOwnProfile = viewerEmail === profile.email;
   const activeTab = isOwnProfile && tab === "bookmarks" ? "bookmarks" : "posts";
 
@@ -129,15 +146,11 @@ export default async function ProfileByUsernamePage({
                 </p>
 
                 {profile.subtitle && (
-                  <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                    {profile.subtitle}
-                  </p>
+                  <p className="mt-2 text-sm text-slate-600 dark:text-slate-300"><MentionText text={profile.subtitle} /></p>
                 )}
 
                 {profile.bio && (
-                  <p className="mt-2 max-w-md text-sm text-slate-700 dark:text-slate-200">
-                    {profile.bio}
-                  </p>
+                  <p className="mt-2 max-w-md whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-200"><MentionText text={profile.bio} /></p>
                 )}
 
                 {/* 🔥 FOLLOW BUTTON HIER */}
@@ -178,7 +191,7 @@ export default async function ProfileByUsernamePage({
                 <p className="font-semibold text-slate-900 dark:text-white">
                   {followingCount}
                 </p>
-                <p className="text-slate-500 dark:text-slate-400">Following</p>
+                <p className="text-slate-500 dark:text-slate-400">{de ? "Folgt" : "Following"}</p>
               </Link>
             </div>
           </div>

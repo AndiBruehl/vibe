@@ -92,7 +92,7 @@ export default async function UserHome({ session, feedMode }: UserHomeProps) {
   return (
     <div className="flex flex-col gap-8">
       <StoriesBar stories={stories} viewerEmail={viewerEmail} />
-      <HomePosts follows={follows} profiles={profiles} feedMode={feedMode} />
+      <HomePosts follows={follows} profiles={profiles} feedMode={feedMode} language={viewerProfile.language === "de" ? "de" : "en"} />
     </div>
   );
 }

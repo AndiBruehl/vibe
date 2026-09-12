@@ -6,6 +6,9 @@ import Link from "next/link";
 import CommentLikeButton from "./CommentLikeButton";
 import ReplyForm from "./ReplyForm";
 import { deleteComment, editComment } from "@/actions";
+import MentionTextarea from "./MentionTextarea";
+import MentionText from "./MentionText";
+import useVibeLanguage from "./useVibeLanguage";
 
 type Author = {
   username: string | null;
@@ -14,6 +17,8 @@ type Author = {
   email?: string | null;
 };
 
+type Mention = { username: string | null; name: string | null };
+
 type Reply = {
   id: string;
   text: string;
@@ -21,6 +26,7 @@ type Reply = {
   author: Author;
   likesCount: number;
   isLikedByViewer: boolean;
+  mentions: Mention[];
 };
 
 type CommentData = {
@@ -31,6 +37,7 @@ type CommentData = {
   likesCount: number;
   isLikedByViewer: boolean;
   isOwned?: boolean;
+  mentions: Mention[];
   replies: Reply[];
 };
 
@@ -47,6 +54,7 @@ export default function CommentItem({
   isReply = false,
   rootCommentId,
 }: CommentItemProps) {
+  const de = useVibeLanguage() === "de";
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [showReplies, setShowReplies] = useState(false);
@@ -129,18 +137,14 @@ export default function CommentItem({
               </span>
             </div>
 
-            {!isEditing ? (
-              <p className="mt-2 text-sm text-slate-700 dark:text-slate-200">
-                {comment.text}
-              </p>
-            ) : null}
+            {!isEditing ? <p className="mt-2 whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-200"><MentionText text={comment.text} /></p> : null}
 
             {isEditing ? (
               <form action={editComment} className="mt-3 space-y-3">
                 <input type="hidden" name="commentId" value={comment.id} />
                 <input type="hidden" name="postId" value={postId} />
 
-                <textarea
+                <MentionTextarea
                   name="text"
                   defaultValue={comment.text}
                   rows={3}
@@ -153,14 +157,14 @@ export default function CommentItem({
                     type="submit"
                     className="rounded-xl bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
                   >
-                    Save
+                    {de ? "Speichern" : "Save"}
                   </button>
                   <button
                     type="button"
                     onClick={() => setIsEditing(false)}
                     className="rounded-xl border border-gray-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-slate-200 dark:hover:bg-gray-800"
                   >
-                    Cancel
+                    {de ? "Abbrechen" : "Cancel"}
                   </button>
                 </div>
               </form>
@@ -180,7 +184,7 @@ export default function CommentItem({
                   onClick={() => setShowReplyForm((prev) => !prev)}
                   className="text-xs font-medium text-slate-500 transition hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
                 >
-                  {showReplyForm ? "Cancel" : "Reply"}
+                  {showReplyForm ? (de ? "Abbrechen" : "Cancel") : (de ? "Antworten" : "Reply")}
                 </button>
               ) : null}
 
@@ -191,7 +195,7 @@ export default function CommentItem({
                     onClick={() => setIsEditing(true)}
                     className="text-xs font-medium text-slate-500 transition hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
                   >
-                    Edit
+                    {de ? "Bearbeiten" : "Edit"}
                   </button>
                   <form action={deleteComment} className="m-0">
                     <input type="hidden" name="commentId" value={comment.id} />
@@ -200,7 +204,7 @@ export default function CommentItem({
                       type="submit"
                       className="text-xs font-medium text-red-600 transition hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
                     >
-                      Delete
+                      {de ? "Löschen" : "Delete"}
                     </button>
                   </form>
                 </>
@@ -223,8 +227,8 @@ export default function CommentItem({
             aria-expanded={showReplies}
           >
             {showReplies
-              ? "Hide replies"
-              : `View ${comment.replies.length} ${comment.replies.length === 1 ? "reply" : "replies"}`}
+              ? (de ? "Antworten ausblenden" : "Hide replies")
+              : de ? `${comment.replies.length} ${comment.replies.length === 1 ? "Antwort anzeigen" : "Antworten anzeigen"}` : `View ${comment.replies.length} ${comment.replies.length === 1 ? "reply" : "replies"}`}
           </button>
           {showReplies && <div className="space-y-3">
             {comment.replies.map((reply) => (

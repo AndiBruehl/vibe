@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { prisma } from "@/db";
 import CommentItem from "./CommentItem";
+import LocalizedText from "./LocalizedText";
 
 type PostCommentsProps = {
   postId: string;
@@ -29,6 +30,7 @@ export default async function PostComments({ postId }: PostCommentsProps) {
           authorEmail: true,
         },
       },
+      mentions: { include: { profile: { select: { username: true, name: true } } } },
       replies: {
         include: {
           author: {
@@ -44,6 +46,7 @@ export default async function PostComments({ postId }: PostCommentsProps) {
               authorEmail: true,
             },
           },
+          mentions: { include: { profile: { select: { username: true, name: true } } } },
         },
         orderBy: {
           createdAt: "asc",
@@ -59,7 +62,7 @@ export default async function PostComments({ postId }: PostCommentsProps) {
     <div className="space-y-4">
       {comments.length === 0 ? (
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          No comments yet.
+          <LocalizedText en="No comments yet." de="Noch keine Kommentare." />
         </p>
       ) : (
         comments.map((comment) => (
@@ -77,6 +80,7 @@ export default async function PostComments({ postId }: PostCommentsProps) {
                 email: comment.author.email,
               },
               likesCount: comment.likes.length,
+              mentions: comment.mentions.map((mention) => ({ username: mention.profile.username, name: mention.profile.name })),
               isLikedByViewer: currentUserEmail
                 ? comment.likes.some(
                     (like) => like.authorEmail === currentUserEmail,
@@ -96,6 +100,7 @@ export default async function PostComments({ postId }: PostCommentsProps) {
                   email: reply.author.email,
                 },
                 likesCount: reply.likes.length,
+                mentions: reply.mentions.map((mention) => ({ username: mention.profile.username, name: mention.profile.name })),
                 isLikedByViewer: currentUserEmail
                   ? reply.likes.some(
                       (like) => like.authorEmail === currentUserEmail,

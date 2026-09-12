@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import EmojiPicker from "@/app/components/EmojiPicker";
+import MentionTextarea from "@/app/components/MentionTextarea";
 
 type GroupChatFormProps = {};
 
@@ -217,7 +218,7 @@ export default function GroupChatForm(_: GroupChatFormProps) {
           <span>Initial message (optional)</span>
           <div className="mt-1 flex items-end gap-2">
             <EmojiPicker onSelect={insertInitialMessageEmoji} />
-            <textarea
+            <MentionTextarea
               ref={initialMessageRef}
               name="initialMessage"
               className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/db";
 import DesktopNav from "@/app/components/DesktopNav";
 import MobileNav from "@/app/components/MobileNav";
+import LocalizedText from "@/app/components/LocalizedText";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,7 @@ export default async function TopicsIndex() {
 
       <div className="md:pl-48">
         <main className="mx-auto max-w-3xl px-4 py-8">
-          <h1 className="text-2xl font-bold">Topics</h1>
+          <h1 className="text-2xl font-bold"><LocalizedText en="Topics" de="Themen" /></h1>
 
           <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {topics.map((t) => (

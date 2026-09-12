@@ -20,6 +20,7 @@ model Profile {
 
   posts         Post[]
   comments      Comment[]
+  commentMentions CommentMention[]
   commentLikes  CommentLike[]
   postLikes     PostLike[]
   bookmarks     PostBookmark[]
@@ -202,6 +203,22 @@ model Comment {
   replies         Comment[] @relation("CommentReplies")
 
   likes CommentLike[]
+  mentions CommentMention[]
+}
+
+model CommentMention {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  commentId String @db.ObjectId
+  comment Comment @relation(fields: [commentId], references: [id])
+
+  profileId String @db.ObjectId
+  profile Profile @relation(fields: [profileId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([commentId, profileId])
+  @@index([profileId, createdAt])
 }
 
 model CommentLike {

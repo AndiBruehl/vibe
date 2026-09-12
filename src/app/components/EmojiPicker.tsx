@@ -2,6 +2,7 @@
 
 import { Smile } from "lucide-react";
 import { useState } from "react";
+import useVibeLanguage from "./useVibeLanguage";
 
 const EMOJIS = [
   "😀", "😁", "😂", "🥹", "😍", "😘", "😎", "🤔",
@@ -14,6 +15,7 @@ type EmojiPickerProps = {
 };
 
 export default function EmojiPicker({ onSelect }: EmojiPickerProps) {
+  const de = useVibeLanguage() === "de";
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -22,7 +24,7 @@ export default function EmojiPicker({ onSelect }: EmojiPickerProps) {
         type="button"
         onClick={() => setIsOpen((open) => !open)}
         className="flex size-11 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
-        aria-label="Add emoji"
+        aria-label={de ? "Emoji hinzufügen" : "Add emoji"}
         aria-expanded={isOpen}
       >
         <Smile size={21} />
@@ -38,7 +40,7 @@ export default function EmojiPicker({ onSelect }: EmojiPickerProps) {
                 setIsOpen(false);
               }}
               className="flex size-7 items-center justify-center rounded-lg text-lg transition hover:bg-slate-100 dark:hover:bg-slate-800"
-              aria-label={`Add ${emoji}`}
+              aria-label={`${de ? "Hinzufügen" : "Add"} ${emoji}`}
             >
               {emoji}
             </button>

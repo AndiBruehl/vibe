@@ -9,6 +9,7 @@ import ConversationLiveRefresh from "@/app/components/ConversationLiveRefresh";
 import ConversationAutoScroll from "@/app/components/ConversationAutoScroll";
 import ConversationLayoutHelper from "@/app/components/ConversationLayoutHelper";
 import LocalTime from "@/app/components/LocalTime";
+import MentionText from "@/app/components/MentionText";
 import MessageComposer from "@/app/components/MessageComposer";
 
 type ConversationPageProps = {
@@ -270,7 +271,7 @@ export default async function ConversationPage({
                     </div>
                   ) : null}
                   <p className="whitespace-pre-wrap wrap-break-word text-sm leading-6">
-                    {message.body}
+                    <MentionText text={message.body} linkClassName={isOwnMessage ? "font-semibold text-white underline decoration-white/60 underline-offset-2" : undefined} />
                   </p>
                   {message.imageUrl ? (
                     <Image

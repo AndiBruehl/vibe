@@ -3,6 +3,7 @@
 import { useOptimistic, useTransition } from "react";
 import { Bookmark } from "lucide-react";
 import { togglePostBookmark } from "@/actions";
+import useVibeLanguage from "./useVibeLanguage";
 
 type BookmarkButtonProps = {
   postId: string;
@@ -17,6 +18,7 @@ export default function BookmarkButton({
   postId,
   initialBookmarked,
 }: BookmarkButtonProps) {
+  const de = useVibeLanguage() === "de";
   const [isPending, startTransition] = useTransition();
 
   const [optimisticState, setOptimisticState] = useOptimistic<
@@ -53,9 +55,9 @@ export default function BookmarkButton({
       disabled={isPending}
       className="inline-flex items-center justify-center rounded-full p-2 transition hover:bg-black/5 disabled:opacity-60 dark:hover:bg-white/10"
       aria-label={
-        optimisticState.bookmarked ? "Remove bookmark" : "Add bookmark"
+        optimisticState.bookmarked ? (de ? "Lesezeichen entfernen" : "Remove bookmark") : (de ? "Lesezeichen hinzufügen" : "Add bookmark")
       }
-      title={optimisticState.bookmarked ? "Remove bookmark" : "Add bookmark"}
+      title={optimisticState.bookmarked ? (de ? "Lesezeichen entfernen" : "Remove bookmark") : (de ? "Lesezeichen hinzufügen" : "Add bookmark")}
     >
       <Bookmark
         className={`size-5 transition ${

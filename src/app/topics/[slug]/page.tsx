@@ -11,6 +11,7 @@ import LocalTime from "@/app/components/LocalTime";
 import { prisma } from "@/db";
 import { auth } from "@/auth";
 import { MoveLeft } from "lucide-react";
+import LocalizedText from "@/app/components/LocalizedText";
 
 export const dynamic = "force-dynamic";
 
@@ -77,7 +78,7 @@ export default async function TopicPage({ params }: Props) {
         <main className="mx-auto max-w-3xl px-4 py-8">
           <Link href="/topics" className="group mb-5 inline-flex items-center gap-2 text-sm font-semibold text-slate-600 transition hover:text-orange-600 dark:text-slate-300 dark:hover:text-orange-300">
             <MoveLeft size={18} />
-            <span>Back to Topics</span>
+            <LocalizedText en="Back to Topics" de="Zurück zu den Themen" />
           </Link>
           <div className="mb-6 flex items-center justify-between gap-4">
             <div>
@@ -86,7 +87,7 @@ export default async function TopicPage({ params }: Props) {
                 <p className="text-sm text-slate-500">{topic.description}</p>
               ) : null}
               <p className="mt-2 text-xs text-slate-400">
-                {topic.followers.length} followers
+                {topic.followers.length} <LocalizedText en="followers" de="Follower" />
               </p>
             </div>
             <div>
@@ -101,7 +102,7 @@ export default async function TopicPage({ params }: Props) {
           <SortablePosts posts={posts.map((post) => ({ id: post.id, description: post.description, createdAt: post.createdAt }))} className="space-y-6">
             {posts.length === 0 ? (
               <div className="rounded-md border p-6 text-center text-slate-500">
-                No posts for this topic yet.
+                <LocalizedText en="No posts for this topic yet." de="Noch keine Beiträge zu diesem Thema." />
               </div>
             ) : (
               posts.map((p) => (

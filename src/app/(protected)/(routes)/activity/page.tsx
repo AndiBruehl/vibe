@@ -20,8 +20,8 @@ type ActivityItem = {
   context?: string;
 };
 
-function formatActivityDate(date: Date) {
-  return new Intl.DateTimeFormat("en", {
+function formatActivityDate(date: Date, language: "en" | "de") {
+  return new Intl.DateTimeFormat(language === "de" ? "de-DE" : "en", {
     month: "short",
     day: "numeric",
     hour: "2-digit",
@@ -43,17 +43,18 @@ export default async function ActivityPage() {
 
   const currentUserProfile = await prisma.profile.findUnique({
     where: { email: session.user.email },
-    select: { id: true, email: true },
+    select: { id: true, email: true, language: true },
   });
 
   if (!currentUserProfile) notFound();
+  const de = currentUserProfile.language === "de";
 
   // Historic data can contain comments whose post was deleted. Excluding those
   // records prevents Prisma from failing the complete activity query.
   const validPosts = await prisma.post.findMany({ select: { id: true } });
   const validPostIds = validPosts.map((post) => post.id);
 
-  const [follows, postLikes, comments, commentLikes, conversations] = await Promise.all([
+  const [follows, postLikes, comments, commentLikes, conversations, mentions] = await Promise.all([
     // Safe Follows
     prisma.follow
       .findMany({
@@ -141,7 +142,40 @@ export default async function ActivityPage() {
         take: 15,
       })
       .catch(() => []),
+
+    prisma.commentMention
+      .findMany({
+        where: { profileId: currentUserProfile.id },
+        select: { id: true, commentId: true, createdAt: true },
+        orderBy: { createdAt: "desc" },
+        take: 30,
+      })
+      .catch(() => []),
   ]);
+
+  const directCommentIds = new Set(comments.map((comment) => comment.id));
+  const mentionCommentIds = [...new Set(
+    mentions
+      .map((mention) => mention.commentId)
+      .filter((commentId) => !directCommentIds.has(commentId)),
+  )];
+  const mentionedComments = (mentionCommentIds.length
+    ? await prisma.comment.findMany({
+        where: { id: { in: mentionCommentIds }, authorEmail: { not: currentUserProfile.email } },
+        select: { id: true, text: true, postId: true, authorEmail: true, parentCommentId: true },
+      }).catch(() => [])
+    : []) as Array<{ id: string; text: string; postId: string; authorEmail: string; parentCommentId: string | null }>;
+  const mentionedCommentsById = new Map(mentionedComments.map((comment) => [comment.id, comment]));
+  const mentionedPostIds = [...new Set(mentionedComments.map((comment) => comment.postId))];
+  const mentionedPosts = (mentionedPostIds.length
+    ? await prisma.post.findMany({ where: { id: { in: mentionedPostIds } }, select: { id: true, image: true, description: true } }).catch(() => [])
+    : []) as Array<{ id: string; image: string; description: string }>;
+  const mentionedPostsById = new Map(mentionedPosts.map((post) => [post.id, post]));
+  const mentionAuthorEmails = [...new Set(mentionedComments.map((comment) => comment.authorEmail))];
+  const mentionAuthors = (mentionAuthorEmails.length
+    ? await prisma.profile.findMany({ where: { email: { in: mentionAuthorEmails } }, select: { email: true, name: true, username: true, avatar: true } }).catch(() => [])
+    : []) as Array<{ email: string; name: string | null; username: string | null; avatar: string | null }>;
+  const mentionAuthorsByEmail = new Map(mentionAuthors.map((author) => [author.email, author]));
 
   const likedCommentIds = commentLikes.map((like) => like.commentId);
   const likedComments = likedCommentIds.length
@@ -186,9 +220,9 @@ export default async function ActivityPage() {
       .map((follow: any) => ({
         id: `follow-${follow.id}`,
         type: "follow" as const,
-        title: `${follow.follower.name || follow.follower.username || "Someone"} followed you`,
+        title: `${follow.follower.name || follow.follower.username || (de ? "Jemand" : "Someone")} ${de ? "folgt dir" : "followed you"}`,
         body: follow.follower.username ? `@${follow.follower.username}` : "",
-        context: "Profile activity",
+        context: de ? "Profilaktivität" : "Profile activity",
         href: follow.follower.username
           ? `/profile/${encodeURIComponent(follow.follower.username)}`
           : "/profile",
@@ -204,9 +238,9 @@ export default async function ActivityPage() {
       .map((like: any) => ({
         id: `like-${like.id}`,
         type: "like" as const,
-        title: `${like.author.name || like.author.username || "Someone"} liked your post`,
-        body: like.post.description || "View post",
-        context: `On your post: ${like.post.description || "Untitled post"}`,
+        title: `${like.author.name || like.author.username || (de ? "Jemand" : "Someone")} ${de ? "gefällt dein Beitrag" : "liked your post"}`,
+        body: like.post.description || (de ? "Beitrag ansehen" : "View post"),
+        context: `${de ? "Zu deinem Beitrag" : "On your post"}: ${like.post.description || (de ? "Unbenannter Beitrag" : "Untitled post")}`,
         href: `/posts/${like.post.id}`,
         createdAt: like.createdAt,
         avatar: like.author.avatar,
@@ -225,9 +259,9 @@ export default async function ActivityPage() {
       return [{
         id: `comment-like-${like.id}`,
         type: "like" as const,
-        title: `${author.name || author.username || "Someone"} liked your comment`,
+        title: `${author.name || author.username || (de ? "Jemand" : "Someone")} ${de ? "gefällt dein Kommentar" : "liked your comment"}`,
         body: comment.text,
-        context: `On your comment: ${comment.text || "Untitled comment"}`,
+        context: `${de ? "Zu deinem Kommentar" : "On your comment"}: ${comment.text || (de ? "Unbenannter Kommentar" : "Untitled comment")}`,
         href: `/posts/${post.id}`,
         createdAt: like.createdAt,
         avatar: author.avatar,
@@ -242,16 +276,36 @@ export default async function ActivityPage() {
       .map((comment: any) => ({
         id: `comment-${comment.id}`,
         type: "comment" as const,
-        title: `${comment.author.name || comment.author.username || "Someone"} ${comment.parentCommentId ? "replied to your comment" : "commented on your post"}`,
+        title: `${comment.author.name || comment.author.username || (de ? "Jemand" : "Someone")} ${comment.parentCommentId ? (de ? "hat auf deinen Kommentar geantwortet" : "replied to your comment") : (de ? "hat deinen Beitrag kommentiert" : "commented on your post")}`,
         body: comment.text,
         context: comment.parentCommentId
-          ? "Reply to your comment"
-          : `On your post: ${comment.post.description || "Untitled post"}`,
+          ? (de ? "Antwort auf deinen Kommentar" : "Reply to your comment")
+          : `${de ? "Zu deinem Beitrag" : "On your post"}: ${comment.post.description || (de ? "Unbenannter Beitrag" : "Untitled post")}`,
         href: `/posts/${comment.post.id}#comment-${comment.parentCommentId || comment.id}`,
         createdAt: comment.createdAt,
         avatar: comment.author.avatar,
         image: comment.post.image,
       })),
+
+    // Mentions that are not already shown as a comment/reply on the user's own post.
+    ...mentions.flatMap((mention) => {
+      const comment = mentionedCommentsById.get(mention.commentId);
+      const author = comment ? mentionAuthorsByEmail.get(comment.authorEmail) : null;
+      const post = comment ? mentionedPostsById.get(comment.postId) : null;
+      if (!comment || !author || !post) return [];
+
+      return [{
+        id: `mention-${mention.id}`,
+        type: "comment" as const,
+        title: `${author.name || author.username || (de ? "Jemand" : "Someone")} ${de ? `hat dich in ${comment.parentCommentId ? "einer Antwort" : "einem Kommentar"} erwähnt` : `mentioned you in a ${comment.parentCommentId ? "reply" : "comment"}`}`,
+        body: comment.text,
+        context: comment.parentCommentId ? (de ? "Antwort mit Erwähnung" : "Reply mentioning you") : `${de ? "Zu einem Beitrag" : "On a post"}: ${post.description || (de ? "Unbenannter Beitrag" : "Untitled post")}`,
+        href: `/posts/${post.id}#comment-${comment.parentCommentId || comment.id}`,
+        createdAt: mention.createdAt,
+        avatar: author.avatar,
+        image: post.image,
+      }];
+    }),
 
     // Safe Messages
     ...conversations
@@ -267,9 +321,9 @@ export default async function ActivityPage() {
         return {
           id: `message-${message.id}`,
           type: "message" as const,
-          title: `${profile?.name || profile?.username || "Someone"} sent you a message`,
+          title: `${profile?.name || profile?.username || (de ? "Jemand" : "Someone")} ${de ? "hat dir eine Nachricht gesendet" : "sent you a message"}`,
           body: message.body,
-          context: `Conversation: ${conversation.name || profile?.name || profile?.username || "Conversation"}`,
+          context: `${de ? "Unterhaltung" : "Conversation"}: ${conversation.name || profile?.name || profile?.username || (de ? "Unterhaltung" : "Conversation")}`,
           href: `/messages/${conversation.id}`,
           createdAt: message.createdAt,
           avatar: profile?.avatar,
@@ -289,12 +343,12 @@ export default async function ActivityPage() {
         >
           <MoveLeft />
           <span className="opacity-0 transition-opacity group-hover:opacity-100">
-            Back to Home
+            {de ? "Zurück zur Startseite" : "Back to Home"}
           </span>
         </Link>
 
         <h1 className="text-lg font-bold text-slate-800 dark:text-slate-100">
-          Activity
+          {de ? "Aktivität" : "Activity"}
         </h1>
         <div className="w-24" />
       </section>
@@ -306,10 +360,10 @@ export default async function ActivityPage() {
               <Bell size={24} />
             </div>
             <p className="font-semibold text-slate-800 dark:text-slate-100">
-              No activity yet.
+              {de ? "Noch keine Aktivitäten." : "No activity yet."}
             </p>
             <p className="max-w-sm text-sm text-slate-500 dark:text-slate-400">
-              Likes, comments, follows, and messages will appear here.
+              {de ? "Likes, Kommentare, Follows und Nachrichten erscheinen hier." : "Likes, comments, follows, and messages will appear here."}
             </p>
           </div>
         ) : (
@@ -348,7 +402,7 @@ export default async function ActivityPage() {
                     </p>
                   ) : null}
                   <p className="mt-1 text-xs text-slate-400">
-                    {formatActivityDate(item.createdAt)}
+                    {formatActivityDate(item.createdAt, de ? "de" : "en")}
                   </p>
                 </div>
 

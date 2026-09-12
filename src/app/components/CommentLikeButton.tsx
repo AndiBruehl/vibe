@@ -3,6 +3,7 @@
 import { useOptimistic, useTransition } from "react";
 import { Heart } from "lucide-react";
 import { likeComment } from "@/actions";
+import useVibeLanguage from "./useVibeLanguage";
 
 type CommentLikeButtonProps = {
   commentId: string;
@@ -22,6 +23,7 @@ export default function CommentLikeButton({
   initialLiked,
   initialLikes,
 }: CommentLikeButtonProps) {
+  const de = useVibeLanguage() === "de";
   const [isPending, startTransition] = useTransition();
 
   const [optimisticState, setOptimisticState] = useOptimistic<
@@ -68,7 +70,7 @@ export default function CommentLikeButton({
             : "fill-transparent"
         }`}
       />
-      <span>{optimisticState.likes} {optimisticState.likes === 1 ? "like" : "likes"}</span>
+      <span>{optimisticState.likes} {de ? "Likes" : optimisticState.likes === 1 ? "like" : "likes"}</span>
     </button>
   );
 }

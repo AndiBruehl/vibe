@@ -7,6 +7,7 @@ import AppVersion from "@/app/components/AppVersion";
 import ReleaseDownloads from "@/app/components/ReleaseDownloads";
 import SettingsForm from "@/app/components/SettingsForm";
 import SettingsHeading from "@/app/components/SettingsHeading";
+import LocalizedText from "@/app/components/LocalizedText";
 
 export default async function SettingsPage() {
   const session = await auth();
@@ -20,7 +21,6 @@ export default async function SettingsPage() {
     update: {},
     create: { email: session.user.email },
   });
-
   return (
     <main>
       <section className="flex items-center justify-between">
@@ -30,7 +30,7 @@ export default async function SettingsPage() {
         >
           <MoveLeft />
           <span className="opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-            Back to Profile
+            <LocalizedText en="Back to Profile" de="Zurück zum Profil" />
           </span>
         </Link>
 
@@ -49,7 +49,7 @@ export default async function SettingsPage() {
               size={16}
               className="transition group-hover:-translate-x-1"
             />
-            <span>Sign out</span>
+            <span><LocalizedText en="Sign out" de="Abmelden" /></span>
           </button>
         </form>
       </section>
