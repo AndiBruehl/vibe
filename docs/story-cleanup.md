@@ -4,8 +4,8 @@ Stories are hidden after 24 hours. The open client removes expired slides and
 closes the viewer at the next expiration, even when playback is paused. Focus
 and visibility changes recheck expiration after background suspension.
 
-The hourly Vercel cron calls `/api/cron/stories`. Before deployment, configure a
-random `CRON_SECRET` in Vercel and ensure the hosting plan supports hourly crons.
+The daily Vercel cron (03:00 UTC) calls `/api/cron/stories`. Before deployment, configure a
+random `CRON_SECRET` in Vercel and use the daily schedule supported by the current Hobby hosting plan.
 Vercel sends it as a bearer token. `PINATA_JWT` must allow listing and deleting
 public files. No secret values belong in Git.
 
