@@ -247,7 +247,7 @@ export default async function ActivityPage() {
         context: comment.parentCommentId
           ? "Reply to your comment"
           : `On your post: ${comment.post.description || "Untitled post"}`,
-        href: `/posts/${comment.post.id}`,
+        href: `/posts/${comment.post.id}#comment-${comment.parentCommentId || comment.id}`,
         createdAt: comment.createdAt,
         avatar: comment.author.avatar,
         image: comment.post.image,

@@ -607,10 +607,14 @@ export async function deleteComment(formData: FormData): Promise<void> {
     throw new Error("Comment does not belong to this post.");
   }
 
+  const replyIds = await prisma.comment.findMany({
+    where: { parentCommentId: commentIdValue },
+    select: { id: true },
+  });
+  const commentIds = [commentIdValue, ...replyIds.map((reply) => reply.id)];
+
   await prisma.$transaction([
-    prisma.commentLike.deleteMany({
-      where: { commentId: commentIdValue },
-    }),
+    prisma.commentLike.deleteMany({ where: { commentId: { in: commentIds } } }),
     prisma.comment.deleteMany({
       where: { parentCommentId: commentIdValue },
     }),

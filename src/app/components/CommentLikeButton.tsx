@@ -68,7 +68,7 @@ export default function CommentLikeButton({
             : "fill-transparent"
         }`}
       />
-      <span>{optimisticState.likes}</span>
+      <span>{optimisticState.likes} {optimisticState.likes === 1 ? "like" : "likes"}</span>
     </button>
   );
 }

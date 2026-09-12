@@ -49,6 +49,7 @@ export default function CommentItem({
 }: CommentItemProps) {
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [showReplies, setShowReplies] = useState(false);
 
   const profileHref = comment.author.username
     ? `/profile/${encodeURIComponent(comment.author.username)}`
@@ -60,7 +61,7 @@ export default function CommentItem({
         isReply ? "ml-8 border-l border-gray-200 pl-4 dark:border-gray-700" : ""
       }
     >
-      <article className="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+      <article id={`comment-${comment.id}`} className="scroll-mt-24 rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
         <div className="flex items-start gap-3">
           {profileHref ? (
             <Link
@@ -214,19 +215,28 @@ export default function CommentItem({
       </article>
 
       {!isReply && comment.replies.length > 0 ? (
-        <div className="mt-3 space-y-3">
-          {comment.replies.map((reply) => (
-            <CommentItem
-              key={reply.id}
-              comment={{
-                ...reply,
-                replies: [],
-              }}
-              postId={postId}
-              isReply
-              rootCommentId={comment.id}
-            />
-          ))}
+        <div className="mt-3 border-l-2 border-orange-200 pl-3 dark:border-orange-400/30">
+          <button
+            type="button"
+            onClick={() => setShowReplies((current) => !current)}
+            className="mb-3 text-xs font-semibold text-orange-600 transition hover:text-orange-700 dark:text-orange-300 dark:hover:text-orange-200"
+            aria-expanded={showReplies}
+          >
+            {showReplies
+              ? "Hide replies"
+              : `View ${comment.replies.length} ${comment.replies.length === 1 ? "reply" : "replies"}`}
+          </button>
+          {showReplies && <div className="space-y-3">
+            {comment.replies.map((reply) => (
+              <CommentItem
+                key={reply.id}
+                comment={{ ...reply, replies: [] }}
+                postId={postId}
+                isReply
+                rootCommentId={comment.id}
+              />
+            ))}
+          </div>}
         </div>
       ) : null}
     </div>
