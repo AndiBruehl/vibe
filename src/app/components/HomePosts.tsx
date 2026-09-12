@@ -387,6 +387,7 @@ export default async function HomePosts({
                     images={getPostImages(post)}
                     alt={post.description || "Post image"}
                     href={`/posts/${post.id}`}
+                    postId={post.id}
                   />
 
                   <div className="flex items-center justify-between gap-3 px-4 py-2 sm:px-5">

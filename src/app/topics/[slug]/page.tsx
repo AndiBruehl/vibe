@@ -154,7 +154,7 @@ export default async function TopicPage({ params }: Props) {
                           <p className="text-slate-800">{p.description}</p>
 
                         </Link>
-                        <PostCarousel images={getPostImages(p)} alt={p.description || "Post image"} href={`/posts/${p.id}`}/>
+                        <PostCarousel images={getPostImages(p)} alt={p.description || "Post image"} href={`/posts/${p.id}`} postId={p.id}/>
                       </div>
                     </div>
                   </div>

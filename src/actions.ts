@@ -350,6 +350,28 @@ export async function togglePostLike(formData: FormData): Promise<{ liked: boole
   return { liked: !existingLike, likes: updated.likesCount };
 }
 
+/** Adds a like without removing an existing one; used for the carousel double-tap gesture. */
+export async function likePost(formData: FormData): Promise<{ liked: boolean; likes: number }> {
+  const session = await auth();
+  if (!session?.user?.email) redirect("/");
+  const postId = formData.get("postId");
+  if (typeof postId !== "string" || !postId) throw new Error("Post ID is missing.");
+
+  const post = await prisma.post.findUnique({ where: { id: postId }, select: { likesCount: true } });
+  if (!post) throw new Error("Post not found.");
+  const existing = await prisma.postLike.findUnique({ where: { postId_authorEmail: { postId, authorEmail: session.user.email } } });
+  if (existing) return { liked: true, likes: post.likesCount };
+
+  const [, updated] = await prisma.$transaction([
+    prisma.postLike.create({ data: { postId, authorEmail: session.user.email } }),
+    prisma.post.update({ where: { id: postId }, data: { likesCount: { increment: 1 } }, select: { likesCount: true } }),
+  ]);
+  revalidatePath("/");
+  revalidatePath("/profile");
+  revalidatePath(`/posts/${postId}`);
+  return { liked: true, likes: updated.likesCount };
+}
+
 export async function createStory(formData: FormData): Promise<void> {
   const session = await auth();
   if (!session?.user?.email) redirect("/");

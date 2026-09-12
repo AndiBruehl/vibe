@@ -16,13 +16,17 @@ import { deletePost, editPost } from "@/actions";
 
 export default async function SinglePostPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ image?: string }>;
 }) {
   const session = await auth();
   const viewerEmail = session?.user?.email ?? null;
 
   const { id } = await params;
+  const { image } = await searchParams;
+  const initialImage = Number.isInteger(Number(image)) ? Math.max(0, Number(image) - 1) : 0;
 
   const post = await prisma.post.findUnique({
     where: { id },
@@ -101,6 +105,8 @@ export default async function SinglePostPage({
                 <PostCarousel
                   images={getPostImages(post)}
                   alt={post.description || "Post image"}
+                  initialIndex={initialImage}
+                  postId={post.id}
                 />
               </div>
 
