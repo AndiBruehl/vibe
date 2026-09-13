@@ -28,6 +28,7 @@ model Profile {
   sentMessages  Message[]                 @relation("SentMessages")
   stories       Story[]
   postTags      PostProfileTag[]
+  profileLinks  ProfileLink[]
 
   followers    Follow[]      @relation("ProfileFollowers")
   following    Follow[]      @relation("ProfileFollowing")
@@ -204,6 +205,18 @@ model Comment {
 
   likes CommentLike[]
   mentions CommentMention[]
+}
+
+model ProfileLink {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  profileId String   @db.ObjectId
+  profile   Profile  @relation(fields: [profileId], references: [id])
+  label     String
+  url       String
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([profileId, position])
 }
 
 model CommentMention {

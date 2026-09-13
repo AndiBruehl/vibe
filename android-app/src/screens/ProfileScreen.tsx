@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Image, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image, Linking, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import ErrorState from "@/components/ErrorState";
 import { useRemoteData } from "@/hooks/useRemoteData";
 import LoadingState from "@/components/LoadingState";
@@ -47,6 +47,7 @@ export default function ProfileScreen() {
           <Text style={styles.name}>{profile.name || "Unknown"}</Text>
           <Text style={styles.subtitle}>{profile.subtitle}</Text>
           <Text style={styles.bio}>{profile.bio}</Text>
+          {profile.profileLinks?.length ? <View style={styles.links}>{profile.profileLinks.map((link, index) => <Pressable key={link.id || `${link.url}-${index}`} accessibilityRole="link" onPress={() => void Linking.openURL(link.url)} style={styles.link}><Text style={styles.linkText}>{link.label}</Text></Pressable>)}</View> : null}
           <Pressable accessibilityRole="button" style={styles.editButton} onPress={() => navigation.navigate("EditProfile", { profile })}>
             <Text style={styles.signOutText}>Edit profile</Text>
           </Pressable>
@@ -95,6 +96,9 @@ const styles = StyleSheet.create({
     marginTop: 12,
     textAlign: "center",
   },
+  links: { alignItems: "center", flexDirection: "row", flexWrap: "wrap", gap: 8, justifyContent: "center", marginTop: 12 },
+  link: { borderColor: colors.orange, borderRadius: 10, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 8 },
+  linkText: { color: colors.orange, fontSize: 14, fontWeight: "700" },
   signOutButton: {
     borderColor: colors.border,
     borderRadius: 14,

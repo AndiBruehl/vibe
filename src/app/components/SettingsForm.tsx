@@ -1,6 +1,6 @@
 "use client";
 
-import { ImageUp, Moon, UserRound } from "lucide-react";
+import { ImageUp, Link as LinkIcon, Moon, Plus, Trash2, UserRound } from "lucide-react";
 import { Switch } from "@radix-ui/themes";
 import type { Profile } from "@prisma/client";
 import { upsertProfile } from "@/actions";
@@ -11,8 +11,10 @@ import MentionTextarea from "@/app/components/MentionTextarea";
 import defaultImg from "./default.jpg";
 
 type SettingsFormProps = {
-  profile: Profile | null;
+  profile: (Profile & { profileLinks?: { id: string; label: string; url: string }[] }) | null;
 };
+
+type EditableProfileLink = { id: string; label: string; url: string };
 
 export default function SettingsForm({ profile }: SettingsFormProps) {
   const fileInRef = useRef<HTMLInputElement>(null);
@@ -25,6 +27,9 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isThemeReady, setIsThemeReady] = useState(false);
   const [language, setLanguage] = useState<"en" | "de">("en");
+  const [profileLinks, setProfileLinks] = useState<EditableProfileLink[]>(
+    profile?.profileLinks?.map((link) => ({ id: link.id, label: link.label, url: link.url })) ?? [],
+  );
   const de = language === "de";
   const copy = (english: string, german: string) => de ? german : english;
 
@@ -166,6 +171,40 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
             className="mt-2 w-full resize-y rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-orange-400 focus:ring-4 focus:ring-orange-100 dark:border-slate-600 dark:bg-slate-950/50 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-orange-400 dark:focus:ring-orange-500/15"
           />
         </label>
+
+        <section className="mt-5 border-t border-slate-200 pt-5 dark:border-slate-700/80">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
+                <LinkIcon size={16} className="text-orange-500" />
+                {copy("Profile links", "Profil-Links")}
+              </div>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{copy("Give each link a label and destination. Up to five links.", "Gib jedem Link einen Text und ein Ziel. Bis zu fünf Links.")}</p>
+            </div>
+            <button
+              type="button"
+              disabled={profileLinks.length >= 5}
+              onClick={() => setProfileLinks((links) => [...links, { id: crypto.randomUUID(), label: "", url: "" }])}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-orange-300 px-3 py-2 text-xs font-semibold text-orange-600 transition hover:bg-orange-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-orange-400/60 dark:text-orange-300 dark:hover:bg-orange-400/10"
+            >
+              <Plus size={15} /> {copy("Add link", "Link hinzufügen")}
+            </button>
+          </div>
+
+          {profileLinks.length > 0 && (
+            <div className="mt-4 space-y-3">
+              {profileLinks.map((link, index) => (
+                <div key={link.id} className="grid gap-2 sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)_auto]">
+                  <input name="linkLabel" value={link.label} maxLength={80} onChange={(event) => setProfileLinks((links) => links.map((current, currentIndex) => currentIndex === index ? { ...current, label: event.target.value } : current))} placeholder={copy("Link text, e.g. My portfolio", "Linktext, z. B. Mein Portfolio")} className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-orange-400 focus:ring-4 focus:ring-orange-100 dark:border-slate-600 dark:bg-slate-950/50 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-orange-400 dark:focus:ring-orange-500/15" />
+                  <input name="linkUrl" type="url" value={link.url} maxLength={2048} onChange={(event) => setProfileLinks((links) => links.map((current, currentIndex) => currentIndex === index ? { ...current, url: event.target.value } : current))} placeholder="https://example.com" className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-orange-400 focus:ring-4 focus:ring-orange-100 dark:border-slate-600 dark:bg-slate-950/50 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-orange-400 dark:focus:ring-orange-500/15" />
+                  <button type="button" onClick={() => setProfileLinks((links) => links.filter((_, currentIndex) => currentIndex !== index))} className="inline-grid size-10 place-items-center self-center rounded-lg text-slate-500 transition hover:bg-red-50 hover:text-red-600 dark:text-slate-400 dark:hover:bg-red-500/10 dark:hover:text-red-300" aria-label={copy("Remove link", "Link entfernen")}>
+                    <Trash2 size={17} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
       </section>
 
       <section className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 dark:border-slate-700 dark:bg-slate-800/60 lg:col-start-2">

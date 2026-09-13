@@ -106,16 +106,38 @@ export async function upsertProfile(formData: FormData) {
     avatar: ((formData.get("avatarUrl") as string) || "").trim(),
   };
 
+  const linkLabels = formData.getAll("linkLabel");
+  const linkUrls = formData.getAll("linkUrl");
+  const profileLinks: { label: string; url: string; position: number }[] = [];
+
+  for (let index = 0; index < Math.min(linkLabels.length, linkUrls.length, 5); index++) {
+    const labelValue = linkLabels[index];
+    const urlValue = linkUrls[index];
+    const label = typeof labelValue === "string" ? labelValue.trim().slice(0, 80) : "";
+    const url = typeof urlValue === "string" ? urlValue.trim().slice(0, 2048) : "";
+    if (!label && !url) continue;
+    if (!label || !url) throw new Error("Each profile link needs a label and a URL.");
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol !== "https:" && parsed.protocol !== "http:") throw new Error("Unsupported protocol");
+    } catch {
+      throw new Error("Profile links must use a valid http:// or https:// URL.");
+    }
+    profileLinks.push({ label, url, position: profileLinks.length });
+  }
+
   await prisma.profile.upsert({
     where: {
       email: session.user.email,
     },
     update: {
       ...newUserInfo,
+      profileLinks: { deleteMany: {}, create: profileLinks },
     },
     create: {
       email: session.user.email,
       ...newUserInfo,
+      profileLinks: { create: profileLinks },
     },
   });
 

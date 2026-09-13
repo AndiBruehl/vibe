@@ -9,6 +9,7 @@ import FollowButton from "@/app/components/FollowButton";
 import MessageButton from "@/app/components/MessageButton";
 import MentionText from "@/app/components/MentionText";
 import BackNavigationLink from "@/app/components/BackNavigationLink";
+import ProfileLinks from "@/app/components/ProfileLinks";
 
 type ProfileByUsernamePageProps = {
   params: Promise<{
@@ -37,7 +38,7 @@ export default async function ProfileByUsernamePage({
   const { tab } = await searchParams;
 
   const [profile, viewerProfile] = await Promise.all([
-    prisma.profile.findUnique({ where: { username } }),
+    prisma.profile.findUnique({ where: { username }, include: { profileLinks: { orderBy: { position: "asc" } } } }),
     viewerEmail
       ? prisma.profile.findUnique({ where: { email: viewerEmail }, select: { language: true } })
       : null,
@@ -151,6 +152,10 @@ export default async function ProfileByUsernamePage({
 
                 {profile.bio && (
                   <p className="mt-2 max-w-md whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-200"><MentionText text={profile.bio} /></p>
+                )}
+
+                {profile.profileLinks.length > 0 && (
+                  <ProfileLinks links={profile.profileLinks} language={de ? "de" : "en"} />
                 )}
 
                 {/* 🔥 FOLLOW BUTTON HIER */}

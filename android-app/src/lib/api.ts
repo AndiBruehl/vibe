@@ -8,9 +8,12 @@ export type Profile = {
   avatar?: string | null;
   subtitle?: string | null;
   bio?: string | null;
+  profileLinks?: ProfileLink[];
   isFollowing?: boolean;
   isSelf?: boolean;
 };
+
+export type ProfileLink = { id?: string; label: string; url: string; position?: number };
 
 export type Post = {
   id: string;
@@ -134,7 +137,7 @@ async function request<T>(path: string, init?: RequestInit, sessionToken?: strin
 }
 
 export const api = {
-  updateProfile: (input: Pick<Profile, "name" | "username" | "avatar" | "subtitle" | "bio">) => request<Profile>("/api/mobile/profile", {
+  updateProfile: (input: Pick<Profile, "name" | "username" | "avatar" | "subtitle" | "bio" | "profileLinks"> & { links?: ProfileLink[] }) => request<Profile>("/api/mobile/profile", {
     method: "PATCH", body: JSON.stringify(input),
   }),
   setProfileFollowing: (profileId: string, following: boolean) => request<{ following: boolean; followers: number; followingCount: number }>(`/api/mobile/profiles/${profileId}/follow`, {

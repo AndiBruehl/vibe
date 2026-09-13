@@ -20,6 +20,7 @@ export default async function SettingsPage() {
     where: { email: session.user.email },
     update: {},
     create: { email: session.user.email },
+    include: { profileLinks: { orderBy: { position: "asc" } } },
   });
   return (
     <main>

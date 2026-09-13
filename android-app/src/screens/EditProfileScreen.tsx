@@ -4,7 +4,7 @@ import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, Pressable, Sc
 import { useNavigation, useRoute, type RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../../App";
-import { api } from "@/lib/api";
+import { api, type ProfileLink } from "@/lib/api";
 import { useAuth } from "@/auth/AuthContext";
 import Screen from "@/components/Screen";
 import { colors } from "@/theme";
@@ -21,6 +21,7 @@ export default function EditProfileScreen() {
   const [subtitle, setSubtitle] = useState(params.profile.subtitle || "");
   const [bio, setBio] = useState(params.profile.bio || "");
   const [avatar, setAvatar] = useState(params.profile.avatar || "");
+  const [links, setLinks] = useState<ProfileLink[]>(params.profile.profileLinks || []);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   async function chooseAvatar() {
@@ -45,7 +46,7 @@ export default function EditProfileScreen() {
     if (saving) return;
     setSaving(true); setError(null);
     try {
-      const profile = await api.updateProfile({ name, username, subtitle, bio, avatar });
+      const profile = await api.updateProfile({ name, username, subtitle, bio, avatar, links });
       await updateProfile(profile);
       navigation.goBack();
     } catch (failure) { setError(failure instanceof Error ? failure.message : "Profile could not be saved."); }
@@ -59,6 +60,7 @@ export default function EditProfileScreen() {
     <Text style={{ color: colors.text, fontWeight: "700" }}>Name</Text><TextInput value={name} onChangeText={setName} maxLength={80} style={input} placeholder="Your name" placeholderTextColor={colors.muted} />
     <Text style={{ color: colors.text, fontWeight: "700" }}>Subtitle</Text><TextInput value={subtitle} onChangeText={setSubtitle} maxLength={160} style={input} placeholder="What do you do?" placeholderTextColor={colors.muted} />
     <Text style={{ color: colors.text, fontWeight: "700" }}>Bio</Text><TextInput value={bio} onChangeText={setBio} maxLength={500} multiline textAlignVertical="top" style={[input, { minHeight: 130, paddingVertical: 12 }]} placeholder="Tell people about yourself" placeholderTextColor={colors.muted} />
+    <View style={{ marginTop: 8, gap: 8 }}><View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}><Text style={{ color: colors.text, fontWeight: "700" }}>Profile links</Text><Pressable disabled={links.length >= 5} onPress={() => setLinks((current) => [...current, { label: "", url: "" }])}><Text style={{ color: colors.orange, fontWeight: "700", opacity: links.length >= 5 ? 0.45 : 1 }}>Add link</Text></Pressable></View><Text style={{ color: colors.muted, fontSize: 12 }}>Choose a text and destination for up to five links.</Text>{links.map((link, index) => <View key={`${link.id || "new"}-${index}`} style={{ gap: 6, paddingTop: 4 }}><TextInput value={link.label} onChangeText={(label) => setLinks((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, label } : item))} maxLength={80} style={input} placeholder="Link text, e.g. My portfolio" placeholderTextColor={colors.muted} /><View style={{ flexDirection: "row", gap: 8 }}><TextInput value={link.url} onChangeText={(url) => setLinks((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, url } : item))} autoCapitalize="none" keyboardType="url" maxLength={2048} style={[input, { flex: 1 }]} placeholder="https://example.com" placeholderTextColor={colors.muted} /><Pressable onPress={() => setLinks((current) => current.filter((_, itemIndex) => itemIndex !== index))} style={{ justifyContent: "center", paddingHorizontal: 10 }}><Text style={{ color: colors.red, fontWeight: "700" }}>Remove</Text></Pressable></View></View>)}</View>
     {error ? <Text accessibilityRole="alert" style={{ color: colors.textSoft }}>{error}</Text> : null}
     <Pressable accessibilityRole="button" onPress={() => void save()} disabled={saving} style={{ minHeight: 50, alignItems: "center", justifyContent: "center", borderRadius: 14, backgroundColor: colors.red, opacity: saving ? 0.55 : 1 }}>{saving ? <ActivityIndicator color={colors.white} /> : <Text style={{ color: colors.white, fontSize: 16, fontWeight: "800" }}>Save profile</Text>}</Pressable>
   </ScrollView></KeyboardAvoidingView></Screen>;

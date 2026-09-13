@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
       avatar: true,
       subtitle: true,
       bio: true,
+      profileLinks: { select: { id: true, label: true, url: true, position: true }, orderBy: { position: "asc" } },
     },
   });
 
@@ -42,11 +43,26 @@ export async function PATCH(request: NextRequest) {
   }
   const avatar = text(body.avatar, 2048);
   if (avatar && !/^https:\/\//i.test(avatar)) return NextResponse.json({ error: "Avatar must use a secure URL." }, { status: 400 });
+  const submittedLinks = Array.isArray(body.links) ? body.links.slice(0, 5) : [];
+  const links: { label: string; url: string; position: number }[] = [];
+  for (const submitted of submittedLinks) {
+    const label = text(submitted?.label, 80);
+    const url = text(submitted?.url, 2048);
+    if (!label && !url) continue;
+    if (!label || !url) return NextResponse.json({ error: "Each profile link needs a label and a URL." }, { status: 400 });
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol !== "https:" && parsed.protocol !== "http:") throw new Error();
+    } catch {
+      return NextResponse.json({ error: "Profile links must use a valid http:// or https:// URL." }, { status: 400 });
+    }
+    links.push({ label, url, position: links.length });
+  }
   try {
     const profile = await prisma.profile.update({
       where: { id: session.profileId },
-      data: { username, name: text(body.name, 80), subtitle: text(body.subtitle, 160), bio: text(body.bio, 500), avatar: avatar || null },
-      select: { id: true, email: true, name: true, username: true, avatar: true, subtitle: true, bio: true },
+      data: { username, name: text(body.name, 80), subtitle: text(body.subtitle, 160), bio: text(body.bio, 500), avatar: avatar || null, profileLinks: { deleteMany: {}, create: links } },
+      select: { id: true, email: true, name: true, username: true, avatar: true, subtitle: true, bio: true, profileLinks: { select: { id: true, label: true, url: true, position: true }, orderBy: { position: "asc" } } },
     });
     return NextResponse.json(profile);
   } catch (error) {

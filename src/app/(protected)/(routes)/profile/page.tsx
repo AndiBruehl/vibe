@@ -11,6 +11,7 @@ import { Suspense } from "react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { randomUUID } from "crypto";
+import ProfileLinks from "@/app/components/ProfileLinks";
 
 type ProfilePageProps = {
   searchParams: Promise<{
@@ -61,6 +62,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
     prisma.follow.count({ where: { followingId: profile.id } }),
     prisma.follow.count({ where: { followerId: profile.id } }),
   ]);
+  const profileLinks = await prisma.profileLink.findMany({ where: { profileId: profile.id }, orderBy: { position: "asc" } });
   const de = profile.language === "de";
 
   return (
@@ -122,6 +124,9 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         <p className="text-slate-700 dark:text-slate-300">
           {profile.bio || ""}
         </p>
+        {profileLinks.length > 0 && (
+          <ProfileLinks links={profileLinks} language={de ? "de" : "en"} centered />
+        )}
       </section>
 
       <section className="mt-6 flex justify-center gap-8 text-center text-sm">
