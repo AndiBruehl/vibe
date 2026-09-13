@@ -6,6 +6,7 @@ export type UnreadInteractionStatus = {
   replyCount: number;
   likeCount: number;
   mentionCount: number;
+  followRequestCount: number;
   latestUnreadAt: string | null;
 };
 
@@ -15,7 +16,7 @@ export async function getUnreadInteractionStatus(
   const sessionEmail = email ?? (await auth())?.user?.email;
 
   if (!sessionEmail) {
-    return { commentCount: 0, replyCount: 0, likeCount: 0, mentionCount: 0, latestUnreadAt: null };
+    return { commentCount: 0, replyCount: 0, likeCount: 0, mentionCount: 0, followRequestCount: 0, latestUnreadAt: null };
   }
 
   const profile = await prisma.profile.findUnique({
@@ -24,14 +25,14 @@ export async function getUnreadInteractionStatus(
   });
 
   if (!profile) {
-    return { commentCount: 0, replyCount: 0, likeCount: 0, mentionCount: 0, latestUnreadAt: null };
+    return { commentCount: 0, replyCount: 0, likeCount: 0, mentionCount: 0, followRequestCount: 0, latestUnreadAt: null };
   }
 
   const readFilter = profile.activityReadAt
     ? { createdAt: { gt: profile.activityReadAt } }
     : {};
 
-  const [interactions, ownPosts, ownComments, mentions] = await Promise.all([
+  const [interactions, ownPosts, ownComments, mentions, followRequests] = await Promise.all([
     prisma.comment.findMany({
     where: {
       authorEmail: { not: sessionEmail },
@@ -58,6 +59,11 @@ export async function getUnreadInteractionStatus(
         ...readFilter,
       },
       select: { commentId: true, createdAt: true },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.followRequest.findMany({
+      where: { followingId: profile.id, ...readFilter },
+      select: { createdAt: true },
       orderBy: { createdAt: "desc" },
     }),
   ]);
@@ -106,11 +112,13 @@ export async function getUnreadInteractionStatus(
     replyCount,
     likeCount,
     mentionCount,
+    followRequestCount: followRequests.length,
     latestUnreadAt: [
       interactions[0]?.createdAt,
       postLikes[0]?.createdAt,
       commentLikes[0]?.createdAt,
       mentions[0]?.createdAt,
+      followRequests[0]?.createdAt,
     ]
       .filter((date): date is Date => Boolean(date))
       .sort((left, right) => right.getTime() - left.getTime())[0]

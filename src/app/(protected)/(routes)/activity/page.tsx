@@ -10,7 +10,7 @@ import img1 from "../profile/default.jpg";
 
 type ActivityItem = {
   id: string;
-  type: "follow" | "like" | "comment" | "message";
+  type: "follow" | "follow-request" | "like" | "comment" | "message";
   title: string;
   body: string;
   href: string;
@@ -31,7 +31,7 @@ function formatActivityDate(date: Date, language: "en" | "de") {
 
 function ActivityIcon({ type }: { type: ActivityItem["type"] }) {
   const className = "size-4";
-  if (type === "follow") return <UserPlus className={className} />;
+  if (type === "follow" || type === "follow-request") return <UserPlus className={className} />;
   if (type === "like") return <Heart className={className} />;
   if (type === "message") return <MessageCircle className={className} />;
   return <Bell className={className} />;
@@ -54,7 +54,7 @@ export default async function ActivityPage() {
   const validPosts = await prisma.post.findMany({ select: { id: true } });
   const validPostIds = validPosts.map((post) => post.id);
 
-  const [follows, postLikes, comments, commentLikes, conversations, mentions] = await Promise.all([
+  const [follows, followRequests, postLikes, comments, commentLikes, conversations, mentions] = await Promise.all([
     // Safe Follows
     prisma.follow
       .findMany({
@@ -68,6 +68,15 @@ export default async function ActivityPage() {
         take: 15,
       })
       .catch(() => []), // fallback if error
+
+    prisma.followRequest
+      .findMany({
+        where: { followingId: currentUserProfile.id },
+        include: { follower: { select: { name: true, username: true, avatar: true } } },
+        orderBy: { createdAt: "desc" },
+        take: 15,
+      })
+      .catch(() => []),
 
     // Safe Post Likes
     prisma.postLike
@@ -212,6 +221,19 @@ export default async function ActivityPage() {
   >(likeAuthors.map((author) => [author.email, author]));
 
   const items: ActivityItem[] = [
+    ...followRequests
+      .filter((request: any) => request.follower)
+      .map((request: any) => ({
+        id: `follow-request-${request.id}`,
+        type: "follow-request" as const,
+        title: `${request.follower.name || request.follower.username || (de ? "Jemand" : "Someone")} ${de ? "möchte dir folgen" : "wants to follow you"}`,
+        body: request.follower.username ? `@${request.follower.username}` : "",
+        context: de ? "Follow-Anfrage" : "Follow request",
+        href: "/profile#follow-requests",
+        createdAt: request.createdAt,
+        avatar: request.follower.avatar,
+      })),
+
     // Safe Follows
     ...follows
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

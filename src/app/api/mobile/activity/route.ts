@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
   const validPosts = await prisma.post.findMany({ select: { id: true } });
   const validPostIds = validPosts.map((post) => post.id);
 
-  const [follows, likes, comments, commentLikes, participants] = await Promise.all([
+  const [follows, followRequests, likes, comments, commentLikes, participants] = await Promise.all([
     prisma.follow.findMany({
       where: {
         followingId: currentUserProfile.id,
@@ -105,6 +105,12 @@ export async function GET(request: NextRequest) {
       },
       take: 20,
     }),
+    prisma.followRequest.findMany({
+      where: { followingId: currentUserProfile.id },
+      include: { follower: { select: { name: true, username: true, avatar: true } } },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    }),
     prisma.commentLike.findMany({
       where: {
         authorEmail: { not: currentUserProfile.email },
@@ -145,6 +151,16 @@ export async function GET(request: NextRequest) {
   });
 
   const items = [
+    ...followRequests.map((request) => ({
+      id: `follow-request-${request.id}`,
+      type: "follow-request",
+      title: `${request.follower.name || request.follower.username || "Someone"} wants to follow you`,
+      body: request.follower.username ? `@${request.follower.username}` : "",
+      context: "Follow request",
+      createdAt: request.createdAt,
+      avatar: request.follower.avatar,
+      href: "/profile#follow-requests",
+    })),
     ...follows.map((follow) => ({
       id: `follow-${follow.id}`,
       type: "follow",

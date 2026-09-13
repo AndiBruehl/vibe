@@ -15,7 +15,7 @@ export default async function FollowRequests({ profileId, language }: FollowRequ
   if (!requests.length) return null;
   const de = language === "de";
 
-  return <section className="mx-auto mt-7 w-full max-w-3xl rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+  return <section id="follow-requests" className="scroll-mt-6 mx-auto mt-7 w-full max-w-3xl rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800">
     <div className="mb-4 flex items-center gap-2"><UserRoundCheck size={18} className="text-orange-500" /><h2 className="font-bold text-slate-900 dark:text-white">{de ? "Follow-Anfragen" : "Follow requests"}</h2><span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600 dark:bg-slate-700 dark:text-slate-200">{requests.length}</span></div>
     <div className="divide-y divide-slate-200 dark:divide-slate-700">
       {requests.map((request) => <div key={request.id} className="flex flex-wrap items-center gap-3 py-3 first:pt-0 last:pb-0">

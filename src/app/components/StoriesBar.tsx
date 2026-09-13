@@ -3,7 +3,7 @@
 import { createStory, deleteStory } from "@/actions";
 import StoryRemainingTime from "./StoryRemainingTime";
 import { PinataSDK } from "pinata";
-import { Plus, Trash2, X } from "lucide-react";
+import { Eye, Plus, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import useVibeLanguage from "@/app/components/useVibeLanguage";
 
@@ -16,6 +16,14 @@ type Story = {
   slides: { id: string; storyId: string; imageUrl: string; expiresAt: string }[];
   storyIds: string[];
   seen: boolean;
+};
+
+type StoryViewer = {
+  email: string;
+  viewedAt: string;
+  username: string | null;
+  name: string | null;
+  avatar: string | null;
 };
 
 const pinata = new PinataSDK({ pinataJwt: "", pinataGateway: process.env.NEXT_PUBLIC_GATEWAY_URL });
@@ -35,6 +43,9 @@ export default function StoriesBar({ stories: suppliedStories, viewerEmail }: { 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [dragging, setDragging] = useState(false);
+  const [viewersOpen, setViewersOpen] = useState(false);
+  const [viewers, setViewers] = useState<StoryViewer[]>([]);
+  const [viewersLoading, setViewersLoading] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   const elapsedSlideTime = useRef(0);
 
@@ -83,6 +94,23 @@ export default function StoriesBar({ stories: suppliedStories, viewerEmail }: { 
     if (!currentSlide) return;
     void fetch(`/api/stories/${currentSlide.storyId}/view`, { method: "POST" });
   }, [openStory, slide]);
+
+  useEffect(() => {
+    const currentSlide = openStory?.slides[slide];
+    if (!currentSlide || openStory?.authorEmail !== viewerEmail || !viewersOpen) return;
+    let active = true;
+    setViewersLoading(true);
+    void fetch(`/api/stories/${currentSlide.storyId}/views`, { cache: "no-store" })
+      .then(async (response) => response.ok ? response.json() as Promise<{ viewers: StoryViewer[] }> : { viewers: [] })
+      .then((result) => { if (active) setViewers(result.viewers); })
+      .catch(() => { if (active) setViewers([]); })
+      .finally(() => { if (active) setViewersLoading(false); });
+    return () => { active = false; };
+  }, [openStory, slide, viewerEmail, viewersOpen]);
+
+  useEffect(() => {
+    if (!openStory) setViewersOpen(false);
+  }, [openStory]);
 
   useEffect(() => {
     if (!openStory || openStoryIndex === null || paused) return;
@@ -176,6 +204,6 @@ export default function StoriesBar({ stories: suppliedStories, viewerEmail }: { 
 
     {creating && <div className="fixed inset-0 z-[90] grid place-items-center bg-slate-950/70 p-4"><section className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl dark:bg-slate-900"><div className="flex items-center justify-between"><h2 className="text-xl font-bold">{de ? "Story erstellen" : "Create story"}</h2><button onClick={() => setCreating(false)} aria-label={de ? "Schließen" : "Close"}><X /></button></div><p className="mt-1 text-sm text-slate-500">{de ? "Stories verschwinden nach 24 Stunden. Füge bis zu 4 Bilder hinzu." : "Stories disappear after 24 hours. Add up to 4 images."}</p><div className="mt-5 grid grid-cols-4 gap-2">{images.map((image, index) => <img key={`${image}-${index}`} src={image} alt={de ? "Ausgewähltes Story-Bild" : "Selected story slide"} className="aspect-square rounded-lg object-cover" />)}</div><div onDragEnter={(event) => { event.preventDefault(); setDragging(true); }} onDragOver={(event) => event.preventDefault()} onDragLeave={(event) => { if (event.currentTarget === event.target) setDragging(false); }} onDrop={handleDrop} className={`mt-5 rounded-xl border border-dashed border-orange-400 transition ${dragging ? "bg-orange-100 ring-4 ring-orange-300 dark:bg-orange-500/20" : ""}`}><button disabled={busy || images.length >= 4} onClick={() => input.current?.click()} className="w-full p-5 font-semibold text-orange-600 disabled:opacity-50">{busy ? (de ? "Wird hochgeladen…" : "Uploading…") : dragging ? (de ? "Bilder zum Hochladen ablegen" : "Drop images to upload") : (de ? "Bilder hierher ziehen oder Dateien auswählen" : "Drag & drop images or choose files")}</button></div><input ref={input} type="file" accept="image/*" multiple className="hidden" onChange={(event) => { void upload(Array.from(event.target.files || [])); event.target.value = ""; }} />{error && <p className="mt-3 text-sm text-red-600">{error}</p>}<button disabled={busy || !images.length} onClick={() => void publish()} className="mt-5 w-full rounded-xl bg-linear-to-r from-(--ig-orange) to-(--ig-red) px-4 py-3 font-semibold text-white disabled:opacity-50">{de ? "Story veröffentlichen" : "Publish story"}</button></section></div>}
 
-    {openStory && <div className="fixed inset-0 z-[100] grid place-items-center bg-black p-2 sm:p-6"><section onPointerDown={() => setPaused(true)} onPointerUp={() => setPaused(false)} onPointerCancel={() => setPaused(false)} onPointerLeave={() => setPaused(false)} className="relative flex h-full w-full max-w-md flex-col overflow-hidden rounded-2xl bg-slate-950"><div className="absolute inset-x-3 top-3 z-20 flex gap-1">{openStory.slides.map((_, index) => <span key={index} className={`h-1 flex-1 rounded-full ${index <= slide ? "bg-white" : "bg-white/35"}`} />)}</div><div className="absolute inset-x-4 top-7 z-20 flex items-center justify-between text-white"><div className="min-w-0 pr-3"><p className="truncate text-sm font-semibold">{openStory.authorUsername || openStory.authorName}</p>{openStory.slides[slide] && <StoryRemainingTime key={openStory.slides[slide].id} expiresAt={openStory.slides[slide].expiresAt} />}</div><button type="button" onClick={() => setOpenStoryIndex(null)} aria-label={de ? "Story schließen" : "Close story"}><X /></button></div><button className="absolute inset-y-0 left-0 z-0 w-1/3" aria-label={de ? "Vorheriges Bild" : "Previous slide"} onClick={previous} /><img src={openStory.slides[slide]?.imageUrl} alt="Story" className="h-full w-full object-contain" /><button className="absolute inset-y-0 right-0 z-0 w-1/3" aria-label={de ? "Nächstes Bild" : "Next slide"} onClick={next} /><div className="absolute bottom-4 left-4 right-4 z-10 h-1.5 overflow-hidden rounded-full bg-white/25"><div className="h-full rounded-full bg-linear-to-r from-yellow-300 to-orange-500 transition-[width] duration-75" style={{ width: `${slideProgress}%` }} /></div>{openStory.authorEmail === viewerEmail && <form action={async (data) => { await deleteStory(data); setOpenStoryIndex(null); window.location.reload(); }} className="absolute bottom-8 right-4 z-20"><input type="hidden" name="storyId" value={openStory.slides[slide]?.storyId} /><button className="rounded-full bg-black/60 p-3 text-white" aria-label={de ? "Story löschen" : "Delete story"}><Trash2 size={18} /></button></form>}</section></div>}
+    {openStory && <div className="fixed inset-0 z-[100] grid place-items-center bg-black p-2 sm:p-6"><section onPointerDown={() => setPaused(true)} onPointerUp={() => setPaused(false)} onPointerCancel={() => setPaused(false)} onPointerLeave={() => setPaused(false)} className="relative flex h-full w-full max-w-md flex-col overflow-hidden rounded-2xl bg-slate-950"><div className="absolute inset-x-3 top-3 z-20 flex gap-1">{openStory.slides.map((_, index) => <span key={index} className={`h-1 flex-1 rounded-full ${index <= slide ? "bg-white" : "bg-white/35"}`} />)}</div><div className="absolute inset-x-4 top-7 z-20 flex items-center justify-between text-white"><div className="min-w-0 pr-3"><p className="truncate text-sm font-semibold">{openStory.authorUsername || openStory.authorName}</p>{openStory.slides[slide] && <StoryRemainingTime key={openStory.slides[slide].id} expiresAt={openStory.slides[slide].expiresAt} />}</div><button type="button" onClick={() => setOpenStoryIndex(null)} aria-label={de ? "Story schließen" : "Close story"}><X /></button></div><button className="absolute inset-y-0 left-0 z-0 w-1/3" aria-label={de ? "Vorheriges Bild" : "Previous slide"} onClick={previous} /><img src={openStory.slides[slide]?.imageUrl} alt="Story" className="h-full w-full object-contain" /><button className="absolute inset-y-0 right-0 z-0 w-1/3" aria-label={de ? "Nächstes Bild" : "Next slide"} onClick={next} />{openStory.authorEmail === viewerEmail && <><button type="button" onClick={() => setViewersOpen((current) => !current)} className="absolute bottom-8 left-4 z-20 inline-flex items-center gap-2 rounded-full bg-black/60 px-3 py-2 text-xs font-semibold text-white" aria-expanded={viewersOpen}><Eye size={17} />{viewersOpen ? (de ? "Schließen" : "Close") : (de ? "Aufrufe" : "Views")}</button>{viewersOpen && <div className="absolute bottom-20 left-4 right-4 z-30 max-h-56 overflow-y-auto rounded-2xl bg-slate-950/95 p-3 text-white shadow-2xl ring-1 ring-white/15"><p className="mb-2 px-1 text-sm font-bold">{de ? "Gesehen von" : "Seen by"}</p>{viewersLoading ? <p className="px-1 pb-1 text-sm text-white/70">{de ? "Wird geladen…" : "Loading…"}</p> : viewers.length ? <div className="space-y-2">{viewers.map((viewer) => <div key={viewer.email} className="flex items-center gap-3 rounded-xl px-1 py-1"><span className="size-9 overflow-hidden rounded-full bg-white/15">{viewer.avatar ? <img src={viewer.avatar} alt="" className="h-full w-full object-cover" /> : null}</span><span className="min-w-0 flex-1 truncate text-sm font-semibold">{viewer.name || viewer.username || viewer.email}{viewer.username ? <span className="ml-1 font-normal text-white/60">@{viewer.username}</span> : null}</span><time className="shrink-0 text-[11px] text-white/60">{new Date(viewer.viewedAt).toLocaleString(de ? "de-DE" : "en-US", { dateStyle: "short", timeStyle: "short" })}</time></div>)}</div> : <p className="px-1 pb-1 text-sm text-white/70">{de ? "Noch keine Aufrufe" : "No views yet"}</p>}</div>}</>}<div className="absolute bottom-4 left-4 right-4 z-10 h-1.5 overflow-hidden rounded-full bg-white/25"><div className="h-full rounded-full bg-linear-to-r from-yellow-300 to-orange-500 transition-[width] duration-75" style={{ width: `${slideProgress}%` }} /></div>{openStory.authorEmail === viewerEmail && <form action={async (data) => { await deleteStory(data); setOpenStoryIndex(null); window.location.reload(); }} className="absolute bottom-8 right-4 z-20"><input type="hidden" name="storyId" value={openStory.slides[slide]?.storyId} /><button className="rounded-full bg-black/60 p-3 text-white" aria-label={de ? "Story löschen" : "Delete story"}><Trash2 size={18} /></button></form>}</section></div>}
   </>;
 }
