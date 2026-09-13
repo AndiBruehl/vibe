@@ -402,6 +402,13 @@ export default async function HomePosts({
                         sessionLike={sessionLike}
                       />
 
+                      {post.likesCount > 0 && <Link
+                        href={`/posts/${post.id}/likes`}
+                        className="text-sm font-medium text-slate-600 hover:text-orange-600 hover:underline dark:text-slate-300 dark:hover:text-orange-300"
+                      >
+                        {de ? "Anzeigen" : "View"}
+                      </Link>}
+
                       <Link
                         href={`/posts/${post.id}#comments`}
                         className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm text-slate-600 transition hover:bg-black/5 hover:text-orange-600 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-orange-300"

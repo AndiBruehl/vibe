@@ -132,6 +132,12 @@ export default async function SinglePostPage({
                 />
               </div>
 
+              {post.likesCount > 0 && <div className="px-5 pt-2">
+                <Link href={`/posts/${post.id}/likes`} className="text-sm font-medium text-slate-600 hover:text-orange-600 hover:underline dark:text-slate-300 dark:hover:text-orange-300">
+                  {post.likesCount} <LocalizedText en={post.likesCount === 1 ? "like" : "likes"} de="Likes" />
+                </Link>
+              </div>}
+
               <div className="space-y-4 p-5 md:p-6">
                 <h1 className="text-xl font-semibold text-slate-900 dark:text-white">
                   <LocalizedText en="Post" de="Beitrag" />
