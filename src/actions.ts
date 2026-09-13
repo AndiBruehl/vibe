@@ -316,6 +316,7 @@ export async function deletePost(formData: FormData): Promise<void> {
     prisma.comment.deleteMany({ where: { postId: postIdValue } }),
     prisma.postLike.deleteMany({ where: { postId: postIdValue } }),
     prisma.postBookmark.deleteMany({ where: { postId: postIdValue } }),
+    prisma.bookmarkCollectionPost.deleteMany({ where: { postId: postIdValue } }),
     prisma.postProfileTag.deleteMany({ where: { postId: postIdValue } }),
     prisma.post.delete({ where: { id: postIdValue } }),
   ]);
@@ -773,14 +774,17 @@ export async function togglePostBookmark(formData: FormData): Promise<void> {
   });
 
   if (existingBookmark) {
-    await prisma.postBookmark.delete({
-      where: {
-        postId_authorEmail: {
-          postId: postIdValue,
-          authorEmail: session.user.email,
+    await prisma.$transaction([
+      prisma.postBookmark.delete({
+        where: {
+          postId_authorEmail: {
+            postId: postIdValue,
+            authorEmail: session.user.email,
+          },
         },
-      },
-    });
+      }),
+      prisma.bookmarkCollectionPost.deleteMany({ where: { postId: postIdValue } }),
+    ]);
   } else {
     await prisma.postBookmark.create({
       data: {
@@ -793,6 +797,61 @@ export async function togglePostBookmark(formData: FormData): Promise<void> {
   revalidatePath("/");
   revalidatePath("/profile");
   revalidatePath(`/posts/${postIdValue}`);
+}
+
+export async function createBookmarkCollection(formData: FormData): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.email) redirect("/");
+
+  const name = typeof formData.get("name") === "string" ? String(formData.get("name")).trim().slice(0, 50) : "";
+  if (!name) throw new Error("A collection name is required.");
+
+  const profile = await prisma.profile.findUnique({ where: { email: session.user.email }, select: { id: true } });
+  if (!profile) throw new Error("Profile not found.");
+
+  await prisma.bookmarkCollection.create({ data: { profileId: profile.id, name } });
+  revalidatePath("/profile");
+}
+
+export async function toggleBookmarkCollectionPost(formData: FormData): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.email) redirect("/");
+
+  const collectionId = formData.get("collectionId");
+  const postId = formData.get("postId");
+  if (typeof collectionId !== "string" || typeof postId !== "string" || !collectionId || !postId) throw new Error("Collection and post are required.");
+
+  const [profile, bookmark] = await Promise.all([
+    prisma.profile.findUnique({ where: { email: session.user.email }, select: { id: true } }),
+    prisma.postBookmark.findUnique({ where: { postId_authorEmail: { postId, authorEmail: session.user.email } }, select: { id: true } }),
+  ]);
+  if (!profile || !bookmark) throw new Error("Save the post before adding it to a collection.");
+
+  const collection = await prisma.bookmarkCollection.findFirst({ where: { id: collectionId, profileId: profile.id }, select: { id: true } });
+  if (!collection) throw new Error("Collection not found.");
+
+  const existing = await prisma.bookmarkCollectionPost.findUnique({ where: { collectionId_postId: { collectionId, postId } }, select: { id: true } });
+  if (existing) {
+    await prisma.bookmarkCollectionPost.delete({ where: { id: existing.id } });
+  } else {
+    await prisma.bookmarkCollectionPost.create({ data: { collectionId, postId } });
+  }
+  revalidatePath("/profile");
+}
+
+export async function deleteBookmarkCollection(formData: FormData): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.email) redirect("/");
+  const collectionId = formData.get("collectionId");
+  if (typeof collectionId !== "string" || !collectionId) throw new Error("Collection ID is required.");
+  const profile = await prisma.profile.findUnique({ where: { email: session.user.email }, select: { id: true } });
+  const collection = profile ? await prisma.bookmarkCollection.findFirst({ where: { id: collectionId, profileId: profile.id }, select: { id: true } }) : null;
+  if (!collection) throw new Error("Collection not found.");
+  await prisma.$transaction([
+    prisma.bookmarkCollectionPost.deleteMany({ where: { collectionId } }),
+    prisma.bookmarkCollection.delete({ where: { id: collectionId } }),
+  ]);
+  revalidatePath("/profile");
 }
 
 export async function toggleFollow(formData: FormData): Promise<void> {

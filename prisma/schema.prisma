@@ -24,6 +24,7 @@ model Profile {
   commentLikes  CommentLike[]
   postLikes     PostLike[]
   bookmarks     PostBookmark[]
+  bookmarkCollections BookmarkCollection[]
   conversations ConversationParticipant[]
   sentMessages  Message[]                 @relation("SentMessages")
   stories       Story[]
@@ -110,6 +111,7 @@ model Post {
   comments  Comment[]
   likes     PostLike[]
   bookmarks PostBookmark[]
+  bookmarkCollectionItems BookmarkCollectionPost[]
   topics    PostTopic[]
   profileTags PostProfileTag[]
 }
@@ -205,6 +207,32 @@ model Comment {
 
   likes CommentLike[]
   mentions CommentMention[]
+}
+
+model BookmarkCollection {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  profileId String   @db.ObjectId
+  profile   Profile  @relation(fields: [profileId], references: [id])
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items BookmarkCollectionPost[]
+
+  @@unique([profileId, name])
+  @@index([profileId, updatedAt])
+}
+
+model BookmarkCollectionPost {
+  id           String             @id @default(auto()) @map("_id") @db.ObjectId
+  collectionId String             @db.ObjectId
+  collection   BookmarkCollection @relation(fields: [collectionId], references: [id])
+  postId       String             @db.ObjectId
+  post         Post               @relation(fields: [postId], references: [id])
+  createdAt    DateTime           @default(now())
+
+  @@unique([collectionId, postId])
+  @@index([postId])
 }
 
 model ProfileLink {

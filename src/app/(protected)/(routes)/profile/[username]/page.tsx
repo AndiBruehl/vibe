@@ -17,6 +17,7 @@ type ProfileByUsernamePageProps = {
   }>;
   searchParams: Promise<{
     tab?: string;
+    collection?: string;
   }>;
 };
 
@@ -35,7 +36,7 @@ export default async function ProfileByUsernamePage({
   } catch {
     // Next.js normally decodes route segments. Keep the original value for malformed URLs.
   }
-  const { tab } = await searchParams;
+  const { tab, collection } = await searchParams;
 
   const [profile, viewerProfile] = await Promise.all([
     prisma.profile.findUnique({ where: { username }, include: { profileLinks: { orderBy: { position: "asc" } } } }),
@@ -234,7 +235,7 @@ export default async function ProfileByUsernamePage({
 
         <section className="mt-6">
           {activeTab === "bookmarks" && isOwnProfile ? (
-            <BookmarkPosts email={profile.email} />
+            <BookmarkPosts email={profile.email} collectionId={collection} language={de ? "de" : "en"} />
           ) : (
             <ProfilePosts email={profile.email} />
           )}

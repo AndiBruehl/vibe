@@ -16,6 +16,7 @@ import ProfileLinks from "@/app/components/ProfileLinks";
 type ProfilePageProps = {
   searchParams: Promise<{
     tab?: string;
+    collection?: string;
   }>;
 };
 
@@ -26,7 +27,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
     notFound();
   }
 
-  const { tab } = await searchParams;
+  const { tab, collection } = await searchParams;
 
   const activeTab =
     tab === "bookmarks" || tab === "highlights" || tab === "topics"
@@ -203,7 +204,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
           {activeTab === "posts" ? (
             <ProfilePosts email={session.user.email} />
           ) : activeTab === "bookmarks" ? (
-            <BookmarkPosts email={session.user.email} />
+            <BookmarkPosts email={session.user.email} collectionId={collection} language={de ? "de" : "en"} />
           ) : activeTab === "highlights" ? (
             <HighlightsPosts />
           ) : (

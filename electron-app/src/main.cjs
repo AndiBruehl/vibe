@@ -12,7 +12,7 @@ let updateCheckStarted = false;
 const RELEASE_MANIFEST_URL = "https://api.github.com/repos/AndiBruehl/vibe/contents/public/releases/latest.json";
 
 function displayVersion(version = app.getVersion()) {
-  return version.replace(/-(\d+)$/, ".$1");
+  return version.replace(/-(\d+(?:\.\d+)*)$/, ".$1");
 }
 
 function compareVersions(left, right) {
