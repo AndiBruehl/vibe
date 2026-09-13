@@ -15,12 +15,21 @@ import { parseLoginCallback, type PendingLogin } from "@/lib/loginCallback";
 
 const extra = Constants.expoConfig?.extra as { apiUrl?: string } | undefined;
 const vibeUrl = (process.env.EXPO_PUBLIC_API_URL || extra?.apiUrl || "https://vibe-social-network.vercel.app").replace(/\/$/, "");
-const appVersion = Constants.expoConfig?.version || "0.1.63.2";
+const appVersion = Constants.expoConfig?.version || "0.1.63.3";
 const mobileTokenKey = "vibe.webMobileToken";
 const pendingLoginKey = "vibe.pendingLogin";
 const releaseManifestUrl = "https://raw.githubusercontent.com/AndiBruehl/vibe/main/public/releases/latest.json";
 
 type UpdateRelease = { version: string; downloadUrl: string };
+
+function isYouTubeUrl(url: string) {
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    return host === "youtu.be" || host.endsWith(".youtu.be") || host === "youtube.com" || host.endsWith(".youtube.com");
+  } catch {
+    return false;
+  }
+}
 
 function compareVersions(left: string, right: string) {
   const leftParts = left.split(".").map(Number);
@@ -185,7 +194,7 @@ export default function App() {
 
   return <SafeAreaProvider><SafeAreaView style={styles.safe} edges={["top", "bottom", "left", "right"]}>
     <StatusBar style="light" />
-    {mobileToken ? <WebView ref={browser} source={source} style={styles.web} userAgent={`VibeAndroid/${appVersion}`}
+    {mobileToken ? <WebView ref={browser} source={source} style={styles.web} applicationNameForUserAgent={` VibeAndroid/${appVersion}`}
       sharedCookiesEnabled thirdPartyCookiesEnabled domStorageEnabled javaScriptEnabled
       setSupportMultipleWindows={false} onNavigationStateChange={handleNavigation}
       injectedJavaScript={themeBridge}
@@ -206,6 +215,10 @@ export default function App() {
       }}
       onError={() => { setLoading(false); setError(true); }}
       onShouldStartLoadWithRequest={request => {
+        if (isYouTubeUrl(request.url)) {
+          void Linking.openURL(request.url);
+          return false;
+        }
         if (/\.apk(?:[?#].*)?$/i.test(request.url)) {
           void (async () => {
             try {
