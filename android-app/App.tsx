@@ -15,7 +15,7 @@ import { parseLoginCallback, type PendingLogin } from "@/lib/loginCallback";
 
 const extra = Constants.expoConfig?.extra as { apiUrl?: string } | undefined;
 const vibeUrl = (process.env.EXPO_PUBLIC_API_URL || extra?.apiUrl || "https://vibe-social-network.vercel.app").replace(/\/$/, "");
-const appVersion = Constants.expoConfig?.version || "0.1.63.1";
+const appVersion = Constants.expoConfig?.version || "0.1.63.2";
 const mobileTokenKey = "vibe.webMobileToken";
 const pendingLoginKey = "vibe.pendingLogin";
 const releaseManifestUrl = "https://raw.githubusercontent.com/AndiBruehl/vibe/main/public/releases/latest.json";
@@ -161,7 +161,9 @@ export default function App() {
     setDownloadingUpdate(true);
     setUpdateError(null);
     try {
-      const destination = `${FileSystem.cacheDirectory}Vibe-BETA-${update.version}.apk`;
+      // GitHub Raw serves release assets as application/octet-stream. A simple
+      // local filename avoids Android turning a dotted version into a .bin file.
+      const destination = `${FileSystem.documentDirectory ?? FileSystem.cacheDirectory}Vibe-update.apk`;
       const result = await FileSystem.downloadAsync(update.downloadUrl, destination, {
         headers: { Accept: "application/vnd.android.package-archive" },
       });
@@ -207,7 +209,7 @@ export default function App() {
         if (/\.apk(?:[?#].*)?$/i.test(request.url)) {
           void (async () => {
             try {
-              const destination = `${FileSystem.cacheDirectory}Vibe-download.apk`;
+              const destination = `${FileSystem.documentDirectory ?? FileSystem.cacheDirectory}Vibe-update.apk`;
               const result = await FileSystem.downloadAsync(request.url, destination, { headers: { Accept: "application/vnd.android.package-archive" } });
               if (result.status !== 200) throw new Error("APK download failed.");
               const contentUri = await FileSystem.getContentUriAsync(result.uri);
