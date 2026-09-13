@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Animated, BackHandler, Easing, Linking, Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Animated, BackHandler, Easing, Linking, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { WebView } from "react-native-webview";
@@ -15,7 +15,7 @@ import { parseLoginCallback, type PendingLogin } from "@/lib/loginCallback";
 
 const extra = Constants.expoConfig?.extra as { apiUrl?: string } | undefined;
 const vibeUrl = (process.env.EXPO_PUBLIC_API_URL || extra?.apiUrl || "https://vibe-social-network.vercel.app").replace(/\/$/, "");
-const appVersion = Constants.expoConfig?.version || "0.1.63";
+const appVersion = Constants.expoConfig?.version || "0.1.63.1";
 const mobileTokenKey = "vibe.webMobileToken";
 const pendingLoginKey = "vibe.pendingLogin";
 const releaseManifestUrl = "https://raw.githubusercontent.com/AndiBruehl/vibe/main/public/releases/latest.json";
@@ -162,7 +162,10 @@ export default function App() {
     setUpdateError(null);
     try {
       const destination = `${FileSystem.cacheDirectory}Vibe-BETA-${update.version}.apk`;
-      const result = await FileSystem.downloadAsync(update.downloadUrl, destination);
+      const result = await FileSystem.downloadAsync(update.downloadUrl, destination, {
+        headers: { Accept: "application/vnd.android.package-archive" },
+      });
+      if (result.status !== 200 || !result.uri.toLowerCase().endsWith(".apk")) throw new Error("APK download failed.");
       const contentUri = await FileSystem.getContentUriAsync(result.uri);
       await IntentLauncher.startActivityAsync("android.intent.action.VIEW", {
         data: contentUri,
@@ -201,6 +204,20 @@ export default function App() {
       }}
       onError={() => { setLoading(false); setError(true); }}
       onShouldStartLoadWithRequest={request => {
+        if (/\.apk(?:[?#].*)?$/i.test(request.url)) {
+          void (async () => {
+            try {
+              const destination = `${FileSystem.cacheDirectory}Vibe-download.apk`;
+              const result = await FileSystem.downloadAsync(request.url, destination, { headers: { Accept: "application/vnd.android.package-archive" } });
+              if (result.status !== 200) throw new Error("APK download failed.");
+              const contentUri = await FileSystem.getContentUriAsync(result.uri);
+              await IntentLauncher.startActivityAsync("android.intent.action.VIEW", { data: contentUri, flags: 1, type: "application/vnd.android.package-archive" });
+            } catch {
+              Alert.alert("VIBE", "The APK could not be downloaded. Please try again.");
+            }
+          })();
+          return false;
+        }
         if (/^https?:\/\//i.test(request.url)) return true;
         void Linking.openURL(request.url);
         return false;
@@ -211,7 +228,8 @@ export default function App() {
       <Animated.View style={[styles.navigationProgress, { width: navigationProgress.interpolate({ inputRange: [0, 1], outputRange: ["0%", "100%"] }) }]} />
       <View style={styles.navigationSpinner}><ActivityIndicator color={colors.white} size="small" /></View>
     </View>}
-    {mobileToken && update && <View style={[styles.updateBanner, webDarkMode ? styles.updateBannerDark : styles.updateBannerLight]}>
+    {mobileToken && update && <View style={[styles.updateOverlay, webDarkMode ? styles.updateOverlayDark : styles.updateOverlayLight]}>
+      <View style={[styles.updateBanner, webDarkMode ? styles.updateBannerDark : styles.updateBannerLight]}>
       <View style={styles.updateTextWrap}>
         <Text style={styles.updateEyebrow}>VIBE UPDATE</Text>
         <Text style={[styles.updateTitle, webDarkMode ? styles.updateTitleDark : styles.updateTitleLight]}>Update available</Text>
@@ -223,6 +241,7 @@ export default function App() {
       <Pressable accessibilityRole="button" hitSlop={8} onPress={() => setUpdate(null)}>
         <Text style={[styles.updateDismiss, webDarkMode ? styles.updateTextDark : styles.updateTextLight]}>×</Text>
       </Pressable>
+      </View>
     </View>}
     {error && <View style={styles.error}><Text style={styles.errorTitle}>VIBE could not connect</Text><Text style={styles.errorText}>Check your connection and try again.</Text><Pressable accessibilityRole="button" style={styles.retry} onPress={() => { setError(false); browser.current?.reload(); }}><Text style={styles.retryText}>Try again</Text></Pressable></View>}
   </SafeAreaView></SafeAreaProvider>;
@@ -235,7 +254,10 @@ const styles = StyleSheet.create({
   navigationFeedback: { position: "absolute", top: 0, left: 0, right: 0, height: 4, zIndex: 20 },
   navigationProgress: { height: 4, borderTopRightRadius: 4, borderBottomRightRadius: 4, backgroundColor: colors.red },
   navigationSpinner: { position: "absolute", right: 14, top: 12, width: 30, height: 30, alignItems: "center", justifyContent: "center", borderRadius: 15, backgroundColor: "rgba(15, 23, 42, 0.72)" },
-  updateBanner: { position: "absolute", left: 12, right: 12, top: 12, zIndex: 30, alignItems: "center", flexDirection: "row", gap: 10, borderRadius: 16, borderWidth: 1, paddingHorizontal: 14, paddingVertical: 12, elevation: 8, shadowColor: "#0f172a", shadowOpacity: 0.2, shadowRadius: 14, shadowOffset: { width: 0, height: 6 } },
+  updateOverlay: { ...StyleSheet.absoluteFillObject, zIndex: 30, alignItems: "center", justifyContent: "center", padding: 24 },
+  updateOverlayDark: { backgroundColor: "rgba(2, 6, 23, 0.56)" },
+  updateOverlayLight: { backgroundColor: "rgba(15, 23, 42, 0.25)" },
+  updateBanner: { width: "100%", maxWidth: 420, alignItems: "center", flexDirection: "row", gap: 10, borderRadius: 16, borderWidth: 1, paddingHorizontal: 14, paddingVertical: 12, elevation: 8, shadowColor: "#0f172a", shadowOpacity: 0.2, shadowRadius: 14, shadowOffset: { width: 0, height: 6 } },
   updateBannerDark: { backgroundColor: "#162137", borderColor: "#34445e" },
   updateBannerLight: { backgroundColor: "#ffffff", borderColor: "#d8e2ef" },
   updateTextWrap: { flex: 1 },
