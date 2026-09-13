@@ -19,7 +19,7 @@ export default async function BookmarkPosts({ email, collectionId, language = "e
   const activeCollection = collections.find((collection) => collection.id === collectionId);
   const selectedPostIds = activeCollection ? new Set(activeCollection.items.map((item) => item.postId)) : null;
   const visibleBookmarks = selectedPostIds ? bookmarks.filter((bookmark) => selectedPostIds.has(bookmark.postId)) : bookmarks;
-  const posts = visibleBookmarks.length ? await prisma.post.findMany({ where: { id: { in: visibleBookmarks.map((bookmark) => bookmark.postId) } } }) : [];
+  const posts = visibleBookmarks.length ? await prisma.post.findMany({ where: { id: { in: visibleBookmarks.map((bookmark) => bookmark.postId) }, isArchived: false } }) : [];
   const postsById = new Map(posts.map((post) => [post.id, post]));
   const savedPosts = visibleBookmarks.map((bookmark) => postsById.get(bookmark.postId)).filter((post): post is (typeof posts)[number] => Boolean(post));
   const hrefFor = (id?: string) => id ? `/profile?tab=bookmarks&collection=${encodeURIComponent(id)}` : "/profile?tab=bookmarks";

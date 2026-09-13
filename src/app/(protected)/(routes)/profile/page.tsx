@@ -13,6 +13,7 @@ import { notFound } from "next/navigation";
 import { randomUUID } from "crypto";
 import ProfileLinks from "@/app/components/ProfileLinks";
 import FollowRequests from "@/app/components/FollowRequests";
+import ArchivedPosts from "@/app/components/ArchivedPosts";
 
 type ProfilePageProps = {
   searchParams: Promise<{
@@ -31,7 +32,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   const { tab, collection } = await searchParams;
 
   const activeTab =
-    tab === "bookmarks" || tab === "highlights" || tab === "topics"
+    tab === "bookmarks" || tab === "highlights" || tab === "topics" || tab === "archive"
       ? tab
       : "posts";
 
@@ -60,7 +61,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   });
 
   const [postsCount, followersCount, followingCount] = await Promise.all([
-    prisma.post.count({ where: { authorEmail: session.user.email } }),
+    prisma.post.count({ where: { authorEmail: session.user.email, isArchived: false } }),
     prisma.follow.count({ where: { followingId: profile.id } }),
     prisma.follow.count({ where: { followerId: profile.id } }),
   ]);
@@ -197,6 +198,13 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
           >
             {de ? "Themen" : "Topics"}
           </Link>
+
+          <Link
+            className={activeTab === "archive" ? "font-bold underline text-(--ig-red)" : "font-medium text-slate-700 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"}
+            href="/profile?tab=archive"
+          >
+            {de ? "Archiv" : "Archive"}
+          </Link>
         </div>
       </section>
 
@@ -210,6 +218,8 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
             <BookmarkPosts email={session.user.email} collectionId={collection} language={de ? "de" : "en"} />
           ) : activeTab === "highlights" ? (
             <HighlightsPosts />
+          ) : activeTab === "archive" ? (
+            <ArchivedPosts email={session.user.email} language={de ? "de" : "en"} />
           ) : (
             <ProfileTopics email={session.user.email} />
           )}

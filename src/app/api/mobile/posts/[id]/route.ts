@@ -14,7 +14,7 @@ function isObjectId(value: string) {
 }
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: MobilePostRouteProps,
 ) {
   const { id } = await params;
@@ -38,11 +38,12 @@ export async function GET(
     },
   });
 
-  if (!post) {
+  const session = await getMobileSession(request);
+  if (!post || (post.isArchived && post.authorEmail !== session?.email)) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  return NextResponse.json((await withViewerLikes(_request, [post]))[0]);
+  return NextResponse.json((await withViewerLikes(request, [post]))[0]);
 }
 
 export async function PATCH(

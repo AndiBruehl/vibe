@@ -404,6 +404,25 @@ export async function togglePostLike(formData: FormData): Promise<{ liked: boole
   return { liked: !existingLike, likes: updated.likesCount };
 }
 
+export async function togglePostArchive(formData: FormData): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.email) redirect("/");
+
+  const postId = formData.get("postId");
+  const archive = formData.get("archive") === "true";
+  if (typeof postId !== "string" || !postId) throw new Error("Post ID is missing.");
+
+  const post = await prisma.post.findUnique({ where: { id: postId }, select: { authorEmail: true } });
+  if (!post || post.authorEmail !== session.user.email) throw new Error("Post not found.");
+
+  await prisma.post.update({ where: { id: postId }, data: { isArchived: archive } });
+  revalidatePath("/");
+  revalidatePath("/home");
+  revalidatePath("/profile");
+  revalidatePath(`/posts/${postId}`);
+  redirect(archive ? "/profile?tab=archive" : `/posts/${postId}`);
+}
+
 /** Adds a like without removing an existing one; used for the carousel double-tap gesture. */
 export async function likePost(formData: FormData): Promise<{ liked: boolean; likes: number }> {
   const session = await auth();

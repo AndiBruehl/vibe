@@ -82,12 +82,13 @@ export default async function HomePosts({
     where:
       feedMode === "following"
         ? {
+            isArchived: false,
             OR: [
               { authorEmail: sessionEmail },
               { authorEmail: { in: followedEmails } },
             ],
           }
-        : undefined,
+        : { isArchived: false },
     include: {
       topics: {
         include: {

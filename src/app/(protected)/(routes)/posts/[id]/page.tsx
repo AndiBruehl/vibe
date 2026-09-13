@@ -11,7 +11,7 @@ import PostComments from "@/app/components/PostComments";
 import PostCarousel from "@/app/components/PostCarousel";
 import PostComposer from "@/app/components/PostComposer";
 import { getPostImages } from "@/post-images";
-import { deletePost, editPost } from "@/actions";
+import { deletePost, editPost, togglePostArchive } from "@/actions";
 import LocalizedText from "@/app/components/LocalizedText";
 import MentionText from "@/app/components/MentionText";
 
@@ -59,6 +59,8 @@ export default async function SinglePostPage({
   if (!post) {
     notFound();
   }
+
+  if (post.isArchived && viewerEmail !== post.authorEmail) notFound();
 
   // load topics for this post
   const postWithTopics = await prisma.post.findUnique({
@@ -182,6 +184,13 @@ export default async function SinglePostPage({
                         </button>
                       </form>
                     </div>
+                    <form action={togglePostArchive} className="mb-4">
+                      <input type="hidden" name="postId" value={post.id} />
+                      <input type="hidden" name="archive" value={post.isArchived ? "false" : "true"} />
+                      <button type="submit" className="rounded-full border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
+                        <LocalizedText en={post.isArchived ? "Restore from archive" : "Archive post"} de={post.isArchived ? "Aus Archiv wiederherstellen" : "Beitrag archivieren"} />
+                      </button>
+                    </form>
 
                     <PostComposer key={post.updatedAt.toISOString()} action={editPost} postId={post.id} initialImages={getPostImages(post)} description={post.description} topics={topics.map((t) => t.name)} taggedProfiles={taggedProfiles}/>
 

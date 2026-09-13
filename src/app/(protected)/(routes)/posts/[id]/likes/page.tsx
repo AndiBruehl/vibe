@@ -14,10 +14,11 @@ export default async function PostLikesPage({ params }: { params: Promise<{ id: 
 
   const { id } = await params;
   const [post, viewer] = await Promise.all([
-    prisma.post.findUnique({ where: { id }, select: { id: true, authorEmail: true, likesCount: true } }),
+    prisma.post.findUnique({ where: { id }, select: { id: true, authorEmail: true, likesCount: true, isArchived: true } }),
     prisma.profile.findUnique({ where: { email: session.user.email }, select: { id: true, language: true } }),
   ]);
   if (!post || !viewer) notFound();
+  if (post.isArchived && post.authorEmail !== session.user.email) notFound();
 
   const author = await prisma.profile.findUnique({ where: { email: post.authorEmail }, select: { id: true, isPrivate: true } });
   if (author?.isPrivate && post.authorEmail !== session.user.email) {

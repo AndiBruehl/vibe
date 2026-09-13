@@ -56,6 +56,7 @@ export async function GET(request: NextRequest) {
   const mode = request.nextUrl.searchParams.get("mode");
 
   const posts = await prisma.post.findMany({
+    where: { isArchived: false },
     include: {
       author: {
         select: {

@@ -6,6 +6,7 @@ import Link from "next/link";
 
 export default async function HighlightsPosts() {
   const posts = await prisma.post.findMany({
+    where: { isArchived: false },
     orderBy: [
       {
         likesCount: "desc",

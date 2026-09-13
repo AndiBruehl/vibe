@@ -54,7 +54,7 @@ export default async function TopicPage({ params }: Props) {
   }
 
   const posts = await prisma.post.findMany({
-    where: { topics: { some: { topic: { slug } } } },
+    where: { isArchived: false, topics: { some: { topic: { slug } } } },
     orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     select: {
       id: true,

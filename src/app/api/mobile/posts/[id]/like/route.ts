@@ -9,8 +9,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   if (!/^[a-f\d]{24}$/i.test(id)) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const body = await request.json().catch(() => null);
   if (typeof body?.liked !== "boolean") return NextResponse.json({ error: "Liked must be a boolean." }, { status: 400 });
-  const post = await prisma.post.findUnique({ where: { id }, select: { id: true } });
-  if (!post) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const post = await prisma.post.findUnique({ where: { id }, select: { id: true, isArchived: true } });
+  if (!post || post.isArchived) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const saved = await prisma.$transaction(async tx => {
     const where = { postId_authorEmail: { postId: id, authorEmail: session.email } };
     const existing = await tx.postLike.findUnique({ where });

@@ -57,6 +57,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
         prisma.post.findMany({
           where: {
+            isArchived: false,
             description: {
               contains: query,
               mode: "insensitive",

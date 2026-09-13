@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
     }),
     prisma.post.findMany({
       where: {
+        isArchived: false,
         description: {
           contains: query,
           mode: "insensitive",

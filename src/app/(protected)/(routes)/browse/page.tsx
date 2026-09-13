@@ -8,6 +8,7 @@ import LocalizedText from "@/app/components/LocalizedText";
 
 export default async function BrowsePage() {
   const posts = await prisma.post.findMany({
+    where: { isArchived: false },
     orderBy: {
       createdAt: "desc",
     },

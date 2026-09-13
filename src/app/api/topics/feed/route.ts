@@ -14,6 +14,7 @@ export async function GET(req: Request) {
 
     const posts = await prisma.post.findMany({
       where: {
+        isArchived: false,
         topics: { some: { topic: { slug } } },
       },
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
