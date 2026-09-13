@@ -92,15 +92,17 @@ export default function PostComposer({
   taggedProfiles?: TaggedProfile[];
 }) {
   const de = useVibeLanguage() === "de";
+  const isDraftable = !postId;
   const [images, setImages] = useState(initialImages);
   const [draftDescription, setDraftDescription] = useState(description);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [progress, setProgress] = useState("");
   const [isDragging, setIsDragging] = useState(false);
+  const [draftReady, setDraftReady] = useState(!isDraftable);
+  const [draftStatus, setDraftStatus] = useState("");
   const uploading = useRef(false);
   const fileInput = useRef<HTMLInputElement>(null);
-  const isDraftable = !postId;
 
   useEffect(() => {
     if (!isDraftable) return;
@@ -111,11 +113,28 @@ export default function PostComposer({
       if (Array.isArray(draft.images) && draft.images.every((image) => typeof image === "string")) setImages(draft.images.slice(0, MAX_POST_IMAGES));
       if (typeof draft.description === "string") setDraftDescription(draft.description);
     } catch { localStorage.removeItem(DRAFT_KEY); }
+    finally { setDraftReady(true); }
   }, [isDraftable]);
 
-  function saveDraft() {
-    localStorage.setItem(DRAFT_KEY, JSON.stringify({ images, description: draftDescription, savedAt: Date.now() }));
-    setProgress(de ? "Entwurf wurde auf diesem Gerät gespeichert." : "Draft saved on this device.");
+  useEffect(() => {
+    if (!isDraftable || !draftReady) return;
+    const timer = window.setTimeout(() => {
+      if (!images.length && !draftDescription.trim()) {
+        localStorage.removeItem(DRAFT_KEY);
+        setDraftStatus("");
+        return;
+      }
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({ images, description: draftDescription, savedAt: Date.now() }));
+      setDraftStatus(de ? "Entwurf automatisch gespeichert" : "Draft saved automatically");
+    }, 700);
+    return () => window.clearTimeout(timer);
+  }, [draftDescription, draftReady, de, images, isDraftable]);
+
+  function discardDraft() {
+    localStorage.removeItem(DRAFT_KEY);
+    setImages([]);
+    setDraftDescription("");
+    setDraftStatus(de ? "Entwurf verworfen" : "Draft discarded");
   }
   async function upload(files: File[]) {
     if (!files.length || uploading.current) return;
@@ -261,9 +280,9 @@ export default function PostComposer({
           </div>
         )}
       </fieldset>
-      {progress && (
+      {(progress || draftStatus) && (
         <p role="status" className="text-sm">
-          {progress}
+          {progress || draftStatus}
         </p>
       )}
       <label className="block text-sm font-medium">
@@ -284,7 +303,7 @@ export default function PostComposer({
         </p>
       )}
       <div className={`grid gap-3 ${isDraftable ? "sm:grid-cols-2" : ""}`}>
-        {isDraftable && <button type="button" onClick={saveDraft} className="min-h-12 rounded-xl border-2 border-red-500 bg-red-50 px-4 py-3 text-base font-bold text-red-700 transition hover:bg-red-100 dark:bg-red-950/30 dark:text-red-300 dark:hover:bg-red-950/50">{de ? "Entwurf speichern" : "Save draft"}</button>}
+        {isDraftable && <button type="button" onClick={discardDraft} className="min-h-12 rounded-xl border-2 border-slate-300 bg-slate-50 px-4 py-3 text-base font-bold text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">{de ? "Entwurf verwerfen" : "Discard draft"}</button>}
         <Submit disabled={busy || !images.length} editing={!!postId} />
       </div>
     </form>
