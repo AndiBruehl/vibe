@@ -12,6 +12,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { randomUUID } from "crypto";
 import ProfileLinks from "@/app/components/ProfileLinks";
+import FollowRequests from "@/app/components/FollowRequests";
 
 type ProfilePageProps = {
   searchParams: Promise<{
@@ -198,6 +199,8 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
           </Link>
         </div>
       </section>
+
+      {profile.isPrivate ? <FollowRequests profileId={profile.id} language={de ? "de" : "en"} /> : null}
 
       <section className="mt-4">
         <Suspense fallback={de ? "Beiträge werden geladen..." : "Loading posts..."}>

@@ -104,6 +104,7 @@ export async function upsertProfile(formData: FormData) {
     subtitle: ((formData.get("subtitle") as string) || "").trim(),
     bio: ((formData.get("bio") as string) || "").trim(),
     avatar: ((formData.get("avatarUrl") as string) || "").trim(),
+    isPrivate: formData.get("isPrivate") === "true",
   };
 
   const linkLabels = formData.getAll("linkLabel");
@@ -882,6 +883,7 @@ export async function toggleFollow(formData: FormData): Promise<void> {
     select: {
       id: true,
       username: true,
+      isPrivate: true,
     },
   });
 
@@ -900,6 +902,7 @@ export async function toggleFollow(formData: FormData): Promise<void> {
     select: {
       id: true,
       username: true,
+      isPrivate: true,
     },
   });
 
@@ -916,6 +919,8 @@ export async function toggleFollow(formData: FormData): Promise<void> {
     },
   });
 
+  const existingRequest = await prisma.followRequest.findUnique({ where: { followerId_followingId: { followerId: currentUserProfile.id, followingId: targetProfile.id } } });
+
   if (existingFollow) {
     await prisma.follow.delete({
       where: {
@@ -925,6 +930,10 @@ export async function toggleFollow(formData: FormData): Promise<void> {
         },
       },
     });
+  } else if (existingRequest) {
+    await prisma.followRequest.delete({ where: { id: existingRequest.id } });
+  } else if (targetProfile.isPrivate) {
+    await prisma.followRequest.create({ data: { followerId: currentUserProfile.id, followingId: targetProfile.id } });
   } else {
     await prisma.follow.create({
       data: {
@@ -942,6 +951,26 @@ export async function toggleFollow(formData: FormData): Promise<void> {
     revalidatePath(`/profile/${targetUsernameValue.trim()}`);
     revalidatePath(`/u/${targetUsernameValue.trim()}`);
   }
+}
+
+export async function respondToFollowRequest(formData: FormData): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.email) redirect("/");
+  const requestId = formData.get("requestId");
+  const decision = formData.get("decision");
+  if (typeof requestId !== "string" || (decision !== "accept" && decision !== "decline")) throw new Error("Invalid follow request.");
+  const owner = await prisma.profile.findUnique({ where: { email: session.user.email }, select: { id: true } });
+  const request = owner ? await prisma.followRequest.findFirst({ where: { id: requestId, followingId: owner.id }, select: { id: true, followerId: true } }) : null;
+  if (!owner || !request) throw new Error("Follow request not found.");
+  if (decision === "accept") {
+    await prisma.$transaction([
+      prisma.follow.upsert({ where: { followerId_followingId: { followerId: request.followerId, followingId: owner.id } }, update: {}, create: { followerId: request.followerId, followingId: owner.id } }),
+      prisma.followRequest.delete({ where: { id: request.id } }),
+    ]);
+  } else {
+    await prisma.followRequest.delete({ where: { id: request.id } });
+  }
+  revalidatePath("/profile");
 }
 
 function getDirectConversationKey(profileIdA: string, profileIdB: string) {

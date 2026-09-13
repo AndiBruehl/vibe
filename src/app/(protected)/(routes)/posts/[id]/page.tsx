@@ -75,6 +75,12 @@ export default async function SinglePostPage({
     where: { email: post.authorEmail },
   });
 
+  if (author?.isPrivate && viewerEmail !== author.email) {
+    const viewer = viewerEmail ? await prisma.profile.findUnique({ where: { email: viewerEmail }, select: { id: true } }) : null;
+    const canView = viewer ? await prisma.follow.findUnique({ where: { followerId_followingId: { followerId: viewer.id, followingId: author.id } }, select: { id: true } }) : null;
+    if (!canView) notFound();
+  }
+
   const isLikedByViewer =
     viewerEmail && Array.isArray(post.likes) ? post.likes.length > 0 : false;
 

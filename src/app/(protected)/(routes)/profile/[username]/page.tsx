@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/db";
 import Image from "next/image";
 import Link from "next/link";
-import { MoveLeft, Grid3X3, Bookmark } from "lucide-react";
+import { MoveLeft, Grid3X3, Bookmark, Lock } from "lucide-react";
 import ProfilePosts from "@/app/components/ProfilePosts";
 import BookmarkPosts from "@/app/components/BookmarkPosts";
 import FollowButton from "@/app/components/FollowButton";
@@ -41,7 +41,7 @@ export default async function ProfileByUsernamePage({
   const [profile, viewerProfile] = await Promise.all([
     prisma.profile.findUnique({ where: { username }, include: { profileLinks: { orderBy: { position: "asc" } } } }),
     viewerEmail
-      ? prisma.profile.findUnique({ where: { email: viewerEmail }, select: { language: true } })
+      ? prisma.profile.findUnique({ where: { email: viewerEmail }, select: { id: true, language: true } })
       : null,
   ]);
 
@@ -77,34 +77,22 @@ export default async function ProfileByUsernamePage({
     prisma.follow.count({ where: { followerId: profile.id } }),
   ]);
 
-  let isFollowing = false;
+  let followState: "following" | "requested" | "none" = "none";
 
-  if (!isOwnProfile && viewerEmail) {
-    const viewerProfile = await prisma.profile.findUnique({
-      where: {
-        email: viewerEmail,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (viewerProfile) {
-      const existingFollow = await prisma.follow.findUnique({
-        where: {
-          followerId_followingId: {
-            followerId: viewerProfile.id,
-            followingId: profile.id,
-          },
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      isFollowing = !!existingFollow;
-    }
+  if (!isOwnProfile && viewerProfile?.id) {
+    const [existingFollow, existingRequest] = await Promise.all([
+      prisma.follow.findUnique({
+        where: { followerId_followingId: { followerId: viewerProfile.id, followingId: profile.id } },
+        select: { id: true },
+      }),
+      prisma.followRequest.findUnique({
+        where: { followerId_followingId: { followerId: viewerProfile.id, followingId: profile.id } },
+        select: { id: true },
+      }),
+    ]);
+    followState = existingFollow ? "following" : existingRequest ? "requested" : "none";
   }
+  const canViewPosts = !profile.isPrivate || isOwnProfile || followState === "following";
 
   return (
     <>
@@ -165,7 +153,8 @@ export default async function ProfileByUsernamePage({
                     <FollowButton
                       targetProfileId={profile.id}
                       targetUsername={profile.username || ""}
-                      isFollowing={isFollowing}
+                      state={followState}
+                      language={de ? "de" : "en"}
                     />
                     <MessageButton targetProfileId={profile.id} />
                   </div>
@@ -202,7 +191,7 @@ export default async function ProfileByUsernamePage({
             </div>
           </div>
 
-          <div className="border-t border-gray-200 dark:border-gray-700">
+          {canViewPosts ? <div className="border-t border-gray-200 dark:border-gray-700">
             <div className="flex">
               <Link
                 href={`/profile/${encodeURIComponent(profile.username ?? "")}`}
@@ -230,11 +219,17 @@ export default async function ProfileByUsernamePage({
                 </Link>
               ) : null}
             </div>
-          </div>
+          </div> : null}
         </section>
 
         <section className="mt-6">
-          {activeTab === "bookmarks" && isOwnProfile ? (
+          {!canViewPosts ? (
+            <div className="rounded-2xl bg-white p-10 text-center shadow-lg shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
+              <Lock className="mx-auto text-orange-500" size={28} />
+              <h2 className="mt-3 text-lg font-bold text-slate-900 dark:text-white">{de ? "Dieses Profil ist privat" : "This account is private"}</h2>
+              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{de ? "Folge diesem Profil, um seine Beiträge zu sehen." : "Follow this account to see its posts."}</p>
+            </div>
+          ) : activeTab === "bookmarks" && isOwnProfile ? (
             <BookmarkPosts email={profile.email} collectionId={collection} language={de ? "de" : "en"} />
           ) : (
             <ProfilePosts email={profile.email} />

@@ -16,6 +16,7 @@ model Profile {
   subtitle String?
   bio      String?
   language String  @default("en")
+  isPrivate Boolean @default(false)
   activityReadAt DateTime?
 
   posts         Post[]
@@ -33,6 +34,8 @@ model Profile {
 
   followers    Follow[]      @relation("ProfileFollowers")
   following    Follow[]      @relation("ProfileFollowing")
+  receivedFollowRequests FollowRequest[] @relation("FollowRequestsReceived")
+  sentFollowRequests FollowRequest[] @relation("FollowRequestsSent")
   topicFollows TopicFollow[]
 }
 
@@ -207,6 +210,18 @@ model Comment {
 
   likes CommentLike[]
   mentions CommentMention[]
+}
+
+model FollowRequest {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  followerId String @db.ObjectId
+  follower Profile @relation("FollowRequestsSent", fields: [followerId], references: [id])
+  followingId String @db.ObjectId
+  following Profile @relation("FollowRequestsReceived", fields: [followingId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followingId, createdAt])
 }
 
 model BookmarkCollection {

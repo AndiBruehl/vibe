@@ -1,6 +1,6 @@
 "use client";
 
-import { ImageUp, Link as LinkIcon, Moon, Plus, Trash2, UserRound } from "lucide-react";
+import { ImageUp, Link as LinkIcon, Lock, Moon, Plus, Trash2, UserRound } from "lucide-react";
 import { Switch } from "@radix-ui/themes";
 import type { Profile } from "@prisma/client";
 import { upsertProfile } from "@/actions";
@@ -25,6 +25,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
   const [avatarUrl, setAvatarUrl] = useState<string>(profile?.avatar ?? "");
   const [isUploading, setIsUploading] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isPrivate, setIsPrivate] = useState(profile?.isPrivate ?? false);
   const [isThemeReady, setIsThemeReady] = useState(false);
   const [language, setLanguage] = useState<"en" | "de">("en");
   const [profileLinks, setProfileLinks] = useState<EditableProfileLink[]>(
@@ -231,6 +232,12 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
             localStorage.setItem("theme", theme);
           }}
         />
+      </section>
+
+      <section className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 dark:border-slate-700 dark:bg-slate-800/60 lg:col-start-2">
+        <div className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-xl bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200"><Lock size={17} /></span><div><p className="font-semibold text-slate-900 dark:text-white">{copy("Private profile", "Privates Profil")}</p><p className="text-xs text-slate-500 dark:text-slate-400">{copy("Approve follow requests before people can see your posts", "Bestätige Follow-Anfragen, bevor Nutzer deine Beiträge sehen")}</p></div></div>
+        <input type="hidden" name="isPrivate" value={isPrivate ? "true" : "false"} />
+        <Switch checked={isPrivate} onCheckedChange={setIsPrivate} />
       </section>
 
       <div className="flex flex-col-reverse gap-3 border-t border-slate-200 pt-6 dark:border-slate-700/80 sm:flex-row sm:items-center sm:justify-between lg:col-start-2">
