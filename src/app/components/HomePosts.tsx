@@ -62,6 +62,18 @@ export default async function HomePosts({
     },
   });
 
+  const blockRows = currentUserProfile
+    ? await prisma.block.findMany({
+        where: { OR: [{ blockerId: currentUserProfile.id }, { blockedId: currentUserProfile.id }] },
+        select: { blockerId: true, blockedId: true },
+      })
+    : [];
+  const blockedProfileIds = [...new Set(blockRows.map((row) => row.blockerId === currentUserProfile?.id ? row.blockedId : row.blockerId))];
+  const blockedProfiles = blockedProfileIds.length
+    ? await prisma.profile.findMany({ where: { id: { in: blockedProfileIds } }, select: { email: true } })
+    : [];
+  const blockedEmails = blockedProfiles.map((profile) => profile.email);
+
   const followedEmails = profiles
     .map((profile) => profile.email)
     .filter((email): email is string => Boolean(email));
@@ -82,13 +94,13 @@ export default async function HomePosts({
     where:
       feedMode === "following"
         ? {
-            isArchived: false,
-            OR: [
-              { authorEmail: sessionEmail },
-              { authorEmail: { in: followedEmails } },
+            AND: [
+              { isArchived: false },
+              { authorEmail: { notIn: blockedEmails } },
+              { OR: [{ authorEmail: sessionEmail }, { authorEmail: { in: followedEmails } }] },
             ],
           }
-        : { isArchived: false },
+        : { isArchived: false, authorEmail: { notIn: blockedEmails } },
     include: {
       topics: {
         include: {

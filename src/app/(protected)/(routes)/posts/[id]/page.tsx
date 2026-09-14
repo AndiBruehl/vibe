@@ -76,11 +76,43 @@ export default async function SinglePostPage({
   const author = await prisma.profile.findUnique({
     where: { email: post.authorEmail },
   });
+  const viewer = viewerEmail
+    ? await prisma.profile.findUnique({ where: { email: viewerEmail }, select: { id: true, language: true } })
+    : null;
+  const de = viewer?.language === "de";
+  const blockingRelation = author && viewer && author.email !== viewerEmail
+    ? await prisma.block.findFirst({
+        where: { OR: [{ blockerId: viewer.id, blockedId: author.id }, { blockerId: author.id, blockedId: viewer.id }] },
+        select: { blockerId: true },
+      })
+    : null;
+
+  if (blockingRelation) {
+    const blockedByAuthor = blockingRelation.blockerId === author?.id;
+    return (
+      <main className="mx-auto flex min-h-[70vh] max-w-xl items-center justify-center p-4">
+        <section className="w-full rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-xl dark:border-white/10 dark:bg-slate-900">
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white">{blockedByAuthor ? (de ? "Dieser Nutzer hat dich blockiert" : "This user blocked you") : (de ? "Du hast diesen Nutzer blockiert" : "You blocked this user")}</h1>
+          <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">{de ? "Hier gibt es nichts zu sehen." : "There is nothing to see here."}</p>
+          <Link href="/home" className="mt-5 inline-flex rounded-xl bg-linear-to-r from-(--ig-orange) to-(--ig-red) px-4 py-2.5 text-sm font-semibold text-white">{de ? "ZUR STARTSEITE" : "BACK TO HOME"}</Link>
+        </section>
+      </main>
+    );
+  }
 
   if (author?.isPrivate && viewerEmail !== author.email) {
-    const viewer = viewerEmail ? await prisma.profile.findUnique({ where: { email: viewerEmail }, select: { id: true } }) : null;
     const canView = viewer ? await prisma.follow.findUnique({ where: { followerId_followingId: { followerId: viewer.id, followingId: author.id } }, select: { id: true } }) : null;
-    if (!canView) notFound();
+    if (!canView) {
+      return (
+        <main className="mx-auto flex min-h-[70vh] max-w-xl items-center justify-center p-4">
+          <section className="w-full rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-xl dark:border-white/10 dark:bg-slate-900">
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white">{de ? "Dieser Beitrag ist privat" : "This post is private"}</h1>
+            <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">{de ? "Folge dem Profil, um diesen Beitrag zu sehen." : "Follow this profile to view this post."}</p>
+            {author.username && <Link href={`/profile/${encodeURIComponent(author.username)}`} className="mt-5 inline-flex rounded-xl bg-linear-to-r from-(--ig-orange) to-(--ig-red) px-4 py-2.5 text-sm font-semibold text-white">{de ? "ZUM PROFIL" : "VIEW PROFILE"}</Link>}
+          </section>
+        </main>
+      );
+    }
   }
 
   const isLikedByViewer =

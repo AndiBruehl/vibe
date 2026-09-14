@@ -97,7 +97,7 @@ export default async function ProfileByUsernamePage({
     isBlocked = blockedByViewer || Boolean(profileBlock);
     followState = existingFollow ? "following" : existingRequest ? "requested" : "none";
   }
-  const canViewPosts = !profile.isPrivate || isOwnProfile || followState === "following";
+  const canViewPosts = !isBlocked && (!profile.isPrivate || isOwnProfile || followState === "following");
 
   return (
     <>
@@ -233,8 +233,8 @@ export default async function ProfileByUsernamePage({
           {!canViewPosts ? (
             <div className="rounded-2xl bg-white p-10 text-center shadow-lg shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
               <Lock className="mx-auto text-orange-500" size={28} />
-              <h2 className="mt-3 text-lg font-bold text-slate-900 dark:text-white">{de ? "Dieses Profil ist privat" : "This account is private"}</h2>
-              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{de ? "Folge diesem Profil, um seine Beiträge zu sehen." : "Follow this account to see its posts."}</p>
+              <h2 className="mt-3 text-lg font-bold text-slate-900 dark:text-white">{isBlocked ? (de ? "Beiträge sind nicht verfügbar" : "Posts are not available") : (de ? "Dieses Profil ist privat" : "This account is private")}</h2>
+              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{isBlocked ? (de ? "Zwischen euch besteht eine Blockierung." : "There is a block between these profiles.") : (de ? "Folge diesem Profil, um seine Beiträge zu sehen." : "Follow this account to see its posts.")}</p>
             </div>
           ) : activeTab === "bookmarks" && isOwnProfile ? (
             <BookmarkPosts email={profile.email} collectionId={collection} language={de ? "de" : "en"} />

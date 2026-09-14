@@ -12,6 +12,25 @@ async function usersAreBlocked(profileIdA: string, profileIdB: string) {
   return Boolean(await prisma.block.findFirst({ where: { OR: [{ blockerId: profileIdA, blockedId: profileIdB }, { blockerId: profileIdB, blockedId: profileIdA }] }, select: { id: true } }));
 }
 
+async function assertCanInteractWithPost(postId: string, viewerEmail: string) {
+  const [post, viewer] = await Promise.all([
+    prisma.post.findUnique({ where: { id: postId }, select: { id: true, authorEmail: true } }),
+    prisma.profile.findUnique({ where: { email: viewerEmail }, select: { id: true } }),
+  ]);
+  if (!post) throw new Error("Post not found.");
+  if (!viewer) throw new Error("Current user profile not found.");
+  if (post.authorEmail === viewerEmail) return post;
+
+  const author = await prisma.profile.findUnique({ where: { email: post.authorEmail }, select: { id: true, isPrivate: true } });
+  if (!author) return post;
+  if (await usersAreBlocked(viewer.id, author.id)) throw new Error("You cannot interact with this profile.");
+  if (author.isPrivate) {
+    const followsAuthor = await prisma.follow.findUnique({ where: { followerId_followingId: { followerId: viewer.id, followingId: author.id } }, select: { id: true } });
+    if (!followsAuthor) throw new Error("You cannot interact with this private profile.");
+  }
+  return post;
+}
+
 // Helper: upsert topics and link them to a post
 async function linkTopicsForPost(postId: string, topicsValue: unknown) {
   if (typeof topicsValue !== "string" || !topicsValue.trim()) return;
@@ -345,14 +364,7 @@ export async function togglePostLike(formData: FormData): Promise<{ liked: boole
     throw new Error("Post ID is missing.");
   }
 
-  const post = await prisma.post.findUnique({
-    where: { id: postIdValue },
-    select: { id: true },
-  });
-
-  if (!post) {
-    throw new Error("Post not found.");
-  }
+  await assertCanInteractWithPost(postIdValue, session.user.email);
 
   const existingLike = await prisma.postLike.findUnique({
     where: {
@@ -478,10 +490,10 @@ export async function likePost(formData: FormData): Promise<{ liked: boolean; li
   const postId = formData.get("postId");
   if (typeof postId !== "string" || !postId) throw new Error("Post ID is missing.");
 
-  const post = await prisma.post.findUnique({ where: { id: postId }, select: { likesCount: true } });
-  if (!post) throw new Error("Post not found.");
+  const post = await assertCanInteractWithPost(postId, session.user.email);
+  const postLikes = await prisma.post.findUniqueOrThrow({ where: { id: post.id }, select: { likesCount: true } });
   const existing = await prisma.postLike.findUnique({ where: { postId_authorEmail: { postId, authorEmail: session.user.email } } });
-  if (existing) return { liked: true, likes: post.likesCount };
+  if (existing) return { liked: true, likes: postLikes.likesCount };
 
   const [, updated] = await prisma.$transaction([
     prisma.postLike.create({ data: { postId, authorEmail: session.user.email } }),
@@ -571,6 +583,8 @@ export async function postComment(formData: FormData): Promise<void> {
     throw new Error("Post not found.");
   }
 
+  await assertCanInteractWithPost(postIdValue, session.user.email);
+
   const comment = await prisma.comment.create({
     data: {
       authorEmail: session.user.email,
@@ -626,6 +640,8 @@ export async function postReply(formData: FormData): Promise<void> {
   if (parentComment.postId !== postIdValue) {
     throw new Error("Reply does not belong to this post.");
   }
+
+  await assertCanInteractWithPost(postIdValue, session.user.email);
 
   const reply = await prisma.comment.create({
     data: {
@@ -779,6 +795,8 @@ export async function likeComment(formData: FormData): Promise<void> {
   if (!comment) {
     throw new Error("Comment not found.");
   }
+
+  await assertCanInteractWithPost(postIdValue, session.user.email);
 
   const existingLike = await prisma.commentLike.findUnique({
     where: {
