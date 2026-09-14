@@ -25,8 +25,9 @@ export default function SortablePosts({
     : [["newest", "Newest to oldest"], ["oldest", "Oldest to newest"], ["az", "A to Z"], ["za", "Z to A"]];
   // Children supplied by server components can lose their outer key while being
   // reordered. Give every sortable slot a stable post id at this boundary.
-  const items = Children.toArray(children).map((child, index) => (
-    <Fragment key={posts[index]?.id ?? `post-${index}`}>{child}</Fragment>
+  const suppliedChildren = Children.toArray(children);
+  const items = posts.map((post, index) => (
+    <Fragment key={`sortable-post-${post.id}`}>{suppliedChildren[index] ?? null}</Fragment>
   ));
   return (
     <div className="w-full">

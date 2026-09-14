@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { createMobileToken } from "@/mobile-auth";
 import { prisma } from "@/db";
+import { claimWelcomeAndSend } from "@/system-profile";
 import crypto from "crypto";
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -94,6 +95,8 @@ export async function GET(request: NextRequest) {
             username: true,
           },
         });
+
+    if (!existingProfile) await claimWelcomeAndSend({ id: profile.id, email: profile.email, language: "en" });
 
     redirectUrl.searchParams.set(
       "token",

@@ -69,6 +69,7 @@ export default async function ConversationPage({
               username: true,
               avatar: true,
               isSystem: true,
+              systemKind: true,
             },
           },
         },
@@ -82,6 +83,7 @@ export default async function ConversationPage({
               username: true,
               avatar: true,
               isSystem: true,
+              systemKind: true,
             },
           },
         },
@@ -141,7 +143,7 @@ export default async function ConversationPage({
       })
     : null;
   const conversationIsBlocked = Boolean(blockingRelation);
-  const conversationIsSystemNoReply = conversation.participants.some((participant: any) => participant.profile.isSystem);
+  const conversationIsSystemNoReply = conversation.participants.some((participant: any) => participant.profile.isSystem && participant.profile.systemKind !== "support");
   const blockedByOther = blockingRelation?.blockerId === otherProfile?.id;
 
   return (

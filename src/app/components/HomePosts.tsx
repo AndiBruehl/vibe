@@ -348,7 +348,7 @@ export default async function HomePosts({
           description: post.description,
           createdAt: post.createdAt,
         }))}
-        headerAfterCount={<FeedModeSwitch feedMode={feedMode} />}
+        headerAfterCount={<FeedModeSwitch key="feed-mode-switch" feedMode={feedMode} />}
         className="flex w-full flex-col gap-8"
       >
         {posts.map((post) => {

@@ -20,6 +20,11 @@ model Profile {
   isAdmin Boolean @default(false)
   isSystem Boolean @default(false)
   systemKind String?
+  welcomeSentAt DateTime?
+  restrictedUntil DateTime?
+  restrictionMessages Boolean @default(false)
+  restrictionComments Boolean @default(false)
+  restrictionPosts Boolean @default(false)
   activityReadAt DateTime?
 
   posts         Post[]
@@ -34,6 +39,7 @@ model Profile {
   stories       Story[]
   postTags      PostProfileTag[]
   profileLinks  ProfileLink[]
+  restrictions Restriction[]
 
   followers    Follow[]      @relation("ProfileFollowers")
   following    Follow[]      @relation("ProfileFollowing")
@@ -42,6 +48,21 @@ model Profile {
   topicFollows TopicFollow[]
   blocksSent Block[] @relation("BlocksSent")
   blocksReceived Block[] @relation("BlocksReceived")
+}
+
+model Restriction {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  profileId String @db.ObjectId
+  profile Profile @relation(fields: [profileId], references: [id])
+  imposedByEmail String
+  blocksMessages Boolean @default(false)
+  blocksComments Boolean @default(false)
+  blocksPosts Boolean @default(false)
+  createdAt DateTime @default(now())
+  endsAt DateTime
+
+  @@index([profileId, createdAt])
+  @@index([endsAt])
 }
 
 model Block {

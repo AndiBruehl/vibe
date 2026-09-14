@@ -1,6 +1,8 @@
 import { getMobileSession } from "@/mobile-auth";
 import { prisma } from "@/db";
 import { NextResponse, type NextRequest } from "next/server";
+import { assertNotRestricted } from "@/restrictions";
+import { appendSupportTicketMessage } from "@/support-ticket";
 
 type MobileConversationRouteProps = {
   params: Promise<{
@@ -25,6 +27,7 @@ async function getCurrentUserProfile(request: NextRequest) {
     },
     select: {
       id: true,
+      email: true,
     },
   });
 }
@@ -105,6 +108,11 @@ export async function POST(
   if (!currentUserProfile) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  try {
+    await assertNotRestricted(currentUserProfile.email, "messages");
+  } catch {
+    return NextResponse.json({ error: "Messaging is temporarily restricted." }, { status: 403 });
+  }
 
   const { body, imageUrl } = (await request.json()) as { body?: unknown; imageUrl?: unknown };
   const text = typeof body === "string" ? body.trim() : "";
@@ -125,14 +133,16 @@ export async function POST(
     },
     select: {
       id: true,
-      participants: { select: { profile: { select: { isSystem: true } } } },
+      participants: { select: { profile: { select: { isSystem: true, systemKind: true } } } },
     },
   });
 
   if (!conversation) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
-  if (conversation.participants.some((participant) => participant.profile.isSystem)) {
+  const isVibeTeamConversation = conversation.participants.some((participant) => participant.profile.isSystem && participant.profile.systemKind !== "support");
+  const isSupportConversation = conversation.participants.some((participant) => participant.profile.systemKind === "support");
+  if (isVibeTeamConversation) {
     return NextResponse.json({ error: "VibeTeam messages are no-reply" }, { status: 403 });
   }
 
@@ -145,6 +155,10 @@ export async function POST(
       imageUrl: image,
     },
   });
+
+  if (isSupportConversation) {
+    await appendSupportTicketMessage(currentUserProfile.email, text || "Image attachment");
+  }
 
   await prisma.$transaction([
     prisma.conversation.update({

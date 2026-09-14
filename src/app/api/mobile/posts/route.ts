@@ -2,6 +2,7 @@ import { prisma } from "@/db";
 import { withViewerLikes } from "@/mobile-post-likes";
 import { getMobileSession } from "@/mobile-auth";
 import { NextResponse, type NextRequest } from "next/server";
+import { assertNotRestricted } from "@/restrictions";
 
 function normalizeTopic(value: string) {
   return value
@@ -79,6 +80,11 @@ export async function POST(request: NextRequest) {
 
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  try {
+    await assertNotRestricted(session.email, "posts");
+  } catch {
+    return NextResponse.json({ error: "Posting is temporarily restricted." }, { status: 403 });
   }
 
   const body = (await request.json().catch(() => ({}))) as {

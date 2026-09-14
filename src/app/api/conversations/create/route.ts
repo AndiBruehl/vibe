@@ -1,12 +1,18 @@
 import { auth } from "@/auth";
 import { prisma } from "@/db";
 import { revalidatePath } from "next/cache";
+import { assertNotRestricted } from "@/restrictions";
 
 export async function POST(req: Request) {
   try {
   const session = await auth();
   const userEmail = session?.user?.email;
   if (!userEmail) return new Response("Unauthorized", { status: 401 });
+  try {
+    await assertNotRestricted(userEmail, "messages");
+  } catch {
+    return new Response("Messaging is temporarily restricted.", { status: 403 });
+  }
 
   const form = await req.formData();
   const name = (form.get("name") as string) || "";

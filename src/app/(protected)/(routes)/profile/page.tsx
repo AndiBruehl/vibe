@@ -134,15 +134,18 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         <p className="text-slate-700 dark:text-slate-300">
           {profile.bio || ""}
         </p>
-        {profile.isAdmin ? <Link
-          href="/admin"
-          className="mt-4 inline-flex items-center gap-2 rounded-xl border border-orange-400/60 px-3 py-2 text-sm font-semibold text-orange-600 no-underline transition hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-500/10"
-        >
-          <Shield size={17} />
-          {de ? "Adminbereich" : "Admin area"}
-        </Link> : null}
+        <div className="mt-5 flex flex-col items-center gap-2.5">
+          {profile.isAdmin ? <Link
+            href="/admin"
+            className="inline-flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-semibold text-orange-600 no-underline transition hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-500/10"
+          >
+            <Shield size={16} />
+            {de ? "Adminbereich" : "Admin area"}
+          </Link> : null}
+          <Link href="/support" className="inline-flex rounded-xl bg-linear-to-r from-cyan-600 to-violet-600 px-5 py-2.5 text-sm font-bold text-white no-underline shadow-sm shadow-cyan-500/20 transition hover:brightness-110">{de ? "Support schreiben" : "Write support"}</Link>
+        </div>
         {profileLinks.length > 0 && (
-          <ProfileLinks links={profileLinks} language={de ? "de" : "en"} centered />
+          <div className="mt-4"><ProfileLinks links={profileLinks} language={de ? "de" : "en"} centered /></div>
         )}
       </section>
 

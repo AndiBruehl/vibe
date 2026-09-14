@@ -65,13 +65,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       };
 
       if (!existingProfile) {
-        await prisma.profile.create({
+        const profile = await prisma.profile.create({
           data: {
             email: user.email,
             username: createUsername(),
             name: user.name || null,
           },
         });
+        const { claimWelcomeAndSend } = await import("@/system-profile");
+        await claimWelcomeAndSend(profile);
       } else if (!existingProfile.username) {
         await prisma.profile.update({
           where: {

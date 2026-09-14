@@ -57,6 +57,8 @@ function adminActivityTitle(kind: string, de: boolean) {
     "support-reply": ["Support-Ticket beantwortet", "Support ticket answered"],
     "support-release": ["Support-Ticket freigegeben", "Support ticket released"],
     "support-close": ["Support-Ticket geschlossen", "Support ticket closed"],
+    "support-delete": ["Support-Ticket gelöscht", "Support ticket deleted"],
+    restriction: ["Temporäre Restriktion gesetzt", "Temporary restriction applied"],
   };
   const title = titles[kind] ?? ["Neue Admin-Aktivität", "New admin activity"];
   return de ? title[0] : title[1];
@@ -82,6 +84,8 @@ function adminActivityDetail(kind: string, de: boolean) {
     "support-reply": ["Ein Admin hat als Support@Vibe geantwortet.", "An admin replied as Support@Vibe."],
     "support-release": ["Ein Support-Ticket wurde wieder freigegeben.", "A support ticket was released again."],
     "support-close": ["Ein Support-Ticket wurde geschlossen.", "A support ticket was closed."],
+    "support-delete": ["Ein abgeschlossenes Support-Ticket wurde gelöscht.", "A closed support ticket was deleted."],
+    restriction: ["Für ein Profil wurde eine zeitlich begrenzte Restriktion gesetzt.", "A time-limited restriction was applied to a profile."],
   };
   const detail = details[kind] ?? ["Es gibt eine neue Admin-Aktivität.", "There is new admin activity."];
   return de ? detail[0] : detail[1];
@@ -272,7 +276,7 @@ export default async function ActivityPage() {
   >(likeAuthors.map((author) => [author.email, author]));
 
   const items: ActivityItem[] = [
-    ...adminActivities.map((activity) => ({ id: `admin-${activity.id}`, type: "admin" as const, title: adminActivityTitle(activity.kind, de), body: adminActivityDetail(activity.kind, de), context: "VIBE ADMIN", href: "/admin", createdAt: activity.createdAt })),
+    ...adminActivities.map((activity) => ({ id: `admin-${activity.id}`, type: "admin" as const, title: adminActivityTitle(activity.kind, de), body: adminActivityDetail(activity.kind, de), context: "VIBE ADMIN", href: activity.kind.startsWith("support-") ? "/admin?tab=support" : "/admin", createdAt: activity.createdAt })),
     ...followRequests
       .filter((request: any) => request.follower)
       .map((request: any) => ({

@@ -20,6 +20,7 @@ type UnreadInteractionStatus = {
   likeCount: number;
   mentionCount: number;
   followRequestCount: number;
+  adminCount: number;
   latestUnreadAt: string | null;
 };
 
@@ -69,6 +70,9 @@ function getInteractionText(status: UnreadInteractionStatus) {
   if (status.followRequestCount) {
     parts.push(`${status.followRequestCount} new ${status.followRequestCount === 1 ? "follow request" : "follow requests"}`);
   }
+  if (status.adminCount) {
+    parts.push(`${status.adminCount} new ${status.adminCount === 1 ? "admin update" : "admin updates"}`);
+  }
   return parts.join(" · ");
 }
 
@@ -86,7 +90,7 @@ function dispatchUnreadStatus(status: UnreadMessageStatus) {
 function dispatchUnreadInteractionStatus(status: UnreadInteractionStatus) {
   window.dispatchEvent(
     new CustomEvent("activity:unread-status", {
-        detail: { count: status.commentCount + status.replyCount + status.likeCount + status.mentionCount + status.followRequestCount },
+        detail: { count: status.commentCount + status.replyCount + status.likeCount + status.mentionCount + status.followRequestCount + status.adminCount },
     }),
   );
 }

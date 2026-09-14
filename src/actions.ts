@@ -6,7 +6,9 @@ import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { parsePostImages } from "@/post-images";
 import { isProtectedAdmin, isSuperAdmin, isVibeAdmin } from "@/admin";
-import { ensureVibeTeamProfile, isVibeSupportEmail } from "@/system-profile";
+import { ensureVibeSupportProfile, ensureVibeTeamProfile, isVibeSupportEmail, VIBE_SUPPORT_EMAIL } from "@/system-profile";
+import { assertNotRestricted } from "@/restrictions";
+import { appendSupportTicketMessage } from "@/support-ticket";
 
 const MAX_STORY_SLIDES = 4;
 
@@ -176,6 +178,8 @@ export async function postEntry(formData: FormData) {
   if (!session?.user?.email) {
     redirect("/");
   }
+
+  await assertNotRestricted(session.user.email, "posts");
 
   const images = parsePostImages(formData.has("imagesSet") ? formData.getAll("images") : [formData.get("image")]);
   const description = formData.get("description");
@@ -514,6 +518,7 @@ export async function likePost(formData: FormData): Promise<{ liked: boolean; li
 export async function createStory(formData: FormData): Promise<void> {
   const session = await auth();
   if (!session?.user?.email) redirect("/");
+  await assertNotRestricted(session.user.email, "posts");
 
   const images = parsePostImages(formData.getAll("images")).slice(0, MAX_STORY_SLIDES);
   if (!images.length) throw new Error("Choose at least one image for your story.");
@@ -563,6 +568,8 @@ export async function postComment(formData: FormData): Promise<void> {
     redirect("/");
   }
 
+  await assertNotRestricted(session.user.email, "comments");
+
   const textValue = formData.get("text");
   const postIdValue = formData.get("postId");
 
@@ -611,6 +618,8 @@ export async function postReply(formData: FormData): Promise<void> {
   if (!session?.user?.email) {
     redirect("/");
   }
+
+  await assertNotRestricted(session.user.email, "comments");
 
   const textValue = formData.get("text");
   const postIdValue = formData.get("postId");
@@ -1087,6 +1096,8 @@ export async function startConversation(formData: FormData): Promise<void> {
     redirect("/");
   }
 
+  await assertNotRestricted(session.user.email, "messages");
+
   const targetProfileIdValue = formData.get("targetProfileId");
 
   if (
@@ -1175,6 +1186,8 @@ export async function sendMessage(formData: FormData): Promise<void> {
     redirect("/");
   }
 
+  await assertNotRestricted(session.user.email, "messages");
+
   const conversationIdValue = formData.get("conversationId");
   const bodyValue = formData.get("body");
   const imageUrlValue = formData.get("imageUrl");
@@ -1223,7 +1236,7 @@ export async function sendMessage(formData: FormData): Promise<void> {
     },
     select: {
       id: true,
-      participants: { select: { profileId: true, profile: { select: { isSystem: true } } } },
+      participants: { select: { profileId: true, profile: { select: { isSystem: true, systemKind: true } } } },
     },
   });
 
@@ -1231,7 +1244,9 @@ export async function sendMessage(formData: FormData): Promise<void> {
     throw new Error("Conversation not found.");
   }
 
-  if (conversation.participants.some((participant) => participant.profile.isSystem) && !(await isVibeAdmin(session.user.email))) {
+  const isVibeTeamConversation = conversation.participants.some((participant) => participant.profile.isSystem && participant.profile.systemKind !== "support");
+  const isSupportConversation = conversation.participants.some((participant) => participant.profile.systemKind === "support");
+  if (isVibeTeamConversation) {
     throw new Error("VibeTeam messages are no-reply.");
   }
 
@@ -1245,6 +1260,10 @@ export async function sendMessage(formData: FormData): Promise<void> {
   }
 
   const now = new Date();
+
+  if (isSupportConversation) {
+    await appendSupportTicketMessage(session.user.email, body || "Image attachment");
+  }
 
   await prisma.$transaction([
     prisma.message.create({
@@ -1358,6 +1377,25 @@ async function deliverVibeTeamMessage(recipientEmail: string, body: string) {
     prisma.message.create({ data: { conversationId: conversation.id, senderId: team.id, body } }),
     prisma.conversation.update({ where: { id: conversation.id }, data: { updatedAt: now } }),
     prisma.conversationParticipant.update({ where: { conversationId_profileId: { conversationId: conversation.id, profileId: team.id } }, data: { lastReadAt: now } }),
+  ]);
+}
+
+async function deliverSupportReply(recipientEmail: string, body: string) {
+  const recipient = await prisma.profile.findUnique({ where: { email: recipientEmail }, select: { id: true, isSystem: true } });
+  if (!recipient || recipient.isSystem) return;
+  const support = await ensureVibeSupportProfile();
+  const directKey = getDirectConversationKey(support.id, recipient.id);
+  const conversation = await prisma.conversation.upsert({
+    where: { directKey },
+    update: {},
+    create: { directKey, participants: { create: [{ profileId: support.id }, { profileId: recipient.id }] } },
+    select: { id: true },
+  });
+  const now = new Date();
+  await prisma.$transaction([
+    prisma.message.create({ data: { conversationId: conversation.id, senderId: support.id, body } }),
+    prisma.conversation.update({ where: { id: conversation.id }, data: { updatedAt: now } }),
+    prisma.conversationParticipant.update({ where: { conversationId_profileId: { conversationId: conversation.id, profileId: support.id } }, data: { lastReadAt: now } }),
   ]);
 }
 
@@ -1490,25 +1528,28 @@ export async function createSupportTicket(formData: FormData): Promise<void> {
   if (!requesterEmail) redirect("/");
   const body = typeof formData.get("body") === "string" ? String(formData.get("body")).trim().slice(0, 2000) : "";
   if (!body) throw new Error("Support message is required.");
-  const existing = await prisma.supportTicket.findFirst({ where: { requesterEmail, status: { not: "closed" } }, orderBy: { updatedAt: "desc" }, select: { id: true } });
-  const ticket = existing
-    ? await prisma.supportTicket.update({ where: { id: existing.id }, data: { status: "open" } })
-    : await prisma.supportTicket.create({ data: { requesterEmail } });
-  await prisma.supportTicketMessage.create({ data: { ticketId: ticket.id, senderType: "user", body } });
-  await prisma.supportTicket.update({ where: { id: ticket.id }, data: { updatedAt: new Date() } });
-  await notifyAdmins(requesterEmail, "support-ticket", "New message for Support@Vibe");
+  await appendSupportTicketMessage(requesterEmail, body);
   revalidatePath("/support");
   revalidatePath("/admin");
 }
 
-export async function claimSupportTicket(formData: FormData): Promise<void> {
+export async function claimSupportTicket(formData: FormData): Promise<boolean> {
   const actorEmail = await requireAdminSession();
   const ticketId = formData.get("ticketId");
   if (typeof ticketId !== "string" || !isObjectId(ticketId)) throw new Error("Invalid support ticket.");
-  const result = await prisma.supportTicket.updateMany({ where: { id: ticketId, OR: [{ assignedAdminEmail: null }, { assignedAdminEmail: actorEmail }] }, data: { assignedAdminEmail: actorEmail, assignedAt: new Date(), status: "in-progress" } });
-  if (result.count !== 1) throw new Error("Another admin is already handling this ticket.");
-  await notifyAdmins(actorEmail, "support-claim", "A support ticket was claimed");
+  const result = await prisma.supportTicket.updateMany({ where: { id: ticketId, status: { not: "closed" }, OR: [{ assignedAdminEmail: null }, { assignedAdminEmail: { isSet: false } }, { assignedAdminEmail: actorEmail }] }, data: { assignedAdminEmail: actorEmail, assignedAt: new Date(), status: "in-progress" } });
+  // MongoDB can report a zero modified-count even when the guarded update has
+  // reached this exact admin. Read the persisted owner instead of treating that
+  // driver detail as a failed claim.
+  const persisted = await prisma.supportTicket.findUnique({ where: { id: ticketId }, select: { assignedAdminEmail: true, status: true } });
+  const claimedByActor = persisted?.assignedAdminEmail === actorEmail && persisted.status !== "closed";
+  if (!claimedByActor) {
+    revalidatePath("/admin");
+    return false;
+  }
+  if (result.count === 1) await notifyAdmins(actorEmail, "support-claim", "A support ticket was claimed");
   revalidatePath("/admin");
+  return true;
 }
 
 export async function replyToSupportTicket(formData: FormData): Promise<void> {
@@ -1516,15 +1557,17 @@ export async function replyToSupportTicket(formData: FormData): Promise<void> {
   const ticketId = formData.get("ticketId");
   const body = typeof formData.get("body") === "string" ? String(formData.get("body")).trim().slice(0, 2000) : "";
   if (typeof ticketId !== "string" || !isObjectId(ticketId) || !body) throw new Error("Invalid support reply.");
-  const ticket = await prisma.supportTicket.findUnique({ where: { id: ticketId }, select: { assignedAdminEmail: true } });
+  const ticket = await prisma.supportTicket.findUnique({ where: { id: ticketId }, select: { assignedAdminEmail: true, requesterEmail: true } });
   if (!ticket || ticket.assignedAdminEmail !== actorEmail) throw new Error("Claim this ticket before replying.");
   await prisma.$transaction([
     prisma.supportTicketMessage.create({ data: { ticketId, senderType: "admin", senderAdminEmail: actorEmail, body } }),
     prisma.supportTicket.update({ where: { id: ticketId }, data: { status: "awaiting-user", updatedAt: new Date() } }),
   ]);
+  await deliverSupportReply(ticket.requesterEmail, body);
   await notifyAdmins(actorEmail, "support-reply", "A Support@Vibe ticket was answered");
   revalidatePath("/admin");
   revalidatePath("/support");
+  revalidatePath("/messages");
 }
 
 export async function releaseSupportTicket(formData: FormData): Promise<void> {
@@ -1544,6 +1587,21 @@ export async function closeSupportTicket(formData: FormData): Promise<void> {
   const result = await prisma.supportTicket.updateMany({ where: { id: ticketId, assignedAdminEmail: actorEmail }, data: { status: "closed", updatedAt: new Date() } });
   if (result.count !== 1) throw new Error("Only the assigned admin can close this ticket.");
   await notifyAdmins(actorEmail, "support-close", "A support ticket was closed");
+  revalidatePath("/admin");
+  revalidatePath("/support");
+}
+
+export async function deleteClosedSupportTicket(formData: FormData): Promise<void> {
+  const actorEmail = await requireAdminSession();
+  const ticketId = formData.get("ticketId");
+  if (typeof ticketId !== "string" || !isObjectId(ticketId)) throw new Error("Invalid support ticket.");
+  const ticket = await prisma.supportTicket.findUnique({ where: { id: ticketId }, select: { status: true } });
+  if (!ticket || ticket.status !== "closed") throw new Error("Only closed support tickets can be deleted.");
+  await prisma.$transaction([
+    prisma.supportTicketMessage.deleteMany({ where: { ticketId } }),
+    prisma.supportTicket.delete({ where: { id: ticketId } }),
+  ]);
+  await notifyAdmins(actorEmail, "support-delete", "A closed Support@Vibe ticket was deleted");
   revalidatePath("/admin");
   revalidatePath("/support");
 }
@@ -1627,6 +1685,66 @@ export async function toggleAdminNoteVote(formData: FormData): Promise<void> {
   revalidatePath("/admin");
 }
 
+export async function applyProfileRestriction(formData: FormData): Promise<void> {
+  const actorEmail = await requireAdminSession();
+  const profileId = formData.get("profileId");
+  const scope = formData.get("scope");
+  const scopes: Record<string, { messages: boolean; comments: boolean; posts: boolean }> = {
+    messages: { messages: true, comments: false, posts: false },
+    comments: { messages: false, comments: true, posts: false },
+    "messages-comments": { messages: true, comments: true, posts: false },
+    posts: { messages: false, comments: false, posts: true },
+    full: { messages: true, comments: true, posts: true },
+  };
+  if (typeof profileId !== "string" || !isObjectId(profileId) || typeof scope !== "string" || !scopes[scope]) throw new Error("Invalid restriction.");
+  const target = await prisma.profile.findUnique({ where: { id: profileId }, select: { id: true, email: true, username: true, language: true, isAdmin: true, isSystem: true, restrictedUntil: true, restrictionMessages: true, restrictionComments: true, restrictionPosts: true } });
+  if (!target || target.isSystem || target.isAdmin || isProtectedAdmin(target.email)) throw new Error("This profile cannot be restricted.");
+  const selected = scopes[scope];
+  const currentlyActive = Boolean(target.restrictedUntil && target.restrictedUntil.getTime() > Date.now());
+  const combined = {
+    messages: selected.messages || (currentlyActive && target.restrictionMessages),
+    comments: selected.comments || (currentlyActive && target.restrictionComments),
+    posts: selected.posts || (currentlyActive && target.restrictionPosts),
+  };
+  const endsAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+  const previous = await prisma.restriction.findMany({ where: { profileId }, select: { blocksMessages: true, blocksComments: true, blocksPosts: true } });
+  const warningCapabilities = [
+    selected.messages && previous.filter((item) => item.blocksMessages).length + 1 === 3 ? "messages" : null,
+    selected.comments && previous.filter((item) => item.blocksComments).length + 1 === 3 ? "comments" : null,
+    selected.posts && previous.filter((item) => item.blocksPosts).length + 1 === 3 ? "posts" : null,
+  ].filter((value): value is string => Boolean(value));
+  await prisma.$transaction([
+    prisma.profile.update({ where: { id: profileId }, data: { restrictedUntil: endsAt, restrictionMessages: combined.messages, restrictionComments: combined.comments, restrictionPosts: combined.posts } }),
+    prisma.restriction.create({ data: { profileId, imposedByEmail: actorEmail, blocksMessages: selected.messages, blocksComments: selected.comments, blocksPosts: selected.posts, endsAt } }),
+  ]);
+  const de = target.language === "de";
+  const labels = [combined.messages && (de ? "Nachrichten" : "messages"), combined.comments && (de ? "Kommentare" : "comments"), combined.posts && (de ? "Beiträge" : "posts")].filter(Boolean).join(", ");
+  const warning = warningCapabilities.length ? (de ? `
+
+Wichtiger Hinweis: Bei einer vierten gleichartigen Restriktion wird dein Profil gesondert geprüft und kann gegebenenfalls entfernt werden.` : `
+
+Important notice: a fourth restriction of the same kind will trigger a separate review of your profile and may lead to its removal.`) : "";
+  await deliverVibeTeamMessage(target.email, de ? `Wir möchten dich informieren, dass für dein Profil vorübergehend eine Restriktion aktiv ist.
+
+Betroffen: ${labels}
+Die Restriktion endet in drei Tagen.
+
+Bitte beachte unsere Community-Regeln. Bei Fragen kannst du dich an Support@Vibe wenden.${warning}
+
+— VibeTeam` : `We want to let you know that a temporary restriction is active for your profile.
+
+Affected: ${labels}
+The restriction ends in three days.
+
+Please keep our community rules in mind. If you have questions, you can contact Support@Vibe.${warning}
+
+— VibeTeam`);
+  await notifyAdmins(actorEmail, "restriction", `Temporary ${scope} restriction applied to @${target.username || target.email}`);
+  revalidatePath("/", "layout");
+  revalidatePath("/admin");
+  revalidatePath("/profile");
+}
+
 export async function setProfileAdmin(formData: FormData): Promise<void> {
   const actorEmail = await requireAdminSession();
   const profileId = formData.get("profileId");
@@ -1647,6 +1765,8 @@ export async function deleteProfileAsSuperAdmin(formData: FormData): Promise<voi
   if (!actorEmail || !isSuperAdmin(actorEmail)) throw new Error("Only protected administrators can delete accounts.");
 
   const profileId = formData.get("profileId");
+  const returnToValue = formData.get("returnTo");
+  const returnTo = typeof returnToValue === "string" && returnToValue.startsWith("/") && !returnToValue.startsWith("//") ? returnToValue : "/profiles";
   if (typeof profileId !== "string" || !profileId) throw new Error("Invalid profile.");
   const target = await prisma.profile.findUnique({ where: { id: profileId }, select: { id: true, email: true } });
   if (!target) throw new Error("Profile not found.");
@@ -1718,5 +1838,5 @@ export async function deleteProfileAsSuperAdmin(formData: FormData): Promise<voi
   revalidatePath("/home");
   revalidatePath("/profiles");
   revalidatePath("/admin");
-  redirect("/admin");
+  redirect(returnTo);
 }

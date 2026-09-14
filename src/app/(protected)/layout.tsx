@@ -11,6 +11,9 @@ import { prisma } from "@/db";
 import { randomUUID } from "crypto";
 import { isVibeAdminEmail } from "@/admin";
 import AdminPreviewMode from "@/app/components/AdminPreviewMode";
+import RestrictionNotice from "@/app/components/RestrictionNotice";
+import { getActiveRestriction } from "@/restrictions";
+import { claimWelcomeAndSend } from "@/system-profile";
 
 export default async function ProtectedLayout({
   children,
@@ -37,6 +40,7 @@ export default async function ProtectedLayout({
 
   const generatedUsername = `${emailBase}-${randomUUID().slice(0, 8)}`;
 
+  const existingProfile = await prisma.profile.findUnique({ where: { email: session.user.email }, select: { id: true } });
   const profile = await prisma.profile.upsert({
     where: {
       email: session.user.email,
@@ -50,8 +54,13 @@ export default async function ProtectedLayout({
     },
   });
 
+  if (!existingProfile) await claimWelcomeAndSend(profile);
+
+  const activeRestriction = await getActiveRestriction(profile.id);
+
   return (
     <>
+      <RestrictionNotice restriction={activeRestriction ? { endsAt: activeRestriction.endsAt.toISOString(), blocksMessages: activeRestriction.blocksMessages, blocksComments: activeRestriction.blocksComments, blocksPosts: activeRestriction.blocksPosts } : null} language={profile.language === "de" ? "de" : "en"} />
       <AdminPreviewMode />
       <DesktopNav
         unreadConversationCount={unreadMessageStatus.count}

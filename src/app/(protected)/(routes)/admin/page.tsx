@@ -43,7 +43,7 @@ function adminActivityLabel(kind: string, de: boolean) {
     report: ["Neue Meldung", "New report"], "report-status": ["Meldung bearbeitet", "Report moderated"], "report-delete": ["Meldung gelöscht", "Report deleted"],
     note: ["Admin-Notiz erstellt", "Admin note created"], "note-update": ["Admin-Notiz aktualisiert", "Admin note updated"], "note-delete": ["Admin-Notiz gelöscht", "Admin note deleted"],
     "note-comment": ["Notiz kommentiert", "Note commented on"], "note-vote": ["Für Notiz abgestimmt", "Note voted on"], "admin-role": ["Adminrolle geändert", "Admin role changed"],
-    "user-delete": ["Account gelöscht", "Account deleted"], "post-delete": ["Beitrag gelöscht", "Post deleted"], "comment-delete": ["Kommentar gelöscht", "Comment deleted"], "team-message": ["VibeTeam-Nachricht gesendet", "VibeTeam message sent"], "support-ticket": ["Neue Support-Anfrage", "New support request"], "support-claim": ["Support-Ticket übernommen", "Support ticket claimed"], "support-reply": ["Support-Ticket beantwortet", "Support ticket answered"], "support-release": ["Support-Ticket freigegeben", "Support ticket released"], "support-close": ["Support-Ticket geschlossen", "Support ticket closed"],
+    "user-delete": ["Account gelöscht", "Account deleted"], "post-delete": ["Beitrag gelöscht", "Post deleted"], "comment-delete": ["Kommentar gelöscht", "Comment deleted"], "team-message": ["VibeTeam-Nachricht gesendet", "VibeTeam message sent"], "support-ticket": ["Neue Support-Anfrage", "New support request"], "support-claim": ["Support-Ticket übernommen", "Support ticket claimed"], "support-reply": ["Support-Ticket beantwortet", "Support ticket answered"], "support-release": ["Support-Ticket freigegeben", "Support ticket released"], "support-close": ["Support-Ticket geschlossen", "Support ticket closed"], "support-delete": ["Support-Ticket gelöscht", "Support ticket deleted"], "restriction": ["Temporäre Restriktion gesetzt", "Temporary restriction applied"],
   };
   const label = labels[kind] ?? ["Admin-Aktion", "Admin action"];
   return de ? label[0] : label[1];
@@ -63,7 +63,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const [reports, notes, profiles, auditEntries, supportTickets] = await Promise.all([
     prisma.report.findMany({ orderBy: [{ status: "asc" }, { createdAt: "desc" }], take: 100 }),
     prisma.adminNote.findMany({ include: { comments: { orderBy: { createdAt: "asc" } }, votes: { select: { voterEmail: true } } }, orderBy: { updatedAt: "desc" }, take: 100 }),
-    prisma.profile.findMany({ select: { id: true, email: true, name: true, username: true, isAdmin: true, isSystem: true }, orderBy: { name: "asc" } }),
+    prisma.profile.findMany({ select: { id: true, email: true, name: true, username: true, isAdmin: true, isSystem: true, restrictedUntil: true, restrictionMessages: true, restrictionComments: true, restrictionPosts: true }, orderBy: { name: "asc" } }),
     prisma.adminActivity.findMany({ orderBy: { createdAt: "desc" }, take: 100 }),
     prisma.supportTicket.findMany({ include: { messages: { orderBy: { createdAt: "asc" } } }, orderBy: { updatedAt: "desc" }, take: 100 }),
   ]);

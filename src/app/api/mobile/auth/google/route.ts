@@ -1,5 +1,6 @@
 import { createMobileToken } from "@/mobile-auth";
 import { prisma } from "@/db";
+import { claimWelcomeAndSend } from "@/system-profile";
 import crypto from "crypto";
 import { OAuth2Client } from "google-auth-library";
 import { NextResponse, type NextRequest } from "next/server";
@@ -112,6 +113,8 @@ export async function POST(request: NextRequest) {
             username: true,
           },
         });
+
+    if (!existingProfile) await claimWelcomeAndSend({ id: profile.id, email: profile.email, language: "en" });
 
     return NextResponse.json({
       profile,
