@@ -10,11 +10,12 @@ export function isVibeTeamEmail(email?: string | null) {
 export async function ensureVibeTeamProfile() {
   return prisma.profile.upsert({
     where: { email: VIBE_TEAM_EMAIL },
-    update: { name: "VibeTeam", username: VIBE_TEAM_USERNAME, isSystem: true },
+    update: { name: "VibeTeam", username: VIBE_TEAM_USERNAME, avatar: "/logo.svg", isSystem: true },
     create: {
       email: VIBE_TEAM_EMAIL,
       name: "VibeTeam",
       username: VIBE_TEAM_USERNAME,
+      avatar: "/logo.svg",
       subtitle: "Official VIBE support",
       language: "en",
       isSystem: true,
