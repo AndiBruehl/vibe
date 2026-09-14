@@ -58,12 +58,12 @@ export async function sendWelcomeMessage(profile: { id: string; email: string; l
   const body = de
     ? `Willkommen bei VIBE! Schön, dass du hier bist. Wir wünschen dir viel Freude beim Entdecken, Teilen und Vernetzen.
 
-Wenn du Fragen hast, findest du Hilfe bei Support@Vibe.
+Wenn du Fragen hast, findest du Hilfe bei @support_vibe.
 
 — VibeTeam`
     : `Welcome to VIBE! We are happy you are here and hope you enjoy discovering, sharing, and connecting.
 
-If you have questions, Support@Vibe is here to help.
+If you have questions, @support_vibe is here to help.
 
 — VibeTeam`;
   const now = new Date();
