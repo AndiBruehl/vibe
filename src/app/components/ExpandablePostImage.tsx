@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 
 type ExpandablePostImageProps = {
@@ -53,9 +54,9 @@ export default function ExpandablePostImage({
         />
       </button>
 
-      {isOpen ? (
+      {isOpen && typeof document !== "undefined" ? createPortal(
         <div
-          className="fixed inset-0 z-50 bg-black/65 backdrop-blur-sm"
+          className="fixed inset-0 z-[200] bg-black/65 backdrop-blur-sm"
           onClick={() => setIsOpen(false)}
         >
           <div className="flex h-full w-full items-center justify-center p-6 md:pl-55 md:pr-10 md:py-10">
@@ -75,7 +76,8 @@ export default function ExpandablePostImage({
               />
             </button>
           </div>
-        </div>
+        </div>,
+        document.body,
       ) : null}
     </>
   );
