@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { parsePostImages } from "@/post-images";
 import { isProtectedAdmin, isSuperAdmin, isVibeAdmin } from "@/admin";
+import { ensureVibeTeamProfile } from "@/system-profile";
 
 const MAX_STORY_SLIDES = 4;
 
@@ -1118,11 +1119,12 @@ export async function startConversation(formData: FormData): Promise<void> {
     },
     select: {
       id: true,
+      isSystem: true,
     },
   });
 
-  if (!targetProfile) {
-    throw new Error("Target profile not found.");
+  if (!targetProfile || targetProfile.isSystem) {
+    throw new Error("This profile cannot receive messages.");
   }
   if (await usersAreBlocked(currentUserProfile.id, targetProfile.id)) throw new Error("You cannot message this profile.");
 
@@ -1213,12 +1215,16 @@ export async function sendMessage(formData: FormData): Promise<void> {
     },
     select: {
       id: true,
-      participants: { select: { profileId: true } },
+      participants: { select: { profileId: true, profile: { select: { isSystem: true } } } },
     },
   });
 
   if (!conversation) {
     throw new Error("Conversation not found.");
+  }
+
+  if (conversation.participants.some((participant) => participant.profile.isSystem) && !(await isVibeAdmin(session.user.email))) {
+    throw new Error("VibeTeam messages are no-reply.");
   }
 
   const recipientIds = conversation.participants
@@ -1299,16 +1305,150 @@ export async function createReport(formData: FormData): Promise<void> {
   }
   const reason = description ? `${categories[category]}: ${description}` : categories[category];
 
-  const target = targetType === "profile"
-    ? await prisma.profile.findUnique({ where: { id: targetId }, select: { id: true } })
-    : targetType === "post"
-      ? await prisma.post.findUnique({ where: { id: targetId }, select: { id: true } })
-      : await prisma.comment.findUnique({ where: { id: targetId }, select: { id: true } });
-  if (!target) throw new Error("Report target not found.");
+  let targetLabel: string | null = null;
+  let targetOwnerEmail: string | null = null;
+  if (targetType === "profile") {
+    const target = await prisma.profile.findUnique({ where: { id: targetId }, select: { email: true, username: true, name: true } });
+    if (!target || target.isSystem) throw new Error("Report target not found.");
+    targetOwnerEmail = target.email;
+    targetLabel = `@${target.username || target.name || target.email}`;
+  } else if (targetType === "post") {
+    const target = await prisma.post.findUnique({ where: { id: targetId }, select: { authorEmail: true, description: true } });
+    if (!target) throw new Error("Report target not found.");
+    targetOwnerEmail = target.authorEmail;
+    const author = target.authorEmail ? await prisma.profile.findUnique({ where: { email: target.authorEmail }, select: { username: true, name: true } }) : null;
+    targetLabel = `Post by @${author?.username || author?.name || target.authorEmail || "unknown"}`;
+  } else {
+    const target = await prisma.comment.findUnique({ where: { id: targetId }, select: { authorEmail: true, text: true } });
+    if (!target) throw new Error("Report target not found.");
+    targetOwnerEmail = target.authorEmail;
+    const author = await prisma.profile.findUnique({ where: { email: target.authorEmail }, select: { username: true, name: true } });
+    targetLabel = `Comment by @${author?.username || author?.name || target.authorEmail}`;
+  }
 
   const duplicate = await prisma.report.findFirst({ where: { reporterEmail, targetType, targetId, status: "open" }, select: { id: true } });
-  if (!duplicate) { await prisma.report.create({ data: { reporterEmail, targetType, targetId, targetUrl: typeof targetUrl === "string" && targetUrl.startsWith("/") ? targetUrl : null, reason } }); await notifyAdmins(reporterEmail, "report", `New ${targetType} report`); }
+  if (!duplicate) {
+    await prisma.report.create({ data: { reporterEmail, targetType, targetId, targetUrl: typeof targetUrl === "string" && targetUrl.startsWith("/") ? targetUrl : null, targetLabel, targetOwnerEmail, reason } });
+    await notifyAdmins(reporterEmail, "report", `New report: ${reason} · ${targetLabel || targetType}`);
+  }
   revalidatePath("/admin");
+}
+
+async function deliverVibeTeamMessage(recipientEmail: string, body: string) {
+  const recipient = await prisma.profile.findUnique({ where: { email: recipientEmail }, select: { id: true, isSystem: true } });
+  if (!recipient || recipient.isSystem) return;
+  const team = await ensureVibeTeamProfile();
+  const directKey = getDirectConversationKey(team.id, recipient.id);
+  const conversation = await prisma.conversation.upsert({
+    where: { directKey },
+    update: {},
+    create: { directKey, participants: { create: [{ profileId: team.id }, { profileId: recipient.id }] } },
+    select: { id: true },
+  });
+  const now = new Date();
+  await prisma.$transaction([
+    prisma.message.create({ data: { conversationId: conversation.id, senderId: team.id, body } }),
+    prisma.conversation.update({ where: { id: conversation.id }, data: { updatedAt: now } }),
+    prisma.conversationParticipant.update({ where: { conversationId_profileId: { conversationId: conversation.id, profileId: team.id } }, data: { lastReadAt: now } }),
+  ]);
+}
+
+async function sendVibeTeamModerationMessage(reporterEmail: string, action: string, targetLabel: string | null, note: string) {
+  const reporter = await prisma.profile.findUnique({ where: { email: reporterEmail }, select: { id: true, language: true } });
+  if (!reporter) return;
+  const de = reporter.language === "de";
+  const actionLabels: Record<string, [string, string]> = {
+    "no-action": ["Keine Maßnahme erforderlich", "No action was necessary"],
+    review: ["Wir prüfen den Fall weiter", "We are continuing to review the case"],
+    "content-removed": ["Der gemeldete Inhalt wurde entfernt", "The reported content was removed"],
+    other: ["Eine individuelle Maßnahme wurde durchgeführt", "A custom action was taken"],
+  };
+  const actionLabel = actionLabels[action] ?? actionLabels.other;
+  const localizedTarget = de
+    ? (targetLabel || "Inhalt").replace(/^Post by /, "Beitrag von ").replace(/^Comment by /, "Kommentar von ")
+    : targetLabel || "Content";
+  const body = de
+    ? `Wir haben dein Anliegen geprüft.
+
+Gemeldeter Inhalt: ${localizedTarget}
+Maßnahme: ${actionLabel[0]}${note ? `
+Hinweis: ${note}` : ""}
+
+Vielen Dank für deine Meldung.
+
+— VibeTeam`
+    : `We reviewed your report.
+
+Reported content: ${localizedTarget}
+Action: ${actionLabel[1]}${note ? `
+Note: ${note}` : ""}
+
+Thank you for your report.
+
+— VibeTeam`;
+  await deliverVibeTeamMessage(reporterEmail, body);
+}
+
+async function removeReportedContent(targetType: string, targetId: string) {
+  if (targetType === "post") {
+    const commentIds = await prisma.comment.findMany({ where: { postId: targetId }, select: { id: true } });
+    await prisma.$transaction([
+      prisma.commentLike.deleteMany({ where: { commentId: { in: commentIds.map((comment) => comment.id) } } }),
+      prisma.commentMention.deleteMany({ where: { commentId: { in: commentIds.map((comment) => comment.id) } } }),
+      prisma.comment.deleteMany({ where: { postId: targetId } }),
+      prisma.postLike.deleteMany({ where: { postId: targetId } }),
+      prisma.postBookmark.deleteMany({ where: { postId: targetId } }),
+      prisma.bookmarkCollectionPost.deleteMany({ where: { postId: targetId } }),
+      prisma.postProfileTag.deleteMany({ where: { postId: targetId } }),
+      prisma.post.delete({ where: { id: targetId } }),
+    ]);
+  } else if (targetType === "comment") {
+    const replyIds = await prisma.comment.findMany({ where: { parentCommentId: targetId }, select: { id: true } });
+    const commentIds = [targetId, ...replyIds.map((reply) => reply.id)];
+    await prisma.$transaction([
+      prisma.commentLike.deleteMany({ where: { commentId: { in: commentIds } } }),
+      prisma.commentMention.deleteMany({ where: { commentId: { in: commentIds } } }),
+      prisma.comment.deleteMany({ where: { parentCommentId: targetId } }),
+      prisma.comment.delete({ where: { id: targetId } }),
+    ]);
+  } else {
+    throw new Error("A profile cannot be removed through a content report.");
+  }
+}
+
+export async function moderateReport(formData: FormData): Promise<void> {
+  const actorEmail = await requireAdminSession();
+  const reportId = formData.get("reportId");
+  const action = formData.get("action");
+  const moderationNote = typeof formData.get("moderationNote") === "string" ? String(formData.get("moderationNote")).trim().slice(0, 600) : "";
+  if (typeof reportId !== "string" || !reportId || typeof action !== "string" || !["no-action", "review", "content-removed", "other"].includes(action)) throw new Error("Invalid moderation action.");
+  if (action === "other" && !moderationNote) throw new Error("Please describe the action taken.");
+  const report = await prisma.report.findUnique({ where: { id: reportId } });
+  if (!report) throw new Error("Report not found.");
+  if (action === "content-removed") {
+    if (!isSuperAdmin(actorEmail)) throw new Error("Only Violett can remove reported content.");
+    await removeReportedContent(report.targetType, report.targetId);
+  }
+  const status = action === "review" ? "open" : action === "no-action" ? "dismissed" : "resolved";
+  await prisma.report.update({ where: { id: report.id }, data: { status, moderationAction: action, moderationNote: moderationNote || null, moderatedByEmail: actorEmail, moderatedAt: new Date() } });
+  const actionDetail = `${action} · ${report.reason} · ${report.targetLabel || report.targetType}`;
+  await notifyAdmins(actorEmail, "report-status", actionDetail);
+  await sendVibeTeamModerationMessage(report.reporterEmail, action, report.targetLabel, moderationNote);
+  revalidatePath("/admin");
+  revalidatePath("/messages");
+}
+
+export async function sendVibeTeamMessageAsAdmin(formData: FormData): Promise<void> {
+  const actorEmail = await requireAdminSession();
+  const profileId = formData.get("profileId");
+  const body = typeof formData.get("body") === "string" ? String(formData.get("body")).trim().slice(0, 2000) : "";
+  if (typeof profileId !== "string" || !isObjectId(profileId) || !body) throw new Error("Invalid VibeTeam message.");
+  const target = await prisma.profile.findUnique({ where: { id: profileId }, select: { email: true, username: true, isSystem: true } });
+  if (!target || target.isSystem) throw new Error("Profile not found.");
+  await deliverVibeTeamMessage(target.email, body);
+  await notifyAdmins(actorEmail, "team-message", `VibeTeam message sent to @${target.username || target.email}`);
+  revalidatePath("/admin");
+  revalidatePath("/messages");
 }
 
 export async function updateReportStatus(formData: FormData): Promise<void> {

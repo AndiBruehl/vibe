@@ -44,8 +44,10 @@ export async function POST(req: Request) {
     where: {
       username: { in: participantUsernamesFiltered, mode: "insensitive" },
     },
-    select: { id: true },
+    select: { id: true, isSystem: true },
   });
+
+  if (participants.some((participant) => participant.isSystem)) return new Response("System accounts cannot join group chats", { status: 400 });
 
   if (participants.length !== participantUsernamesFiltered.length) {
     return new Response("One or more usernames could not be found", {

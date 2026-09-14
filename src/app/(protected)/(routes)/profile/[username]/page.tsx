@@ -68,7 +68,8 @@ export default async function ProfileByUsernamePage({
 
   const de = viewerProfile?.language === "de";
   const isOwnProfile = viewerEmail === profile.email;
-  const canDeleteProfile = !isOwnProfile && isSuperAdmin(viewerEmail) && !isProtectedAdmin(profile.email);
+  const isSystemProfile = profile.isSystem;
+  const canDeleteProfile = !isOwnProfile && !isSystemProfile && isSuperAdmin(viewerEmail) && !isProtectedAdmin(profile.email);
   const activeTab = isOwnProfile && tab === "bookmarks" ? "bookmarks" : "posts";
 
   const [postsCount, followersCount, followingCount] = await Promise.all([
@@ -159,12 +160,14 @@ export default async function ProfileByUsernamePage({
 
                 {isOwnProfile && profile.isAdmin && <Link href="/admin" className="mt-4 inline-flex rounded-xl border border-orange-400/60 px-3 py-2 text-sm font-semibold text-orange-600 hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-500/10">{de ? "Adminbereich" : "Admin area"}</Link>}
 
-                {!isOwnProfile && !isBlocked && <div className="mt-3"><ReportButton targetType="profile" targetId={profile.id} targetUrl={`/profile/${encodeURIComponent(profile.username ?? "")}`} /></div>}
+                {isSystemProfile && <p className="mt-3 text-sm font-semibold text-slate-500 dark:text-slate-400">{de ? "Offizieller VIBE-Systemaccount · Nachrichten können nicht beantwortet werden." : "Official VIBE system account · Messages cannot be replied to."}</p>}
+
+                {!isOwnProfile && !isBlocked && !isSystemProfile && <div className="mt-3"><ReportButton targetType="profile" targetId={profile.id} targetUrl={`/profile/${encodeURIComponent(profile.username ?? "")}`} /></div>}
 
                 {canDeleteProfile && <form action={deleteProfileAsSuperAdmin} className="mt-3"><input type="hidden" name="profileId" value={profile.id}/><button className="rounded-xl border border-red-400/70 px-3 py-2 text-sm font-bold text-red-600 hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-500/10">{de ? "Profil löschen" : "Delete profile"}</button></form>}
 
                 {/* 🔥 FOLLOW BUTTON HIER */}
-                {!isOwnProfile && (
+                {!isOwnProfile && !isSystemProfile && (
                   <div className="mt-4 flex flex-wrap gap-2">
                     <ProfileActionControls
                       targetProfileId={profile.id}

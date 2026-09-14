@@ -125,11 +125,15 @@ export async function POST(
     },
     select: {
       id: true,
+      participants: { select: { profile: { select: { isSystem: true } } } },
     },
   });
 
   if (!conversation) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+  if (conversation.participants.some((participant) => participant.profile.isSystem)) {
+    return NextResponse.json({ error: "VibeTeam messages are no-reply" }, { status: 403 });
   }
 
   const now = new Date();

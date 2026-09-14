@@ -67,6 +67,7 @@ export default async function ConversationPage({
               name: true,
               username: true,
               avatar: true,
+              isSystem: true,
             },
           },
         },
@@ -79,6 +80,7 @@ export default async function ConversationPage({
               name: true,
               username: true,
               avatar: true,
+              isSystem: true,
             },
           },
         },
@@ -138,6 +140,7 @@ export default async function ConversationPage({
       })
     : null;
   const conversationIsBlocked = Boolean(blockingRelation);
+  const conversationIsSystemNoReply = conversation.participants.some((participant: any) => participant.profile.isSystem);
   const blockedByOther = blockingRelation?.blockerId === otherProfile?.id;
 
   return (
@@ -314,7 +317,7 @@ export default async function ConversationPage({
       </section>
 
       <div className="shrink-0 pt-3">
-        <MessageComposer conversationId={conversation.id} blocked={conversationIsBlocked} blockedByOther={blockedByOther} />
+        <MessageComposer conversationId={conversation.id} blocked={conversationIsBlocked} blockedByOther={blockedByOther} systemNoReply={conversationIsSystemNoReply} />
       </div>
     </main>
   );

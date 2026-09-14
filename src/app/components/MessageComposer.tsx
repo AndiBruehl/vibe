@@ -12,9 +12,10 @@ type MessageComposerProps = {
   conversationId: string;
   blocked?: boolean;
   blockedByOther?: boolean;
+  systemNoReply?: boolean;
 };
 
-export default function MessageComposer({ conversationId, blocked = false, blockedByOther = false }: MessageComposerProps) {
+export default function MessageComposer({ conversationId, blocked = false, blockedByOther = false, systemNoReply = false }: MessageComposerProps) {
   const de = useVibeLanguage() === "de";
   const inputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -66,7 +67,7 @@ export default function MessageComposer({ conversationId, blocked = false, block
 
   async function action(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (blocked || (!body.trim() && !imageUrl) || isUploading) return;
+    if (blocked || systemNoReply || (!body.trim() && !imageUrl) || isUploading) return;
     const data = new FormData(event.currentTarget);
     setError("");
     try {
@@ -85,9 +86,9 @@ export default function MessageComposer({ conversationId, blocked = false, block
     <form ref={formRef} onSubmit={action} className="conversation-composer rounded-2xl bg-white p-3 shadow-lg shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
       <input type="hidden" name="conversationId" value={conversationId} />
       <input type="hidden" name="imageUrl" value={imageUrl} />
-      {blocked ? (
+      {blocked || systemNoReply ? (
         <div role="status" className="rounded-xl border border-amber-300/70 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900 dark:border-amber-500/35 dark:bg-amber-500/10 dark:text-amber-200">
-          {de
+          {systemNoReply ? (de ? "VibeTeam-Nachrichten können nicht beantwortet werden." : "VibeTeam messages cannot be replied to.") : de
             ? blockedByOther
               ? "Keine Nachrichten möglich: Dieser Nutzer hat dich blockiert."
               : "Keine Nachrichten möglich: Du hast diesen Nutzer blockiert."

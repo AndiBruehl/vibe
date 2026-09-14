@@ -1,0 +1,9 @@
+"use client";
+
+import { sendVibeTeamMessageAsAdmin } from "@/actions";
+
+type Recipient = { id: string; username: string | null; name: string | null };
+
+export default function VibeTeamMessageComposer({ recipients, de }: { recipients: Recipient[]; de: boolean }) {
+  return <details className="border-t border-slate-200 pt-8 dark:border-slate-700"><summary className="cursor-pointer text-lg font-black text-slate-900 dark:text-white">{de ? "VibeTeam-Nachricht senden" : "Send VibeTeam message"}</summary><p className="mt-2 text-sm text-slate-500">{de ? "Diese Nachricht kommt von VibeTeam und kann nicht beantwortet werden." : "This message is sent by VibeTeam and cannot be replied to."}</p><form action={sendVibeTeamMessageAsAdmin} className="mt-4 rounded-2xl bg-slate-50 p-4 dark:bg-slate-800"><label className="block text-xs font-bold text-slate-700 dark:text-slate-200" htmlFor="vibeteam-recipient">{de ? "Empfänger" : "Recipient"}</label><select id="vibeteam-recipient" name="profileId" required className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-600 dark:bg-slate-950 dark:text-white"><option value="">{de ? "Profil auswählen" : "Select a profile"}</option>{recipients.map((recipient) => <option key={recipient.id} value={recipient.id}>@{recipient.username || recipient.name || recipient.id}</option>)}</select><textarea name="body" required maxLength={2000} rows={3} className="mt-3 w-full rounded-xl border border-slate-300 bg-white p-3 text-sm text-slate-900 dark:border-slate-600 dark:bg-slate-950 dark:text-white" placeholder={de ? "Nachricht von VibeTeam…" : "Message from VibeTeam…"}/><button className="mt-3 rounded-xl bg-linear-to-r from-(--ig-orange) to-(--ig-red) px-4 py-2 text-sm font-bold text-white">{de ? "Als VibeTeam senden" : "Send as VibeTeam"}</button></form></details>;
+}

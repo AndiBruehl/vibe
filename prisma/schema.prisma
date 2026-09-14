@@ -18,6 +18,7 @@ model Profile {
   language String  @default("en")
   isPrivate Boolean @default(false)
   isAdmin Boolean @default(false)
+  isSystem Boolean @default(false)
   activityReadAt DateTime?
 
   posts         Post[]
@@ -311,8 +312,14 @@ model Report {
   targetType    String
   targetId      String
   targetUrl     String?
+  targetLabel   String?
+  targetOwnerEmail String?
   reason        String
   status        String   @default("open")
+  moderationAction String?
+  moderationNote String?
+  moderatedByEmail String?
+  moderatedAt DateTime?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
