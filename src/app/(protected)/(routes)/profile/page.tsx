@@ -19,6 +19,8 @@ type ProfilePageProps = {
   searchParams: Promise<{
     tab?: string;
     collection?: string;
+    archived?: string;
+    restored?: string;
   }>;
 };
 
@@ -29,7 +31,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
     notFound();
   }
 
-  const { tab, collection } = await searchParams;
+  const { tab, collection, archived, restored } = await searchParams;
 
   const activeTab =
     tab === "bookmarks" || tab === "highlights" || tab === "topics" || tab === "archive"
@@ -209,6 +211,9 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
       </section>
 
       {profile.isPrivate ? <FollowRequests profileId={profile.id} language={de ? "de" : "en"} /> : null}
+
+      {archived === "1" && <div role="status" className="mt-4 rounded-xl border border-orange-300 bg-orange-50 px-4 py-3 text-sm font-medium text-orange-800 dark:border-orange-400/40 dark:bg-orange-400/10 dark:text-orange-200">{de ? "Der Beitrag wurde archiviert und ist nur noch für dich sichtbar." : "The post was archived and is now visible only to you."}</div>}
+      {restored === "1" && <div role="status" className="mt-4 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 dark:border-emerald-400/40 dark:bg-emerald-400/10 dark:text-emerald-200">{de ? "Der Beitrag ist wieder auf deinem Profil sichtbar." : "The post is visible on your profile again."}</div>}
 
       <section className="mt-4">
         <Suspense fallback={de ? "Beiträge werden geladen..." : "Loading posts..."}>

@@ -420,7 +420,7 @@ export async function togglePostArchive(formData: FormData): Promise<void> {
   revalidatePath("/home");
   revalidatePath("/profile");
   revalidatePath(`/posts/${postId}`);
-  redirect(archive ? "/profile?tab=archive" : `/posts/${postId}`);
+  redirect(archive ? "/profile?tab=archive&archived=1" : "/profile?tab=posts&restored=1");
 }
 
 /** Adds a like without removing an existing one; used for the carousel double-tap gesture. */
