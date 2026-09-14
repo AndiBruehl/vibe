@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import img1 from "../profile/default.jpg";
 import LocalTime from "@/app/components/LocalTime";
+import VibeTeamBadge from "@/app/components/VibeTeamBadge";
 
 type Props = {
   conversation: any;
@@ -84,7 +85,7 @@ export default function ConversationListItem({
                 href={`/profile/${encodeURIComponent(otherProfile.username)}`}
                 className="no-underline hover:underline"
               >
-                {otherProfile?.name || otherProfile?.username}
+                <span className="inline-flex items-center gap-1">{otherProfile?.name || otherProfile?.username}<VibeTeamBadge isSystem={otherProfile?.isSystem} /></span>
               </Link>
             ) : (
               otherProfile?.name || otherProfile?.username || "Unknown user"

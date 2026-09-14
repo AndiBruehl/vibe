@@ -10,6 +10,7 @@ import ConversationAutoScroll from "@/app/components/ConversationAutoScroll";
 import LocalTime from "@/app/components/LocalTime";
 import MentionText from "@/app/components/MentionText";
 import MessageComposer from "@/app/components/MessageComposer";
+import VibeTeamBadge from "@/app/components/VibeTeamBadge";
 
 type ConversationPageProps = {
   params: Promise<{
@@ -221,7 +222,7 @@ export default async function ConversationPage({
                 href={`/profile/${encodeURIComponent(otherProfile.username)}`}
                 className="truncate font-semibold text-slate-800 dark:text-slate-100 no-underline hover:underline"
               >
-                {otherProfile?.name || otherProfile?.username || "Unknown user"}
+                <span className="inline-flex items-center gap-1">{otherProfile?.name || otherProfile?.username || "Unknown user"}<VibeTeamBadge isSystem={otherProfile?.isSystem} /></span>
               </Link>
             ) : (
               <p className="truncate font-semibold text-slate-800 dark:text-slate-100">

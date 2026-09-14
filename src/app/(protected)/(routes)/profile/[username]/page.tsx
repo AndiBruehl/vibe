@@ -11,6 +11,7 @@ import ProfileLinks from "@/app/components/ProfileLinks";
 import ProfileActionControls from "@/app/components/ProfileActionControls";
 import ReportButton from "@/app/components/ReportButton";
 import AdminBadge from "@/app/components/AdminBadge";
+import VibeTeamBadge from "@/app/components/VibeTeamBadge";
 import { isProtectedAdmin, isSuperAdmin } from "@/admin";
 import { deleteProfileAsSuperAdmin } from "@/actions";
 
@@ -139,7 +140,7 @@ export default async function ProfileByUsernamePage({
 
               <div className="flex flex-col">
                 <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-                  <span className="inline-flex items-center gap-2">{profile.name || "Unknown"}<AdminBadge isAdmin={profile.isAdmin} /></span>
+                  <span className="inline-flex items-center gap-2">{profile.name || "Unknown"}<AdminBadge isAdmin={profile.isAdmin} /><VibeTeamBadge isSystem={profile.isSystem} /></span>
                 </h1>
 
                 <p className="text-sm text-slate-500 dark:text-slate-400">
