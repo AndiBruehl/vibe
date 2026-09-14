@@ -8,6 +8,7 @@ export const profileSortOptions = [
 export type PublicProfile = {
   id: string; name: string | null; username: string | null;
   avatar: string | null; subtitle: string | null; bio: string | null;
+  isAdmin: boolean;
 };
 
 export function sortProfiles<T extends Pick<PublicProfile, "id" | "name" | "username">>(profiles: T[], sort: string) {

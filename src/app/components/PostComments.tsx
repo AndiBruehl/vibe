@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import { isVibeAdminEmail } from "@/admin";
+import { isVibeAdmin } from "@/admin";
 import { prisma } from "@/db";
 import CommentItem from "./CommentItem";
 import LocalizedText from "./LocalizedText";
@@ -14,7 +14,7 @@ export default async function PostComments({ postId }: PostCommentsProps) {
   const viewer = currentUserEmail
     ? await prisma.profile.findUnique({ where: { email: currentUserEmail }, select: { isAdmin: true } })
     : null;
-  const canModerate = isVibeAdminEmail(currentUserEmail) && viewer?.isAdmin === true;
+  const canModerate = viewer?.isAdmin === true && await isVibeAdmin(currentUserEmail);
 
   const comments = await prisma.comment.findMany({
     where: {
@@ -26,7 +26,8 @@ export default async function PostComments({ postId }: PostCommentsProps) {
         select: {
           username: true,
           name: true,
-          avatar: true,
+                avatar: true,
+                isAdmin: true,
           email: true,
         },
       },
@@ -42,7 +43,8 @@ export default async function PostComments({ postId }: PostCommentsProps) {
             select: {
               username: true,
               name: true,
-              avatar: true,
+                  avatar: true,
+                  isAdmin: true,
               email: true,
             },
           },
@@ -84,6 +86,7 @@ export default async function PostComments({ postId }: PostCommentsProps) {
                 name: comment.author.name,
                 avatar: comment.author.avatar,
                 email: comment.author.email,
+                isAdmin: comment.author.isAdmin,
               },
               likesCount: comment.likes.length,
               mentions: comment.mentions.map((mention) => ({ username: mention.profile.username, name: mention.profile.name })),
@@ -104,6 +107,7 @@ export default async function PostComments({ postId }: PostCommentsProps) {
                   name: reply.author.name,
                   avatar: reply.author.avatar,
                   email: reply.author.email,
+                  isAdmin: reply.author.isAdmin,
                 },
                 likesCount: reply.likes.length,
                 mentions: reply.mentions.map((mention) => ({ username: mention.profile.username, name: mention.profile.name })),

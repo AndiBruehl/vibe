@@ -17,6 +17,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import FeedModeSwitch from "./FeedModeSwitch";
+import AdminBadge from "./AdminBadge";
 
 type Follow = {
   followingId: string;
@@ -317,7 +318,7 @@ export default async function HomePosts({
 
                       <div className="min-w-0">
                         <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
-                          {user.name || user.username || (de ? "Unbekanntes Profil" : "Unknown user")}
+                          <span className="inline-flex items-center gap-1">{user.name || user.username || (de ? "Unbekanntes Profil" : "Unknown user")}<AdminBadge isAdmin={user.isAdmin} /></span>
                         </p>
 
                         <p className="truncate text-xs text-slate-500 dark:text-slate-400">
@@ -385,7 +386,7 @@ export default async function HomePosts({
                           : "#"
                       }
                     >
-                      {profile?.name || profile?.username || (de ? "Unbekanntes Profil" : "Unknown user")}
+                      <span className="inline-flex items-center gap-1">{profile?.name || profile?.username || (de ? "Unbekanntes Profil" : "Unknown user")}<AdminBadge isAdmin={profile?.isAdmin} /></span>
                     </Link>
 
                     {profile?.username && (

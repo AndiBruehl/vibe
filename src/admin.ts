@@ -9,8 +9,12 @@ export function isVibeAdminEmail(email?: string | null) {
   return typeof email === "string" && VIBE_ADMIN_EMAILS.includes(email as (typeof VIBE_ADMIN_EMAILS)[number]);
 }
 
+export function isProtectedAdmin(email?: string | null) {
+  return isVibeAdminEmail(email);
+}
+
 export async function isVibeAdmin(email?: string | null) {
-  if (!isVibeAdminEmail(email)) return false;
+  if (!email) return false;
   const profile = await prisma.profile.findUnique({
     where: { email },
     select: { isAdmin: true },

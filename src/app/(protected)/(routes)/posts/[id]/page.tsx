@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import { isVibeAdminEmail } from "@/admin";
+import { isVibeAdmin } from "@/admin";
 import { prisma } from "@/db";
 import Image from "next/image";
 import { notFound } from "next/navigation";
@@ -15,6 +15,8 @@ import { getPostImages } from "@/post-images";
 import { deletePost, editPost, togglePostArchive } from "@/actions";
 import LocalizedText from "@/app/components/LocalizedText";
 import MentionText from "@/app/components/MentionText";
+import ReportButton from "@/app/components/ReportButton";
+import AdminBadge from "@/app/components/AdminBadge";
 
 
 export default async function SinglePostPage({
@@ -125,7 +127,7 @@ export default async function SinglePostPage({
       : false;
 
   const isOwner = viewerEmail === post.authorEmail;
-  const isAdmin = isVibeAdminEmail(viewerEmail) && viewer?.isAdmin === true;
+  const isAdmin = viewer?.isAdmin === true && await isVibeAdmin(viewerEmail);
 
   return (
     <>
@@ -167,6 +169,7 @@ export default async function SinglePostPage({
                   initialBookmarked={!!isBookmarkedByViewer}
                 />
               </div>
+              {!isOwner && <div className="flex justify-end px-5 pt-2"><ReportButton targetType="post" targetId={post.id} targetUrl={`/posts/${post.id}`} /></div>}
 
               {post.likesCount > 0 && <div className="px-5 pt-2">
                 <Link href={`/posts/${post.id}/likes`} className="text-sm font-medium text-slate-600 hover:text-orange-600 hover:underline dark:text-slate-300 dark:hover:text-orange-300">
@@ -264,7 +267,7 @@ export default async function SinglePostPage({
 
                   <div>
                     <p className="font-semibold text-slate-900 dark:text-white">
-                      {author?.name || "Unknown"}
+                      <span className="inline-flex items-center gap-2">{author?.name || "Unknown"}<AdminBadge isAdmin={author?.isAdmin} /></span>
                     </p>
                     <p className="text-sm text-slate-500 dark:text-slate-400">
                       @{author?.username || "user"}

@@ -9,12 +9,15 @@ import { deleteComment, editComment } from "@/actions";
 import MentionTextarea from "./MentionTextarea";
 import MentionText from "./MentionText";
 import useVibeLanguage from "./useVibeLanguage";
+import ReportButton from "./ReportButton";
+import AdminBadge from "./AdminBadge";
 
 type Author = {
   username: string | null;
   name: string | null;
   avatar: string | null;
   email?: string | null;
+  isAdmin?: boolean;
 };
 
 type Mention = { username: string | null; name: string | null };
@@ -113,11 +116,11 @@ export default function CommentItem({
                   href={profileHref}
                   className="font-semibold text-slate-900 transition hover:text-slate-700 dark:text-white dark:hover:text-slate-300"
                 >
-                  {comment.author.name || "Unknown"}
+                  <span className="inline-flex items-center gap-2">{comment.author.name || "Unknown"}<AdminBadge isAdmin={comment.author.isAdmin} /></span>
                 </Link>
               ) : (
                 <p className="font-semibold text-slate-900 dark:text-white">
-                  {comment.author.name || "Unknown"}
+                  <span className="inline-flex items-center gap-2">{comment.author.name || "Unknown"}<AdminBadge isAdmin={comment.author.isAdmin} /></span>
                 </p>
               )}
 
@@ -189,6 +192,8 @@ export default function CommentItem({
                   {showReplyForm ? (de ? "Abbrechen" : "Cancel") : (de ? "Antworten" : "Reply")}
                 </button>
               ) : null}
+
+              {!comment.isOwned && <ReportButton targetType="comment" targetId={comment.id} targetUrl={`/posts/${postId}#comment-${comment.id}`} />}
 
               {(comment.isOwned || canModerate) && !isEditing ? (
                 <>

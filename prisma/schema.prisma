@@ -305,6 +305,62 @@ model CommentLike {
   @@unique([commentId, authorEmail])
 }
 
+model Report {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  reporterEmail String
+  targetType    String
+  targetId      String
+  targetUrl     String?
+  reason        String
+  status        String   @default("open")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@index([targetType, targetId])
+}
+
+model AdminNote {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  authorEmail String
+  body        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  comments AdminNoteComment[]
+  votes    AdminNoteVote[]
+}
+
+model AdminNoteComment {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  noteId    String    @db.ObjectId
+  note      AdminNote @relation(fields: [noteId], references: [id])
+  authorEmail String
+  body      String
+  createdAt DateTime  @default(now())
+
+  @@index([noteId, createdAt])
+}
+
+model AdminNoteVote {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  noteId    String    @db.ObjectId
+  note      AdminNote @relation(fields: [noteId], references: [id])
+  voterEmail String
+  createdAt DateTime  @default(now())
+
+  @@unique([noteId, voterEmail])
+}
+
+model AdminActivity {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  actorEmail String
+  kind String
+  detail String
+  createdAt DateTime @default(now())
+  @@index([createdAt])
+}
+
 // Topics / Hashtags
 model Topic {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId

@@ -3,14 +3,17 @@ import { profileSortOptions } from "@/profile-directory-order";
 import Link from "next/link";
 import Image from "next/image";
 import { MoveLeft, Users } from "lucide-react";
+import AdminBadge from "@/app/components/AdminBadge";
+import AdminProfileFilter from "@/app/components/AdminProfileFilter";
 
 export default async function ProfilesPage({ searchParams }: {
-  searchParams: Promise<{ q?: string; sort?: string }>;
+  searchParams: Promise<{ q?: string; sort?: string; admin?: string }>;
 }) {
   const params = await searchParams;
   const q = typeof params.q === "string" ? params.q.trim().slice(0, 200) : "";
   const sort = profileSortOptions.some(option => option.value === params.sort) ? params.sort! : "newest";
-  const profiles = await getProfileDirectory(q, sort);
+  const adminsOnly = params.admin === "1";
+  const profiles = await getProfileDirectory(q, sort, adminsOnly);
   return <main className="pb-24 md:pb-8">
     <Link href="/browse" className="group inline-flex min-h-11 items-center gap-2 text-slate-800 no-underline visited:text-slate-800 hover:text-slate-600 dark:text-slate-200 dark:visited:text-slate-400 dark:hover:text-slate-500">
       <MoveLeft />
@@ -28,6 +31,7 @@ export default async function ProfilesPage({ searchParams }: {
           {profileSortOptions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
         </select>
       </label>
+      <AdminProfileFilter checked={adminsOnly} query={q} sort={sort} />
       <button type="submit" className="min-h-11 rounded-xl bg-rose-600 px-5 font-semibold text-white hover:bg-rose-700">Search</button>
       {q && <Link href={`/profiles?sort=${sort}`} className="inline-flex min-h-11 items-center px-2 text-slate-700 dark:text-slate-300">Clear search</Link>}
     </form>
@@ -41,7 +45,7 @@ export default async function ProfilesPage({ searchParams }: {
             {profile.avatar ? <Image src={profile.avatar} alt="" fill sizes="64px" unoptimized className="object-cover" /> : (profile.name || profile.username || "?").slice(0, 1).toUpperCase()}
           </div>
           <div className="min-w-0">
-            <h2 className="break-words font-semibold text-slate-900 dark:text-white">{profile.name || profile.username || "Unnamed profile"}</h2>
+            <h2 className="flex flex-wrap items-center gap-2 break-words font-semibold text-slate-900 dark:text-white">{profile.name || profile.username || "Unnamed profile"}<AdminBadge isAdmin={profile.isAdmin} /></h2>
             {profile.username && <p className="break-words text-sm text-slate-600 dark:text-slate-400">@{profile.username}</p>}
             {profile.subtitle && <p className="mt-2 line-clamp-3 text-sm text-slate-700 dark:text-slate-300">{profile.subtitle}</p>}
           </div>

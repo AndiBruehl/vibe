@@ -9,6 +9,8 @@ import MentionText from "@/app/components/MentionText";
 import BackNavigationLink from "@/app/components/BackNavigationLink";
 import ProfileLinks from "@/app/components/ProfileLinks";
 import ProfileActionControls from "@/app/components/ProfileActionControls";
+import ReportButton from "@/app/components/ReportButton";
+import AdminBadge from "@/app/components/AdminBadge";
 import { isVibeAdminEmail } from "@/admin";
 
 type ProfileByUsernamePageProps = {
@@ -134,7 +136,7 @@ export default async function ProfileByUsernamePage({
 
               <div className="flex flex-col">
                 <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-                  {profile.name || "Unknown"}
+                  <span className="inline-flex items-center gap-2">{profile.name || "Unknown"}<AdminBadge isAdmin={profile.isAdmin} /></span>
                 </h1>
 
                 <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -153,7 +155,9 @@ export default async function ProfileByUsernamePage({
                   <ProfileLinks links={profile.profileLinks} language={de ? "de" : "en"} />
                 )}
 
-                {isOwnProfile && isVibeAdminEmail(profile.email) && profile.isAdmin && <Link href="/admin" className="mt-4 inline-flex rounded-xl border border-orange-400/60 px-3 py-2 text-sm font-semibold text-orange-600 hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-500/10">{de ? "Adminbereich" : "Admin area"}</Link>}
+                {isOwnProfile && profile.isAdmin && <Link href="/admin" className="mt-4 inline-flex rounded-xl border border-orange-400/60 px-3 py-2 text-sm font-semibold text-orange-600 hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-500/10">{de ? "Adminbereich" : "Admin area"}</Link>}
+
+                {!isOwnProfile && !isBlocked && <div className="mt-3"><ReportButton targetType="profile" targetId={profile.id} targetUrl={`/profile/${encodeURIComponent(profile.username ?? "")}`} /></div>}
 
                 {/* 🔥 FOLLOW BUTTON HIER */}
                 {!isOwnProfile && (

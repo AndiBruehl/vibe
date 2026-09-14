@@ -14,6 +14,7 @@ import { randomUUID } from "crypto";
 import ProfileLinks from "@/app/components/ProfileLinks";
 import FollowRequests from "@/app/components/FollowRequests";
 import ArchivedPosts from "@/app/components/ArchivedPosts";
+import AdminBadge from "@/app/components/AdminBadge";
 import { isVibeAdminEmail } from "@/admin";
 
 type ProfilePageProps = {
@@ -123,7 +124,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
 
       <section className="mt-8 text-center">
         <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">
-          {profile.name || (de ? "Nutzer" : "User")}
+          <span className="inline-flex items-center justify-center gap-2">{profile.name || (de ? "Nutzer" : "User")}<AdminBadge isAdmin={profile.isAdmin} /></span>
         </h1>
 
         <p className="my-1 text-slate-600 dark:text-slate-300">
@@ -133,7 +134,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         <p className="text-slate-700 dark:text-slate-300">
           {profile.bio || ""}
         </p>
-        {isVibeAdminEmail(profile.email) && profile.isAdmin ? <Link
+        {profile.isAdmin ? <Link
           href="/admin"
           className="mt-4 inline-flex items-center gap-2 rounded-xl border border-orange-400/60 px-3 py-2 text-sm font-semibold text-orange-600 no-underline transition hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-500/10"
         >

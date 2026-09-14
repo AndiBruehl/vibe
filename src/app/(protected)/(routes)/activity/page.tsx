@@ -10,7 +10,7 @@ import img1 from "../profile/default.jpg";
 
 type ActivityItem = {
   id: string;
-  type: "follow" | "follow-request" | "like" | "comment" | "message";
+  type: "follow" | "follow-request" | "like" | "comment" | "message" | "admin";
   title: string;
   body: string;
   href: string;
@@ -37,13 +37,29 @@ function ActivityIcon({ type }: { type: ActivityItem["type"] }) {
   return <Bell className={className} />;
 }
 
+function adminActivityTitle(kind: string, de: boolean) {
+  const titles: Record<string, [string, string]> = {
+    report: ["Neuer Bericht", "New report"],
+    "report-status": ["Bericht aktualisiert", "Report updated"],
+    "report-delete": ["Meldung gelöscht", "Report deleted"],
+    note: ["Neue Admin-Notiz", "New admin note"],
+    "note-update": ["Admin-Notiz aktualisiert", "Admin note updated"],
+    "note-delete": ["Admin-Notiz gelöscht", "Admin note deleted"],
+    "note-comment": ["Neuer Kommentar zu einer Admin-Notiz", "New comment on an admin note"],
+    "note-vote": ["Abstimmung zu einer Admin-Notiz", "Admin note vote"],
+    "admin-role": ["Administratorrolle geändert", "Administrator role changed"],
+  };
+  const title = titles[kind] ?? ["Neue Admin-Aktivität", "New admin activity"];
+  return de ? title[0] : title[1];
+}
+
 export default async function ActivityPage() {
   const session = await auth();
   if (!session?.user?.email) notFound();
 
   const currentUserProfile = await prisma.profile.findUnique({
     where: { email: session.user.email },
-    select: { id: true, email: true, language: true },
+    select: { id: true, email: true, language: true, isAdmin: true },
   });
 
   if (!currentUserProfile) notFound();
@@ -54,7 +70,7 @@ export default async function ActivityPage() {
   const validPosts = await prisma.post.findMany({ select: { id: true } });
   const validPostIds = validPosts.map((post) => post.id);
 
-  const [follows, followRequests, postLikes, comments, commentLikes, conversations, mentions] = await Promise.all([
+  const [follows, followRequests, postLikes, comments, commentLikes, conversations, mentions, adminActivities] = await Promise.all([
     // Safe Follows
     prisma.follow
       .findMany({
@@ -160,6 +176,7 @@ export default async function ActivityPage() {
         take: 30,
       })
       .catch(() => []),
+    currentUserProfile.isAdmin ? prisma.adminActivity.findMany({ where: { actorEmail: { not: currentUserProfile.email } }, orderBy: { createdAt: "desc" }, take: 15 }).catch(() => []) : [],
   ]);
 
   const directCommentIds = new Set(comments.map((comment) => comment.id));
@@ -221,6 +238,7 @@ export default async function ActivityPage() {
   >(likeAuthors.map((author) => [author.email, author]));
 
   const items: ActivityItem[] = [
+    ...adminActivities.map((activity) => ({ id: `admin-${activity.id}`, type: "admin" as const, title: adminActivityTitle(activity.kind, de), body: activity.detail, context: "VIBE ADMIN", href: "/admin", createdAt: activity.createdAt })),
     ...followRequests
       .filter((request: any) => request.follower)
       .map((request: any) => ({

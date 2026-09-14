@@ -5,7 +5,7 @@ import { prisma } from "@/db";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { parsePostImages } from "@/post-images";
-import { isVibeAdmin } from "@/admin";
+import { isProtectedAdmin, isVibeAdmin } from "@/admin";
 
 const MAX_STORY_SLIDES = 4;
 
@@ -1256,4 +1256,131 @@ export async function sendMessage(formData: FormData): Promise<void> {
 
   revalidatePath("/messages");
   revalidatePath(`/messages/${conversation.id}`);
+}
+
+async function requireAdminSession() {
+  const session = await auth();
+  const email = session?.user?.email;
+  if (!email || !(await isVibeAdmin(email))) throw new Error("Administrator access is required.");
+  return email;
+}
+
+async function notifyAdmins(actorEmail: string, kind: string, detail: string) {
+  await prisma.adminActivity.create({ data: { actorEmail, kind, detail: detail.slice(0, 300) } });
+}
+
+export async function createReport(formData: FormData): Promise<void> {
+  const session = await auth();
+  const reporterEmail = session?.user?.email;
+  if (!reporterEmail) redirect("/");
+
+  const targetType = formData.get("targetType");
+  const targetId = formData.get("targetId");
+  const targetUrl = formData.get("targetUrl");
+  const reason = typeof formData.get("reason") === "string" ? String(formData.get("reason")).trim().slice(0, 600) : "";
+  if ((targetType !== "profile" && targetType !== "post" && targetType !== "comment") || typeof targetId !== "string" || !targetId || reason.length < 3) {
+    throw new Error("Invalid report.");
+  }
+
+  const target = targetType === "profile"
+    ? await prisma.profile.findUnique({ where: { id: targetId }, select: { id: true } })
+    : targetType === "post"
+      ? await prisma.post.findUnique({ where: { id: targetId }, select: { id: true } })
+      : await prisma.comment.findUnique({ where: { id: targetId }, select: { id: true } });
+  if (!target) throw new Error("Report target not found.");
+
+  const duplicate = await prisma.report.findFirst({ where: { reporterEmail, targetType, targetId, status: "open" }, select: { id: true } });
+  if (!duplicate) { await prisma.report.create({ data: { reporterEmail, targetType, targetId, targetUrl: typeof targetUrl === "string" && targetUrl.startsWith("/") ? targetUrl : null, reason } }); await notifyAdmins(reporterEmail, "report", `New ${targetType} report`); }
+  revalidatePath("/admin");
+}
+
+export async function updateReportStatus(formData: FormData): Promise<void> {
+  const actorEmail = await requireAdminSession();
+  const reportId = formData.get("reportId");
+  const status = formData.get("status");
+  if (typeof reportId !== "string" || !reportId || (status !== "resolved" && status !== "dismissed" && status !== "open")) throw new Error("Invalid report status.");
+  await prisma.report.update({ where: { id: reportId }, data: { status } });
+  await notifyAdmins(actorEmail, "report-status", `A report was marked ${status}`);
+  revalidatePath("/admin");
+}
+
+export async function deleteReport(formData: FormData): Promise<void> {
+  const actorEmail = await requireAdminSession();
+  const reportId = formData.get("reportId");
+  if (typeof reportId !== "string" || !reportId) throw new Error("Invalid report.");
+
+  const report = await prisma.report.findUnique({ where: { id: reportId }, select: { status: true } });
+  if (!report) throw new Error("Report not found.");
+  if (report.status === "open") throw new Error("Open reports cannot be deleted.");
+
+  await prisma.report.delete({ where: { id: reportId } });
+  await notifyAdmins(actorEmail, "report-delete", "A completed report was deleted");
+  revalidatePath("/admin");
+}
+
+export async function createAdminNote(formData: FormData): Promise<void> {
+  const authorEmail = await requireAdminSession();
+  const body = typeof formData.get("body") === "string" ? String(formData.get("body")).trim().slice(0, 2000) : "";
+  if (!body) throw new Error("Note text is required.");
+  await prisma.adminNote.create({ data: { authorEmail, body } });
+  await notifyAdmins(authorEmail, "note", "New admin note");
+  revalidatePath("/admin");
+}
+
+export async function updateAdminNote(formData: FormData): Promise<void> {
+  const actorEmail = await requireAdminSession();
+  const noteId = formData.get("noteId");
+  const body = typeof formData.get("body") === "string" ? String(formData.get("body")).trim().slice(0, 2000) : "";
+  if (typeof noteId !== "string" || !noteId || !body) throw new Error("Invalid note.");
+  await prisma.adminNote.update({ where: { id: noteId }, data: { body } });
+  await notifyAdmins(actorEmail, "note-update", "An admin note was updated");
+  revalidatePath("/admin");
+}
+
+export async function deleteAdminNote(formData: FormData): Promise<void> {
+  const actorEmail = await requireAdminSession();
+  const noteId = formData.get("noteId");
+  if (typeof noteId !== "string" || !noteId) throw new Error("Invalid note.");
+  await prisma.$transaction([
+    prisma.adminNoteComment.deleteMany({ where: { noteId } }),
+    prisma.adminNoteVote.deleteMany({ where: { noteId } }),
+    prisma.adminNote.delete({ where: { id: noteId } }),
+  ]);
+  await notifyAdmins(actorEmail, "note-delete", "An admin note was deleted");
+  revalidatePath("/admin");
+}
+
+export async function addAdminNoteComment(formData: FormData): Promise<void> {
+  const authorEmail = await requireAdminSession();
+  const noteId = formData.get("noteId");
+  const body = typeof formData.get("body") === "string" ? String(formData.get("body")).trim().slice(0, 1000) : "";
+  if (typeof noteId !== "string" || !noteId || !body) throw new Error("Invalid note comment.");
+  await prisma.adminNoteComment.create({ data: { noteId, authorEmail, body } });
+  await notifyAdmins(authorEmail, "note-comment", "New comment on an admin note");
+  revalidatePath("/admin");
+}
+
+export async function toggleAdminNoteVote(formData: FormData): Promise<void> {
+  const voterEmail = await requireAdminSession();
+  const noteId = formData.get("noteId");
+  if (typeof noteId !== "string" || !noteId) throw new Error("Invalid note.");
+  const current = await prisma.adminNoteVote.findUnique({ where: { noteId_voterEmail: { noteId, voterEmail } }, select: { id: true } });
+  if (current) await prisma.adminNoteVote.delete({ where: { id: current.id } });
+  else await prisma.adminNoteVote.create({ data: { noteId, voterEmail } });
+  await notifyAdmins(voterEmail, "note-vote", "An admin note was voted on");
+  revalidatePath("/admin");
+}
+
+export async function setProfileAdmin(formData: FormData): Promise<void> {
+  const actorEmail = await requireAdminSession();
+  const profileId = formData.get("profileId");
+  const isAdmin = formData.get("isAdmin") === "true";
+  if (typeof profileId !== "string" || !profileId) throw new Error("Invalid profile.");
+  const target = await prisma.profile.findUnique({ where: { id: profileId }, select: { email: true } });
+  if (!target) throw new Error("Profile not found.");
+  if (!isAdmin && isProtectedAdmin(target.email)) throw new Error("Protected administrators cannot be removed.");
+  await prisma.profile.update({ where: { id: profileId }, data: { isAdmin } });
+  await notifyAdmins(actorEmail, "admin-role", `An administrator role was ${isAdmin ? "granted" : "removed"}`);
+  revalidatePath("/admin");
+  revalidatePath("/profiles");
 }

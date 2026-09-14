@@ -7,6 +7,7 @@ export type UnreadInteractionStatus = {
   likeCount: number;
   mentionCount: number;
   followRequestCount: number;
+  adminCount: number;
   latestUnreadAt: string | null;
 };
 
@@ -16,23 +17,23 @@ export async function getUnreadInteractionStatus(
   const sessionEmail = email ?? (await auth())?.user?.email;
 
   if (!sessionEmail) {
-    return { commentCount: 0, replyCount: 0, likeCount: 0, mentionCount: 0, followRequestCount: 0, latestUnreadAt: null };
+    return { commentCount: 0, replyCount: 0, likeCount: 0, mentionCount: 0, followRequestCount: 0, adminCount: 0, latestUnreadAt: null };
   }
 
   const profile = await prisma.profile.findUnique({
     where: { email: sessionEmail },
-    select: { id: true, activityReadAt: true },
+    select: { id: true, activityReadAt: true, isAdmin: true },
   });
 
   if (!profile) {
-    return { commentCount: 0, replyCount: 0, likeCount: 0, mentionCount: 0, followRequestCount: 0, latestUnreadAt: null };
+    return { commentCount: 0, replyCount: 0, likeCount: 0, mentionCount: 0, followRequestCount: 0, adminCount: 0, latestUnreadAt: null };
   }
 
   const readFilter = profile.activityReadAt
     ? { createdAt: { gt: profile.activityReadAt } }
     : {};
 
-  const [interactions, ownPosts, ownComments, mentions, followRequests] = await Promise.all([
+  const [interactions, ownPosts, ownComments, mentions, followRequests, adminActivities] = await Promise.all([
     prisma.comment.findMany({
     where: {
       authorEmail: { not: sessionEmail },
@@ -66,6 +67,7 @@ export async function getUnreadInteractionStatus(
       select: { createdAt: true },
       orderBy: { createdAt: "desc" },
     }),
+    profile.isAdmin ? prisma.adminActivity.findMany({ where: { actorEmail: { not: sessionEmail }, ...readFilter }, select: { createdAt: true }, orderBy: { createdAt: "desc" } }) : [],
   ]);
 
   const [postLikes, commentLikes] = await Promise.all([
@@ -113,12 +115,14 @@ export async function getUnreadInteractionStatus(
     likeCount,
     mentionCount,
     followRequestCount: followRequests.length,
+    adminCount: adminActivities.length,
     latestUnreadAt: [
       interactions[0]?.createdAt,
       postLikes[0]?.createdAt,
       commentLikes[0]?.createdAt,
       mentions[0]?.createdAt,
       followRequests[0]?.createdAt,
+      adminActivities[0]?.createdAt,
     ]
       .filter((date): date is Date => Boolean(date))
       .sort((left, right) => right.getTime() - left.getTime())[0]
