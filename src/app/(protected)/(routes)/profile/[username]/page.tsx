@@ -80,9 +80,10 @@ export default async function ProfileByUsernamePage({
 
   let followState: "following" | "requested" | "none" = "none";
   let isBlocked = false;
+  let blockedByViewer = false;
 
   if (!isOwnProfile && viewerProfile?.id) {
-    const [existingFollow, existingRequest, existingBlock] = await Promise.all([
+    const [existingFollow, existingRequest, viewerBlock, profileBlock] = await Promise.all([
       prisma.follow.findUnique({
         where: { followerId_followingId: { followerId: viewerProfile.id, followingId: profile.id } },
         select: { id: true },
@@ -91,9 +92,11 @@ export default async function ProfileByUsernamePage({
         where: { followerId_followingId: { followerId: viewerProfile.id, followingId: profile.id } },
         select: { id: true },
       }),
-      prisma.block.findFirst({ where: { OR: [{ blockerId: viewerProfile.id, blockedId: profile.id }, { blockerId: profile.id, blockedId: viewerProfile.id }] }, select: { id: true } }),
+      prisma.block.findUnique({ where: { blockerId_blockedId: { blockerId: viewerProfile.id, blockedId: profile.id } }, select: { id: true } }),
+      prisma.block.findUnique({ where: { blockerId_blockedId: { blockerId: profile.id, blockedId: viewerProfile.id } }, select: { id: true } }),
     ]);
-    isBlocked = Boolean(existingBlock);
+    blockedByViewer = Boolean(viewerBlock);
+    isBlocked = blockedByViewer || Boolean(profileBlock);
     followState = existingFollow ? "following" : existingRequest ? "requested" : "none";
   }
   const canViewPosts = !profile.isPrivate || isOwnProfile || followState === "following";
@@ -161,7 +164,8 @@ export default async function ProfileByUsernamePage({
                       language={de ? "de" : "en"}
                     />}
                     {!isBlocked && <MessageButton targetProfileId={profile.id} />}
-                    <BlockButton targetProfileId={profile.id} blocked={isBlocked} language={de ? "de" : "en"} />
+                    {blockedByViewer && <BlockButton targetProfileId={profile.id} blocked language={de ? "de" : "en"} />}
+                    {!isBlocked && <BlockButton targetProfileId={profile.id} language={de ? "de" : "en"} />}
                   </div>
                 )}
               </div>

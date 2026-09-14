@@ -8,7 +8,13 @@ import EmojiPicker from "@/app/components/EmojiPicker";
 import MentionTextarea from "@/app/components/MentionTextarea";
 import useVibeLanguage from "@/app/components/useVibeLanguage";
 
-export default function MessageComposer({ conversationId }: { conversationId: string }) {
+type MessageComposerProps = {
+  conversationId: string;
+  blocked?: boolean;
+  blockedByOther?: boolean;
+};
+
+export default function MessageComposer({ conversationId, blocked = false, blockedByOther = false }: MessageComposerProps) {
   const de = useVibeLanguage() === "de";
   const inputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -60,20 +66,36 @@ export default function MessageComposer({ conversationId }: { conversationId: st
 
   async function action(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if ((!body.trim() && !imageUrl) || isUploading) return;
+    if (blocked || (!body.trim() && !imageUrl) || isUploading) return;
     const data = new FormData(event.currentTarget);
-    await sendMessage(data);
-    formRef.current?.reset();
-    setBody("");
-    setImageUrl("");
-    setPreviewUrl("");
-    router.refresh();
+    setError("");
+    try {
+      await sendMessage(data);
+      formRef.current?.reset();
+      setBody("");
+      setImageUrl("");
+      setPreviewUrl("");
+      router.refresh();
+    } catch {
+      setError(de ? "Nachrichten sind in dieser Unterhaltung nicht möglich." : "Messages are not available in this conversation.");
+    }
   }
 
   return (
-    <form ref={formRef} onSubmit={action} className="conversation-composer sticky bottom-20 rounded-2xl bg-white p-3 shadow-lg shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900 md:bottom-4">
+    <form ref={formRef} onSubmit={action} className="conversation-composer rounded-2xl bg-white p-3 shadow-lg shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
       <input type="hidden" name="conversationId" value={conversationId} />
       <input type="hidden" name="imageUrl" value={imageUrl} />
+      {blocked ? (
+        <div role="status" className="rounded-xl border border-amber-300/70 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900 dark:border-amber-500/35 dark:bg-amber-500/10 dark:text-amber-200">
+          {de
+            ? blockedByOther
+              ? "Keine Nachrichten möglich: Dieser Nutzer hat dich blockiert."
+              : "Keine Nachrichten möglich: Du hast diesen Nutzer blockiert."
+            : blockedByOther
+              ? "No messages possible: this user blocked you."
+              : "No messages possible: you blocked this user."}
+        </div>
+      ) : <>
       {previewUrl && (
         <div className="relative mb-3 inline-block">
           <img src={previewUrl} alt={de ? "Ausgewählter Anhang" : "Selected attachment"} className="max-h-40 rounded-xl object-cover" />
@@ -88,6 +110,7 @@ export default function MessageComposer({ conversationId }: { conversationId: st
         <button type="submit" disabled={isUploading || (!body.trim() && !imageUrl)} className="flex size-11 shrink-0 items-center justify-center rounded-full bg-linear-to-tr from-(--ig-orange) to-(--ig-red) text-white transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50" aria-label={de ? "Nachricht senden" : "Send message"}><Send size={18} /></button>
       </div>
       {error && <p className="mt-2 text-xs text-red-600 dark:text-red-300">{error}</p>}
+      </>}
     </form>
   );
 }

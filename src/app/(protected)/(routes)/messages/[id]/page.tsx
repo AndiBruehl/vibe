@@ -7,7 +7,6 @@ import { MoveLeft } from "lucide-react";
 import img1 from "../../profile/default.jpg";
 import ConversationLiveRefresh from "@/app/components/ConversationLiveRefresh";
 import ConversationAutoScroll from "@/app/components/ConversationAutoScroll";
-import ConversationLayoutHelper from "@/app/components/ConversationLayoutHelper";
 import LocalTime from "@/app/components/LocalTime";
 import MentionText from "@/app/components/MentionText";
 import MessageComposer from "@/app/components/MessageComposer";
@@ -127,9 +126,22 @@ export default async function ConversationPage({
     Boolean(conversation.isGroup) ||
     (conversation.participants && conversation.participants.length > 2) ||
     Boolean(conversation.name);
+  const blockingRelation = !isGroup && otherProfile
+    ? await prisma.block.findFirst({
+        where: {
+          OR: [
+            { blockerId: currentUserProfile.id, blockedId: otherProfile.id },
+            { blockerId: otherProfile.id, blockedId: currentUserProfile.id },
+          ],
+        },
+        select: { blockerId: true },
+      })
+    : null;
+  const conversationIsBlocked = Boolean(blockingRelation);
+  const blockedByOther = blockingRelation?.blockerId === otherProfile?.id;
 
   return (
-    <main className="mx-auto flex min-h-[calc(100vh-2rem)] w-full max-w-3xl flex-col pb-24 md:pb-4">
+    <main className="mx-auto w-full max-w-3xl pb-24 md:pb-4">
       <ConversationLiveRefresh
         conversationId={conversation.id}
         initialLatestMessageAt={latestMessage?.createdAt.toISOString() ?? null}
@@ -227,7 +239,7 @@ export default async function ConversationPage({
         </div>
       </section>
 
-      <section className="conversation-messages flex-1 space-y-3 overflow-y-auto py-6">
+      <section className="conversation-messages space-y-3 py-5">
         {conversation.messages.length === 0 ? (
           <div className="rounded-2xl bg-white p-8 text-center shadow-md shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
             <p className="text-slate-700 dark:text-slate-300">
@@ -301,13 +313,7 @@ export default async function ConversationPage({
         <ConversationAutoScroll latestMessageId={latestMessage?.id} />
       </section>
 
-      {/* helper adjusts padding and auto-scrolls when messages change */}
-      <script suppressHydrationWarning>{""}</script>
-      {/* client helper component */}
-      {/* eslint-disable-next-line @next/next/no-typos */}
-      <ConversationLayoutHelper />
-
-      <MessageComposer conversationId={conversation.id} />
+      <MessageComposer conversationId={conversation.id} blocked={conversationIsBlocked} blockedByOther={blockedByOther} />
     </main>
   );
 }
