@@ -8,6 +8,10 @@ import { parsePostImages } from "@/post-images";
 
 const MAX_STORY_SLIDES = 4;
 
+async function usersAreBlocked(profileIdA: string, profileIdB: string) {
+  return Boolean(await prisma.block.findFirst({ where: { OR: [{ blockerId: profileIdA, blockedId: profileIdB }, { blockerId: profileIdB, blockedId: profileIdA }] }, select: { id: true } }));
+}
+
 // Helper: upsert topics and link them to a post
 async function linkTopicsForPost(postId: string, topicsValue: unknown) {
   if (typeof topicsValue !== "string" || !topicsValue.trim()) return;
@@ -402,6 +406,24 @@ export async function togglePostLike(formData: FormData): Promise<{ liked: boole
   revalidatePath(`/posts/${postIdValue}`);
   const updated = await prisma.post.findUniqueOrThrow({ where: { id: postIdValue }, select: { likesCount: true } });
   return { liked: !existingLike, likes: updated.likesCount };
+}
+
+export async function toggleBlock(formData: FormData): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.email) redirect("/");
+  const targetProfileId = formData.get("targetProfileId");
+  if (typeof targetProfileId !== "string") throw new Error("Profile is missing.");
+  const viewer = await prisma.profile.findUnique({ where: { email: session.user.email }, select: { id: true } });
+  if (!viewer || viewer.id === targetProfileId) throw new Error("Profile not found.");
+  const existing = await prisma.block.findUnique({ where: { blockerId_blockedId: { blockerId: viewer.id, blockedId: targetProfileId } } });
+  if (existing) await prisma.block.delete({ where: { id: existing.id } });
+  else await prisma.$transaction([
+    prisma.block.create({ data: { blockerId: viewer.id, blockedId: targetProfileId } }),
+    prisma.follow.deleteMany({ where: { OR: [{ followerId: viewer.id, followingId: targetProfileId }, { followerId: targetProfileId, followingId: viewer.id }] } }),
+    prisma.followRequest.deleteMany({ where: { OR: [{ followerId: viewer.id, followingId: targetProfileId }, { followerId: targetProfileId, followingId: viewer.id }] } }),
+  ]);
+  revalidatePath("/"); revalidatePath("/home"); revalidatePath("/settings/blocked");
+  redirect("/settings/blocked");
 }
 
 export async function togglePostArchive(formData: FormData): Promise<void> {
@@ -929,6 +951,10 @@ export async function toggleFollow(formData: FormData): Promise<void> {
     throw new Error("Target profile not found.");
   }
 
+  if (await usersAreBlocked(currentUserProfile.id, targetProfile.id)) {
+    throw new Error("You cannot interact with this profile.");
+  }
+
   const existingFollow = await prisma.follow.findUnique({
     where: {
       followerId_followingId: {
@@ -1045,6 +1071,7 @@ export async function startConversation(formData: FormData): Promise<void> {
   if (!targetProfile) {
     throw new Error("Target profile not found.");
   }
+  if (await usersAreBlocked(currentUserProfile.id, targetProfile.id)) throw new Error("You cannot message this profile.");
 
   const directKey = getDirectConversationKey(
     currentUserProfile.id,

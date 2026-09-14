@@ -10,6 +10,7 @@ import MessageButton from "@/app/components/MessageButton";
 import MentionText from "@/app/components/MentionText";
 import BackNavigationLink from "@/app/components/BackNavigationLink";
 import ProfileLinks from "@/app/components/ProfileLinks";
+import BlockButton from "@/app/components/BlockButton";
 
 type ProfileByUsernamePageProps = {
   params: Promise<{
@@ -78,9 +79,10 @@ export default async function ProfileByUsernamePage({
   ]);
 
   let followState: "following" | "requested" | "none" = "none";
+  let isBlocked = false;
 
   if (!isOwnProfile && viewerProfile?.id) {
-    const [existingFollow, existingRequest] = await Promise.all([
+    const [existingFollow, existingRequest, existingBlock] = await Promise.all([
       prisma.follow.findUnique({
         where: { followerId_followingId: { followerId: viewerProfile.id, followingId: profile.id } },
         select: { id: true },
@@ -89,7 +91,9 @@ export default async function ProfileByUsernamePage({
         where: { followerId_followingId: { followerId: viewerProfile.id, followingId: profile.id } },
         select: { id: true },
       }),
+      prisma.block.findUnique({ where: { blockerId_blockedId: { blockerId: viewerProfile.id, blockedId: profile.id } }, select: { id: true } }),
     ]);
+    isBlocked = Boolean(existingBlock);
     followState = existingFollow ? "following" : existingRequest ? "requested" : "none";
   }
   const canViewPosts = !profile.isPrivate || isOwnProfile || followState === "following";
@@ -150,13 +154,14 @@ export default async function ProfileByUsernamePage({
                 {/* 🔥 FOLLOW BUTTON HIER */}
                 {!isOwnProfile && (
                   <div className="mt-4 flex flex-wrap gap-2">
-                    <FollowButton
+                    {!isBlocked && <FollowButton
                       targetProfileId={profile.id}
                       targetUsername={profile.username || ""}
                       state={followState}
                       language={de ? "de" : "en"}
-                    />
-                    <MessageButton targetProfileId={profile.id} />
+                    />}
+                    {!isBlocked && <MessageButton targetProfileId={profile.id} />}
+                    <BlockButton targetProfileId={profile.id} blocked={isBlocked} language={de ? "de" : "en"} />
                   </div>
                 )}
               </div>

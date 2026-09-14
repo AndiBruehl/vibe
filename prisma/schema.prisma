@@ -37,6 +37,19 @@ model Profile {
   receivedFollowRequests FollowRequest[] @relation("FollowRequestsReceived")
   sentFollowRequests FollowRequest[] @relation("FollowRequestsSent")
   topicFollows TopicFollow[]
+  blocksSent Block[] @relation("BlocksSent")
+  blocksReceived Block[] @relation("BlocksReceived")
+}
+
+model Block {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  blockerId String @db.ObjectId
+  blockedId String @db.ObjectId
+  blocker Profile @relation("BlocksSent", fields: [blockerId], references: [id])
+  blocked Profile @relation("BlocksReceived", fields: [blockedId], references: [id])
+  createdAt DateTime @default(now())
+  @@unique([blockerId, blockedId])
+  @@index([blockedId])
 }
 
 model Conversation {

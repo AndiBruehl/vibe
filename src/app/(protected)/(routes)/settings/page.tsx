@@ -61,6 +61,7 @@ export default async function SettingsPage() {
 
           <div className="p-5 sm:p-6">
             <SettingsForm profile={profile} />
+            <Link href="/settings/blocked" className="mt-5 inline-flex text-sm font-semibold text-orange-600 hover:underline"><LocalizedText en="Manage blocked users" de="Blockierte Nutzer verwalten" /></Link>
             <ReleaseDownloads />
             <AppVersion />
           </div>
