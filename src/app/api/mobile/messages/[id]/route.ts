@@ -2,7 +2,7 @@ import { getMobileSession } from "@/mobile-auth";
 import { prisma } from "@/db";
 import { NextResponse, type NextRequest } from "next/server";
 import { assertNotRestricted } from "@/restrictions";
-import { appendSupportTicketMessage } from "@/support-ticket";
+import { appendSupportTicketMessage, sendSupportAcknowledgement } from "@/support-ticket";
 
 type MobileConversationRouteProps = {
   params: Promise<{
@@ -157,7 +157,8 @@ export async function POST(
   });
 
   if (isSupportConversation) {
-    await appendSupportTicketMessage(currentUserProfile.email, text || "Image attachment");
+    const ticketResult = await appendSupportTicketMessage(currentUserProfile.email, text || "Image attachment");
+    if (ticketResult.created) await sendSupportAcknowledgement(ticketResult.ticket.id, currentUserProfile.email);
   }
 
   await prisma.$transaction([

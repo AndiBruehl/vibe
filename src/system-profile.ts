@@ -3,7 +3,7 @@ import { prisma } from "@/db";
 export const VIBE_TEAM_EMAIL = "team@vibe.social";
 export const VIBE_TEAM_USERNAME = "VibeTeam";
 export const VIBE_SUPPORT_EMAIL = "support@vibe.social";
-export const VIBE_SUPPORT_USERNAME = "SupportVibe";
+export const VIBE_SUPPORT_USERNAME = "support_vibe";
 
 export function isVibeTeamEmail(email?: string | null) {
   return email === VIBE_TEAM_EMAIL;
@@ -77,7 +77,10 @@ If you have questions, Support@Vibe is here to help.
 
 export async function claimWelcomeAndSend(profile: { id: string; email: string; language: string; isSystem?: boolean | null }) {
   if (profile.isSystem) return false;
-  const claim = await prisma.profile.updateMany({ where: { id: profile.id, welcomeSentAt: null }, data: { welcomeSentAt: new Date() } });
+  const claim = await prisma.profile.updateMany({
+    where: { id: profile.id, OR: [{ welcomeSentAt: null }, { welcomeSentAt: { isSet: false } }] },
+    data: { welcomeSentAt: new Date() },
+  });
   if (claim.count !== 1) return false;
   try {
     await sendWelcomeMessage(profile);

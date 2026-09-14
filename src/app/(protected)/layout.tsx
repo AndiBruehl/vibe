@@ -41,6 +41,7 @@ export default async function ProtectedLayout({
   const generatedUsername = `${emailBase}-${randomUUID().slice(0, 8)}`;
 
   const existingProfile = await prisma.profile.findUnique({ where: { email: session.user.email }, select: { id: true } });
+
   const profile = await prisma.profile.upsert({
     where: {
       email: session.user.email,
@@ -54,6 +55,7 @@ export default async function ProtectedLayout({
     },
   });
 
+  // Only profiles created in this request receive this fallback; existing accounts must never receive it again.
   if (!existingProfile) await claimWelcomeAndSend(profile);
 
   const activeRestriction = await getActiveRestriction(profile.id);

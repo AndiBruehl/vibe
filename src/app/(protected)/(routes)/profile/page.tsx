@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import { Check, MoveLeft, Settings, Shield } from "lucide-react";
+import { Check, LifeBuoy, MoveLeft, Settings, Shield } from "lucide-react";
 import Link from "next/link";
 import img1 from "./default.jpg";
 import { prisma } from "@/db";
@@ -94,6 +94,10 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         </div>
 
         <div className="flex items-center gap-3">
+          <Link href="/support" className="inline-flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-semibold text-cyan-700 no-underline transition hover:bg-cyan-50 dark:text-cyan-300 dark:hover:bg-cyan-500/10">
+            <LifeBuoy size={17} />
+            <span className="hidden sm:inline">{de ? "Support" : "Support"}</span>
+          </Link>
           <Link
             href="/settings"
             className="group flex items-center gap-2 text-slate-800 no-underline visited:text-slate-800 hover:text-slate-600 dark:text-slate-200 dark:visited:text-slate-400 dark:hover:text-slate-500"
@@ -142,7 +146,6 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
             <Shield size={16} />
             {de ? "Adminbereich" : "Admin area"}
           </Link> : null}
-          <Link href="/support" className="inline-flex rounded-xl bg-linear-to-r from-cyan-600 to-violet-600 px-5 py-2.5 text-sm font-bold text-white no-underline shadow-sm shadow-cyan-500/20 transition hover:brightness-110">{de ? "Support schreiben" : "Write support"}</Link>
         </div>
         {profileLinks.length > 0 && (
           <div className="mt-4"><ProfileLinks links={profileLinks} language={de ? "de" : "en"} centered /></div>

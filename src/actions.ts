@@ -8,7 +8,8 @@ import { parsePostImages } from "@/post-images";
 import { isProtectedAdmin, isSuperAdmin, isVibeAdmin } from "@/admin";
 import { ensureVibeSupportProfile, ensureVibeTeamProfile, isVibeSupportEmail, VIBE_SUPPORT_EMAIL } from "@/system-profile";
 import { assertNotRestricted } from "@/restrictions";
-import { appendSupportTicketMessage } from "@/support-ticket";
+import { appendSupportTicketMessage, sendSupportAcknowledgement } from "@/support-ticket";
+import { supportTemplateText, type SupportTemplateKey } from "@/support-templates";
 
 const MAX_STORY_SLIDES = 4;
 
@@ -1262,7 +1263,8 @@ export async function sendMessage(formData: FormData): Promise<void> {
   const now = new Date();
 
   if (isSupportConversation) {
-    await appendSupportTicketMessage(session.user.email, body || "Image attachment");
+    const ticketResult = await appendSupportTicketMessage(session.user.email, body || "Image attachment");
+    if (ticketResult.created) await sendSupportAcknowledgement(ticketResult.ticket.id, session.user.email);
   }
 
   await prisma.$transaction([
@@ -1528,7 +1530,8 @@ export async function createSupportTicket(formData: FormData): Promise<void> {
   if (!requesterEmail) redirect("/");
   const body = typeof formData.get("body") === "string" ? String(formData.get("body")).trim().slice(0, 2000) : "";
   if (!body) throw new Error("Support message is required.");
-  await appendSupportTicketMessage(requesterEmail, body);
+  const result = await appendSupportTicketMessage(requesterEmail, body);
+  if (result.created) await sendSupportAcknowledgement(result.ticket.id, requesterEmail);
   revalidatePath("/support");
   revalidatePath("/admin");
 }
@@ -1555,10 +1558,15 @@ export async function claimSupportTicket(formData: FormData): Promise<boolean> {
 export async function replyToSupportTicket(formData: FormData): Promise<void> {
   const actorEmail = await requireAdminSession();
   const ticketId = formData.get("ticketId");
-  const body = typeof formData.get("body") === "string" ? String(formData.get("body")).trim().slice(0, 2000) : "";
-  if (typeof ticketId !== "string" || !isObjectId(ticketId) || !body) throw new Error("Invalid support reply.");
+  const templateValue = formData.get("template");
+  const additionalMessage = typeof formData.get("additionalMessage") === "string" ? String(formData.get("additionalMessage")).trim().slice(0, 2000) : "";
+  if (typeof ticketId !== "string" || !isObjectId(ticketId) || typeof templateValue !== "string" || !(templateValue in { "request-details": true, "under-review": true, "technical-update": true, "safety-guidance": true, custom: true })) throw new Error("Invalid support reply.");
   const ticket = await prisma.supportTicket.findUnique({ where: { id: ticketId }, select: { assignedAdminEmail: true, requesterEmail: true } });
   if (!ticket || ticket.assignedAdminEmail !== actorEmail) throw new Error("Claim this ticket before replying.");
+  const recipient = await prisma.profile.findUnique({ where: { email: ticket.requesterEmail }, select: { language: true } });
+  const baseMessage = supportTemplateText(templateValue as SupportTemplateKey, recipient?.language === "de");
+  const body = templateValue === "custom" ? additionalMessage : `${baseMessage}${additionalMessage ? `\n\n${recipient?.language === "de" ? "Zusätzliche Informationen:" : "Additional information:"}\n${additionalMessage}` : ""}`;
+  if (!body) throw new Error("A support reply is required.");
   await prisma.$transaction([
     prisma.supportTicketMessage.create({ data: { ticketId, senderType: "admin", senderAdminEmail: actorEmail, body } }),
     prisma.supportTicket.update({ where: { id: ticketId }, data: { status: "awaiting-user", updatedAt: new Date() } }),
@@ -1584,9 +1592,16 @@ export async function closeSupportTicket(formData: FormData): Promise<void> {
   const actorEmail = await requireAdminSession();
   const ticketId = formData.get("ticketId");
   if (typeof ticketId !== "string" || !isObjectId(ticketId)) throw new Error("Invalid support ticket.");
-  const result = await prisma.supportTicket.updateMany({ where: { id: ticketId, assignedAdminEmail: actorEmail }, data: { status: "closed", updatedAt: new Date() } });
-  if (result.count !== 1) throw new Error("Only the assigned admin can close this ticket.");
-  await notifyAdmins(actorEmail, "support-close", "A support ticket was closed");
+  const ticket = await prisma.supportTicket.findUnique({ where: { id: ticketId }, select: { requesterEmail: true, assignedAdminEmail: true } });
+  if (!ticket || ticket.assignedAdminEmail !== actorEmail) throw new Error("Only the assigned admin can close this ticket.");
+  const recipient = await prisma.profile.findUnique({ where: { email: ticket.requesterEmail }, select: { language: true } });
+  const closingMessage = supportTemplateText("resolved", recipient?.language === "de");
+  if (closingMessage) await deliverSupportReply(ticket.requesterEmail, closingMessage);
+  await prisma.$transaction([
+    prisma.supportTicketMessage.deleteMany({ where: { ticketId } }),
+    prisma.supportTicket.delete({ where: { id: ticketId } }),
+  ]);
+  await notifyAdmins(actorEmail, "support-close", "A support ticket was closed and deleted for privacy");
   revalidatePath("/admin");
   revalidatePath("/support");
 }
