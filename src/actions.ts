@@ -5,7 +5,7 @@ import { prisma } from "@/db";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { parsePostImages } from "@/post-images";
-import { isProtectedAdmin, isVibeAdmin } from "@/admin";
+import { isProtectedAdmin, isSuperAdmin, isVibeAdmin } from "@/admin";
 
 const MAX_STORY_SLIDES = 4;
 
@@ -1383,4 +1383,83 @@ export async function setProfileAdmin(formData: FormData): Promise<void> {
   await notifyAdmins(actorEmail, "admin-role", `An administrator role was ${isAdmin ? "granted" : "removed"}`);
   revalidatePath("/admin");
   revalidatePath("/profiles");
+}
+
+export async function deleteProfileAsSuperAdmin(formData: FormData): Promise<void> {
+  const session = await auth();
+  const actorEmail = session?.user?.email;
+  if (!actorEmail || !isSuperAdmin(actorEmail)) throw new Error("Only protected administrators can delete accounts.");
+
+  const profileId = formData.get("profileId");
+  if (typeof profileId !== "string" || !profileId) throw new Error("Invalid profile.");
+  const target = await prisma.profile.findUnique({ where: { id: profileId }, select: { id: true, email: true } });
+  if (!target) throw new Error("Profile not found.");
+  if (isProtectedAdmin(target.email)) throw new Error("Protected administrators cannot be deleted.");
+
+  const [posts, comments, stories, collections, conversations] = await Promise.all([
+    prisma.post.findMany({ where: { authorEmail: target.email }, select: { id: true } }),
+    prisma.comment.findMany({ where: { authorEmail: target.email }, select: { id: true } }),
+    prisma.story.findMany({ where: { authorEmail: target.email }, select: { id: true } }),
+    prisma.bookmarkCollection.findMany({ where: { profileId: target.id }, select: { id: true } }),
+    prisma.conversationParticipant.findMany({ where: { profileId: target.id }, select: { conversationId: true } }),
+  ]);
+  const postIds = posts.map((post) => post.id);
+  const commentIds = comments.map((comment) => comment.id);
+  const storyIds = stories.map((story) => story.id);
+  const collectionIds = collections.map((collection) => collection.id);
+  const conversationIds = conversations.map((conversation) => conversation.conversationId);
+  const postCommentIds = postIds.length
+    ? (await prisma.comment.findMany({ where: { postId: { in: postIds } }, select: { id: true } })).map((comment) => comment.id)
+    : [];
+  const removableCommentIds = [...new Set([...commentIds, ...postCommentIds])];
+
+  await prisma.$transaction([
+    ...(removableCommentIds.length ? [
+      prisma.comment.updateMany({ where: { parentCommentId: { in: removableCommentIds } }, data: { parentCommentId: null } }),
+      prisma.commentMention.deleteMany({ where: { commentId: { in: removableCommentIds } } }),
+      prisma.commentLike.deleteMany({ where: { commentId: { in: removableCommentIds } } }),
+      prisma.comment.deleteMany({ where: { id: { in: removableCommentIds } } }),
+    ] : []),
+    ...(postIds.length ? [
+      prisma.postLike.deleteMany({ where: { postId: { in: postIds } } }),
+      prisma.postBookmark.deleteMany({ where: { postId: { in: postIds } } }),
+      prisma.bookmarkCollectionPost.deleteMany({ where: { postId: { in: postIds } } }),
+      prisma.postTopic.deleteMany({ where: { postId: { in: postIds } } }),
+      prisma.postProfileTag.deleteMany({ where: { postId: { in: postIds } } }),
+      prisma.post.deleteMany({ where: { id: { in: postIds } } }),
+    ] : []),
+    ...(storyIds.length ? [
+      prisma.storyView.deleteMany({ where: { storyId: { in: storyIds } } }),
+      prisma.storySlide.deleteMany({ where: { storyId: { in: storyIds } } }),
+      prisma.story.deleteMany({ where: { id: { in: storyIds } } }),
+    ] : []),
+    ...(collectionIds.length ? [
+      prisma.bookmarkCollectionPost.deleteMany({ where: { collectionId: { in: collectionIds } } }),
+      prisma.bookmarkCollection.deleteMany({ where: { id: { in: collectionIds } } }),
+    ] : []),
+    prisma.postLike.deleteMany({ where: { authorEmail: target.email } }),
+    prisma.postBookmark.deleteMany({ where: { authorEmail: target.email } }),
+    prisma.commentLike.deleteMany({ where: { authorEmail: target.email } }),
+    prisma.commentMention.deleteMany({ where: { profileId: target.id } }),
+    prisma.postProfileTag.deleteMany({ where: { profileId: target.id } }),
+    prisma.profileLink.deleteMany({ where: { profileId: target.id } }),
+    prisma.topicFollow.deleteMany({ where: { profileId: target.id } }),
+    prisma.follow.deleteMany({ where: { OR: [{ followerId: target.id }, { followingId: target.id }] } }),
+    prisma.followRequest.deleteMany({ where: { OR: [{ followerId: target.id }, { followingId: target.id }] } }),
+    prisma.block.deleteMany({ where: { OR: [{ blockerId: target.id }, { blockedId: target.id }] } }),
+    prisma.storyView.deleteMany({ where: { viewerEmail: target.email } }),
+    prisma.message.deleteMany({ where: { senderId: target.id } }),
+    ...(conversationIds.length ? [prisma.conversationParticipant.deleteMany({ where: { conversationId: { in: conversationIds }, profileId: target.id } })] : []),
+    prisma.adminNoteComment.deleteMany({ where: { authorEmail: target.email } }),
+    prisma.adminNoteVote.deleteMany({ where: { voterEmail: target.email } }),
+    prisma.adminActivity.deleteMany({ where: { actorEmail: target.email } }),
+    prisma.report.deleteMany({ where: { reporterEmail: target.email } }),
+    prisma.profile.delete({ where: { id: target.id } }),
+  ]);
+
+  await notifyAdmins(actorEmail, "user-delete", "A user account was deleted");
+  revalidatePath("/");
+  revalidatePath("/home");
+  revalidatePath("/profiles");
+  revalidatePath("/admin");
 }

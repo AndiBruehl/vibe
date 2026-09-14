@@ -13,6 +13,10 @@ export function isProtectedAdmin(email?: string | null) {
   return isVibeAdminEmail(email);
 }
 
+export function isSuperAdmin(email?: string | null) {
+  return isProtectedAdmin(email);
+}
+
 export async function isVibeAdmin(email?: string | null) {
   if (!email) return false;
   const profile = await prisma.profile.findUnique({

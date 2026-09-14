@@ -48,6 +48,7 @@ function adminActivityTitle(kind: string, de: boolean) {
     "note-comment": ["Neuer Kommentar zu einer Admin-Notiz", "New comment on an admin note"],
     "note-vote": ["Abstimmung zu einer Admin-Notiz", "Admin note vote"],
     "admin-role": ["Administratorrolle geändert", "Administrator role changed"],
+    "user-delete": ["Account gelöscht", "Account deleted"],
   };
   const title = titles[kind] ?? ["Neue Admin-Aktivität", "New admin activity"];
   return de ? title[0] : title[1];
