@@ -15,7 +15,7 @@ import { parseLoginCallback, type PendingLogin } from "@/lib/loginCallback";
 
 const extra = Constants.expoConfig?.extra as { apiUrl?: string } | undefined;
 const vibeUrl = (process.env.EXPO_PUBLIC_API_URL || extra?.apiUrl || "https://vibe-social-network.vercel.app").replace(/\/$/, "");
-const appVersion = Constants.expoConfig?.version || "0.1.63.3";
+const appVersion = Constants.expoConfig?.version || "0.1.63.4";
 const mobileTokenKey = "vibe.webMobileToken";
 const pendingLoginKey = "vibe.pendingLogin";
 const releaseManifestUrl = "https://raw.githubusercontent.com/AndiBruehl/vibe/main/public/releases/latest.json";
@@ -26,6 +26,16 @@ function isYouTubeUrl(url: string) {
   try {
     const host = new URL(url).hostname.toLowerCase();
     return host === "youtu.be" || host.endsWith(".youtu.be") || host === "youtube.com" || host.endsWith(".youtube.com");
+  } catch {
+    return false;
+  }
+}
+
+function isExternalHttpUrl(url: string) {
+  try {
+    const target = new URL(url);
+    const appHost = new URL(vibeUrl).host;
+    return (target.protocol === "https:" || target.protocol === "http:") && target.host !== appHost;
   } catch {
     return false;
   }
@@ -231,6 +241,10 @@ export default function App() {
               Alert.alert("VIBE", "The APK could not be downloaded. Please try again.");
             }
           })();
+          return false;
+        }
+        if (isExternalHttpUrl(request.url)) {
+          void Linking.openURL(request.url);
           return false;
         }
         if (/^https?:\/\//i.test(request.url)) return true;
