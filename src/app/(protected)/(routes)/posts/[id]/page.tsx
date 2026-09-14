@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import { isVibeAdmin } from "@/admin";
+import { isSuperAdmin } from "@/admin";
 import { prisma } from "@/db";
 import Image from "next/image";
 import { notFound } from "next/navigation";
@@ -127,7 +127,7 @@ export default async function SinglePostPage({
       : false;
 
   const isOwner = viewerEmail === post.authorEmail;
-  const isAdmin = viewer?.isAdmin === true && await isVibeAdmin(viewerEmail);
+  const isAdmin = viewer?.isAdmin === true && isSuperAdmin(viewerEmail);
 
   return (
     <>

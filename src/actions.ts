@@ -322,7 +322,7 @@ export async function deletePost(formData: FormData): Promise<void> {
     throw new Error("Post not found.");
   }
 
-  if (post.authorEmail !== session.user.email && !(await isVibeAdmin(session.user.email))) {
+  if (post.authorEmail !== session.user.email && !isSuperAdmin(session.user.email)) {
     throw new Error("You are not authorized to delete this post.");
   }
 
@@ -741,7 +741,7 @@ export async function deleteComment(formData: FormData): Promise<void> {
     throw new Error("Comment not found.");
   }
 
-  if (comment.authorEmail !== session.user.email && !(await isVibeAdmin(session.user.email))) {
+  if (comment.authorEmail !== session.user.email && !isSuperAdmin(session.user.email)) {
     throw new Error("You are not authorized to delete this comment.");
   }
 
@@ -1306,6 +1306,7 @@ export async function updateReportStatus(formData: FormData): Promise<void> {
 
 export async function deleteReport(formData: FormData): Promise<void> {
   const actorEmail = await requireAdminSession();
+  if (!isSuperAdmin(actorEmail)) throw new Error("Only Violett can delete reports.");
   const reportId = formData.get("reportId");
   if (typeof reportId !== "string" || !reportId) throw new Error("Invalid report.");
 
@@ -1339,6 +1340,7 @@ export async function updateAdminNote(formData: FormData): Promise<void> {
 
 export async function deleteAdminNote(formData: FormData): Promise<void> {
   const actorEmail = await requireAdminSession();
+  if (!isSuperAdmin(actorEmail)) throw new Error("Only Violett can delete admin notes.");
   const noteId = formData.get("noteId");
   if (typeof noteId !== "string" || !noteId) throw new Error("Invalid note.");
   await prisma.$transaction([

@@ -5,6 +5,8 @@ export const VIBE_ADMIN_EMAILS = [
   "anna.lpunkt2003@gmail.com",
 ] as const;
 
+export const VIBE_ROOT_ADMIN_EMAIL = "violett.ai.2025@gmail.com";
+
 export function isVibeAdminEmail(email?: string | null) {
   return typeof email === "string" && VIBE_ADMIN_EMAILS.includes(email as (typeof VIBE_ADMIN_EMAILS)[number]);
 }
@@ -14,7 +16,7 @@ export function isProtectedAdmin(email?: string | null) {
 }
 
 export function isSuperAdmin(email?: string | null) {
-  return isProtectedAdmin(email);
+  return email === VIBE_ROOT_ADMIN_EMAIL;
 }
 
 export async function isVibeAdmin(email?: string | null) {
