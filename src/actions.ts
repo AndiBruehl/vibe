@@ -1462,4 +1462,5 @@ export async function deleteProfileAsSuperAdmin(formData: FormData): Promise<voi
   revalidatePath("/home");
   revalidatePath("/profiles");
   revalidatePath("/admin");
+  redirect("/admin");
 }

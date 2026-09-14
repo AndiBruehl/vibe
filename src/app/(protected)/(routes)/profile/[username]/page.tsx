@@ -11,7 +11,8 @@ import ProfileLinks from "@/app/components/ProfileLinks";
 import ProfileActionControls from "@/app/components/ProfileActionControls";
 import ReportButton from "@/app/components/ReportButton";
 import AdminBadge from "@/app/components/AdminBadge";
-import { isVibeAdminEmail } from "@/admin";
+import { isProtectedAdmin, isSuperAdmin } from "@/admin";
+import { deleteProfileAsSuperAdmin } from "@/actions";
 
 type ProfileByUsernamePageProps = {
   params: Promise<{
@@ -67,6 +68,7 @@ export default async function ProfileByUsernamePage({
 
   const de = viewerProfile?.language === "de";
   const isOwnProfile = viewerEmail === profile.email;
+  const canDeleteProfile = !isOwnProfile && isSuperAdmin(viewerEmail) && !isProtectedAdmin(profile.email);
   const activeTab = isOwnProfile && tab === "bookmarks" ? "bookmarks" : "posts";
 
   const [postsCount, followersCount, followingCount] = await Promise.all([
@@ -158,6 +160,8 @@ export default async function ProfileByUsernamePage({
                 {isOwnProfile && profile.isAdmin && <Link href="/admin" className="mt-4 inline-flex rounded-xl border border-orange-400/60 px-3 py-2 text-sm font-semibold text-orange-600 hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-500/10">{de ? "Adminbereich" : "Admin area"}</Link>}
 
                 {!isOwnProfile && !isBlocked && <div className="mt-3"><ReportButton targetType="profile" targetId={profile.id} targetUrl={`/profile/${encodeURIComponent(profile.username ?? "")}`} /></div>}
+
+                {canDeleteProfile && <form action={deleteProfileAsSuperAdmin} className="mt-3"><input type="hidden" name="profileId" value={profile.id}/><button className="rounded-xl border border-red-400/70 px-3 py-2 text-sm font-bold text-red-600 hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-500/10">{de ? "Profil löschen" : "Delete profile"}</button></form>}
 
                 {/* 🔥 FOLLOW BUTTON HIER */}
                 {!isOwnProfile && (
