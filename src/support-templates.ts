@@ -5,8 +5,8 @@ type SupportTemplate = { de: string; en: string; previewDe: string; previewEn: s
 export const supportTemplates: Record<SupportTemplateKey, SupportTemplate> = {
   acknowledgement: {
     de: "Eingang bestätigen", en: "Acknowledge request",
-    previewDe: "Danke, dass du dem Support geschrieben hast. Bitte schildere dein Anliegen kurz. Antworten auf bereits abgeschlossene Anliegen können aus Datenschutzgründen nicht mehr eingesehen werden.",
-    previewEn: "Thank you for contacting support. Please briefly describe your concern. Replies to previously closed cases can no longer be reviewed for privacy reasons.",
+    previewDe: "Danke, dass du dem Support geschrieben hast. Bitte schildere kurz dein Anliegen. Wenn du auf eine bereits vorhandene oder abgeschlossene Angelegenheit antwortest, ist diese aus Datenschutzgründen gelöscht.",
+    previewEn: "Thank you for contacting support. Please briefly describe your concern. If you reply to an existing or closed matter, it has been deleted for privacy reasons.",
   },
   "request-details": {
     de: "Weitere Informationen anfragen", en: "Request more details",
@@ -30,8 +30,8 @@ export const supportTemplates: Record<SupportTemplateKey, SupportTemplate> = {
   },
   resolved: {
     de: "Anliegen abschließen", en: "Close request",
-    previewDe: "Danke, dass du Support@Vibe geschrieben hast. Dein Anliegen wurde geschlossen. Das zugehörige Ticket wird aus Datenschutzgründen gelöscht.",
-    previewEn: "Thank you for contacting Support@Vibe. Your request has been closed. The related ticket will be deleted for privacy reasons.",
+    previewDe: "Danke, dass du dem Support geschrieben hast. Dein Anliegen wurde geschlossen. Das zugehörige Ticket wurde aus Datenschutzgründen gelöscht.",
+    previewEn: "Thank you for contacting support. Your request has been closed. The related ticket has been deleted for privacy reasons.",
   },
   custom: { de: "Eigene Nachricht", en: "Custom message", previewDe: "Eigener Text wird unverändert gesendet.", previewEn: "Your own text will be sent as written." },
 };

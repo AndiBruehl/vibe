@@ -158,7 +158,7 @@ export async function POST(
 
   if (isSupportConversation) {
     const ticketResult = await appendSupportTicketMessage(currentUserProfile.email, text || "Image attachment");
-    if (ticketResult.created) await sendSupportAcknowledgement(ticketResult.ticket.id, currentUserProfile.email);
+    await sendSupportAcknowledgement(ticketResult.ticket.id, currentUserProfile.email);
   }
 
   await prisma.$transaction([

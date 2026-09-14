@@ -28,6 +28,8 @@ export async function sendSupportAcknowledgement(ticketId: string, requesterEmai
   if (!requester || requester.isSystem) return;
   const body = supportTemplateText("acknowledgement", requester.language === "de");
   if (!body) return;
+  const alreadyAcknowledged = await prisma.supportTicketMessage.findFirst({ where: { ticketId, senderType: "support" }, select: { id: true } });
+  if (alreadyAcknowledged) return;
   const support = await ensureVibeSupportProfile();
   const directKey = [support.id, requester.id].sort().join(":");
   const conversation = await prisma.conversation.upsert({

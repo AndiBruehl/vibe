@@ -1264,7 +1264,7 @@ export async function sendMessage(formData: FormData): Promise<void> {
 
   if (isSupportConversation) {
     const ticketResult = await appendSupportTicketMessage(session.user.email, body || "Image attachment");
-    if (ticketResult.created) await sendSupportAcknowledgement(ticketResult.ticket.id, session.user.email);
+    await sendSupportAcknowledgement(ticketResult.ticket.id, session.user.email);
   }
 
   await prisma.$transaction([
@@ -1531,7 +1531,7 @@ export async function createSupportTicket(formData: FormData): Promise<void> {
   const body = typeof formData.get("body") === "string" ? String(formData.get("body")).trim().slice(0, 2000) : "";
   if (!body) throw new Error("Support message is required.");
   const result = await appendSupportTicketMessage(requesterEmail, body);
-  if (result.created) await sendSupportAcknowledgement(result.ticket.id, requesterEmail);
+  await sendSupportAcknowledgement(result.ticket.id, requesterEmail);
   revalidatePath("/support");
   revalidatePath("/admin");
 }
