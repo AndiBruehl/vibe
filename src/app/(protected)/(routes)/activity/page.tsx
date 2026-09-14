@@ -54,6 +54,23 @@ function adminActivityTitle(kind: string, de: boolean) {
   return de ? title[0] : title[1];
 }
 
+function adminActivityDetail(kind: string, de: boolean) {
+  const details: Record<string, [string, string]> = {
+    report: ["Eine neue Meldung wartet auf Prüfung.", "A new report is waiting for review."],
+    "report-status": ["Der Status einer Meldung wurde geändert.", "A report status was changed."],
+    "report-delete": ["Eine erledigte Meldung wurde gelöscht.", "A completed report was deleted."],
+    note: ["Es wurde eine interne Notiz erstellt.", "An internal note was created."],
+    "note-update": ["Eine interne Notiz wurde aktualisiert.", "An internal note was updated."],
+    "note-delete": ["Eine interne Notiz wurde gelöscht.", "An internal note was deleted."],
+    "note-comment": ["Es gibt einen neuen Kommentar zu einer internen Notiz.", "There is a new comment on an internal note."],
+    "note-vote": ["Für eine interne Notiz wurde abgestimmt.", "An internal note received a vote."],
+    "admin-role": ["Eine Administratorrolle wurde geändert.", "An administrator role was changed."],
+    "user-delete": ["Ein Benutzerkonto wurde gelöscht.", "A user account was deleted."],
+  };
+  const detail = details[kind] ?? ["Es gibt eine neue Admin-Aktivität.", "There is new admin activity."];
+  return de ? detail[0] : detail[1];
+}
+
 export default async function ActivityPage() {
   const session = await auth();
   if (!session?.user?.email) notFound();
@@ -239,7 +256,7 @@ export default async function ActivityPage() {
   >(likeAuthors.map((author) => [author.email, author]));
 
   const items: ActivityItem[] = [
-    ...adminActivities.map((activity) => ({ id: `admin-${activity.id}`, type: "admin" as const, title: adminActivityTitle(activity.kind, de), body: activity.detail, context: "VIBE ADMIN", href: "/admin", createdAt: activity.createdAt })),
+    ...adminActivities.map((activity) => ({ id: `admin-${activity.id}`, type: "admin" as const, title: adminActivityTitle(activity.kind, de), body: adminActivityDetail(activity.kind, de), context: "VIBE ADMIN", href: "/admin", createdAt: activity.createdAt })),
     ...followRequests
       .filter((request: any) => request.follower)
       .map((request: any) => ({

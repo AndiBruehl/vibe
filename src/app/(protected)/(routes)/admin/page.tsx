@@ -8,6 +8,26 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ChevronDown, Flag, MessageSquareText, ThumbsUp, UsersRound } from "lucide-react";
 
+function reportTypeLabel(type: string, de: boolean) {
+  const labels: Record<string, [string, string]> = {
+    profile: ["Profil", "Profile"],
+    post: ["Beitrag", "Post"],
+    comment: ["Kommentar", "Comment"],
+  };
+  const label = labels[type] ?? [type, type];
+  return de ? label[0] : label[1];
+}
+
+function reportStatusLabel(status: string, de: boolean) {
+  const labels: Record<string, [string, string]> = {
+    open: ["Offen", "Open"],
+    resolved: ["Erledigt", "Resolved"],
+    dismissed: ["Verworfen", "Dismissed"],
+  };
+  const label = labels[status] ?? [status, status];
+  return de ? label[0] : label[1];
+}
+
 export default async function AdminPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const session = await auth();
   const email = session?.user?.email ?? null;
@@ -41,7 +61,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
       <div className="space-y-8 p-5 sm:p-7">
         <section>
           <div className="flex items-center gap-2"><Flag size={19} className="text-orange-500"/><h2 className="font-black text-slate-900 dark:text-white">{de ? "Meldungen" : "Reports"}</h2><span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-bold dark:bg-slate-800">{reports.filter((report) => report.status === "open").length}</span></div>
-          {reports.length === 0 ? <p className="mt-3 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600 dark:bg-slate-800 dark:text-slate-300">{de ? "Keine Meldungen offen." : "No reports yet."}</p> : <div className="mt-4 space-y-3">{reports.map((report) => <article key={report.id} className="rounded-2xl border border-slate-200 p-4 dark:border-slate-700"><div className="flex justify-between gap-3"><div><p className="text-xs font-bold uppercase text-slate-500">{report.targetType}</p><Link href={targetLink(report)} className="text-sm font-bold text-orange-600 hover:underline dark:text-orange-300">{de ? "Gemeldeten Inhalt öffnen" : "Open reported content"}</Link></div><span className="text-xs font-bold text-slate-500">{report.status}</span></div><p className="mt-3 text-sm text-slate-700 dark:text-slate-200">{report.reason}</p><p className="mt-2 text-xs text-slate-500">{report.reporterEmail} · {date.format(report.createdAt)}</p>{report.status === "open" ? <div className="mt-3 flex gap-2"><form action={updateReportStatus}><input type="hidden" name="reportId" value={report.id}/><input type="hidden" name="status" value="resolved"/><button className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white">{de ? "Erledigt" : "Resolve"}</button></form><form action={updateReportStatus}><input type="hidden" name="reportId" value={report.id}/><input type="hidden" name="status" value="dismissed"/><button className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-bold dark:border-slate-600">{de ? "Verwerfen" : "Dismiss"}</button></form></div> : <form action={deleteReport} className="mt-3"><input type="hidden" name="reportId" value={report.id}/><button className="rounded-lg border border-red-300 px-3 py-1.5 text-xs font-bold text-red-600 dark:border-red-800 dark:text-red-300">{de ? "Meldung löschen" : "Delete report"}</button></form>}</article>)}</div>}
+          {reports.length === 0 ? <p className="mt-3 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600 dark:bg-slate-800 dark:text-slate-300">{de ? "Keine Meldungen offen." : "No reports yet."}</p> : <div className="mt-4 space-y-3">{reports.map((report) => <article key={report.id} className="rounded-2xl border border-slate-200 p-4 dark:border-slate-700"><div className="flex justify-between gap-3"><div><p className="text-xs font-bold uppercase text-slate-500">{reportTypeLabel(report.targetType, de)}</p><Link href={targetLink(report)} className="text-sm font-bold text-orange-600 hover:underline dark:text-orange-300">{de ? "Gemeldeten Inhalt öffnen" : "Open reported content"}</Link></div><span className="text-xs font-bold text-slate-500">{reportStatusLabel(report.status, de)}</span></div><p className="mt-3 text-sm text-slate-700 dark:text-slate-200">{report.reason}</p><p className="mt-2 text-xs text-slate-500">{report.reporterEmail} · {date.format(report.createdAt)}</p>{report.status === "open" ? <div className="mt-3 flex gap-2"><form action={updateReportStatus}><input type="hidden" name="reportId" value={report.id}/><input type="hidden" name="status" value="resolved"/><button className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white">{de ? "Erledigt" : "Resolve"}</button></form><form action={updateReportStatus}><input type="hidden" name="reportId" value={report.id}/><input type="hidden" name="status" value="dismissed"/><button className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-bold dark:border-slate-600">{de ? "Verwerfen" : "Dismiss"}</button></form></div> : <form action={deleteReport} className="mt-3"><input type="hidden" name="reportId" value={report.id}/><button className="rounded-lg border border-red-300 px-3 py-1.5 text-xs font-bold text-red-600 dark:border-red-800 dark:text-red-300">{de ? "Meldung löschen" : "Delete report"}</button></form>}</article>)}</div>}
         </section>
 
         <details className="group border-t border-slate-200 pt-6 dark:border-slate-700" open={Boolean(q)}>
