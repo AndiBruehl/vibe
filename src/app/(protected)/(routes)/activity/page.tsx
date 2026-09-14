@@ -49,6 +49,8 @@ function adminActivityTitle(kind: string, de: boolean) {
     "note-vote": ["Abstimmung zu einer Admin-Notiz", "Admin note vote"],
     "admin-role": ["Administratorrolle geändert", "Administrator role changed"],
     "user-delete": ["Account gelöscht", "Account deleted"],
+    "post-delete": ["Beitrag durch Moderation gelöscht", "Post deleted by moderation"],
+    "comment-delete": ["Kommentar durch Moderation gelöscht", "Comment deleted by moderation"],
   };
   const title = titles[kind] ?? ["Neue Admin-Aktivität", "New admin activity"];
   return de ? title[0] : title[1];
@@ -66,6 +68,8 @@ function adminActivityDetail(kind: string, de: boolean) {
     "note-vote": ["Für eine interne Notiz wurde abgestimmt.", "An internal note received a vote."],
     "admin-role": ["Eine Administratorrolle wurde geändert.", "An administrator role was changed."],
     "user-delete": ["Ein Benutzerkonto wurde gelöscht.", "A user account was deleted."],
+    "post-delete": ["Ein Beitrag wurde durch die Moderation gelöscht.", "A post was deleted by moderation."],
+    "comment-delete": ["Ein Kommentar wurde durch die Moderation gelöscht.", "A comment was deleted by moderation."],
   };
   const detail = details[kind] ?? ["Es gibt eine neue Admin-Aktivität.", "There is new admin activity."];
   return de ? detail[0] : detail[1];

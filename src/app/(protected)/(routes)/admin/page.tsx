@@ -7,7 +7,7 @@ import AdminUserManagement from "@/app/components/AdminUserManagement";
 import { prisma } from "@/db";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Flag, MessageSquareText, ThumbsUp } from "lucide-react";
+import { Flag, History, MessageSquareText, ThumbsUp } from "lucide-react";
 
 function reportTypeLabel(type: string, de: boolean) {
   const labels: Record<string, [string, string]> = {
@@ -29,6 +29,25 @@ function reportStatusLabel(status: string, de: boolean) {
   return de ? label[0] : label[1];
 }
 
+function adminActivityLabel(kind: string, de: boolean) {
+  const labels: Record<string, [string, string]> = {
+    report: ["Neue Meldung", "New report"],
+    "report-status": ["Meldungsstatus geändert", "Report status changed"],
+    "report-delete": ["Meldung gelöscht", "Report deleted"],
+    note: ["Admin-Notiz erstellt", "Admin note created"],
+    "note-update": ["Admin-Notiz aktualisiert", "Admin note updated"],
+    "note-delete": ["Admin-Notiz gelöscht", "Admin note deleted"],
+    "note-comment": ["Notiz kommentiert", "Note commented on"],
+    "note-vote": ["Für Notiz abgestimmt", "Note voted on"],
+    "admin-role": ["Adminrolle geändert", "Admin role changed"],
+    "user-delete": ["Account gelöscht", "Account deleted"],
+    "post-delete": ["Beitrag gelöscht", "Post deleted"],
+    "comment-delete": ["Kommentar gelöscht", "Comment deleted"],
+  };
+  const label = labels[kind] ?? ["Admin-Aktion", "Admin action"];
+  return de ? label[0] : label[1];
+}
+
 export default async function AdminPage() {
   const session = await auth();
   const email = session?.user?.email ?? null;
@@ -38,10 +57,11 @@ export default async function AdminPage() {
   const de = profile?.language === "de";
   if (!(await isVibeAdmin(email))) return <AdminAccessDenied language={de ? "de" : "en"} />;
 
-  const [reports, notes, profiles] = await Promise.all([
+  const [reports, notes, profiles, auditEntries] = await Promise.all([
     prisma.report.findMany({ orderBy: [{ status: "asc" }, { createdAt: "desc" }], take: 100 }),
     prisma.adminNote.findMany({ include: { comments: { orderBy: { createdAt: "asc" } }, votes: { select: { voterEmail: true } } }, orderBy: { updatedAt: "desc" }, take: 100 }),
     prisma.profile.findMany({ select: { id: true, email: true, name: true, username: true, isAdmin: true }, orderBy: { name: "asc" } }),
+    prisma.adminActivity.findMany({ orderBy: { createdAt: "desc" }, take: 100 }),
   ]);
   const date = new Intl.DateTimeFormat(de ? "de-DE" : "en-US", { dateStyle: "medium", timeStyle: "short" });
   const targetLink = (report: (typeof reports)[number]) => report.targetUrl || "#";
@@ -63,6 +83,12 @@ export default async function AdminPage() {
         </section>
 
         <AdminUserManagement users={profiles.map((item) => ({ ...item, isProtected: isProtectedAdmin(item.email) }))} de={de} canDeleteUsers={canDeleteUsers} />
+
+        <section className="border-t border-slate-200 pt-8 dark:border-slate-700">
+          <div className="flex items-center gap-2"><History size={19} className="text-orange-500"/><h2 className="font-black text-slate-900 dark:text-white">{de ? "Admin-Protokoll" : "Admin log"}</h2></div>
+          <p className="mt-1 text-sm text-slate-500">{de ? "Nachvollziehbare Übersicht aller Moderations- und Adminaktionen." : "Traceable overview of moderation and admin actions."}</p>
+          {auditEntries.length === 0 ? <p className="mt-4 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600 dark:bg-slate-800 dark:text-slate-300">{de ? "Noch keine Adminaktionen." : "No admin actions yet."}</p> : <div className="mt-4 max-h-96 divide-y divide-slate-200 overflow-y-auto rounded-2xl border border-slate-200 dark:divide-slate-700 dark:border-slate-700">{auditEntries.map((entry) => { const actor = profiles.find((item) => item.email === entry.actorEmail); return <article key={entry.id} className="flex items-start justify-between gap-4 px-4 py-3"><div className="min-w-0"><p className="font-semibold text-slate-900 dark:text-white">{adminActivityLabel(entry.kind, de)}</p><p className="mt-1 truncate text-sm text-slate-600 dark:text-slate-300">{actor?.name || actor?.username || entry.actorEmail}</p></div><time className="shrink-0 text-right text-xs text-slate-500">{date.format(entry.createdAt)}</time></article>; })}</div>}
+        </section>
 
         <section className="border-t border-slate-200 pt-8 dark:border-slate-700"><div className="flex items-center gap-2"><MessageSquareText size={19} className="text-orange-500"/><h2 className="font-black text-slate-900 dark:text-white">{de ? "Interne Notizen" : "Internal notes"}</h2></div><form action={createAdminNote} className="mt-4 rounded-2xl bg-slate-50 p-4 dark:bg-slate-800"><textarea name="body" required rows={3} maxLength={2000} className="w-full rounded-xl border border-slate-300 bg-white p-3 text-sm text-slate-900 dark:border-slate-600 dark:bg-slate-950 dark:text-white" placeholder={de ? "Notiz für das Admin-Team…" : "Note for the admin team…"}/><button className="mt-3 rounded-xl bg-linear-to-r from-(--ig-orange) to-(--ig-red) px-4 py-2 text-sm font-bold text-white">{de ? "Notiz speichern" : "Save note"}</button></form><div className="mt-4 space-y-4">{notes.map((note) => <article key={note.id} className="rounded-2xl border border-slate-200 p-4 dark:border-slate-700"><div className="flex justify-between gap-3"><p className="text-xs text-slate-500">{note.authorEmail} · {date.format(note.updatedAt)}</p>{canDeleteUsers && <form action={deleteAdminNote}><input type="hidden" name="noteId" value={note.id}/><button className="text-xs font-bold text-red-600">{de ? "Löschen" : "Delete"}</button></form>}</div><form action={updateAdminNote} className="mt-3"><input type="hidden" name="noteId" value={note.id}/><textarea name="body" defaultValue={note.body} rows={3} className="w-full rounded-xl border border-slate-300 bg-white p-3 text-sm text-slate-900 dark:border-slate-600 dark:bg-slate-950 dark:text-white"/><button className="mt-2 text-xs font-bold text-orange-600">{de ? "Speichern" : "Save"}</button></form><div className="mt-3 flex gap-3"><form action={toggleAdminNoteVote}><input type="hidden" name="noteId" value={note.id}/><button className="inline-flex items-center gap-1 text-xs font-bold text-slate-600 dark:text-slate-300"><ThumbsUp size={14}/>{note.votes.length}</button></form><span className="text-xs text-slate-500">{note.comments.length} {de ? "Kommentare" : "comments"}</span></div>{note.comments.map((comment) => <p key={comment.id} className="mt-2 text-sm text-slate-700 dark:text-slate-200"><b>{comment.authorEmail}:</b> {comment.body}</p>)}<form action={addAdminNoteComment} className="mt-3 flex gap-2"><input type="hidden" name="noteId" value={note.id}/><input name="body" required maxLength={1000} className="min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-600 dark:bg-slate-950 dark:text-white" placeholder={de ? "Kommentar…" : "Comment…"}/><button className="rounded-lg border border-orange-400 px-3 py-2 text-xs font-bold text-orange-600">{de ? "Senden" : "Send"}</button></form></article>)}</div></section>
       </div>

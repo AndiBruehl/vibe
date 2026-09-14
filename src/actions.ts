@@ -322,6 +322,8 @@ export async function deletePost(formData: FormData): Promise<void> {
     throw new Error("Post not found.");
   }
 
+  const isModerationDeletion = post.authorEmail !== session.user.email;
+
   if (post.authorEmail !== session.user.email && !isSuperAdmin(session.user.email)) {
     throw new Error("You are not authorized to delete this post.");
   }
@@ -345,6 +347,8 @@ export async function deletePost(formData: FormData): Promise<void> {
     prisma.postProfileTag.deleteMany({ where: { postId: postIdValue } }),
     prisma.post.delete({ where: { id: postIdValue } }),
   ]);
+
+  if (isModerationDeletion) await notifyAdmins(session.user.email, "post-delete", "A post was deleted by moderation");
 
   revalidatePath("/");
   revalidatePath("/profile");
@@ -741,6 +745,8 @@ export async function deleteComment(formData: FormData): Promise<void> {
     throw new Error("Comment not found.");
   }
 
+  const isModerationDeletion = comment.authorEmail !== session.user.email;
+
   if (comment.authorEmail !== session.user.email && !isSuperAdmin(session.user.email)) {
     throw new Error("You are not authorized to delete this comment.");
   }
@@ -765,6 +771,8 @@ export async function deleteComment(formData: FormData): Promise<void> {
       where: { id: commentIdValue },
     }),
   ]);
+
+  if (isModerationDeletion) await notifyAdmins(session.user.email, "comment-delete", "A comment was deleted by moderation");
 
   revalidatePath(`/posts/${postIdValue}`);
   redirect(`/posts/${postIdValue}`);
