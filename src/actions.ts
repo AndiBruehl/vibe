@@ -1438,15 +1438,37 @@ export async function moderateReport(formData: FormData): Promise<void> {
   revalidatePath("/messages");
 }
 
+function getVibeTeamTemplate(template: string, de: boolean) {
+  const templates: Record<string, [string, string]> = {
+    welcome: ["Willkommen bei VIBE! Schön, dass du Teil unserer Community bist.", "Welcome to VIBE! We are glad you are part of our community."],
+    "report-received": ["Wir haben deine Meldung erhalten und prüfen den Sachverhalt.", "We received your report and are reviewing the matter."],
+    "report-update": ["Zu deiner Meldung gibt es ein Update. Unser Team hat den Vorgang erneut geprüft.", "There is an update regarding your report. Our team reviewed the case again."],
+    "content-removed": ["Nach unserer Prüfung wurde der betreffende Inhalt entfernt.", "Following our review, the relevant content was removed."],
+    "account-warning": ["Wir möchten dich auf einen möglichen Verstoß gegen unsere Community-Regeln hinweisen.", "We would like to notify you about a possible violation of our community rules."],
+    "account-restriction": ["Für dein Konto wurde nach einer Prüfung eine Einschränkung vorgenommen.", "After a review, a restriction was applied to your account."],
+    support: ["Vielen Dank für deine Nachricht. Unser VIBE-Team hilft dir gerne weiter.", "Thank you for your message. Our VIBE team is happy to help."],
+    custom: ["", ""],
+  };
+  const entry = templates[template];
+  return entry ? (de ? entry[0] : entry[1]) : null;
+}
+
 export async function sendVibeTeamMessageAsAdmin(formData: FormData): Promise<void> {
   const actorEmail = await requireAdminSession();
   const profileId = formData.get("profileId");
-  const body = typeof formData.get("body") === "string" ? String(formData.get("body")).trim().slice(0, 2000) : "";
-  if (typeof profileId !== "string" || !isObjectId(profileId) || !body) throw new Error("Invalid VibeTeam message.");
-  const target = await prisma.profile.findUnique({ where: { id: profileId }, select: { email: true, username: true, isSystem: true } });
+  const template = formData.get("template");
+  const additionalMessage = typeof formData.get("additionalMessage") === "string" ? String(formData.get("additionalMessage")).trim().slice(0, 2000) : "";
+  if (typeof profileId !== "string" || !isObjectId(profileId) || typeof template !== "string") throw new Error("Invalid VibeTeam message.");
+  const target = await prisma.profile.findUnique({ where: { id: profileId }, select: { email: true, username: true, isSystem: true, language: true } });
   if (!target || target.isSystem) throw new Error("Profile not found.");
+  const de = target.language === "de";
+  const baseMessage = getVibeTeamTemplate(template, de);
+  if (baseMessage === null || (template === "custom" && !additionalMessage)) throw new Error("Invalid VibeTeam message template.");
+  const body = template === "custom"
+    ? additionalMessage
+    : `${baseMessage}${additionalMessage ? `\n\n${de ? "Zusätzliche Informationen:" : "Additional information:"}\n${additionalMessage}` : ""}`;
   await deliverVibeTeamMessage(target.email, body);
-  await notifyAdmins(actorEmail, "team-message", `VibeTeam message sent to @${target.username || target.email}`);
+  await notifyAdmins(actorEmail, "team-message", `VibeTeam ${template} message sent to @${target.username || target.email}`);
   revalidatePath("/admin");
   revalidatePath("/messages");
 }
