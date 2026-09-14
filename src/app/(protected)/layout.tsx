@@ -10,6 +10,7 @@ import LanguageRuntime from "@/app/components/LanguageRuntime";
 import { prisma } from "@/db";
 import { randomUUID } from "crypto";
 import { isVibeAdminEmail } from "@/admin";
+import AdminPreviewMode from "@/app/components/AdminPreviewMode";
 
 export default async function ProtectedLayout({
   children,
@@ -51,6 +52,7 @@ export default async function ProtectedLayout({
 
   return (
     <>
+      <AdminPreviewMode />
       <DesktopNav
         unreadConversationCount={unreadMessageStatus.count}
         unreadActivityCount={unreadInteractionStatus.commentCount + unreadInteractionStatus.replyCount + unreadInteractionStatus.likeCount + unreadInteractionStatus.mentionCount + unreadInteractionStatus.followRequestCount + unreadInteractionStatus.adminCount}
@@ -70,8 +72,8 @@ export default async function ProtectedLayout({
         initialLanguage={profile.language === "de" ? "de" : "en"}
       />
 
-      <div className="md:pl-44">
-        <main className="min-h-screen p-4 pb-28 md:pb-4">{children}</main>
+      <div data-vibe-protected-content className="md:pl-44">
+        <main data-vibe-protected-main className="min-h-screen p-4 pb-28 md:pb-4">{children}</main>
       </div>
     </>
   );

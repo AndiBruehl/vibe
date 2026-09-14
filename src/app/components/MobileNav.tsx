@@ -30,7 +30,7 @@ export default function MobileNav({
     ? { home: "START", activity: "AKTIVITÄT", search: "SUCHE", create: "ERSTELLEN", browse: "ENTDECKEN", messages: "NACHRICHTEN", profile: "PROFIL" }
     : { home: "HOME", activity: "ACTIVITY", search: "SEARCH", create: "CREATE", browse: "BROWSE", messages: "MESSAGES", profile: "PROFILE" };
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 block md:hidden">
+    <div data-vibe-mobile-nav className="fixed bottom-0 left-0 right-0 z-50 block md:hidden">
       {" "}
       <div className="flex text-slate-700 dark:text-slate-300 *:flex *:items-center">
         <div className="pl-2 bg-white dark:bg-gray-800 rounded-t-xl w-full relative z-10 *:size-12 *:flex *:flex-col *:items-center *:justify-center justify-around pt-4">

@@ -31,7 +31,7 @@ export default function DesktopNav({
     ? { home: "Startseite", activity: "Aktivität", search: "Suche", create: "Erstellen", browse: "Entdecken", messages: "Nachrichten", profile: "Profil" }
     : { home: "Home", activity: "Activity", search: "Search", create: "Create", browse: "Browse", messages: "Messages", profile: "Profile" };
   return (
-    <aside className="hidden md:fixed md:left-0 md:top-0 md:z-40 md:block md:h-screen md:w-44 bg-ig-nav border-r border-slate-200 px-3 py-4 dark:border-slate-700">
+    <aside data-vibe-desktop-nav className="hidden md:fixed md:left-0 md:top-0 md:z-40 md:block md:h-screen md:w-44 bg-ig-nav border-r border-slate-200 px-3 py-4 dark:border-slate-700">
       <div className="flex flex-col gap-1">
         <Link
           href="/home"

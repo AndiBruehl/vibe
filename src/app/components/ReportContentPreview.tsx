@@ -5,7 +5,8 @@ import { useState } from "react";
 
 export default function ReportContentPreview({ href, de }: { href: string | null; de: boolean }) {
   const [open, setOpen] = useState(false);
-  if (!href) return <p className="text-sm font-semibold text-slate-500">{de ? "Der gemeldete Inhalt ist nicht mehr verfügbar." : "The reported content is no longer available."}</p>;
+  const previewHref = href ? (href.includes("#") ? href.replace("#", "?adminPreview=1#") : `${href}${href.includes("?") ? "&" : "?"}adminPreview=1`) : null;
+  if (!href || !previewHref) return <p className="text-sm font-semibold text-slate-500">{de ? "Der gemeldete Inhalt ist nicht mehr verfügbar." : "The reported content is no longer available."}</p>;
 
   return <>
     <button type="button" onClick={() => setOpen(true)} className="inline-flex items-center gap-1.5 text-sm font-bold text-orange-600 hover:underline dark:text-orange-300"><Eye size={16}/>{de ? "Vorschau öffnen" : "Open preview"}</button>
@@ -15,7 +16,7 @@ export default function ReportContentPreview({ href, de }: { href: string | null
           <div><h2 className="font-black text-slate-900 dark:text-white">{de ? "Gemeldeten Inhalt prüfen" : "Review reported content"}</h2><p className="text-xs text-slate-500">{de ? "Die Vorschau öffnet sich ohne die Admin Area zu verlassen." : "The preview opens without leaving the admin area."}</p></div>
           <div className="flex items-center gap-2"><a href={href} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 dark:border-slate-600 dark:text-slate-200"><ExternalLink size={14}/>{de ? "Vollständig öffnen" : "Open full page"}</a><button type="button" onClick={() => setOpen(false)} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800" aria-label={de ? "Schließen" : "Close"}><X size={19}/></button></div>
         </header>
-        <iframe src={href} title={de ? "Gemeldeter Inhalt" : "Reported content"} className="min-h-0 w-full flex-1 border-0 bg-white" />
+        <iframe src={previewHref} title={de ? "Gemeldeter Inhalt" : "Reported content"} className="min-h-0 w-full flex-1 border-0 bg-white" />
       </section>
     </div>}
   </>;

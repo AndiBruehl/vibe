@@ -171,3 +171,18 @@ body {
   0% { transform: translateX(-105%); }
   100% { transform: translateX(135%); }
 }
+
+/* Embedded moderation previews show only the reported page content. */
+body.vibe-admin-preview [data-vibe-desktop-nav],
+body.vibe-admin-preview [data-vibe-mobile-nav] {
+  display: none !important;
+}
+
+body.vibe-admin-preview [data-vibe-protected-content] {
+  padding-left: 0 !important;
+}
+
+body.vibe-admin-preview [data-vibe-protected-main] {
+  padding: 0 !important;
+  min-height: 100vh;
+}
