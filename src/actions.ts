@@ -1285,10 +1285,19 @@ export async function createReport(formData: FormData): Promise<void> {
   const targetType = formData.get("targetType");
   const targetId = formData.get("targetId");
   const targetUrl = formData.get("targetUrl");
-  const reason = typeof formData.get("reason") === "string" ? String(formData.get("reason")).trim().slice(0, 600) : "";
-  if ((targetType !== "profile" && targetType !== "post" && targetType !== "comment") || typeof targetId !== "string" || !targetId || reason.length < 3) {
+  const category = formData.get("category");
+  const description = typeof formData.get("description") === "string" ? String(formData.get("description")).trim().slice(0, 600) : "";
+  const categories: Record<string, string> = {
+    spam: "Spam or scam",
+    harassment: "Harassment or bullying",
+    hate: "Hate or discrimination",
+    sexual: "Sexual or inappropriate content",
+    other: "Something else",
+  };
+  if ((targetType !== "profile" && targetType !== "post" && targetType !== "comment") || typeof targetId !== "string" || !targetId || typeof category !== "string" || !categories[category]) {
     throw new Error("Invalid report.");
   }
+  const reason = description ? `${categories[category]}: ${description}` : categories[category];
 
   const target = targetType === "profile"
     ? await prisma.profile.findUnique({ where: { id: targetId }, select: { id: true } })
