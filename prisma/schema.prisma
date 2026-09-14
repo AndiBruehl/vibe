@@ -19,6 +19,7 @@ model Profile {
   isPrivate Boolean @default(false)
   isAdmin Boolean @default(false)
   isSystem Boolean @default(false)
+  systemKind String?
   activityReadAt DateTime?
 
   posts         Post[]
@@ -325,6 +326,32 @@ model Report {
 
   @@index([status, createdAt])
   @@index([targetType, targetId])
+}
+
+model SupportTicket {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  requesterEmail String
+  status String @default("open")
+  assignedAdminEmail String?
+  assignedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  messages SupportTicketMessage[]
+
+  @@index([status, updatedAt])
+  @@index([requesterEmail, updatedAt])
+}
+
+model SupportTicketMessage {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  ticketId String @db.ObjectId
+  ticket SupportTicket @relation(fields: [ticketId], references: [id])
+  senderType String
+  senderAdminEmail String?
+  body String
+  createdAt DateTime @default(now())
+
+  @@index([ticketId, createdAt])
 }
 
 model AdminNote {

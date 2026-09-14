@@ -70,6 +70,7 @@ export default async function ProfileByUsernamePage({
   const de = viewerProfile?.language === "de";
   const isOwnProfile = viewerEmail === profile.email;
   const isSystemProfile = profile.isSystem;
+  const isSupportProfile = profile.systemKind === "support";
   const canDeleteProfile = !isOwnProfile && !isSystemProfile && isSuperAdmin(viewerEmail) && !isProtectedAdmin(profile.email);
   const activeTab = isOwnProfile && tab === "bookmarks" ? "bookmarks" : "posts";
 
@@ -161,7 +162,9 @@ export default async function ProfileByUsernamePage({
 
                 {isOwnProfile && profile.isAdmin && <Link href="/admin" className="mt-4 inline-flex rounded-xl border border-orange-400/60 px-3 py-2 text-sm font-semibold text-orange-600 hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-500/10">{de ? "Adminbereich" : "Admin area"}</Link>}
 
-                {isSystemProfile && <p className="mt-3 text-sm font-semibold text-slate-500 dark:text-slate-400">{de ? "Offizieller VIBE-Systemaccount · Nachrichten können nicht beantwortet werden." : "Official VIBE system account · Messages cannot be replied to."}</p>}
+                {isSystemProfile && <p className="mt-3 text-sm font-semibold text-slate-500 dark:text-slate-400">{isSupportProfile ? (de ? "Offizieller VIBE-Support · Deine Anfrage wird als Ticket an das Admin-Team weitergeleitet." : "Official VIBE support · Your request is forwarded to the admin team as a ticket.") : (de ? "Offizieller VIBE-Systemaccount · Nachrichten können nicht beantwortet werden." : "Official VIBE system account · Messages cannot be replied to.")}</p>}
+
+                {isSupportProfile && <Link href="/support" className="mt-4 inline-flex rounded-xl bg-linear-to-r from-cyan-600 to-violet-600 px-4 py-2.5 text-sm font-bold text-white">{de ? "Support kontaktieren" : "Contact support"}</Link>}
 
                 {!isOwnProfile && !isBlocked && !isSystemProfile && <div className="mt-3"><ReportButton targetType="profile" targetId={profile.id} targetUrl={`/profile/${encodeURIComponent(profile.username ?? "")}`} /></div>}
 

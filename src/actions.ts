@@ -6,7 +6,7 @@ import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { parsePostImages } from "@/post-images";
 import { isProtectedAdmin, isSuperAdmin, isVibeAdmin } from "@/admin";
-import { ensureVibeTeamProfile } from "@/system-profile";
+import { ensureVibeTeamProfile, isVibeSupportEmail } from "@/system-profile";
 
 const MAX_STORY_SLIDES = 4;
 
@@ -1119,11 +1119,19 @@ export async function startConversation(formData: FormData): Promise<void> {
     },
     select: {
       id: true,
+      email: true,
       isSystem: true,
+      systemKind: true,
     },
   });
 
-  if (!targetProfile || targetProfile.isSystem) {
+  if (!targetProfile) {
+    throw new Error("Target profile not found.");
+  }
+  if (targetProfile.systemKind === "support" || isVibeSupportEmail(targetProfile.email)) {
+    redirect("/support");
+  }
+  if (targetProfile.isSystem) {
     throw new Error("This profile cannot receive messages.");
   }
   if (await usersAreBlocked(currentUserProfile.id, targetProfile.id)) throw new Error("You cannot message this profile.");
@@ -1440,13 +1448,16 @@ export async function moderateReport(formData: FormData): Promise<void> {
 
 function getVibeTeamTemplate(template: string, de: boolean) {
   const templates: Record<string, [string, string]> = {
-    welcome: ["Willkommen bei VIBE! Schön, dass du Teil unserer Community bist.", "Welcome to VIBE! We are glad you are part of our community."],
-    "report-received": ["Wir haben deine Meldung erhalten und prüfen den Sachverhalt.", "We received your report and are reviewing the matter."],
-    "report-update": ["Zu deiner Meldung gibt es ein Update. Unser Team hat den Vorgang erneut geprüft.", "There is an update regarding your report. Our team reviewed the case again."],
-    "content-removed": ["Nach unserer Prüfung wurde der betreffende Inhalt entfernt.", "Following our review, the relevant content was removed."],
-    "account-warning": ["Wir möchten dich auf einen möglichen Verstoß gegen unsere Community-Regeln hinweisen.", "We would like to notify you about a possible violation of our community rules."],
-    "account-restriction": ["Für dein Konto wurde nach einer Prüfung eine Einschränkung vorgenommen.", "After a review, a restriction was applied to your account."],
-    support: ["Vielen Dank für deine Nachricht. Unser VIBE-Team hilft dir gerne weiter.", "Thank you for your message. Our VIBE team is happy to help."],
+    welcome: ["Willkommen bei VIBE! Schön, dass du hier bist. Wir wünschen dir viel Freude beim Entdecken, Teilen und Vernetzen.", "Welcome to VIBE! We are happy you are here and hope you enjoy discovering, sharing, and connecting."],
+    "report-received": ["Danke, dass du dir die Zeit für eine Meldung genommen hast. Wir haben sie erhalten und schauen uns den Sachverhalt sorgfältig an.", "Thank you for taking the time to send a report. We received it and will review the situation carefully."],
+    "report-update": ["Danke für deine Geduld. Es gibt ein Update zu deiner Meldung: Unser Team hat den Vorgang erneut geprüft.", "Thank you for your patience. There is an update regarding your report: our team reviewed the case again."],
+    "content-removed": ["Danke für deinen Hinweis. Nach unserer Prüfung wurde der betreffende Inhalt entfernt.", "Thank you for bringing this to our attention. Following our review, the relevant content was removed."],
+    "account-warning": ["Wir möchten dich persönlich auf einen möglichen Verstoß gegen unsere Community-Regeln hinweisen. Bitte wirf einen Blick auf die folgenden Informationen.", "We want to personally let you know about a possible violation of our community rules. Please review the information below."],
+    "account-restriction": ["Nach einer sorgfältigen Prüfung wurde für dein Konto eine Einschränkung vorgenommen. Wenn etwas unklar ist, kannst du den Support kontaktieren.", "After a careful review, a restriction was applied to your account. If anything is unclear, you can contact support."],
+    support: ["Danke für deine Nachricht. Wir haben dein Anliegen erhalten und helfen dir gerne weiter. Ein Mitglied unseres Teams meldet sich so bald wie möglich.", "Thank you for your message. We received your request and are happy to help. A member of our team will get back to you as soon as possible."],
+    "technical-help": ["Danke für die genaue Beschreibung. Wir prüfen das technische Problem und geben dir Bescheid, sobald wir mehr wissen.", "Thank you for the detailed description. We are looking into the technical issue and will let you know as soon as we have more information."],
+    "friendly-follow-up": ["Wir wollten kurz nachfragen, ob unser letzter Hinweis dir weiterhelfen konnte. Gib uns gerne Bescheid, falls du noch Unterstützung brauchst.", "We wanted to check whether our previous note helped. Please let us know if you still need support."],
+    "case-closed": ["Dein Anliegen wurde von uns abgeschlossen. Danke für deine Geduld und dafür, dass du VIBE mitgestaltest.", "We have closed your request. Thank you for your patience and for helping shape VIBE."],
     custom: ["", ""],
   };
   const entry = templates[template];
@@ -1471,6 +1482,70 @@ export async function sendVibeTeamMessageAsAdmin(formData: FormData): Promise<vo
   await notifyAdmins(actorEmail, "team-message", `VibeTeam ${template} message sent to @${target.username || target.email}`);
   revalidatePath("/admin");
   revalidatePath("/messages");
+}
+
+export async function createSupportTicket(formData: FormData): Promise<void> {
+  const session = await auth();
+  const requesterEmail = session?.user?.email;
+  if (!requesterEmail) redirect("/");
+  const body = typeof formData.get("body") === "string" ? String(formData.get("body")).trim().slice(0, 2000) : "";
+  if (!body) throw new Error("Support message is required.");
+  const existing = await prisma.supportTicket.findFirst({ where: { requesterEmail, status: { not: "closed" } }, orderBy: { updatedAt: "desc" }, select: { id: true } });
+  const ticket = existing
+    ? await prisma.supportTicket.update({ where: { id: existing.id }, data: { status: "open" } })
+    : await prisma.supportTicket.create({ data: { requesterEmail } });
+  await prisma.supportTicketMessage.create({ data: { ticketId: ticket.id, senderType: "user", body } });
+  await prisma.supportTicket.update({ where: { id: ticket.id }, data: { updatedAt: new Date() } });
+  await notifyAdmins(requesterEmail, "support-ticket", "New message for Support@Vibe");
+  revalidatePath("/support");
+  revalidatePath("/admin");
+}
+
+export async function claimSupportTicket(formData: FormData): Promise<void> {
+  const actorEmail = await requireAdminSession();
+  const ticketId = formData.get("ticketId");
+  if (typeof ticketId !== "string" || !isObjectId(ticketId)) throw new Error("Invalid support ticket.");
+  const result = await prisma.supportTicket.updateMany({ where: { id: ticketId, OR: [{ assignedAdminEmail: null }, { assignedAdminEmail: actorEmail }] }, data: { assignedAdminEmail: actorEmail, assignedAt: new Date(), status: "in-progress" } });
+  if (result.count !== 1) throw new Error("Another admin is already handling this ticket.");
+  await notifyAdmins(actorEmail, "support-claim", "A support ticket was claimed");
+  revalidatePath("/admin");
+}
+
+export async function replyToSupportTicket(formData: FormData): Promise<void> {
+  const actorEmail = await requireAdminSession();
+  const ticketId = formData.get("ticketId");
+  const body = typeof formData.get("body") === "string" ? String(formData.get("body")).trim().slice(0, 2000) : "";
+  if (typeof ticketId !== "string" || !isObjectId(ticketId) || !body) throw new Error("Invalid support reply.");
+  const ticket = await prisma.supportTicket.findUnique({ where: { id: ticketId }, select: { assignedAdminEmail: true } });
+  if (!ticket || ticket.assignedAdminEmail !== actorEmail) throw new Error("Claim this ticket before replying.");
+  await prisma.$transaction([
+    prisma.supportTicketMessage.create({ data: { ticketId, senderType: "admin", senderAdminEmail: actorEmail, body } }),
+    prisma.supportTicket.update({ where: { id: ticketId }, data: { status: "awaiting-user", updatedAt: new Date() } }),
+  ]);
+  await notifyAdmins(actorEmail, "support-reply", "A Support@Vibe ticket was answered");
+  revalidatePath("/admin");
+  revalidatePath("/support");
+}
+
+export async function releaseSupportTicket(formData: FormData): Promise<void> {
+  const actorEmail = await requireAdminSession();
+  const ticketId = formData.get("ticketId");
+  if (typeof ticketId !== "string" || !isObjectId(ticketId)) throw new Error("Invalid support ticket.");
+  const result = await prisma.supportTicket.updateMany({ where: { id: ticketId, assignedAdminEmail: actorEmail }, data: { assignedAdminEmail: null, assignedAt: null, status: "open" } });
+  if (result.count !== 1) throw new Error("Only the assigned admin can release this ticket.");
+  await notifyAdmins(actorEmail, "support-release", "A support ticket was released");
+  revalidatePath("/admin");
+}
+
+export async function closeSupportTicket(formData: FormData): Promise<void> {
+  const actorEmail = await requireAdminSession();
+  const ticketId = formData.get("ticketId");
+  if (typeof ticketId !== "string" || !isObjectId(ticketId)) throw new Error("Invalid support ticket.");
+  const result = await prisma.supportTicket.updateMany({ where: { id: ticketId, assignedAdminEmail: actorEmail }, data: { status: "closed", updatedAt: new Date() } });
+  if (result.count !== 1) throw new Error("Only the assigned admin can close this ticket.");
+  await notifyAdmins(actorEmail, "support-close", "A support ticket was closed");
+  revalidatePath("/admin");
+  revalidatePath("/support");
 }
 
 export async function updateReportStatus(formData: FormData): Promise<void> {
