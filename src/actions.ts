@@ -412,6 +412,10 @@ export async function toggleBlock(formData: FormData): Promise<void> {
   const session = await auth();
   if (!session?.user?.email) redirect("/");
   const targetProfileId = formData.get("targetProfileId");
+  const returnToValue = formData.get("returnTo");
+  const returnTo = typeof returnToValue === "string" && returnToValue.startsWith("/") && !returnToValue.startsWith("//")
+    ? returnToValue
+    : "/settings/blocked";
   if (typeof targetProfileId !== "string") throw new Error("Profile is missing.");
   const viewer = await prisma.profile.findUnique({ where: { email: session.user.email }, select: { id: true } });
   if (!viewer || viewer.id === targetProfileId) throw new Error("Profile not found.");
@@ -422,8 +426,30 @@ export async function toggleBlock(formData: FormData): Promise<void> {
     prisma.follow.deleteMany({ where: { OR: [{ followerId: viewer.id, followingId: targetProfileId }, { followerId: targetProfileId, followingId: viewer.id }] } }),
     prisma.followRequest.deleteMany({ where: { OR: [{ followerId: viewer.id, followingId: targetProfileId }, { followerId: targetProfileId, followingId: viewer.id }] } }),
   ]);
-  revalidatePath("/"); revalidatePath("/home"); revalidatePath("/settings/blocked");
-  redirect("/settings/blocked");
+  revalidatePath("/"); revalidatePath("/home"); revalidatePath("/settings/blocked"); revalidatePath(returnTo);
+  redirect(returnTo);
+}
+
+export async function unblockProfileInline(targetProfileId: string): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.email) throw new Error("Not signed in.");
+
+  const viewer = await prisma.profile.findUnique({
+    where: { email: session.user.email },
+    select: { id: true },
+  });
+  if (!viewer || viewer.id === targetProfileId) throw new Error("Profile not found.");
+
+  const existing = await prisma.block.findUnique({
+    where: { blockerId_blockedId: { blockerId: viewer.id, blockedId: targetProfileId } },
+    select: { id: true },
+  });
+  if (!existing) throw new Error("Block not found.");
+
+  await prisma.block.delete({ where: { id: existing.id } });
+  revalidatePath("/");
+  revalidatePath("/home");
+  revalidatePath("/settings/blocked");
 }
 
 export async function togglePostArchive(formData: FormData): Promise<void> {

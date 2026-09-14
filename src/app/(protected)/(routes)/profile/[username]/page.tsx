@@ -5,12 +5,10 @@ import Link from "next/link";
 import { MoveLeft, Grid3X3, Bookmark, Lock } from "lucide-react";
 import ProfilePosts from "@/app/components/ProfilePosts";
 import BookmarkPosts from "@/app/components/BookmarkPosts";
-import FollowButton from "@/app/components/FollowButton";
-import MessageButton from "@/app/components/MessageButton";
 import MentionText from "@/app/components/MentionText";
 import BackNavigationLink from "@/app/components/BackNavigationLink";
 import ProfileLinks from "@/app/components/ProfileLinks";
-import BlockButton from "@/app/components/BlockButton";
+import ProfileActionControls from "@/app/components/ProfileActionControls";
 
 type ProfileByUsernamePageProps = {
   params: Promise<{
@@ -157,15 +155,15 @@ export default async function ProfileByUsernamePage({
                 {/* 🔥 FOLLOW BUTTON HIER */}
                 {!isOwnProfile && (
                   <div className="mt-4 flex flex-wrap gap-2">
-                    {!isBlocked && <FollowButton
+                    <ProfileActionControls
                       targetProfileId={profile.id}
                       targetUsername={profile.username || ""}
-                      state={followState}
+                      returnTo={`/profile/${encodeURIComponent(profile.username)}`}
+                      followState={followState}
+                      blockedByViewer={blockedByViewer}
+                      blockedByOther={isBlocked && !blockedByViewer}
                       language={de ? "de" : "en"}
-                    />}
-                    {!isBlocked && <MessageButton targetProfileId={profile.id} />}
-                    {blockedByViewer && <BlockButton targetProfileId={profile.id} blocked language={de ? "de" : "en"} />}
-                    {!isBlocked && <BlockButton targetProfileId={profile.id} language={de ? "de" : "en"} />}
+                    />
                   </div>
                 )}
               </div>

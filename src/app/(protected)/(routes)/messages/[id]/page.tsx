@@ -141,14 +141,14 @@ export default async function ConversationPage({
   const blockedByOther = blockingRelation?.blockerId === otherProfile?.id;
 
   return (
-    <main className="mx-auto w-full max-w-3xl pb-24 md:pb-4">
+    <main className="mx-auto flex h-[calc(100dvh-8rem)] w-full max-w-3xl flex-col md:h-[calc(100dvh-2rem)]">
       <ConversationLiveRefresh
         conversationId={conversation.id}
         initialLatestMessageAt={latestMessage?.createdAt.toISOString() ?? null}
         initialMessageCount={conversation.messages.length}
       />
 
-      <section className="flex items-center justify-between border-b border-slate-200 bg-white pb-4 dark:border-slate-700 dark:bg-transparent">
+      <section className="flex shrink-0 items-center justify-between border-b border-slate-200 bg-white pb-4 dark:border-slate-700 dark:bg-transparent">
         <Link
           href="/messages"
           className="group flex items-center gap-2 text-slate-800 no-underline visited:text-slate-800 hover:text-slate-600 dark:text-slate-200 dark:visited:text-slate-400 dark:hover:text-slate-500"
@@ -239,7 +239,7 @@ export default async function ConversationPage({
         </div>
       </section>
 
-      <section className="conversation-messages space-y-3 py-5">
+      <section className="conversation-messages min-h-0 flex-1 space-y-3 overflow-y-auto py-5 pr-1">
         {conversation.messages.length === 0 ? (
           <div className="rounded-2xl bg-white p-8 text-center shadow-md shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
             <p className="text-slate-700 dark:text-slate-300">
@@ -313,7 +313,9 @@ export default async function ConversationPage({
         <ConversationAutoScroll latestMessageId={latestMessage?.id} />
       </section>
 
-      <MessageComposer conversationId={conversation.id} blocked={conversationIsBlocked} blockedByOther={blockedByOther} />
+      <div className="shrink-0 pt-3">
+        <MessageComposer conversationId={conversation.id} blocked={conversationIsBlocked} blockedByOther={blockedByOther} />
+      </div>
     </main>
   );
 }
