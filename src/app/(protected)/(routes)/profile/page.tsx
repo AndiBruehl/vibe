@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import { Check, MoveLeft, Settings } from "lucide-react";
+import { Check, MoveLeft, Settings, Shield } from "lucide-react";
 import Link from "next/link";
 import img1 from "./default.jpg";
 import { prisma } from "@/db";
@@ -14,6 +14,7 @@ import { randomUUID } from "crypto";
 import ProfileLinks from "@/app/components/ProfileLinks";
 import FollowRequests from "@/app/components/FollowRequests";
 import ArchivedPosts from "@/app/components/ArchivedPosts";
+import { isVibeAdminEmail } from "@/admin";
 
 type ProfilePageProps = {
   searchParams: Promise<{
@@ -54,11 +55,12 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
     where: {
       email: session.user.email,
     },
-    update: {},
+    update: isVibeAdminEmail(session.user.email) ? { isAdmin: true } : {},
     create: {
       email: session.user.email,
       username: generatedUsername,
       name: session.user.name || null,
+      isAdmin: isVibeAdminEmail(session.user.email),
     },
   });
 
@@ -90,15 +92,17 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
           </div>
         </div>
 
-        <Link
-          href="/settings"
-          className="group flex items-center gap-2 text-slate-800 no-underline visited:text-slate-800 hover:text-slate-600 dark:text-slate-200 dark:visited:text-slate-400 dark:hover:text-slate-500"
-        >
-          <span className="opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-            {de ? "Einstellungen" : "Settings"}
-          </span>
-          <Settings />
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/settings"
+            className="group flex items-center gap-2 text-slate-800 no-underline visited:text-slate-800 hover:text-slate-600 dark:text-slate-200 dark:visited:text-slate-400 dark:hover:text-slate-500"
+          >
+            <span className="opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+              {de ? "Einstellungen" : "Settings"}
+            </span>
+            <Settings />
+          </Link>
+        </div>
       </section>
 
       <section className="mt-8 flex justify-center">
@@ -129,6 +133,13 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         <p className="text-slate-700 dark:text-slate-300">
           {profile.bio || ""}
         </p>
+        {isVibeAdminEmail(profile.email) && profile.isAdmin ? <Link
+          href="/admin"
+          className="mt-4 inline-flex items-center gap-2 rounded-xl border border-orange-400/60 px-3 py-2 text-sm font-semibold text-orange-600 no-underline transition hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-500/10"
+        >
+          <Shield size={17} />
+          {de ? "Adminbereich" : "Admin area"}
+        </Link> : null}
         {profileLinks.length > 0 && (
           <ProfileLinks links={profileLinks} language={de ? "de" : "en"} centered />
         )}

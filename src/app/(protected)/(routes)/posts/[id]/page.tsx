@@ -1,4 +1,5 @@
 import { auth } from "@/auth";
+import { isVibeAdminEmail } from "@/admin";
 import { prisma } from "@/db";
 import Image from "next/image";
 import { notFound } from "next/navigation";
@@ -77,7 +78,7 @@ export default async function SinglePostPage({
     where: { email: post.authorEmail },
   });
   const viewer = viewerEmail
-    ? await prisma.profile.findUnique({ where: { email: viewerEmail }, select: { id: true, language: true } })
+    ? await prisma.profile.findUnique({ where: { email: viewerEmail }, select: { id: true, language: true, isAdmin: true } })
     : null;
   const de = viewer?.language === "de";
   const blockingRelation = author && viewer && author.email !== viewerEmail
@@ -124,6 +125,7 @@ export default async function SinglePostPage({
       : false;
 
   const isOwner = viewerEmail === post.authorEmail;
+  const isAdmin = isVibeAdminEmail(viewerEmail) && viewer?.isAdmin === true;
 
   return (
     <>
@@ -226,6 +228,14 @@ export default async function SinglePostPage({
 
                     <PostComposer key={post.updatedAt.toISOString()} action={editPost} postId={post.id} initialImages={getPostImages(post)} description={post.description} topics={topics.map((t) => t.name)} taggedProfiles={taggedProfiles}/>
 
+                  </section>
+                ) : isAdmin ? (
+                  <section className="rounded-2xl border border-red-300/60 bg-red-50 p-4 dark:border-red-500/30 dark:bg-red-500/10">
+                    <p className="text-sm font-semibold text-red-700 dark:text-red-200"><LocalizedText en="Admin moderation" de="Admin-Moderation" /></p>
+                    <form action={deletePost} className="mt-3">
+                      <input type="hidden" name="postId" value={post.id} />
+                      <button type="submit" className="rounded-xl bg-red-600 px-3 py-2 text-sm font-semibold text-white"><LocalizedText en="Delete post and images" de="Beitrag und Bilder löschen" /></button>
+                    </form>
                   </section>
                 ) : null}
               </div>

@@ -46,6 +46,7 @@ type CommentItemProps = {
   postId: string;
   isReply?: boolean;
   rootCommentId?: string;
+  canModerate?: boolean;
 };
 
 export default function CommentItem({
@@ -53,6 +54,7 @@ export default function CommentItem({
   postId,
   isReply = false,
   rootCommentId,
+  canModerate = false,
 }: CommentItemProps) {
   const de = useVibeLanguage() === "de";
   const [showReplyForm, setShowReplyForm] = useState(false);
@@ -188,15 +190,15 @@ export default function CommentItem({
                 </button>
               ) : null}
 
-              {comment.isOwned && !isEditing ? (
+              {(comment.isOwned || canModerate) && !isEditing ? (
                 <>
-                  <button
+                  {comment.isOwned && <button
                     type="button"
                     onClick={() => setIsEditing(true)}
                     className="text-xs font-medium text-slate-500 transition hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
                   >
                     {de ? "Bearbeiten" : "Edit"}
-                  </button>
+                  </button>}
                   <form action={deleteComment} className="m-0">
                     <input type="hidden" name="commentId" value={comment.id} />
                     <input type="hidden" name="postId" value={postId} />
@@ -238,6 +240,7 @@ export default function CommentItem({
                 postId={postId}
                 isReply
                 rootCommentId={comment.id}
+                canModerate={canModerate}
               />
             ))}
           </div>}

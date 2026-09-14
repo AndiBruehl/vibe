@@ -1,5 +1,5 @@
 "use client";
-import { Children, useState, type ReactNode } from "react";
+import { Children, Fragment, useState, type ReactNode } from "react";
 import {
   sortPostIndices,
   type PostSort,
@@ -23,7 +23,11 @@ export default function SortablePosts({
   const options: ReadonlyArray<readonly [PostSort, string]> = de
     ? [["newest", "Neueste zuerst"], ["oldest", "Älteste zuerst"], ["az", "A bis Z"], ["za", "Z bis A"]]
     : [["newest", "Newest to oldest"], ["oldest", "Oldest to newest"], ["az", "A to Z"], ["za", "Z to A"]];
-  const items = Children.toArray(children);
+  // Children supplied by server components can lose their outer key while being
+  // reordered. Give every sortable slot a stable post id at this boundary.
+  const items = Children.toArray(children).map((child, index) => (
+    <Fragment key={posts[index]?.id ?? `post-${index}`}>{child}</Fragment>
+  ));
   return (
     <div className="w-full">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 shadow-sm shadow-slate-900/5 backdrop-blur dark:border-white/10 dark:bg-slate-800/70 dark:shadow-black/20 sm:px-5">

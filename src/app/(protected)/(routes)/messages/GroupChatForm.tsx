@@ -3,6 +3,8 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import EmojiPicker from "@/app/components/EmojiPicker";
 import MentionTextarea from "@/app/components/MentionTextarea";
+import useVibeLanguage from "@/app/components/useVibeLanguage";
+import { ChevronDown, UsersRound } from "lucide-react";
 
 type GroupChatFormProps = {};
 
@@ -14,6 +16,9 @@ type ProfileSuggestion = {
 };
 
 export default function GroupChatForm(_: GroupChatFormProps) {
+  const language = useVibeLanguage();
+  const de = language === "de";
+  const [isExpanded, setIsExpanded] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<ProfileSuggestion[]>([]);
@@ -92,7 +97,7 @@ export default function GroupChatForm(_: GroupChatFormProps) {
     event.preventDefault();
 
     if (selected.length < 2) {
-      setToastMessage("Please add at least two other members.");
+      setToastMessage(de ? "Füge mindestens zwei weitere Mitglieder hinzu." : "Please add at least two other members.");
       return;
     }
 
@@ -110,7 +115,7 @@ export default function GroupChatForm(_: GroupChatFormProps) {
       });
       if (!res.ok) {
         const err = await res.text();
-        setToastMessage(err || "Could not create group");
+        setToastMessage(err || (de ? "Gruppe konnte nicht erstellt werden." : "Could not create group"));
         return;
       }
       const data = await res.json();
@@ -118,39 +123,49 @@ export default function GroupChatForm(_: GroupChatFormProps) {
         window.location.href = `/messages/${data.id}`;
       }
     } catch (err) {
-      setToastMessage(err instanceof Error ? err.message : "Network error");
+      setToastMessage(err instanceof Error ? err.message : de ? "Netzwerkfehler" : "Network error");
     }
   };
 
   return (
-    <section className="mt-6 overflow-hidden rounded-2xl bg-white p-6 shadow-md shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
-      <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
-        Create a group chat
-      </h2>
-      <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-        Search and add members to the group.
-      </p>
+    <section className="mt-6 overflow-hidden rounded-2xl bg-white shadow-md shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
+      <button
+        type="button"
+        aria-expanded={isExpanded}
+        onClick={() => setIsExpanded((current) => !current)}
+        className="flex w-full items-center justify-between gap-4 p-5 text-left transition hover:bg-slate-50 dark:hover:bg-slate-700/40"
+      >
+        <span className="flex min-w-0 items-center gap-3">
+          <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-linear-to-tr from-(--ig-orange) to-(--ig-red) text-white"><UsersRound size={19} /></span>
+          <span className="min-w-0">
+            <span className="block font-semibold text-slate-800 dark:text-slate-100">{de ? "Gruppenchat erstellen" : "Create a group chat"}</span>
+            <span className="mt-0.5 block text-sm text-slate-500 dark:text-slate-400">{de ? "Mitglieder suchen und hinzufügen" : "Search and add members"}</span>
+          </span>
+        </span>
+        <ChevronDown className={`shrink-0 text-slate-500 transition-transform ${isExpanded ? "rotate-180" : ""}`} aria-hidden="true" />
+      </button>
 
-      {toastMessage ? (
-        <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
-          {toastMessage}
-        </div>
-      ) : null}
+      {isExpanded ? <div className="border-t border-slate-200 p-5 dark:border-slate-700">
+        {toastMessage ? (
+          <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+            {toastMessage}
+          </div>
+        ) : null}
 
-      <form onSubmit={handleSubmit} className="mt-4 grid gap-3">
+      <form onSubmit={handleSubmit} className="grid gap-3">
         <label className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
-          <span>Group name</span>
+          <span>{de ? "Gruppenname" : "Group name"}</span>
           <input
             name="name"
             required
             className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-            placeholder="My friends group"
+            placeholder={de ? "Meine Freundesgruppe" : "My friends group"}
           />
         </label>
 
         <div className="space-y-2">
           <span className="text-sm text-slate-600 dark:text-slate-300">
-            Add members
+            {de ? "Mitglieder hinzufügen" : "Add members"}
           </span>
 
           <div className="flex flex-wrap gap-2">
@@ -170,12 +185,12 @@ export default function GroupChatForm(_: GroupChatFormProps) {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search users by name or username"
+            placeholder={de ? "Nutzer nach Name oder Benutzername suchen" : "Search users by name or username"}
             className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
           />
 
           {loading ? (
-            <div className="text-sm text-slate-500">Searching…</div>
+            <div className="text-sm text-slate-500">{de ? "Suche…" : "Searching…"}</div>
           ) : null}
 
           {suggestions.length > 0 && (
@@ -211,23 +226,24 @@ export default function GroupChatForm(_: GroupChatFormProps) {
             type="submit"
             className="inline-flex items-center justify-center rounded-2xl bg-black px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-900 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
           >
-            Create Group
+            {de ? "Gruppe erstellen" : "Create Group"}
           </button>
         </div>
         <div className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-          <span>Initial message (optional)</span>
+          <span>{de ? "Erste Nachricht (optional)" : "Initial message (optional)"}</span>
           <div className="mt-1 flex items-end gap-2">
             <EmojiPicker onSelect={insertInitialMessageEmoji} />
             <MentionTextarea
               ref={initialMessageRef}
               name="initialMessage"
               className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-              placeholder="Say something to the group..."
+              placeholder={de ? "Sag der Gruppe etwas…" : "Say something to the group..."}
               rows={2}
             />
           </div>
         </div>
       </form>
+      </div> : null}
     </section>
   );
 }

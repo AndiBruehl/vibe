@@ -17,6 +17,7 @@ model Profile {
   bio      String?
   language String  @default("en")
   isPrivate Boolean @default(false)
+  isAdmin Boolean @default(false)
   activityReadAt DateTime?
 
   posts         Post[]

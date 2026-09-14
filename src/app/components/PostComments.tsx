@@ -1,4 +1,5 @@
 import { auth } from "@/auth";
+import { isVibeAdminEmail } from "@/admin";
 import { prisma } from "@/db";
 import CommentItem from "./CommentItem";
 import LocalizedText from "./LocalizedText";
@@ -10,6 +11,10 @@ type PostCommentsProps = {
 export default async function PostComments({ postId }: PostCommentsProps) {
   const session = await auth();
   const currentUserEmail = session?.user?.email ?? null;
+  const viewer = currentUserEmail
+    ? await prisma.profile.findUnique({ where: { email: currentUserEmail }, select: { isAdmin: true } })
+    : null;
+  const canModerate = isVibeAdminEmail(currentUserEmail) && viewer?.isAdmin === true;
 
   const comments = await prisma.comment.findMany({
     where: {
@@ -69,6 +74,7 @@ export default async function PostComments({ postId }: PostCommentsProps) {
           <CommentItem
             key={comment.id}
             postId={postId}
+            canModerate={canModerate}
             comment={{
               id: comment.id,
               text: comment.text,

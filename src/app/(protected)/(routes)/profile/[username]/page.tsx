@@ -9,6 +9,7 @@ import MentionText from "@/app/components/MentionText";
 import BackNavigationLink from "@/app/components/BackNavigationLink";
 import ProfileLinks from "@/app/components/ProfileLinks";
 import ProfileActionControls from "@/app/components/ProfileActionControls";
+import { isVibeAdminEmail } from "@/admin";
 
 type ProfileByUsernamePageProps = {
   params: Promise<{
@@ -40,7 +41,7 @@ export default async function ProfileByUsernamePage({
   const [profile, viewerProfile] = await Promise.all([
     prisma.profile.findUnique({ where: { username }, include: { profileLinks: { orderBy: { position: "asc" } } } }),
     viewerEmail
-      ? prisma.profile.findUnique({ where: { email: viewerEmail }, select: { id: true, language: true } })
+      ? prisma.profile.findUnique({ where: { email: viewerEmail }, select: { id: true, language: true, isAdmin: true } })
       : null,
   ]);
 
@@ -151,6 +152,8 @@ export default async function ProfileByUsernamePage({
                 {profile.profileLinks.length > 0 && (
                   <ProfileLinks links={profile.profileLinks} language={de ? "de" : "en"} />
                 )}
+
+                {isOwnProfile && isVibeAdminEmail(profile.email) && profile.isAdmin && <Link href="/admin" className="mt-4 inline-flex rounded-xl border border-orange-400/60 px-3 py-2 text-sm font-semibold text-orange-600 hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-500/10">{de ? "Adminbereich" : "Admin area"}</Link>}
 
                 {/* 🔥 FOLLOW BUTTON HIER */}
                 {!isOwnProfile && (

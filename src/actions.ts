@@ -5,6 +5,7 @@ import { prisma } from "@/db";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { parsePostImages } from "@/post-images";
+import { isVibeAdmin } from "@/admin";
 
 const MAX_STORY_SLIDES = 4;
 
@@ -321,7 +322,7 @@ export async function deletePost(formData: FormData): Promise<void> {
     throw new Error("Post not found.");
   }
 
-  if (post.authorEmail !== session.user.email) {
+  if (post.authorEmail !== session.user.email && !(await isVibeAdmin(session.user.email))) {
     throw new Error("You are not authorized to delete this post.");
   }
 
@@ -740,7 +741,7 @@ export async function deleteComment(formData: FormData): Promise<void> {
     throw new Error("Comment not found.");
   }
 
-  if (comment.authorEmail !== session.user.email) {
+  if (comment.authorEmail !== session.user.email && !(await isVibeAdmin(session.user.email))) {
     throw new Error("You are not authorized to delete this comment.");
   }
 

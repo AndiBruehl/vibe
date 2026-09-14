@@ -9,6 +9,7 @@ import { getUnreadInteractionStatus } from "@/notifications";
 import LanguageRuntime from "@/app/components/LanguageRuntime";
 import { prisma } from "@/db";
 import { randomUUID } from "crypto";
+import { isVibeAdminEmail } from "@/admin";
 
 export default async function ProtectedLayout({
   children,
@@ -39,11 +40,12 @@ export default async function ProtectedLayout({
     where: {
       email: session.user.email,
     },
-    update: {},
+    update: isVibeAdminEmail(session.user.email) ? { isAdmin: true } : {},
     create: {
       email: session.user.email,
       username: generatedUsername,
       name: session.user.name || null,
+      isAdmin: isVibeAdminEmail(session.user.email),
     },
   });
 
