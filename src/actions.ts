@@ -1160,11 +1160,21 @@ export async function sendMessage(formData: FormData): Promise<void> {
     },
     select: {
       id: true,
+      participants: { select: { profileId: true } },
     },
   });
 
   if (!conversation) {
     throw new Error("Conversation not found.");
+  }
+
+  const recipientIds = conversation.participants
+    .map((participant) => participant.profileId)
+    .filter((profileId) => profileId !== currentUserProfile.id);
+  for (const recipientId of recipientIds) {
+    if (await usersAreBlocked(currentUserProfile.id, recipientId)) {
+      throw new Error("You cannot send messages in a conversation with a blocked profile.");
+    }
   }
 
   const now = new Date();

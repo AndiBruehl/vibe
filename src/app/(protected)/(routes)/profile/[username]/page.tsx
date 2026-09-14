@@ -91,7 +91,7 @@ export default async function ProfileByUsernamePage({
         where: { followerId_followingId: { followerId: viewerProfile.id, followingId: profile.id } },
         select: { id: true },
       }),
-      prisma.block.findUnique({ where: { blockerId_blockedId: { blockerId: viewerProfile.id, blockedId: profile.id } }, select: { id: true } }),
+      prisma.block.findFirst({ where: { OR: [{ blockerId: viewerProfile.id, blockedId: profile.id }, { blockerId: profile.id, blockedId: viewerProfile.id }] }, select: { id: true } }),
     ]);
     isBlocked = Boolean(existingBlock);
     followState = existingFollow ? "following" : existingRequest ? "requested" : "none";
