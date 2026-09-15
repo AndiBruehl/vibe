@@ -44,11 +44,11 @@ export default function ProgressiveImage({
 
   return (
     <div
-      className={`relative overflow-hidden ${loaded ? "bg-transparent" : "bg-slate-100 dark:bg-slate-900"} ${containerClassName}`}
+      className={`relative overflow-hidden transition-[aspect-ratio] duration-500 ease-out motion-reduce:transition-none ${loaded ? "bg-transparent" : "bg-slate-100 dark:bg-slate-900"} ${containerClassName}`}
       style={{ aspectRatio: aspectRatio ?? "4 / 3" }}
     >
-      {!loaded && !failed ? (
-        <div aria-hidden="true" className="absolute inset-0 animate-pulse bg-linear-to-br from-slate-200 via-slate-100 to-slate-200 dark:from-slate-800 dark:via-slate-700 dark:to-slate-800" />
+      {!failed ? (
+        <div aria-hidden="true" className={`absolute inset-0 bg-linear-to-br from-slate-200 via-slate-100 to-slate-200 transition-opacity duration-400 ease-out dark:from-slate-800 dark:via-slate-700 dark:to-slate-800 motion-reduce:transition-none ${loaded ? "opacity-0" : "animate-pulse opacity-100"}`} />
       ) : null}
       {failed ? (
         <div className="absolute inset-0 grid place-items-center text-sm font-medium text-slate-400 dark:text-slate-500">VIBE</div>
@@ -60,7 +60,7 @@ export default function ProgressiveImage({
         loading={loading}
         onLoad={(event) => finishLoading(event.currentTarget)}
         onError={() => setFailed(true)}
-        className={`relative h-full w-full transition-opacity duration-200 ${className}`}
+        className={`relative h-full w-full transition-opacity duration-400 ease-out motion-reduce:transition-none ${loaded ? "opacity-100" : "opacity-0"} ${className}`}
       />
     </div>
   );
