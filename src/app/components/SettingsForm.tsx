@@ -12,6 +12,7 @@ import ReleaseDownloads from "@/app/components/ReleaseDownloads";
 import AppVersion from "@/app/components/AppVersion";
 import { applyTheme, type ThemePreference } from "@/app/components/ProfileThemeRuntime";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import defaultImg from "./default.jpg";
 
@@ -22,6 +23,7 @@ type SettingsFormProps = {
 type EditableProfileLink = { id: string; label: string; url: string };
 
 export default function SettingsForm({ profile }: SettingsFormProps) {
+  const router = useRouter();
   const fileInRef = useRef<HTMLInputElement>(null);
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(
@@ -89,6 +91,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
       await upsertProfile(formData);
       setIsDirty(false);
       setSaveFeedback("saved");
+      router.refresh();
       window.setTimeout(() => setSaveFeedback(null), 2500);
     } catch {
       setSaveFeedback("failed");

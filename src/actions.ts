@@ -107,7 +107,7 @@ async function linkMentionsForComment(commentId: string, text: string, authorEma
     });
   }
 }
-export async function upsertProfile(formData: FormData) {
+export async function upsertProfile(formData: FormData): Promise<{ ok: true }> {
   const session = await auth();
 
   if (!session?.user?.email) {
@@ -187,7 +187,9 @@ export async function upsertProfile(formData: FormData) {
     },
   });
 
-  redirect("/profile");
+  revalidatePath("/profile");
+  revalidatePath("/settings");
+  return { ok: true };
 }
 
 export async function postEntry(formData: FormData) {
