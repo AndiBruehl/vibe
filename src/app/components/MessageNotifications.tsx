@@ -25,24 +25,24 @@ type UnreadInteractionStatus = {
 };
 
 async function fetchUnreadStatus() {
-  const response = await fetch("/api/messages/unread", {
-    cache: "no-store",
-  });
-
-  if (!response.ok) {
+  try {
+    const response = await fetch("/api/messages/unread", { cache: "no-store" });
+    if (!response.ok) return null;
+    return (await response.json()) as UnreadMessageStatus;
+  } catch {
+    // A short network/compiler interruption must not surface as a page error.
     return null;
   }
-
-  return (await response.json()) as UnreadMessageStatus;
 }
 
 async function fetchUnreadInteractions() {
-  const response = await fetch("/api/notifications/unread", {
-    cache: "no-store",
-  });
-
-  if (!response.ok) return null;
-  return (await response.json()) as UnreadInteractionStatus;
+  try {
+    const response = await fetch("/api/notifications/unread", { cache: "no-store" });
+    if (!response.ok) return null;
+    return (await response.json()) as UnreadInteractionStatus;
+  } catch {
+    return null;
+  }
 }
 
 function getMessageText(count: number) {
