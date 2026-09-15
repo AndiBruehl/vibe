@@ -124,9 +124,8 @@ export default async function ProfileByUsernamePage({
 
       <main className="mx-auto w-full max-w-6xl p-4 md:p-8">
         <section className="overflow-hidden rounded-2xl bg-white shadow-lg shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
-          <div className="flex flex-col gap-6 p-6 md:flex-row md:items-center md:justify-between md:p-8">
-            {/* LEFT SIDE */}
-            <div className="flex items-start gap-4">
+          <div className="grid gap-5 p-6 md:grid-cols-[7rem_minmax(0,1fr)_auto] md:items-start md:p-8">
+            <div className="flex justify-center md:block">
               <div className="size-24 overflow-hidden rounded-full bg-gray-300 md:size-28">
                 {profile.avatar ? (
                   <Image
@@ -139,8 +138,9 @@ export default async function ProfileByUsernamePage({
                   />
                 ) : null}
               </div>
+            </div>
 
-              <div className="flex flex-col">
+              <div className="min-w-0">
                 <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
                   <span className="inline-flex items-center gap-2">{profile.name || "Unknown"}<AdminBadge isAdmin={profile.isAdmin} /><VibeTeamBadge isSystem={profile.isSystem} /></span>
                 </h1>
@@ -162,7 +162,7 @@ export default async function ProfileByUsernamePage({
                 )}
                 {profile.shoutouts.length > 0 && <ProfileShoutouts shoutouts={profile.shoutouts} language={de ? "de" : "en"} />}
 
-                {isOwnProfile && profile.isAdmin && <Link href="/admin" className="mt-4 inline-flex rounded-xl border border-orange-400/60 px-3 py-2 text-sm font-semibold text-orange-600 hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-500/10">{de ? "Adminbereich" : "Admin area"}</Link>}
+                {isOwnProfile && profile.isAdmin && <Link href="/admin" className="mt-4 inline-flex w-fit rounded-xl border border-orange-400/60 px-3 py-2 text-sm font-semibold text-orange-600 hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-500/10">{de ? "Adminbereich" : "Admin area"}</Link>}
 
                 {isSystemProfile && <p className="mt-3 text-sm font-semibold text-slate-500 dark:text-slate-400">{isSupportProfile ? (de ? "Offizieller VIBE-Support · Deine Anfrage wird als Ticket an das Admin-Team weitergeleitet." : "Official VIBE support · Your request is forwarded to the admin team as a ticket.") : (de ? "Offizieller VIBE-Systemaccount · Nachrichten können nicht beantwortet werden." : "Official VIBE system account · Messages cannot be replied to.")}</p>}{isSupportProfile && <Link href="/support" className="mt-4 inline-flex rounded-xl bg-linear-to-r from-cyan-600 to-violet-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm shadow-cyan-500/20 transition hover:brightness-110">{de ? "Support kontaktieren" : "Contact support"}</Link>}{!isOwnProfile && !isBlocked && !isSystemProfile && <div className="mt-3"><ReportButton targetType="profile" targetId={profile.id} targetUrl={`/profile/${encodeURIComponent(profile.username ?? "")}`} /></div>}
 
@@ -183,11 +183,9 @@ export default async function ProfileByUsernamePage({
                   </div>
                 )}
               </div>
-            </div>
 
-            {/* RIGHT SIDE (STATS) */}
-            <div className="flex gap-6 text-sm">
-              <div>
+            <div className="grid grid-cols-3 gap-5 self-start pt-1 text-center text-sm md:pt-2">
+              <div className="min-w-12">
                 <p className="font-semibold text-slate-900 dark:text-white">
                   {postsCount}
                 </p>
@@ -195,7 +193,7 @@ export default async function ProfileByUsernamePage({
               </div>
               <Link
                 href={`/profile/${encodeURIComponent(profile.username ?? "")}/connections?list=followers`}
-                className="transition hover:opacity-70"
+                className="min-w-12 transition hover:opacity-70"
               >
                 <p className="font-semibold text-slate-900 dark:text-white">
                   {followersCount}
@@ -204,7 +202,7 @@ export default async function ProfileByUsernamePage({
               </Link>
               <Link
                 href={`/profile/${encodeURIComponent(profile.username ?? "")}/connections?list=following`}
-                className="transition hover:opacity-70"
+                className="min-w-12 transition hover:opacity-70"
               >
                 <p className="font-semibold text-slate-900 dark:text-white">
                   {followingCount}
