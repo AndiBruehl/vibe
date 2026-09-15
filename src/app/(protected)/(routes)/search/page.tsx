@@ -4,7 +4,8 @@ import { prisma } from "@/db";
 import Image from "next/image";
 import Link from "next/link";
 import { MoveLeft } from "lucide-react";
-import SearchInput, { searchScopes, type SearchScope } from "./SearchInput";
+import SearchInput from "./SearchInput";
+import { searchScopes, type SearchScope } from "@/app/search-scopes";
 import img1 from "../profile/default.jpg";
 import LocalizedText from "@/app/components/LocalizedText";
 

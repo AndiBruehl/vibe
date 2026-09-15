@@ -4,14 +4,12 @@ import { Search } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import useVibeLanguage from "@/app/components/useVibeLanguage";
+import { searchScopes, type SearchScope } from "@/app/search-scopes";
 
 type SearchInputProps = {
   initialQuery: string;
   initialScope: SearchScope;
 };
-
-export const searchScopes = ["all", "profiles", "posts", "tags", "admins"] as const;
-export type SearchScope = (typeof searchScopes)[number];
 
 export default function SearchInput({ initialQuery, initialScope }: SearchInputProps) {
   const de = useVibeLanguage() === "de";
