@@ -61,6 +61,12 @@
 - Store every visual preference on the Profile record (or a related personalization record), never only in browser storage, so web, Android, and desktop show the same profile.
 - Apply safe defaults and a single reset action; validate color contrast and restrict decorative options to vetted presets where free-form styling could hurt readability.
 
+### Interaction and motion principles
+
+- Prefer short, purposeful animations for feedback, opening layers, state changes, and route transitions where they improve orientation or confirm an action.
+- Keep motion subtle and consistent across web, Android, and desktop; never use decorative loops behind loaded content.
+- Always respect `prefers-reduced-motion`, with immediate non-animated fallbacks for every interaction.
+
 ### Further persistent personalization ideas
 
 - **Profile identity:** pronouns, a short status line, and a selectable profile badge style (separate from protected Admin/VIBE Team badges).

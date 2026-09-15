@@ -251,6 +251,36 @@ html:not(.dark) :is(input, textarea)::placeholder { color: #607b97; opacity: 1; 
   animation: vibe-quick-settings-feedback-exit 180ms ease-in both !important;
 }
 
+/* VIBE interaction language: movement confirms an action, it never competes with content. */
+@keyframes vibe-content-enter {
+  from { opacity: 0; transform: translateY(0.35rem); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes vibe-popover-enter {
+  from { opacity: 0; transform: translateY(0.3rem) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.vibe-popover-enter { animation: vibe-popover-enter 180ms cubic-bezier(.2, .8, .2, 1) both; }
+.vibe-modal-enter { animation: vibe-popover-enter 220ms cubic-bezier(.2, .8, .2, 1) both; }
+
+[data-vibe-protected-main] > :where(main, section) {
+  animation: vibe-content-enter 180ms ease-out both;
+}
+
+/* Every interactive control gets the same small, tactile response. */
+:where(button, [role="button"], summary):not(:disabled) {
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform, filter;
+  transition-duration: 160ms;
+  transition-timing-function: ease-out;
+}
+
+:where(button, [role="button"], summary):not(:disabled):active { transform: scale(0.975); }
+
+:where(a[href]) { transition: color 160ms ease-out, opacity 160ms ease-out, text-decoration-color 160ms ease-out; }
+:where(input, textarea, select) { transition: border-color 160ms ease-out, background-color 160ms ease-out, box-shadow 160ms ease-out; }
+
 /* Embedded moderation previews show only the reported page content. */
 body.vibe-admin-preview [data-vibe-desktop-nav],
 body.vibe-admin-preview [data-vibe-mobile-nav] {
