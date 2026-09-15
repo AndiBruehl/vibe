@@ -92,13 +92,13 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
   const avatarSrc = previewUrl || profile?.avatar || defaultImg.src;
 
   return (
-    <form action={upsertProfile} className="space-y-5 lg:grid lg:grid-cols-[11rem_minmax(0,1fr)] lg:gap-x-5 lg:gap-y-5 lg:space-y-0">
-      <nav className="flex gap-2 rounded-xl bg-slate-100 p-1 dark:bg-slate-800 lg:col-span-2" aria-label={copy("Settings sections", "Einstellungsbereiche")}>
+    <form action={upsertProfile} className="space-y-5">
+      <nav className="flex gap-2 rounded-xl bg-slate-100 p-1 dark:bg-slate-800" aria-label={copy("Settings sections", "Einstellungsbereiche")}>
         <button type="button" onClick={() => setActiveTab("profile")} className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ${activeTab === "profile" ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100"}`}><UserRound size={16} />{copy("Profile", "Profil")}</button>
         <button type="button" onClick={() => setActiveTab("preferences")} className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ${activeTab === "preferences" ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100"}`}><SlidersHorizontal size={16} />{copy("Appearance & privacy", "Darstellung & Privatsphäre")}</button>
       </nav>
-      <div className={activeTab === "profile" ? "contents" : "hidden"}>
-      <section className="flex flex-col items-center gap-3 border-b border-slate-200 pb-5 dark:border-slate-700/80 lg:row-span-3 lg:self-start lg:border-b-0 lg:border-r lg:pb-0 lg:pr-6">
+      <div className={activeTab === "profile" ? "flex flex-col gap-5 lg:flex-row lg:items-start" : "hidden"}>
+      <section className="flex flex-col items-center gap-3 border-b border-slate-200 pb-5 dark:border-slate-700/80 lg:w-40 lg:shrink-0 lg:border-b-0 lg:border-r lg:pb-0 lg:pr-6">
         <div className="size-32 shrink-0 overflow-hidden rounded-full border-4 border-white bg-slate-200 shadow-lg shadow-slate-900/15 dark:border-slate-700 dark:bg-slate-800 dark:shadow-black/30">
           <img
             src={avatarSrc}
@@ -132,7 +132,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
         </div>
       </section>
 
-      <section className="lg:col-start-2">
+      <section className="min-w-0 flex-1">
         <div className="mb-4 flex items-center gap-2">
           <UserRound size={17} className="text-orange-500" />
           <h2 className="font-semibold text-slate-900 dark:text-white">{copy("Profile details", "Profildetails")}</h2>
@@ -220,7 +220,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
       </div>
 
       <div className={activeTab === "preferences" ? "contents" : "hidden"}>
-      <section className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 dark:border-slate-700 dark:bg-slate-800/60 lg:col-span-2">
+      <section className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 dark:border-slate-700 dark:bg-slate-800/60">
         <div className="flex items-center gap-3">
           <span className="grid size-9 place-items-center rounded-xl bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200"><Moon size={17} /></span>
           <div>
@@ -246,14 +246,14 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
         />
       </section>
 
-      <section className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 dark:border-slate-700 dark:bg-slate-800/60 lg:col-span-2">
+      <section className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 dark:border-slate-700 dark:bg-slate-800/60">
         <div className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-xl bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200"><Lock size={17} /></span><div><p className="font-semibold text-slate-900 dark:text-white">{copy("Private profile", "Privates Profil")}</p><p className="text-xs text-slate-500 dark:text-slate-400">{copy("Approve follow requests before people can see your posts", "Bestätige Follow-Anfragen, bevor Nutzer deine Beiträge sehen")}</p></div></div>
         <input type="hidden" name="isPrivate" value={isPrivate ? "true" : "false"} />
         <Switch checked={isPrivate} onCheckedChange={setIsPrivate} />
       </section>
 
       </div>
-      <div className="flex flex-col-reverse gap-3 border-t border-slate-200 pt-5 dark:border-slate-700/80 sm:flex-row sm:items-center sm:justify-between lg:col-span-2">
+      <div className="flex flex-col-reverse gap-3 border-t border-slate-200 pt-5 dark:border-slate-700/80 sm:flex-row sm:items-center sm:justify-between">
         <LanguageSwitcher onLanguageChange={setLanguage} />
         <button
           type="submit"
