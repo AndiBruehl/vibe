@@ -38,7 +38,7 @@
 
 ## BETA 0.1.69.3 (in progress)
 
-- Replace full-page language reloads with a unified translation-key system so every label switches instantly and consistently.
+- Replace full-page language reloads with a unified translation-key system so every label switches instantly and consistently. ✅ Shared client language state updates immediately; one background server refresh synchronizes server-rendered copy without a browser reload.
 - Consolidate mobile headers: shared safe-area spacing and collision-free placement for back, profile settings, and quick-settings controls. ✅
 - Add automatic local drafts for message, comment, and support text inputs, with a clear restore/discard experience. ✅
 
