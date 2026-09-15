@@ -1,6 +1,6 @@
 "use client";
 
-import { ImageUp, Link as LinkIcon, Lock, Moon, Plus, ShieldCheck, SlidersHorizontal, Trash2, UserRound } from "lucide-react";
+import { ImageUp, Link as LinkIcon, Lock, MonitorSmartphone, Moon, Plus, ShieldCheck, SlidersHorizontal, Sun, Trash2, UserRound } from "lucide-react";
 import { Switch } from "@radix-ui/themes";
 import type { Profile } from "@prisma/client";
 import { upsertProfile } from "@/actions";
@@ -29,9 +29,8 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
   );
   const [avatarUrl, setAvatarUrl] = useState<string>(profile?.avatar ?? "");
   const [isUploading, setIsUploading] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(profile?.theme === "light" ? false : profile?.theme === "dark" ? true : true);
+  const [themePreference, setThemePreference] = useState<ThemePreference>(profile?.theme === "light" || profile?.theme === "dark" ? profile.theme : "system");
   const [isPrivate, setIsPrivate] = useState(profile?.isPrivate ?? false);
-  const [isThemeReady, setIsThemeReady] = useState(false);
   const [language, setLanguage] = useState<"en" | "de">("en");
   const [activeTab, setActiveTab] = useState<"profile" | "preferences" | "account">("profile");
   const [profileLinks, setProfileLinks] = useState<EditableProfileLink[]>(
@@ -43,10 +42,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
   useEffect(() => {
     setLanguage(localStorage.getItem("vibe-language") === "de" ? "de" : "en");
     const preference: ThemePreference = profile?.theme === "light" || profile?.theme === "dark" ? profile.theme : "system";
-    const resolvedDark = preference === "dark" || (preference === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
-    setIsDarkMode(resolvedDark);
-
-    setIsThemeReady(true);
+    setThemePreference(preference);
   }, []);
 
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -212,25 +208,21 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
       </div>
 
       <div className={activeTab === "preferences" ? "space-y-3" : "hidden"}>
-      <section className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 dark:border-slate-700 dark:bg-slate-800/60">
+      <section className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 dark:border-slate-700 dark:bg-slate-800/60">
         <div className="flex items-center gap-3">
-          <span className="grid size-9 place-items-center rounded-xl bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200"><Moon size={17} /></span>
+          <span className="grid size-9 place-items-center rounded-xl bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200"><MonitorSmartphone size={17} /></span>
           <div>
-            <p className="font-semibold text-slate-900 dark:text-white">{copy("Dark mode", "Dunkelmodus")}</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">{copy("Use VIBE with a darker color scheme", "Nutze VIBE mit einem dunkleren Farbschema")}</p>
+            <p className="font-semibold text-slate-900 dark:text-white">{copy("Theme", "Thema")}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">{copy("Choose a color scheme for VIBE", "Wähle ein Farbschema für VIBE")}</p>
           </div>
         </div>
-        <Switch
-          checked={isDarkMode}
-          disabled={!isThemeReady}
-          onCheckedChange={(nextChecked) => {
-            setIsDarkMode(nextChecked);
-            const theme = nextChecked ? "dark" : "light";
-            localStorage.setItem("theme", theme);
-            applyTheme(theme);
-            void fetch("/api/profile/theme", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ theme }) });
-          }}
-        />
+        <div className="mt-3 grid grid-cols-3 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
+          {([
+            { value: "system" as const, label: copy("System", "System"), Icon: MonitorSmartphone },
+            { value: "light" as const, label: copy("Light", "Hell"), Icon: Sun },
+            { value: "dark" as const, label: copy("Dark", "Dunkel"), Icon: Moon },
+          ]).map(({ value, label, Icon }) => <button key={value} type="button" onClick={() => { setThemePreference(value); localStorage.setItem("theme", value); applyTheme(value); void fetch("/api/profile/theme", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ theme: value }) }); }} className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-bold transition ${themePreference === value ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"}`}><Icon size={14} />{label}</button>)}
+        </div>
       </section>
 
       <section className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 dark:border-slate-700 dark:bg-slate-800/60">
