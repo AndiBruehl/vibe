@@ -25,10 +25,21 @@ export default function LanguageSwitcher({ onLanguageChange }: { onLanguageChang
   }, []);
 
   async function select(next: Language) {
+    if (next === language) return;
+    const previous = language;
     applyVibeLanguage(next);
     setLanguage(next);
-    const response = await fetch("/api/profile/language", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ language: next }) });
-    if (!response.ok) return;
+    let response: Response;
+    try {
+      response = await fetch("/api/profile/language", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ language: next }) });
+    } catch {
+      response = new Response(null, { status: 503 });
+    }
+    if (!response.ok) {
+      applyVibeLanguage(previous);
+      setLanguage(previous);
+      return;
+    }
     startTransition(() => router.refresh());
     if (onLanguageChange) {
       onLanguageChange(next);
