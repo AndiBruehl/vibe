@@ -59,7 +59,7 @@ export default function QuickSettings({ initialLanguage, initialTheme }: { initi
   ];
 
   return (
-    <div ref={panel} className="fixed right-4 top-2.5 z-50 md:right-6 md:top-2.5" data-vibe-quick-settings>
+    <div ref={panel} className="fixed right-4 top-3.5 z-50 md:right-6 md:top-3.5" data-vibe-quick-settings>
       <button type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open} aria-label={de ? "Schnelleinstellungen" : "Quick settings"}
         className="grid size-10 place-items-center rounded-full border border-slate-300/80 bg-white/90 text-slate-600 shadow-lg shadow-slate-900/10 backdrop-blur transition hover:-translate-y-0.5 hover:border-orange-300 hover:text-orange-500 dark:border-slate-600 dark:bg-slate-800/90 dark:text-slate-200 dark:shadow-black/30 dark:hover:border-orange-400 dark:hover:text-orange-300">
         <Settings2 size={18} aria-hidden="true" />
