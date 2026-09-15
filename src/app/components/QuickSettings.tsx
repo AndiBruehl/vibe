@@ -1,12 +1,14 @@
 "use client";
 
 import { Languages, MonitorSmartphone, Moon, Settings2, Sun } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { applyTheme, type ThemePreference } from "@/app/components/ProfileThemeRuntime";
 
 type Language = "en" | "de";
 
 export default function QuickSettings({ initialLanguage, initialTheme }: { initialLanguage: Language; initialTheme: ThemePreference }) {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [theme, setTheme] = useState<ThemePreference>(initialTheme);
   const [language, setLanguage] = useState<Language>(initialLanguage);
@@ -57,6 +59,8 @@ export default function QuickSettings({ initialLanguage, initialTheme }: { initi
     { value: "dark", label: de ? "Dunkel" : "Dark", icon: Moon },
     { value: "system", label: de ? "System" : "System", icon: MonitorSmartphone },
   ];
+
+  if (pathname === "/settings" || pathname.startsWith("/settings/")) return null;
 
   return (
     <div ref={panel} className="fixed right-4 top-16 z-50 md:right-6 md:top-3.5" data-vibe-quick-settings>
