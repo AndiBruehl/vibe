@@ -444,21 +444,24 @@ export default async function ActivityPage() {
 
   return (
     <main className="mx-auto w-full max-w-3xl pb-24 md:pb-8">
-      <section className="flex items-center justify-between">
-        <Link
-          href="/home"
-          className="group flex items-center gap-2 text-slate-800 no-underline hover:text-slate-600 dark:text-slate-200 dark:hover:text-slate-500"
-        >
-          <MoveLeft />
-          <span className="opacity-0 transition-opacity group-hover:opacity-100">
-            {de ? "Zurück zur Startseite" : "Back to Home"}
-          </span>
-        </Link>
-
+      <section className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+        <div className="justify-self-start">
+          <Link
+            href="/home"
+            className="group inline-flex min-h-11 items-center gap-2 rounded-xl px-2 text-slate-800 no-underline transition hover:bg-slate-100 hover:text-slate-600 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+          >
+            <MoveLeft />
+            <span className="hidden sm:inline opacity-0 transition-opacity group-hover:opacity-100">
+              {de ? "Zurück zur Startseite" : "Back to Home"}
+            </span>
+          </Link>
+        </div>
         <h1 className="text-lg font-bold text-slate-800 dark:text-slate-100">
           {de ? "Aktivität" : "Activity"}
         </h1>
-        <ActivityReadControl unreadCount={unreadCount} de={de} />
+        <div className="justify-self-end">
+          <ActivityReadControl unreadCount={unreadCount} de={de} />
+        </div>
       </section>
 
       <section className="mt-6 overflow-hidden rounded-2xl bg-white shadow-md shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
