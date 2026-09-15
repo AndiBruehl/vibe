@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
+import { applyVibeLanguage } from "@/app/components/language-events";
+import { useRouter } from "next/navigation";
 
 type Language = "en" | "de";
 
@@ -13,6 +15,7 @@ function Flag({ language }: { language: Language }) {
 
 export default function LanguageSwitcher({ onLanguageChange }: { onLanguageChange?: (language: Language) => void } = {}) {
   const [language, setLanguage] = useState<Language>("en");
+  const router = useRouter();
 
   useEffect(() => {
     setLanguage((localStorage.getItem("vibe-language") as Language) === "de" ? "de" : "en");
@@ -22,16 +25,15 @@ export default function LanguageSwitcher({ onLanguageChange }: { onLanguageChang
   }, []);
 
   async function select(next: Language) {
-    localStorage.setItem("vibe-language", next);
+    applyVibeLanguage(next);
     setLanguage(next);
-    await fetch("/api/profile/language", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ language: next }) });
-    document.documentElement.lang = next;
+    const response = await fetch("/api/profile/language", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ language: next }) });
+    if (!response.ok) return;
+    startTransition(() => router.refresh());
     if (onLanguageChange) {
       onLanguageChange(next);
-      window.dispatchEvent(new CustomEvent("vibe-language-ui-change", { detail: next }));
       return;
     }
-    window.dispatchEvent(new CustomEvent("vibe-language-change", { detail: next }));
   }
 
   return (

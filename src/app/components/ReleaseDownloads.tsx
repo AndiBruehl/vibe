@@ -2,6 +2,7 @@
 
 import { Download, MonitorDown, Smartphone } from "lucide-react";
 import { useEffect, useState } from "react";
+import useVibeLanguage from "@/app/components/useVibeLanguage";
 
 type Release = {
   version: string;
@@ -16,14 +17,7 @@ type Releases = {
 export default function ReleaseDownloads() {
   const [releases, setReleases] = useState<Releases | null>(null);
   const [loaded, setLoaded] = useState(false);
-  const [language, setLanguage] = useState<"en" | "de">("en");
-
-  useEffect(() => {
-    setLanguage(localStorage.getItem("vibe-language") === "de" ? "de" : "en");
-    const onChange = (event: Event) => setLanguage((event as CustomEvent<"en" | "de">).detail);
-    window.addEventListener("vibe-language-ui-change", onChange);
-    return () => window.removeEventListener("vibe-language-ui-change", onChange);
-  }, []);
+  const language = useVibeLanguage();
   const de = language === "de";
 
   useEffect(() => {

@@ -1,16 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import useVibeLanguage from "@/app/components/useVibeLanguage";
 
 export default function SettingsHeading({ initialLanguage }: { initialLanguage: "en" | "de" }) {
-  const [language, setLanguage] = useState(initialLanguage);
-  useEffect(() => {
-    const apply = () => setLanguage(localStorage.getItem("vibe-language") === "de" ? "de" : "en");
-    apply();
-    const onChange = (event: Event) => setLanguage((event as CustomEvent<"en" | "de">).detail);
-    window.addEventListener("vibe-language-ui-change", onChange);
-    return () => window.removeEventListener("vibe-language-ui-change", onChange);
-  }, []);
+  const language = useVibeLanguage(initialLanguage);
   const de = language === "de";
   return <header className="border-b border-slate-200 bg-linear-to-r from-orange-50 via-white to-pink-50 px-5 py-4 dark:border-slate-700/80 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 sm:px-6">
     <p className="text-sm font-semibold text-orange-600 dark:text-orange-300">{de ? "Konto" : "Account"}</p>

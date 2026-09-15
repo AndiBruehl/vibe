@@ -1,15 +1,17 @@
 "use client";
 
 import { Languages, MonitorSmartphone, Moon, Settings2, Sun } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { startTransition, useEffect, useRef, useState } from "react";
 import { applyTheme, type ThemePreference } from "@/app/components/ProfileThemeRuntime";
+import { applyVibeLanguage } from "@/app/components/language-events";
 
 type Language = "en" | "de";
 
 export default function QuickSettings({ initialLanguage, initialTheme }: { initialLanguage: Language; initialTheme: ThemePreference }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [theme, setTheme] = useState<ThemePreference>(initialTheme);
   const [language, setLanguage] = useState<Language>(initialLanguage);
@@ -66,8 +68,7 @@ export default function QuickSettings({ initialLanguage, initialTheme }: { initi
     if (next === language) return;
     const previous = language;
     setLanguage(next);
-    localStorage.setItem("vibe-language", next);
-    document.documentElement.lang = next;
+    applyVibeLanguage(next);
     showFeedback("working");
     let response: Response;
     try {
@@ -77,14 +78,13 @@ export default function QuickSettings({ initialLanguage, initialTheme }: { initi
     }
     if (!response.ok) {
       setLanguage(previous);
-      localStorage.setItem("vibe-language", previous);
-      document.documentElement.lang = previous;
+      applyVibeLanguage(previous);
       showFeedback("failed");
       hideFeedbackAfter(2200);
       return;
     }
+    startTransition(() => router.refresh());
     window.setTimeout(() => showFeedback("saved"), 650);
-    window.setTimeout(() => window.dispatchEvent(new CustomEvent("vibe-language-change", { detail: next })), 1200);
     hideFeedbackAfter(2600);
   }
 
