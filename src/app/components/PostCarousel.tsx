@@ -121,7 +121,7 @@ export default function PostCarousel({
                   src={src}
                   alt={`${alt} (${i + 1}/${images.length})`}
                   loading={i ? "lazy" : "eager"}
-                  containerClassName="aspect-square w-full"
+                  containerClassName="w-full"
                   className="object-contain"
                 />
               </Link>

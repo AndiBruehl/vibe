@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
+import ProgressiveImage from "./ProgressiveImage";
 
 type ExpandablePostImageProps = {
   src: string;
@@ -14,7 +15,6 @@ export default function ExpandablePostImage({
   alt,
 }: ExpandablePostImageProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -41,22 +41,10 @@ export default function ExpandablePostImage({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="block aspect-square w-full cursor-zoom-in"
+        className="block w-full cursor-zoom-in"
         aria-label="Open image preview"
       >
-        <span className="relative block h-full w-full overflow-hidden bg-slate-100 dark:bg-slate-900">
-          {!loaded ? <span aria-hidden="true" className="absolute inset-0 animate-pulse bg-linear-to-br from-slate-200 via-slate-100 to-slate-200 dark:from-slate-800 dark:via-slate-700 dark:to-slate-800" /> : null}
-          <Image
-            src={src}
-            alt={alt}
-            width={800}
-            height={800}
-            onLoad={() => setLoaded(true)}
-            className={`relative h-full w-full object-contain transition-opacity duration-200 ${loaded ? "opacity-100" : "opacity-0"}`}
-            priority
-            unoptimized
-          />
-        </span>
+        <ProgressiveImage src={src} alt={alt} loading="eager" containerClassName="w-full" className="object-contain" />
       </button>
 
       {isOpen && typeof document !== "undefined" ? createPortal(

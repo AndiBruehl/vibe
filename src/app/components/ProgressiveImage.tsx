@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type ProgressiveImageProps = {
   src: string;
@@ -20,9 +20,19 @@ export default function ProgressiveImage({
 }: ProgressiveImageProps) {
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [aspectRatio, setAspectRatio] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLoaded(false);
+    setFailed(false);
+    setAspectRatio(null);
+  }, [src]);
 
   return (
-    <div className={`relative overflow-hidden bg-slate-100 dark:bg-slate-900 ${containerClassName}`}>
+    <div
+      className={`relative overflow-hidden bg-slate-100 dark:bg-slate-900 ${containerClassName}`}
+      style={{ aspectRatio: aspectRatio ?? "4 / 3" }}
+    >
       {!loaded && !failed ? (
         <div aria-hidden="true" className="absolute inset-0 animate-pulse bg-linear-to-br from-slate-200 via-slate-100 to-slate-200 dark:from-slate-800 dark:via-slate-700 dark:to-slate-800" />
       ) : null}
@@ -33,7 +43,11 @@ export default function ProgressiveImage({
         src={src}
         alt={alt}
         loading={loading}
-        onLoad={() => setLoaded(true)}
+        onLoad={(event) => {
+          const { naturalHeight, naturalWidth } = event.currentTarget;
+          if (naturalWidth && naturalHeight) setAspectRatio(`${naturalWidth} / ${naturalHeight}`);
+          setLoaded(true);
+        }}
         onError={() => setFailed(true)}
         className={`relative h-full w-full transition-opacity duration-200 ${loaded ? "opacity-100" : "opacity-0"} ${className}`}
       />
