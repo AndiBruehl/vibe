@@ -89,11 +89,6 @@ export default function GroupSettings({
     }
 
     try {
-      console.debug("GroupSettings.addMember -> sending", {
-        username,
-        conversationId,
-        url: `/api/conversations/${conversationId}/members`,
-      });
       const res = await fetch(`/api/conversations/${conversationId}/members`, {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -101,12 +96,10 @@ export default function GroupSettings({
       });
       if (!res.ok) {
         const txt = await res.text();
-        console.debug("GroupSettings.addMember -> error response:", txt);
         setMessage(txt || "Could not add member");
         return;
       }
       const added = await res.json();
-      console.debug("GroupSettings.addMember -> added:", added);
       // merge added members (avoid duplicates)
       setMembers((m) => {
         const ids = new Set(m.map((x) => x.id));

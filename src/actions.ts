@@ -6,11 +6,12 @@ import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { parsePostImages } from "@/post-images";
 import { isProtectedAdmin, isSuperAdmin, isVibeAdmin } from "@/admin";
-import { ensureVibeSupportProfile, ensureVibeTeamProfile, isVibeSupportEmail, VIBE_SUPPORT_EMAIL } from "@/system-profile";
+import { ensureVibeSupportProfile, ensureVibeTeamProfile, isVibeSupportEmail } from "@/system-profile";
 import { assertNotRestricted } from "@/restrictions";
 import { appendSupportTicketMessage, sendSupportAcknowledgement } from "@/support-ticket";
 import { supportTemplateText, type SupportTemplateKey } from "@/support-templates";
 
+import { isObjectId } from "@/object-id";
 const MAX_STORY_SLIDES = 4;
 
 async function usersAreBlocked(profileIdA: string, profileIdB: string) {
@@ -67,19 +68,14 @@ async function linkTopicsForPost(postId: string, topicsValue: unknown) {
     // create linking row; ignore duplicate errors
     try {
       await prisma.postTopic.create({ data: { postId, topicId: topic.id } });
-    } catch (err) {
-      // if unique constraint violation, ignore
-      const message = err instanceof Error ? err.message : err;
-      console.debug(
-        `linkTopicsForPost: linking failed (maybe exists): ${postId} -> ${topic.id}`,
-        message,
-      );
+    } catch {
+      // The unique relation already exists.
     }
   }
 }
 
 async function linkProfilesForPost(postId: string, profileIds: FormDataEntryValue[]) {
-  const ids = [...new Set(profileIds.filter((value): value is string => typeof value === "string" && /^[a-f\d]{24}$/i.test(value)))].slice(0, 10);
+  const ids = [...new Set(profileIds.filter(isObjectId))].slice(0, 10);
   if (!ids.length) return;
   const profiles = await prisma.profile.findMany({ where: { id: { in: ids } }, select: { id: true } });
   if (profiles.length) await prisma.postProfileTag.createMany({ data: profiles.map((profile) => ({ postId, profileId: profile.id })) });
@@ -270,28 +266,11 @@ export async function editPost(formData: FormData): Promise<void> {
     },
   });
 
-  // handle topics for edits
-  try {
-    console.log("editPost: form entries:");
-    for (const [k, v] of formData.entries()) {
-      console.log("editPost form:", k, v);
-    }
-    const topicsSet = formData.get("topicsSet");
-    const topicsValue = formData.get("topics");
-    console.log("editPost: topicsSet:", topicsSet, "topicsValue:", topicsValue);
-
-    // Only modify topic links when the client explicitly changed topics.
-    if (topicsSet === "1") {
-      // remove existing links then upsert & link new topics
-      await prisma.postTopic.deleteMany({ where: { postId: postIdValue } });
-      try {
-        await linkTopicsForPost(postIdValue, topicsValue);
-      } catch (err) {
-        console.error("editPost: topic linking failed", err);
-      }
-    }
-  } catch (err) {
-    console.error("editPost: topic linking failed", err);
+  const topicsSet = formData.get("topicsSet");
+  const topicsValue = formData.get("topics");
+  if (topicsSet === "1") {
+    await prisma.postTopic.deleteMany({ where: { postId: postIdValue } });
+    await linkTopicsForPost(postIdValue, topicsValue);
   }
 
   if (formData.get("profileTagsSet") === "1") {
@@ -1122,10 +1101,6 @@ function getDirectConversationKey(profileIdA: string, profileIdB: string) {
   return [profileIdA, profileIdB].sort().join(":");
 }
 
-function isObjectId(value: string) {
-  return /^[a-f\d]{24}$/i.test(value);
-}
-
 export async function startConversation(formData: FormData): Promise<void> {
   const session = await auth();
 
@@ -1335,6 +1310,50 @@ export async function sendMessage(formData: FormData): Promise<void> {
 
   revalidatePath("/messages");
   revalidatePath(`/messages/${conversation.id}`);
+}
+
+export async function toggleMessageReaction(formData: FormData): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.email) redirect("/");
+
+  const messageId = formData.get("messageId");
+  const emojiValue = formData.get("emoji");
+  if (!isObjectId(messageId) || typeof emojiValue !== "string" || !emojiValue.trim() || [...emojiValue].length > 16) {
+    throw new Error("Invalid message reaction.");
+  }
+
+  const [viewer, message] = await Promise.all([
+    prisma.profile.findUnique({ where: { email: session.user.email }, select: { id: true } }),
+    prisma.message.findUnique({ where: { id: messageId }, select: { id: true, conversationId: true } }),
+  ]);
+  if (!viewer || !message) throw new Error("Message not found.");
+
+  const member = await prisma.conversationParticipant.findUnique({
+    where: { conversationId_profileId: { conversationId: message.conversationId, profileId: viewer.id } },
+    select: { id: true },
+  });
+  if (!member) throw new Error("Conversation not found.");
+
+  const participants = await prisma.conversationParticipant.findMany({
+    where: { conversationId: message.conversationId, profileId: { not: viewer.id } },
+    select: { profileId: true },
+  });
+  for (const participant of participants) {
+    if (await usersAreBlocked(viewer.id, participant.profileId)) {
+      throw new Error("You cannot react in a conversation with a blocked profile.");
+    }
+  }
+
+  const existing = await prisma.messageReaction.findUnique({
+    where: { messageId_profileId_emoji: { messageId, profileId: viewer.id, emoji: emojiValue } },
+    select: { id: true },
+  });
+  if (existing) {
+    await prisma.messageReaction.delete({ where: { id: existing.id } });
+  } else {
+    await prisma.messageReaction.create({ data: { messageId, profileId: viewer.id, emoji: emojiValue } });
+  }
+  revalidatePath(`/messages/${message.conversationId}`);
 }
 
 async function requireAdminSession() {

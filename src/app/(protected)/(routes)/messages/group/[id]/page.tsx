@@ -4,15 +4,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import GroupSettings from "@/app/(protected)/(routes)/messages/GroupSettings";
 
+import { isObjectId } from "@/object-id";
 type GroupPageProps = {
   params: Promise<{
     id: string;
   }>;
 };
-
-function isObjectId(value: string) {
-  return /^[a-f\d]{24}$/i.test(value);
-}
 
 export default async function GroupPage({ params }: GroupPageProps) {
   const session = await auth();

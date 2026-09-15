@@ -2,15 +2,12 @@ import { auth } from "@/auth";
 import { prisma } from "@/db";
 import { NextResponse } from "next/server";
 
+import { isObjectId } from "@/object-id";
 type ConversationStatusRouteProps = {
   params: Promise<{
     id: string;
   }>;
 };
-
-function isObjectId(value: string) {
-  return /^[a-f\d]{24}$/i.test(value);
-}
 
 export async function GET(_request: Request, { params }: ConversationStatusRouteProps) {
   const session = await auth();

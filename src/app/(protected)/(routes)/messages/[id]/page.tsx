@@ -10,17 +10,15 @@ import ConversationAutoScroll from "@/app/components/ConversationAutoScroll";
 import LocalTime from "@/app/components/LocalTime";
 import MentionText from "@/app/components/MentionText";
 import MessageComposer from "@/app/components/MessageComposer";
+import MessageReactionPicker from "@/app/components/MessageReactionPicker";
 import VibeTeamBadge from "@/app/components/VibeTeamBadge";
 
+import { isObjectId } from "@/object-id";
 type ConversationPageProps = {
   params: Promise<{
     id: string;
   }>;
 };
-
-function isObjectId(value: string) {
-  return /^[a-f\d]{24}$/i.test(value);
-}
 
 export default async function ConversationPage({
   params,
@@ -92,6 +90,7 @@ export default async function ConversationPage({
               author: { select: { name: true, username: true, avatar: true } },
             },
           },
+          reactions: { select: { emoji: true, profileId: true } },
         },
         orderBy: {
           createdAt: "asc",
@@ -314,6 +313,11 @@ export default async function ConversationPage({
                       unoptimized
                     />
                   ) : null}
+                  <MessageReactionPicker
+                    messageId={message.id}
+                    currentProfileId={currentUserProfile.id}
+                    reactions={message.reactions}
+                  />
                   <p
                     className={`mt-1 text-right text-[11px] ${
                       isOwnMessage ? "text-white/75" : "text-slate-400"

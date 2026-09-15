@@ -2,10 +2,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/db";
 import { revalidatePath } from "next/cache";
 
-function isObjectId(value: unknown) {
-  return typeof value === "string" && /^[a-f\d]{24}$/i.test(value);
-}
-
+import { isObjectId } from "@/object-id";
 export async function DELETE(req: Request, context: any) {
   const session = await auth();
   const userEmail = session?.user?.email;

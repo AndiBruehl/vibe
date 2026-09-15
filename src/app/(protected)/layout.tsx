@@ -15,7 +15,6 @@ import RestrictionNotice from "@/app/components/RestrictionNotice";
 import { getActiveRestriction } from "@/restrictions";
 import { claimWelcomeAndSend } from "@/system-profile";
 import ActionButtonFeedback from "@/app/components/ActionButtonFeedback";
-import EmojiInputEnhancer from "@/app/components/EmojiInputEnhancer";
 
 export default async function ProtectedLayout({
   children,
@@ -85,7 +84,6 @@ export default async function ProtectedLayout({
         initialLanguage={profile.language === "de" ? "de" : "en"}
       />
       <ActionButtonFeedback />
-      <EmojiInputEnhancer />
 
       <div data-vibe-protected-content className="md:pl-44">
         <main data-vibe-protected-main className="min-h-screen p-4 pb-28 md:pb-4">{children}</main>

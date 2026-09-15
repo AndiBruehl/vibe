@@ -3,15 +3,12 @@ import { withViewerLikes } from "@/mobile-post-likes";
 import { getMobileSession } from "@/mobile-auth";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { isObjectId } from "@/object-id";
 type MobilePostRouteProps = {
   params: Promise<{
     id: string;
   }>;
 };
-
-function isObjectId(value: string) {
-  return /^[a-f\d]{24}$/i.test(value);
-}
 
 export async function GET(
   request: NextRequest,

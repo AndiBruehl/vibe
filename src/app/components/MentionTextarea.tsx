@@ -112,7 +112,7 @@ const MentionTextarea = forwardRef<HTMLTextAreaElement, MentionTextareaProps>(fu
           else if (forwardedRef) forwardedRef.current = node;
         }}
         value={value}
-        className={className}
+        className={`block ${className ?? ""}`}
         onChange={(event) => {
           updateValue(event.target.value, event);
           setCursor(event.target.selectionStart ?? event.target.value.length);

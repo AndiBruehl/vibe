@@ -4,15 +4,12 @@ import { NextResponse, type NextRequest } from "next/server";
 import { assertNotRestricted } from "@/restrictions";
 import { appendSupportTicketMessage, sendSupportAcknowledgement } from "@/support-ticket";
 
+import { isObjectId } from "@/object-id";
 type MobileConversationRouteProps = {
   params: Promise<{
     id: string;
   }>;
 };
-
-function isObjectId(value: string) {
-  return /^[a-f\d]{24}$/i.test(value);
-}
 
 async function getCurrentUserProfile(request: NextRequest) {
   const session = await getMobileSession(request);

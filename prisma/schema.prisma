@@ -36,6 +36,7 @@ model Profile {
   bookmarkCollections BookmarkCollection[]
   conversations       ConversationParticipant[]
   sentMessages        Message[]                 @relation("SentMessages")
+  messageReactions    MessageReaction[]
   stories             Story[]
   postTags            PostProfileTag[]
   profileLinks        ProfileLink[]
@@ -120,10 +121,24 @@ model Message {
   sharedPost   Post?    @relation("SharedPost", fields: [sharedPostId], references: [id])
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  reactions    MessageReaction[]
 
   @@index([conversationId, createdAt])
   @@index([senderId])
   @@index([sharedPostId])
+}
+
+model MessageReaction {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  messageId String   @db.ObjectId
+  message   Message  @relation(fields: [messageId], references: [id])
+  profileId String   @db.ObjectId
+  profile   Profile  @relation(fields: [profileId], references: [id])
+  emoji     String
+  createdAt DateTime @default(now())
+
+  @@unique([messageId, profileId, emoji])
+  @@index([messageId, createdAt])
 }
 
 model Follow {

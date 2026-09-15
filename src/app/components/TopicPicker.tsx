@@ -107,11 +107,7 @@ export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
     });
   }
 
-  // keep hidden inputs in sync with React state before browser paint/submit
-  // hidden inputs are now controlled via React `value` props below;
-  // keep refs for the debug submit listener only.
-
-  // debug: log selected/hidden values and full FormData right before form submit
+  // Synchronize the fallback fields immediately before native form serialization.
   useEffect(() => {
     // try to find the enclosing form; fall back to closest() or document.querySelector
     let form = inputRef.current?.form as HTMLFormElement | undefined;
@@ -123,8 +119,7 @@ export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
     if (!form) form = document.querySelector("form") ?? undefined;
     if (!form) return;
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const onSubmit = (e: Event) => {
+    const onSubmit = () => {
       try {
         // ensure hidden inputs reflect latest React state just before serialization
         if (hiddenRef.current) hiddenRef.current.value = pendingTopics.join(",");
@@ -160,41 +155,14 @@ export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
             // ignore fallback errors
           }
         }
-
-        console.log(
-          "TopicPicker: before submit - selected:",
-          selected,
-          "changed:",
-          changed,
-        );
-        const fd = new FormData(form);
-        for (const [k, v] of fd.entries()) {
-          console.log("TopicPicker form:", k, v);
-        }
-      } catch (err) {
-        console.error("TopicPicker submit log failed", err);
+      } catch {
+        // Keep submission resilient if a browser does not expose form details.
       }
     };
 
     form.addEventListener("submit", onSubmit, true);
     return () => form.removeEventListener("submit", onSubmit, true);
   }, [selected, changed, pendingTopics, hasPendingTopicChange]);
-
-  // debug: log hidden input value whenever selection changes
-  useEffect(() => {
-    try {
-      console.debug(
-        "TopicPicker: selected changed",
-        selected,
-        "hidden.value:",
-        hiddenRef.current?.value,
-        "topicsSet:",
-        topicsSetRef.current?.value,
-      );
-    } catch {
-      // ignore
-    }
-  }, [selected, changed]);
 
   return (
     <div ref={containerRef} className="w-full">

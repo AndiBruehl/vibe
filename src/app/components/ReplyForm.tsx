@@ -4,6 +4,8 @@ import { useRef } from "react";
 import { postReply } from "@/actions";
 import MentionTextarea from "./MentionTextarea";
 import useVibeLanguage from "./useVibeLanguage";
+import EmojiPicker from "./EmojiPicker";
+import useEmojiTextarea from "./useEmojiTextarea";
 
 type ReplyFormProps = {
   postId: string;
@@ -13,6 +15,7 @@ type ReplyFormProps = {
 export default function ReplyForm({ postId, parentCommentId }: ReplyFormProps) {
   const de = useVibeLanguage() === "de";
   const formRef = useRef<HTMLFormElement>(null);
+  const { textareaRef, insertEmoji } = useEmojiTextarea();
 
   async function action(formData: FormData) {
     await postReply(formData);
@@ -25,6 +28,8 @@ export default function ReplyForm({ postId, parentCommentId }: ReplyFormProps) {
       <input type="hidden" name="parentCommentId" value={parentCommentId} />
 
       <MentionTextarea
+        ref={textareaRef}
+        data-emoji-builtin="true"
         name="text"
         rows={2}
         placeholder={de ? "Schreibe eine Antwort..." : "Write a reply..."}
@@ -32,10 +37,11 @@ export default function ReplyForm({ postId, parentCommentId }: ReplyFormProps) {
         required
       />
 
-      <div className="flex justify-end">
+      <div className="flex items-center justify-end gap-2">
+        <EmojiPicker onSelect={insertEmoji} />
         <button
           type="submit"
-          className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
+          className="vibe-composer-submit rounded-xl bg-slate-900 px-4 text-sm font-medium text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
         >
           {de ? "Antworten" : "Reply"}
         </button>
