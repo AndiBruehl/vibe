@@ -253,7 +253,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
       </section>
 
       </div>
-      <div className="flex flex-col-reverse gap-3 border-t border-slate-200 pt-5 dark:border-slate-700/80 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col-reverse gap-3 border-t border-slate-200 pt-5 dark:border-slate-700/80 sm:flex-row sm:items-center sm:justify-between lg:ml-44">
         <LanguageSwitcher onLanguageChange={setLanguage} />
         <button
           type="submit"
