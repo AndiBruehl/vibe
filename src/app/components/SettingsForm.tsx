@@ -7,11 +7,12 @@ import { upsertProfile } from "@/actions";
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import LanguageSwitcher from "@/app/components/LanguageSwitcher";
 import MentionTextarea from "@/app/components/MentionTextarea";
+import ShoutoutEditor from "@/app/components/ShoutoutEditor";
 
 import defaultImg from "./default.jpg";
 
 type SettingsFormProps = {
-  profile: (Profile & { profileLinks?: { id: string; label: string; url: string }[] }) | null;
+  profile: (Profile & { profileLinks?: { id: string; label: string; url: string }[]; shoutouts?: { id: string; label: string; targetProfile: { id: string; username: string | null; name: string | null; avatar: string | null } }[] }) | null;
 };
 
 type EditableProfileLink = { id: string; label: string; url: string };
@@ -207,6 +208,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
             </div>
           )}
         </section>
+        <ShoutoutEditor shoutouts={profile?.shoutouts ?? []} language={language} />
       </section>
 
       <section className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 dark:border-slate-700 dark:bg-slate-800/60 lg:col-start-2">

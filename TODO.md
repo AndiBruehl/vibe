@@ -34,3 +34,4 @@
 
 - Plan and implement an **Impressum**: decide its placement and provide a consistent entry point in the web, Android, and desktop apps.
 - Add post sharing only after public post URLs or an explicit sharing/visibility model exists; protected-only posts should not be shared externally.
+- Add text-to-speech with an individual voice per user, either through an ElevenLabs connection or an uploaded voice sample.

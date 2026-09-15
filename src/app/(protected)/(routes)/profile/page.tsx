@@ -16,6 +16,7 @@ import FollowRequests from "@/app/components/FollowRequests";
 import ArchivedPosts from "@/app/components/ArchivedPosts";
 import AdminBadge from "@/app/components/AdminBadge";
 import { isVibeAdminEmail } from "@/admin";
+import ProfileShoutouts from "@/app/components/ProfileShoutouts";
 
 type ProfilePageProps = {
   searchParams: Promise<{
@@ -70,7 +71,10 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
     prisma.follow.count({ where: { followingId: profile.id } }),
     prisma.follow.count({ where: { followerId: profile.id } }),
   ]);
-  const profileLinks = await prisma.profileLink.findMany({ where: { profileId: profile.id }, orderBy: { position: "asc" } });
+  const [profileLinks, shoutouts] = await Promise.all([
+    prisma.profileLink.findMany({ where: { profileId: profile.id }, orderBy: { position: "asc" } }),
+    prisma.profileShoutout.findMany({ where: { profileId: profile.id }, include: { targetProfile: { select: { username: true, name: true, avatar: true } } }, orderBy: { position: "asc" } }),
+  ]);
   const de = profile.language === "de";
 
   return (
@@ -150,6 +154,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         {profileLinks.length > 0 && (
           <div className="mt-4"><ProfileLinks links={profileLinks} language={de ? "de" : "en"} centered /></div>
         )}
+        {shoutouts.length > 0 && <ProfileShoutouts shoutouts={shoutouts} language={de ? "de" : "en"} centered />}
       </section>
 
       <section className="mt-6 flex justify-center gap-8 text-center text-sm">

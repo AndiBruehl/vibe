@@ -40,6 +40,8 @@ model Profile {
   stories             Story[]
   postTags            PostProfileTag[]
   profileLinks        ProfileLink[]
+  shoutouts           ProfileShoutout[] @relation("ProfileShoutouts")
+  shoutoutOf          ProfileShoutout[] @relation("ShoutoutTarget")
   restrictions        Restriction[]
 
   followers              Follow[]        @relation("ProfileFollowers")
@@ -319,6 +321,21 @@ model ProfileLink {
   createdAt DateTime @default(now())
 
   @@index([profileId, position])
+}
+
+model ProfileShoutout {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  profileId       String   @db.ObjectId
+  profile         Profile  @relation("ProfileShoutouts", fields: [profileId], references: [id])
+  targetProfileId String   @db.ObjectId
+  targetProfile   Profile  @relation("ShoutoutTarget", fields: [targetProfileId], references: [id])
+  label           String
+  position        Int      @default(0)
+  createdAt       DateTime @default(now())
+
+  @@unique([profileId, targetProfileId])
+  @@index([profileId, position])
+  @@index([targetProfileId])
 }
 
 model CommentMention {

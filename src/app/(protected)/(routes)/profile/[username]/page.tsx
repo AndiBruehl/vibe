@@ -14,6 +14,7 @@ import AdminBadge from "@/app/components/AdminBadge";
 import VibeTeamBadge from "@/app/components/VibeTeamBadge";
 import { isProtectedAdmin, isSuperAdmin } from "@/admin";
 import DeleteProfileButton from "@/app/components/DeleteProfileButton";
+import ProfileShoutouts from "@/app/components/ProfileShoutouts";
 
 type ProfileByUsernamePageProps = {
   params: Promise<{
@@ -43,7 +44,7 @@ export default async function ProfileByUsernamePage({
   const { tab, collection } = await searchParams;
 
   const [profile, viewerProfile] = await Promise.all([
-    prisma.profile.findUnique({ where: { username }, include: { profileLinks: { orderBy: { position: "asc" } } } }),
+    prisma.profile.findUnique({ where: { username }, include: { profileLinks: { orderBy: { position: "asc" } }, shoutouts: { include: { targetProfile: { select: { username: true, name: true, avatar: true } } }, orderBy: { position: "asc" } } } }),
     viewerEmail
       ? prisma.profile.findUnique({ where: { email: viewerEmail }, select: { id: true, language: true, isAdmin: true } })
       : null,
@@ -159,6 +160,7 @@ export default async function ProfileByUsernamePage({
                 {profile.profileLinks.length > 0 && (
                   <ProfileLinks links={profile.profileLinks} language={de ? "de" : "en"} />
                 )}
+                {profile.shoutouts.length > 0 && <ProfileShoutouts shoutouts={profile.shoutouts} language={de ? "de" : "en"} />}
 
                 {isOwnProfile && profile.isAdmin && <Link href="/admin" className="mt-4 inline-flex rounded-xl border border-orange-400/60 px-3 py-2 text-sm font-semibold text-orange-600 hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-500/10">{de ? "Adminbereich" : "Admin area"}</Link>}
 

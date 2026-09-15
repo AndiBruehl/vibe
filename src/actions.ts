@@ -151,6 +151,25 @@ export async function upsertProfile(formData: FormData) {
     profileLinks.push({ label, url, position: profileLinks.length });
   }
 
+  const shoutoutLabels = formData.getAll("shoutoutLabel");
+  const shoutoutProfileIds = formData.getAll("shoutoutProfileId");
+  const shoutouts: { targetProfileId: string; label: string; position: number }[] = [];
+  const selectedProfileIds = new Set<string>();
+  for (let index = 0; index < Math.min(shoutoutLabels.length, shoutoutProfileIds.length, 5); index++) {
+    const labelValue = shoutoutLabels[index];
+    const targetValue = shoutoutProfileIds[index];
+    const label = typeof labelValue === "string" ? labelValue.trim().slice(0, 80) : "";
+    const targetProfileId = typeof targetValue === "string" ? targetValue : "";
+    if (!label && !targetProfileId) continue;
+    if (!label || !isObjectId(targetProfileId) || selectedProfileIds.has(targetProfileId)) throw new Error("Each shoutout needs a label and a profile.");
+    selectedProfileIds.add(targetProfileId);
+    shoutouts.push({ targetProfileId, label, position: shoutouts.length });
+  }
+  if (shoutouts.length) {
+    const targets = await prisma.profile.findMany({ where: { id: { in: shoutouts.map((shoutout) => shoutout.targetProfileId) }, email: { not: session.user.email } }, select: { id: true } });
+    if (targets.length !== shoutouts.length) throw new Error("A selected shoutout profile is not available.");
+  }
+
   await prisma.profile.upsert({
     where: {
       email: session.user.email,
@@ -158,11 +177,13 @@ export async function upsertProfile(formData: FormData) {
     update: {
       ...newUserInfo,
       profileLinks: { deleteMany: {}, create: profileLinks },
+      shoutouts: { deleteMany: {}, create: shoutouts },
     },
     create: {
       email: session.user.email,
       ...newUserInfo,
       profileLinks: { create: profileLinks },
+      shoutouts: { create: shoutouts },
     },
   });
 
