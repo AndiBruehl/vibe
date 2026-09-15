@@ -16,6 +16,7 @@ model Profile {
   subtitle            String?
   bio                 String?
   language            String    @default("en")
+  theme               String    @default("system")
   isPrivate           Boolean   @default(false)
   isAdmin             Boolean   @default(false)
   isSystem            Boolean   @default(false)

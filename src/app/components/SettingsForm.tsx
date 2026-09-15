@@ -10,6 +10,7 @@ import MentionTextarea from "@/app/components/MentionTextarea";
 import ShoutoutEditor from "@/app/components/ShoutoutEditor";
 import ReleaseDownloads from "@/app/components/ReleaseDownloads";
 import AppVersion from "@/app/components/AppVersion";
+import { applyTheme, type ThemePreference } from "@/app/components/ProfileThemeRuntime";
 import Link from "next/link";
 
 import defaultImg from "./default.jpg";
@@ -28,7 +29,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
   );
   const [avatarUrl, setAvatarUrl] = useState<string>(profile?.avatar ?? "");
   const [isUploading, setIsUploading] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(profile?.theme === "light" ? false : profile?.theme === "dark" ? true : true);
   const [isPrivate, setIsPrivate] = useState(profile?.isPrivate ?? false);
   const [isThemeReady, setIsThemeReady] = useState(false);
   const [language, setLanguage] = useState<"en" | "de">("en");
@@ -41,22 +42,9 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
 
   useEffect(() => {
     setLanguage(localStorage.getItem("vibe-language") === "de" ? "de" : "en");
-    const html = document.documentElement;
-    const savedTheme = localStorage.getItem("theme");
-
-    if (!savedTheme) {
-      localStorage.setItem("theme", "dark");
-      html.classList.remove("light", "dark");
-      html.classList.add("dark");
-      html.dataset.theme = "dark";
-      setIsDarkMode(true);
-    } else {
-      const isDark = savedTheme === "dark";
-      html.classList.remove("light", "dark");
-      html.classList.add(isDark ? "dark" : "light");
-      html.dataset.theme = isDark ? "dark" : "light";
-      setIsDarkMode(isDark);
-    }
+    const preference: ThemePreference = profile?.theme === "light" || profile?.theme === "dark" ? profile.theme : "system";
+    const resolvedDark = preference === "dark" || (preference === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    setIsDarkMode(resolvedDark);
 
     setIsThemeReady(true);
   }, []);
@@ -237,15 +225,10 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
           disabled={!isThemeReady}
           onCheckedChange={(nextChecked) => {
             setIsDarkMode(nextChecked);
-
-            const html = document.documentElement;
             const theme = nextChecked ? "dark" : "light";
-
-            html.classList.remove("light", "dark");
-            html.classList.add(theme);
-            html.dataset.theme = theme;
-
             localStorage.setItem("theme", theme);
+            applyTheme(theme);
+            void fetch("/api/profile/theme", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ theme }) });
           }}
         />
       </section>

@@ -16,6 +16,7 @@ import { getActiveRestriction } from "@/restrictions";
 import { claimWelcomeAndSend } from "@/system-profile";
 import ActionButtonFeedback from "@/app/components/ActionButtonFeedback";
 import QuickSettings from "@/app/components/QuickSettings";
+import ProfileThemeRuntime from "@/app/components/ProfileThemeRuntime";
 
 export default async function ProtectedLayout({
   children,
@@ -84,8 +85,9 @@ export default async function ProtectedLayout({
       <LanguageRuntime
         initialLanguage={profile.language === "de" ? "de" : "en"}
       />
+      <ProfileThemeRuntime initialTheme={profile.theme === "light" || profile.theme === "dark" ? profile.theme : "system"} />
       <ActionButtonFeedback />
-      <QuickSettings initialLanguage={profile.language === "de" ? "de" : "en"} />
+      <QuickSettings initialLanguage={profile.language === "de" ? "de" : "en"} initialTheme={profile.theme === "light" || profile.theme === "dark" ? profile.theme : "system"} />
 
       <div data-vibe-protected-content className="md:pl-44">
         <main data-vibe-protected-main className="min-h-screen p-4 pb-28 md:pb-4">{children}</main>

@@ -43,8 +43,10 @@ export default function RootLayout({
         <Script id="theme-init" strategy="beforeInteractive">
           {`
             try {
-              const savedTheme = localStorage.getItem("theme");
-              const theme = savedTheme || "dark";
+              const savedTheme = localStorage.getItem("theme") || "system";
+              const theme = savedTheme === "system"
+                ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+                : savedTheme;
               const html = document.documentElement;
 
               html.classList.remove("light", "dark");
