@@ -84,19 +84,21 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   return (
     <main className="pb-24 md:pb-8">
       <section className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
-        <div className="justify-self-start"><Link
-          href="/home"
-          className="group inline-flex min-h-11 items-center gap-2 rounded-xl px-2 text-slate-800 no-underline transition hover:bg-slate-100 hover:text-slate-600 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-slate-300"
-        >
-          <MoveLeft />
-          <span className="hidden opacity-0 transition-opacity duration-200 sm:inline group-hover:opacity-100">
-            <LocalizedText en="Back to Home" de="Zurück zur Startseite" />
-          </span>
-        </Link></div>
-        <h1 className="text-lg font-bold text-slate-800 dark:text-slate-500">
+        <div className="justify-self-start">
+          <Link
+            href="/home"
+            className="group inline-flex min-h-11 items-center gap-2 rounded-xl px-2 text-slate-800 no-underline transition hover:bg-slate-100 hover:text-slate-600 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+          >
+            <MoveLeft />
+            <span className="hidden opacity-0 transition-opacity duration-200 sm:inline group-hover:opacity-100">
+              <LocalizedText en="Back to Home" de="Zurück zur Startseite" />
+            </span>
+          </Link>
+        </div>
+        <h1 className="justify-self-center text-lg font-bold text-slate-800 dark:text-slate-100">
           <LocalizedText en="Search" de="Suche" />
         </h1>
-        <div />
+        <div className="justify-self-end" />
       </section>
 
       <section className="mt-6">
