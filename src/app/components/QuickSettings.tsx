@@ -14,6 +14,7 @@ export default function QuickSettings({ initialLanguage, initialTheme }: { initi
   const [theme, setTheme] = useState<ThemePreference>(initialTheme);
   const [language, setLanguage] = useState<Language>(initialLanguage);
   const [feedback, setFeedback] = useState<"saved" | "failed" | "working" | null>(null);
+  const [feedbackLeaving, setFeedbackLeaving] = useState(false);
   const panel = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -30,6 +31,18 @@ export default function QuickSettings({ initialLanguage, initialTheme }: { initi
     };
   }, [initialLanguage, initialTheme]);
 
+  function showFeedback(next: "saved" | "failed" | "working") {
+    setFeedbackLeaving(false);
+    setFeedback(next);
+  }
+
+  function hideFeedbackAfter(delay: number) {
+    window.setTimeout(() => {
+      setFeedbackLeaving(true);
+      window.setTimeout(() => { setFeedback(null); setFeedbackLeaving(false); }, 180);
+    }, delay);
+  }
+
   async function chooseTheme(next: ThemePreference) {
     if (next === theme) return;
     const previous = theme;
@@ -39,14 +52,14 @@ export default function QuickSettings({ initialLanguage, initialTheme }: { initi
     try {
       const response = await fetch("/api/profile/theme", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ theme: next }) });
       if (!response.ok) throw new Error("Theme could not be saved");
-      setFeedback("saved");
+      showFeedback("saved");
     } catch {
       setTheme(previous);
       localStorage.setItem("theme", previous);
       applyTheme(previous);
-      setFeedback("failed");
+      showFeedback("failed");
     }
-    window.setTimeout(() => setFeedback(null), 2200);
+    hideFeedbackAfter(2200);
   }
 
   async function chooseLanguage(next: Language) {
@@ -55,7 +68,7 @@ export default function QuickSettings({ initialLanguage, initialTheme }: { initi
     setLanguage(next);
     localStorage.setItem("vibe-language", next);
     document.documentElement.lang = next;
-    setFeedback("working");
+    showFeedback("working");
     let response: Response;
     try {
       response = await fetch("/api/profile/language", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ language: next }) });
@@ -66,13 +79,13 @@ export default function QuickSettings({ initialLanguage, initialTheme }: { initi
       setLanguage(previous);
       localStorage.setItem("vibe-language", previous);
       document.documentElement.lang = previous;
-      setFeedback("failed");
-      window.setTimeout(() => setFeedback(null), 2200);
+      showFeedback("failed");
+      hideFeedbackAfter(2200);
       return;
     }
-    window.setTimeout(() => setFeedback("saved"), 650);
+    window.setTimeout(() => showFeedback("saved"), 650);
     window.setTimeout(() => window.dispatchEvent(new CustomEvent("vibe-language-change", { detail: next })), 1200);
-    window.setTimeout(() => setFeedback(null), 2600);
+    hideFeedbackAfter(2600);
   }
 
   const de = language === "de";
@@ -110,7 +123,7 @@ export default function QuickSettings({ initialLanguage, initialTheme }: { initi
             {(["en", "de"] as Language[]).map((option) => <button key={option} type="button" onClick={() => void chooseLanguage(option)} className={`rounded-lg px-2 py-1.5 text-xs font-bold transition ${language === option ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"}`}>{option === "en" ? "English" : "Deutsch"}</button>)}
           </div>
         </div>
-        {feedback && <p role="status" className={`mt-3 text-center text-xs font-semibold ${feedback === "failed" ? "text-red-600 dark:text-red-300" : `vibe-quick-settings-feedback vibe-quick-settings-feedback-${feedback} mx-auto flex items-center justify-center shadow-sm`}`}>{feedback === "saved" ? (de ? "Gespeichert" : "Saved") : feedback === "working" ? (de ? "WIRD UMGESTELLT" : "WORKING") : (de ? "Speichern fehlgeschlagen" : "Could not save")}</p>}
+        {feedback && <p role="status" className={`mt-3 text-center text-xs font-semibold ${feedbackLeaving ? "vibe-quick-settings-feedback-exit" : ""} ${feedback === "failed" ? "text-red-600 dark:text-red-300" : `vibe-quick-settings-feedback vibe-quick-settings-feedback-${feedback} mx-auto flex items-center justify-center shadow-sm`}`}>{feedback === "saved" ? (de ? "Gespeichert" : "Saved") : feedback === "working" ? (de ? "WIRD UMGESTELLT" : "WORKING") : (de ? "Speichern fehlgeschlagen" : "Could not save")}</p>}
         <Link href="/settings" className="mt-3 block border-t border-slate-200 pt-3 text-center text-xs font-bold text-orange-600 hover:underline dark:border-slate-700 dark:text-orange-300">{de ? "Alle Einstellungen" : "Open settings"}</Link>
       </section>}
     </div>

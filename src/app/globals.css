@@ -212,6 +212,16 @@ html:not(.dark) :is(input, textarea)::placeholder { color: #607b97; opacity: 1; 
   100% { transform: scale(1); filter: saturate(1); }
 }
 
+@keyframes vibe-quick-settings-feedback-enter {
+  from { opacity: 0; transform: translateY(-0.3rem) scale(0.88); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes vibe-quick-settings-feedback-exit {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(-0.2rem) scale(0.9); }
+}
+
 .vibe-quick-settings-feedback {
   min-width: 7rem;
   border-radius: 9999px;
@@ -222,11 +232,16 @@ html:not(.dark) :is(input, textarea)::placeholder { color: #607b97; opacity: 1; 
 
 .vibe-quick-settings-feedback-working {
   background: linear-gradient(90deg, #ef4444, #f97316, #fbbf24);
+  animation: vibe-quick-settings-feedback-enter 220ms ease-out both;
 }
 
 .vibe-quick-settings-feedback-saved {
   background: #22c55e;
   animation: vibe-quick-settings-success 420ms ease-out both;
+}
+
+.vibe-quick-settings-feedback-exit {
+  animation: vibe-quick-settings-feedback-exit 180ms ease-in both !important;
 }
 
 /* Embedded moderation previews show only the reported page content. */
