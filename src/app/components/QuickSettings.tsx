@@ -2,6 +2,7 @@
 
 import { Languages, MonitorSmartphone, Moon, Settings2, Sun } from "lucide-react";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { applyTheme, type ThemePreference } from "@/app/components/ProfileThemeRuntime";
 
@@ -12,6 +13,7 @@ export default function QuickSettings({ initialLanguage, initialTheme }: { initi
   const [open, setOpen] = useState(false);
   const [theme, setTheme] = useState<ThemePreference>(initialTheme);
   const [language, setLanguage] = useState<Language>(initialLanguage);
+  const [feedback, setFeedback] = useState<"saved" | "failed" | null>(null);
   const panel = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -30,26 +32,40 @@ export default function QuickSettings({ initialLanguage, initialTheme }: { initi
 
   async function chooseTheme(next: ThemePreference) {
     if (next === theme) return;
+    const previous = theme;
     setTheme(next);
     localStorage.setItem("theme", next);
     applyTheme(next);
-    await fetch("/api/profile/theme", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ theme: next }),
-    });
+    try {
+      const response = await fetch("/api/profile/theme", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ theme: next }) });
+      if (!response.ok) throw new Error("Theme could not be saved");
+      setFeedback("saved");
+    } catch {
+      setTheme(previous);
+      localStorage.setItem("theme", previous);
+      applyTheme(previous);
+      setFeedback("failed");
+    }
+    window.setTimeout(() => setFeedback(null), 2200);
   }
 
   async function chooseLanguage(next: Language) {
     if (next === language) return;
+    const previous = language;
     setLanguage(next);
     localStorage.setItem("vibe-language", next);
     document.documentElement.lang = next;
-    await fetch("/api/profile/language", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ language: next }),
-    });
+    const response = await fetch("/api/profile/language", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ language: next }) });
+    if (!response.ok) {
+      setLanguage(previous);
+      localStorage.setItem("vibe-language", previous);
+      document.documentElement.lang = previous;
+      setFeedback("failed");
+      window.setTimeout(() => setFeedback(null), 2200);
+      return;
+    }
+    setFeedback("saved");
+    window.setTimeout(() => setFeedback(null), 2200);
     window.dispatchEvent(new CustomEvent("vibe-language-change", { detail: next }));
   }
 
@@ -71,7 +87,7 @@ export default function QuickSettings({ initialLanguage, initialTheme }: { initi
         <Settings2 size={18} aria-hidden="true" />
       </button>
 
-      {open && <section className="absolute right-0 mt-2 w-56 rounded-2xl border border-slate-300/80 bg-white/95 p-3 shadow-2xl shadow-slate-900/20 backdrop-blur dark:border-slate-600 dark:bg-slate-900/95 dark:shadow-black/40">
+      {open && <section className="vibe-quick-settings-panel absolute right-0 mt-2 w-56 origin-top-right rounded-2xl border border-slate-300/80 bg-white/95 p-3 shadow-2xl shadow-slate-900/20 backdrop-blur dark:border-slate-600 dark:bg-slate-900/95 dark:shadow-black/40">
         <p className="mb-2 text-xs font-black uppercase tracking-[.14em] text-slate-500 dark:text-slate-400">{de ? "Schnellzugriff" : "Quick settings"}</p>
         <div className="space-y-1.5">
           <p className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-200"><Sun size={14} /> {de ? "Darstellung" : "Theme"}</p>
@@ -88,6 +104,8 @@ export default function QuickSettings({ initialLanguage, initialTheme }: { initi
             {(["en", "de"] as Language[]).map((option) => <button key={option} type="button" onClick={() => void chooseLanguage(option)} className={`rounded-lg px-2 py-1.5 text-xs font-bold transition ${language === option ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"}`}>{option === "en" ? "English" : "Deutsch"}</button>)}
           </div>
         </div>
+        {feedback && <p role="status" className={`mt-3 text-center text-xs font-semibold ${feedback === "saved" ? "text-emerald-600 dark:text-emerald-300" : "text-red-600 dark:text-red-300"}`}>{feedback === "saved" ? (de ? "Gespeichert" : "Saved") : (de ? "Speichern fehlgeschlagen" : "Could not save")}</p>}
+        <Link href="/settings" className="mt-3 block border-t border-slate-200 pt-3 text-center text-xs font-bold text-orange-600 hover:underline dark:border-slate-700 dark:text-orange-300">{de ? "Alle Einstellungen" : "Open settings"}</Link>
       </section>}
     </div>
   );

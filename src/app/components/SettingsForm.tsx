@@ -29,6 +29,9 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
   );
   const [avatarUrl, setAvatarUrl] = useState<string>(profile?.avatar ?? "");
   const [isUploading, setIsUploading] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveFeedback, setSaveFeedback] = useState<"saved" | "failed" | null>(null);
   const [themePreference, setThemePreference] = useState<ThemePreference>(profile?.theme === "light" || profile?.theme === "dark" ? profile.theme : "system");
   const [isPrivate, setIsPrivate] = useState(profile?.isPrivate ?? false);
   const [language, setLanguage] = useState<"en" | "de">("en");
@@ -69,6 +72,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
 
       const result = await res.json();
       setAvatarUrl(result.url);
+      setIsDirty(true);
     } catch (error) {
       console.error(error);
     } finally {
@@ -78,8 +82,42 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
 
   const avatarSrc = previewUrl || profile?.avatar || defaultImg.src;
 
+  async function saveProfile(formData: FormData) {
+    setIsSaving(true);
+    setSaveFeedback(null);
+    try {
+      await upsertProfile(formData);
+      setIsDirty(false);
+      setSaveFeedback("saved");
+      window.setTimeout(() => setSaveFeedback(null), 2500);
+    } catch {
+      setSaveFeedback("failed");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function updateTheme(next: ThemePreference) {
+    if (next === themePreference) return;
+    const previous = themePreference;
+    setThemePreference(next);
+    localStorage.setItem("theme", next);
+    applyTheme(next);
+    try {
+      const response = await fetch("/api/profile/theme", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ theme: next }) });
+      if (!response.ok) throw new Error("Theme could not be saved");
+      setSaveFeedback("saved");
+    } catch {
+      setThemePreference(previous);
+      localStorage.setItem("theme", previous);
+      applyTheme(previous);
+      setSaveFeedback("failed");
+    }
+    window.setTimeout(() => setSaveFeedback(null), 2500);
+  }
+
   return (
-    <form action={upsertProfile} className="space-y-5">
+    <form action={saveProfile} onChange={() => setIsDirty(true)} className="space-y-5">
       <nav className="flex gap-2 rounded-xl bg-slate-100 p-1 dark:bg-slate-800" aria-label={copy("Settings sections", "Einstellungsbereiche")}>
         <button type="button" onClick={() => setActiveTab("profile")} className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ${activeTab === "profile" ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100"}`}><UserRound size={16} />{copy("Profile", "Profil")}</button>
         <button type="button" onClick={() => setActiveTab("preferences")} className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ${activeTab === "preferences" ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100"}`}><SlidersHorizontal size={16} />{copy("Appearance & privacy", "Darstellung & Privatsphäre")}</button>
@@ -182,7 +220,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
             <button
               type="button"
               disabled={profileLinks.length >= 5}
-              onClick={() => setProfileLinks((links) => [...links, { id: crypto.randomUUID(), label: "", url: "" }])}
+               onClick={() => { setProfileLinks((links) => [...links, { id: crypto.randomUUID(), label: "", url: "" }]); setIsDirty(true); }}
               className="inline-flex items-center gap-1.5 rounded-lg border border-orange-300 px-3 py-2 text-xs font-semibold text-orange-600 transition hover:bg-orange-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-orange-400/60 dark:text-orange-300 dark:hover:bg-orange-400/10"
             >
               <Plus size={15} /> {copy("Add link", "Link hinzufügen")}
@@ -195,7 +233,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
                 <div key={link.id} className="grid gap-2 sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)_auto]">
                   <input name="linkLabel" value={link.label} maxLength={80} onChange={(event) => setProfileLinks((links) => links.map((current, currentIndex) => currentIndex === index ? { ...current, label: event.target.value } : current))} placeholder={copy("Link text, e.g. My portfolio", "Linktext, z. B. Mein Portfolio")} className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-orange-400 focus:ring-4 focus:ring-orange-100 dark:border-slate-600 dark:bg-slate-950/50 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-orange-400 dark:focus:ring-orange-500/15" />
                   <input name="linkUrl" type="url" value={link.url} maxLength={2048} onChange={(event) => setProfileLinks((links) => links.map((current, currentIndex) => currentIndex === index ? { ...current, url: event.target.value } : current))} placeholder="https://example.com" className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-orange-400 focus:ring-4 focus:ring-orange-100 dark:border-slate-600 dark:bg-slate-950/50 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-orange-400 dark:focus:ring-orange-500/15" />
-                  <button type="button" onClick={() => setProfileLinks((links) => links.filter((_, currentIndex) => currentIndex !== index))} className="inline-grid size-10 place-items-center self-center rounded-lg text-slate-500 transition hover:bg-red-50 hover:text-red-600 dark:text-slate-400 dark:hover:bg-red-500/10 dark:hover:text-red-300" aria-label={copy("Remove link", "Link entfernen")}>
+                   <button type="button" onClick={() => { setProfileLinks((links) => links.filter((_, currentIndex) => currentIndex !== index)); setIsDirty(true); }} className="inline-grid size-10 place-items-center self-center rounded-lg text-slate-500 transition hover:bg-red-50 hover:text-red-600 dark:text-slate-400 dark:hover:bg-red-500/10 dark:hover:text-red-300" aria-label={copy("Remove link", "Link entfernen")}>
                     <Trash2 size={17} />
                   </button>
                 </div>
@@ -221,14 +259,14 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
             { value: "light" as const, label: copy("Light", "Hell"), Icon: Sun },
             { value: "dark" as const, label: copy("Dark", "Dunkel"), Icon: Moon },
             { value: "system" as const, label: copy("System", "System"), Icon: MonitorSmartphone },
-          ]).map(({ value, label, Icon }) => <button key={value} type="button" onClick={() => { setThemePreference(value); localStorage.setItem("theme", value); applyTheme(value); void fetch("/api/profile/theme", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ theme: value }) }); }} className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-bold transition ${themePreference === value ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"}`}><Icon size={14} />{label}</button>)}
+          ]).map(({ value, label, Icon }) => <button key={value} type="button" onClick={() => void updateTheme(value)} className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-bold transition ${themePreference === value ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"}`}><Icon size={14} />{label}</button>)}
         </div>
       </section>
 
       <section className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 dark:border-slate-700 dark:bg-slate-800/60">
         <div className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-xl bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200"><Lock size={17} /></span><div><p className="font-semibold text-slate-900 dark:text-white">{copy("Private profile", "Privates Profil")}</p><p className="text-xs text-slate-500 dark:text-slate-400">{copy("Approve follow requests before people can see your posts", "Bestätige Follow-Anfragen, bevor Nutzer deine Beiträge sehen")}</p></div></div>
         <input type="hidden" name="isPrivate" value={isPrivate ? "true" : "false"} />
-        <Switch checked={isPrivate} onCheckedChange={setIsPrivate} />
+        <Switch checked={isPrivate} onCheckedChange={(next) => { setIsPrivate(next); setIsDirty(true); }} />
       </section>
 
       <LanguageSwitcher onLanguageChange={setLanguage} />
@@ -245,13 +283,14 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
         </details>
         <AppVersion />
       </div>
-      <div className="flex justify-end border-t border-slate-200 pt-5 dark:border-slate-700/80">
+      <div className="flex items-center justify-end gap-3 border-t border-slate-200 pt-5 dark:border-slate-700/80">
+        {saveFeedback && <p role="status" className={`text-sm font-semibold ${saveFeedback === "saved" ? "text-emerald-600 dark:text-emerald-300" : "text-red-600 dark:text-red-300"}`}>{saveFeedback === "saved" ? copy("Settings saved", "Einstellungen gespeichert") : copy("Could not save settings", "Einstellungen konnten nicht gespeichert werden")}</p>}
         <button
           type="submit"
-          disabled={isUploading}
+          disabled={isUploading || isSaving || !isDirty}
           className="rounded-xl bg-linear-to-r from-orange-500 to-pink-500 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-orange-500/25 transition hover:scale-[1.02] hover:shadow-xl disabled:cursor-wait disabled:opacity-60"
         >
-          {copy("Save Settings", "Einstellungen speichern")}
+          {isSaving ? copy("Saving...", "Wird gespeichert...") : copy("Save Settings", "Einstellungen speichern")}
         </button>
       </div>
     </form>

@@ -127,6 +127,12 @@ html:not(.dark) :is(input.bg-white, textarea.bg-white, select.bg-white):focus {
   background-color: #dbe6f1;
 }
 
+/* Keep secondary controls readable against the softer blue light palette. */
+html:not(.dark) .text-slate-500 { color: #486785; }
+html:not(.dark) .text-slate-400 { color: #5c7794; }
+html:not(.dark) .border-slate-200 { border-color: #b7c8da; }
+html:not(.dark) :is(input, textarea)::placeholder { color: #607b97; opacity: 1; }
+
 .vibe-login-screen {
   background: rgb(3, 7, 18);
 }
@@ -189,6 +195,15 @@ html:not(.dark) :is(input.bg-white, textarea.bg-white, select.bg-white):focus {
 @keyframes vibe-navigation-progress {
   0% { transform: translateX(-105%); }
   100% { transform: translateX(135%); }
+}
+
+@keyframes vibe-quick-settings-enter {
+  from { opacity: 0; transform: translateY(-0.35rem) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.vibe-quick-settings-panel {
+  animation: vibe-quick-settings-enter 150ms ease-out both;
 }
 
 /* Embedded moderation previews show only the reported page content. */
