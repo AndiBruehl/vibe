@@ -256,7 +256,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
         <Switch checked={isPrivate} onCheckedChange={setIsPrivate} />
       </section>
 
-      <LanguageSwitcher onLanguageChange={setLanguage} />
+      <div className="mt-3"><LanguageSwitcher onLanguageChange={setLanguage} /></div>
 
       </div>
       <div className={activeTab === "account" ? "space-y-3" : "hidden"}>
