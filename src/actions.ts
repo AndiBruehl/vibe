@@ -1865,24 +1865,30 @@ export async function deleteProfileAsSuperAdmin(formData: FormData): Promise<voi
   if (!target) throw new Error("Profile not found.");
   if (isProtectedAdmin(target.email)) throw new Error("Protected administrators cannot be deleted.");
 
-  const [posts, comments, stories, collections, conversations] = await Promise.all([
+  const [posts, comments, stories, collections, conversations, sentMessages] = await Promise.all([
     prisma.post.findMany({ where: { authorEmail: target.email }, select: { id: true } }),
     prisma.comment.findMany({ where: { authorEmail: target.email }, select: { id: true } }),
     prisma.story.findMany({ where: { authorEmail: target.email }, select: { id: true } }),
     prisma.bookmarkCollection.findMany({ where: { profileId: target.id }, select: { id: true } }),
     prisma.conversationParticipant.findMany({ where: { profileId: target.id }, select: { conversationId: true } }),
+    prisma.message.findMany({ where: { senderId: target.id }, select: { id: true } }),
   ]);
   const postIds = posts.map((post) => post.id);
   const commentIds = comments.map((comment) => comment.id);
   const storyIds = stories.map((story) => story.id);
   const collectionIds = collections.map((collection) => collection.id);
   const conversationIds = conversations.map((conversation) => conversation.conversationId);
+  const sentMessageIds = sentMessages.map((message) => message.id);
   const postCommentIds = postIds.length
     ? (await prisma.comment.findMany({ where: { postId: { in: postIds } }, select: { id: true } })).map((comment) => comment.id)
     : [];
   const removableCommentIds = [...new Set([...commentIds, ...postCommentIds])];
 
   await prisma.$transaction([
+    // MessageReaction requires both its reacting profile and message. Clear it
+    // before deleting either side of the relation.
+    prisma.messageReaction.deleteMany({ where: { profileId: target.id } }),
+    ...(sentMessageIds.length ? [prisma.messageReaction.deleteMany({ where: { messageId: { in: sentMessageIds } } })] : []),
     ...(removableCommentIds.length ? [
       prisma.comment.updateMany({ where: { parentCommentId: { in: removableCommentIds } }, data: { parentCommentId: null } }),
       prisma.commentMention.deleteMany({ where: { commentId: { in: removableCommentIds } } }),
@@ -1890,6 +1896,7 @@ export async function deleteProfileAsSuperAdmin(formData: FormData): Promise<voi
       prisma.comment.deleteMany({ where: { id: { in: removableCommentIds } } }),
     ] : []),
     ...(postIds.length ? [
+      prisma.message.updateMany({ where: { sharedPostId: { in: postIds } }, data: { sharedPostId: null } }),
       prisma.postLike.deleteMany({ where: { postId: { in: postIds } } }),
       prisma.postBookmark.deleteMany({ where: { postId: { in: postIds } } }),
       prisma.bookmarkCollectionPost.deleteMany({ where: { postId: { in: postIds } } }),
@@ -1912,12 +1919,14 @@ export async function deleteProfileAsSuperAdmin(formData: FormData): Promise<voi
     prisma.commentMention.deleteMany({ where: { profileId: target.id } }),
     prisma.postProfileTag.deleteMany({ where: { profileId: target.id } }),
     prisma.profileLink.deleteMany({ where: { profileId: target.id } }),
+    prisma.profileShoutout.deleteMany({ where: { OR: [{ profileId: target.id }, { targetProfileId: target.id }] } }),
+    prisma.restriction.deleteMany({ where: { profileId: target.id } }),
     prisma.topicFollow.deleteMany({ where: { profileId: target.id } }),
     prisma.follow.deleteMany({ where: { OR: [{ followerId: target.id }, { followingId: target.id }] } }),
     prisma.followRequest.deleteMany({ where: { OR: [{ followerId: target.id }, { followingId: target.id }] } }),
     prisma.block.deleteMany({ where: { OR: [{ blockerId: target.id }, { blockedId: target.id }] } }),
     prisma.storyView.deleteMany({ where: { viewerEmail: target.email } }),
-    prisma.message.deleteMany({ where: { senderId: target.id } }),
+    ...(sentMessageIds.length ? [prisma.message.deleteMany({ where: { id: { in: sentMessageIds } } })] : []),
     ...(conversationIds.length ? [prisma.conversationParticipant.deleteMany({ where: { conversationId: { in: conversationIds }, profileId: target.id } })] : []),
     prisma.adminNoteComment.deleteMany({ where: { authorEmail: target.email } }),
     prisma.adminNoteVote.deleteMany({ where: { voterEmail: target.email } }),
