@@ -175,14 +175,15 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
           />
         </label>
 
-        <section className="mt-5 border-t border-slate-200 pt-5 dark:border-slate-700/80">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+        <details className="group mt-5 rounded-xl border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-700/80 dark:bg-slate-800/30" open={profileLinks.length > 0}>
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-slate-700 marker:content-none dark:text-slate-200">
+            <span className="flex items-center gap-2"><LinkIcon size={16} className="text-orange-500" />{copy("Profile links", "Profil-Links")}</span>
+            <span className="text-xs font-medium text-slate-500 group-open:hidden dark:text-slate-400">{profileLinks.length ? `${profileLinks.length}/5` : copy("Optional", "Optional")}</span>
+            <span className="hidden text-xs font-medium text-slate-500 group-open:inline dark:text-slate-400">{copy("Hide", "Schließen")}</span>
+          </summary>
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4 dark:border-slate-700/80">
             <div>
-              <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
-                <LinkIcon size={16} className="text-orange-500" />
-                {copy("Profile links", "Profil-Links")}
-              </div>
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{copy("Give each link a label and destination. Up to five links.", "Gib jedem Link einen Text und ein Ziel. Bis zu fünf Links.")}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">{copy("Give each link a label and destination. Up to five links.", "Gib jedem Link einen Text und ein Ziel. Bis zu fünf Links.")}</p>
             </div>
             <button
               type="button"
@@ -207,7 +208,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
               ))}
             </div>
           )}
-        </section>
+        </details>
         <ShoutoutEditor shoutouts={profile?.shoutouts ?? []} language={language} />
       </section>
 

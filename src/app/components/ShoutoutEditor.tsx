@@ -25,11 +25,15 @@ export default function ShoutoutEditor({ shoutouts, language }: { shoutouts: Sho
   const update = (id: string, change: Partial<Draft>) => setDrafts((current) => current.map((draft) => draft.id === id ? { ...draft, ...change } : draft));
 
   return (
-    <section className="mt-5 border-t border-slate-200 pt-5 dark:border-slate-700/80">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <details className="group mt-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-700/80 dark:bg-slate-800/30" open={drafts.length > 0}>
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-slate-700 marker:content-none dark:text-slate-200">
+        <span className="flex items-center gap-2"><Heart size={16} className="text-pink-500" />{copy("Shoutouts", "Shoutouts")}</span>
+        <span className="text-xs font-medium text-slate-500 group-open:hidden dark:text-slate-400">{drafts.length ? `${drafts.length}/5` : copy("Optional", "Optional")}</span>
+        <span className="hidden text-xs font-medium text-slate-500 group-open:inline dark:text-slate-400">{copy("Hide", "Schließen")}</span>
+      </summary>
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4 dark:border-slate-700/80">
         <div>
-          <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200"><Heart size={16} className="text-pink-500" />{copy("Shoutouts", "Shoutouts")}</div>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{copy("Celebrate people on your profile, such as “My bestie” or “My love”.", "Zeige Menschen auf deinem Profil, etwa als „Meine beste Freundin“ oder „Meine Liebe“.")}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">{copy("Celebrate people on your profile, such as “My bestie” or “My love”.", "Zeige Menschen auf deinem Profil, etwa als „Meine beste Freundin“ oder „Meine Liebe“.")}</p>
         </div>
         <button type="button" disabled={drafts.length >= 5} onClick={() => setDrafts((items) => [...items, { id: crypto.randomUUID(), label: "", target: null, query: "", results: [] }])} className="inline-flex items-center gap-1.5 rounded-lg border border-pink-300 px-3 py-2 text-xs font-semibold text-pink-600 transition hover:bg-pink-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-pink-400/60 dark:text-pink-300 dark:hover:bg-pink-400/10"><Plus size={15} /> {copy("Add shoutout", "Shoutout hinzufügen")}</button>
       </div>
@@ -46,6 +50,6 @@ export default function ShoutoutEditor({ shoutouts, language }: { shoutouts: Sho
           <button type="button" onClick={() => setDrafts((items) => items.filter((item) => item.id !== draft.id))} className="inline-grid size-10 place-items-center self-center rounded-lg text-slate-500 transition hover:bg-red-50 hover:text-red-600 dark:text-slate-400 dark:hover:bg-red-500/10 dark:hover:text-red-300" aria-label={copy("Remove shoutout", "Shoutout entfernen")}><Trash2 size={17} /></button>
         </div>)}
       </div>}
-    </section>
+    </details>
   );
 }

@@ -79,10 +79,10 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
 
   return (
     <main className="mx-auto w-full max-w-5xl">
-      <section className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center">
+      <section className="relative flex items-center justify-between">
         <Link
           href="/home"
-          className="group flex justify-self-start items-center gap-2 text-slate-800 no-underline visited:text-slate-800 hover:text-slate-600 dark:text-slate-200 dark:visited:text-slate-400 dark:hover:text-slate-500"
+          className="group flex items-center gap-2 text-slate-800 no-underline visited:text-slate-800 hover:text-slate-600 dark:text-slate-200 dark:visited:text-slate-400 dark:hover:text-slate-500"
         >
           <MoveLeft />
           <span className="opacity-0 transition-opacity duration-200 group-hover:opacity-100">
@@ -90,14 +90,14 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
           </span>
         </Link>
 
-        <div className="flex items-center gap-2 text-lg font-semibold text-slate-700 dark:text-slate-200">
+        <div className="pointer-events-none absolute left-1/2 flex -translate-x-1/2 items-center gap-2 text-lg font-semibold text-slate-700 dark:text-slate-200">
           {profile.username || "user"}
           <div className="inline-flex size-5 items-center justify-center rounded-full bg-linear-to-tr from-(--ig-orange) to-(--ig-red) text-white">
             <Check size={16} />
           </div>
         </div>
 
-        <div className="flex justify-self-end items-center gap-1 sm:gap-3">
+        <div className="ml-auto flex items-center gap-1 sm:gap-3">
           <Link href="/support" className="inline-flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-semibold text-cyan-700 no-underline transition hover:bg-cyan-50 dark:text-cyan-300 dark:hover:bg-cyan-500/10">
             <LifeBuoy size={17} />
             <span className="hidden sm:inline">{de ? "Support" : "Support"}</span>
