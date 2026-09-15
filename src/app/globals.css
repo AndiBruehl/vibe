@@ -28,17 +28,17 @@
 
   --ig-gradient: var(--ig-gradient-lm);
 
-  --ig-body-bg: #f3f6fb;
-  --ig-page-bg: radial-gradient(ellipse at 90% 0%, #e5edf9 0%, transparent 55%), linear-gradient(145deg, #f7f9fc, #eef3fa);
-  --ig-nav-bg: #e9edf3;
-  --ig-surface-bg: rgb(255, 255, 255);
-  --ig-surface-hover-bg: rgb(248, 250, 252);
-  --ig-text: #24456b;
-  --ig-scroll-track: #edf2f8;
-  --ig-scroll-thumb: #54779a;
-  --ig-scroll-thumb-hover: #365d87;
-  --ig-scroll-thumb-start: #c3d1df;
-  --ig-scroll-thumb-end: #54779a;
+  --ig-body-bg: #cddaea;
+  --ig-page-bg: radial-gradient(ellipse at 90% 0%, #c4d4e6 0%, transparent 55%), linear-gradient(145deg, #d9e4f0, #cbd9e8);
+  --ig-nav-bg: #c4d2e2;
+  --ig-surface-bg: #e3ebf4;
+  --ig-surface-hover-bg: #d6e1ed;
+  --ig-text: #1d3d62;
+  --ig-scroll-track: #c2d0df;
+  --ig-scroll-thumb: #486987;
+  --ig-scroll-thumb-hover: #2f587d;
+  --ig-scroll-thumb-start: #a8bed3;
+  --ig-scroll-thumb-end: #486987;
 }
 
 .light {
@@ -110,6 +110,25 @@ body::-webkit-scrollbar-corner,
 body {
   background: var(--ig-body-bg);
   color: var(--ig-text);
+}
+
+/* Light mode stays airy without the stark white canvas used by browsers. */
+html:not(.dark) .bg-white {
+  background-color: var(--ig-surface-bg);
+}
+
+/* Inputs need their own, quieter layer instead of blending into a light card. */
+html:not(.dark) :is(input.bg-white, textarea.bg-white, select.bg-white) {
+  background-color: #d2deeb;
+  border-color: #a9bdd1;
+}
+
+html:not(.dark) :is(input.bg-white, textarea.bg-white, select.bg-white):focus {
+  background-color: #dbe6f1;
+}
+
+.vibe-login-screen {
+  background: rgb(3, 7, 18);
 }
 
 .dark {

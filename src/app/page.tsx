@@ -10,7 +10,7 @@ export default async function Home() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-white">
+    <div className="vibe-login-screen flex min-h-screen items-center justify-center">
       <div className="flex flex-col items-center gap-12">
         <Image
           src="/logo.svg"
