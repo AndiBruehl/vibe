@@ -8,70 +8,71 @@ datasource db {
 }
 
 model Profile {
-  id       String  @id @default(auto()) @map("_id") @db.ObjectId
-  email    String  @unique
-  avatar   String?
-  username String? @unique
-  name     String?
-  subtitle String?
-  bio      String?
-  language String  @default("en")
-  isPrivate Boolean @default(false)
-  isAdmin Boolean @default(false)
-  isSystem Boolean @default(false)
-  systemKind String?
-  welcomeSentAt DateTime?
-  restrictedUntil DateTime?
-  restrictionMessages Boolean @default(false)
-  restrictionComments Boolean @default(false)
-  restrictionPosts Boolean @default(false)
-  activityReadAt DateTime?
+  id                  String    @id @default(auto()) @map("_id") @db.ObjectId
+  email               String    @unique
+  avatar              String?
+  username            String?   @unique
+  name                String?
+  subtitle            String?
+  bio                 String?
+  language            String    @default("en")
+  isPrivate           Boolean   @default(false)
+  isAdmin             Boolean   @default(false)
+  isSystem            Boolean   @default(false)
+  systemKind          String?
+  welcomeSentAt       DateTime?
+  restrictedUntil     DateTime?
+  restrictionMessages Boolean   @default(false)
+  restrictionComments Boolean   @default(false)
+  restrictionPosts    Boolean   @default(false)
+  activityReadAt      DateTime?
 
-  posts         Post[]
-  comments      Comment[]
-  commentMentions CommentMention[]
-  commentLikes  CommentLike[]
-  postLikes     PostLike[]
-  bookmarks     PostBookmark[]
+  posts               Post[]
+  comments            Comment[]
+  commentMentions     CommentMention[]
+  commentLikes        CommentLike[]
+  postLikes           PostLike[]
+  bookmarks           PostBookmark[]
   bookmarkCollections BookmarkCollection[]
-  conversations ConversationParticipant[]
-  sentMessages  Message[]                 @relation("SentMessages")
-  stories       Story[]
-  postTags      PostProfileTag[]
-  profileLinks  ProfileLink[]
-  restrictions Restriction[]
+  conversations       ConversationParticipant[]
+  sentMessages        Message[]                 @relation("SentMessages")
+  stories             Story[]
+  postTags            PostProfileTag[]
+  profileLinks        ProfileLink[]
+  restrictions        Restriction[]
 
-  followers    Follow[]      @relation("ProfileFollowers")
-  following    Follow[]      @relation("ProfileFollowing")
+  followers              Follow[]        @relation("ProfileFollowers")
+  following              Follow[]        @relation("ProfileFollowing")
   receivedFollowRequests FollowRequest[] @relation("FollowRequestsReceived")
-  sentFollowRequests FollowRequest[] @relation("FollowRequestsSent")
-  topicFollows TopicFollow[]
-  blocksSent Block[] @relation("BlocksSent")
-  blocksReceived Block[] @relation("BlocksReceived")
+  sentFollowRequests     FollowRequest[] @relation("FollowRequestsSent")
+  topicFollows           TopicFollow[]
+  blocksSent             Block[]         @relation("BlocksSent")
+  blocksReceived         Block[]         @relation("BlocksReceived")
 }
 
 model Restriction {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  profileId String @db.ObjectId
-  profile Profile @relation(fields: [profileId], references: [id])
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  profileId      String   @db.ObjectId
+  profile        Profile  @relation(fields: [profileId], references: [id])
   imposedByEmail String
-  blocksMessages Boolean @default(false)
-  blocksComments Boolean @default(false)
-  blocksPosts Boolean @default(false)
-  createdAt DateTime @default(now())
-  endsAt DateTime
+  blocksMessages Boolean  @default(false)
+  blocksComments Boolean  @default(false)
+  blocksPosts    Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  endsAt         DateTime
 
   @@index([profileId, createdAt])
   @@index([endsAt])
 }
 
 model Block {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  blockerId String @db.ObjectId
-  blockedId String @db.ObjectId
-  blocker Profile @relation("BlocksSent", fields: [blockerId], references: [id])
-  blocked Profile @relation("BlocksReceived", fields: [blockedId], references: [id])
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  blockerId String   @db.ObjectId
+  blockedId String   @db.ObjectId
+  blocker   Profile  @relation("BlocksSent", fields: [blockerId], references: [id])
+  blocked   Profile  @relation("BlocksReceived", fields: [blockedId], references: [id])
   createdAt DateTime @default(now())
+
   @@unique([blockerId, blockedId])
   @@index([blockedId])
 }
@@ -113,13 +114,16 @@ model Message {
   senderId String  @db.ObjectId
   sender   Profile @relation("SentMessages", fields: [senderId], references: [id])
 
-  body      String
-  imageUrl  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  body         String
+  imageUrl     String?
+  sharedPostId String?  @db.ObjectId
+  sharedPost   Post?    @relation("SharedPost", fields: [sharedPostId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@index([conversationId, createdAt])
   @@index([senderId])
+  @@index([sharedPostId])
 }
 
 model Follow {
@@ -149,20 +153,21 @@ model Post {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  comments  Comment[]
-  likes     PostLike[]
-  bookmarks PostBookmark[]
+  comments                Comment[]
+  likes                   PostLike[]
+  bookmarks               PostBookmark[]
   bookmarkCollectionItems BookmarkCollectionPost[]
-  topics    PostTopic[]
-  profileTags PostProfileTag[]
+  topics                  PostTopic[]
+  profileTags             PostProfileTag[]
+  sharedInMessages        Message[]                @relation("SharedPost")
 }
 
 model PostProfileTag {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  postId String @db.ObjectId
-  post Post @relation(fields: [postId], references: [id])
-  profileId String @db.ObjectId
-  profile Profile @relation(fields: [profileId], references: [id])
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  postId    String   @db.ObjectId
+  post      Post     @relation(fields: [postId], references: [id])
+  profileId String   @db.ObjectId
+  profile   Profile  @relation(fields: [profileId], references: [id])
   createdAt DateTime @default(now())
 
   @@unique([postId, profileId])
@@ -184,11 +189,12 @@ model Story {
 }
 
 model StorySlide {
-  id        String @id @default(auto()) @map("_id") @db.ObjectId
-  storyId   String @db.ObjectId
-  story     Story  @relation(fields: [storyId], references: [id])
-  imageUrl  String
-  position  Int
+  id           String  @id @default(auto()) @map("_id") @db.ObjectId
+  storyId      String  @db.ObjectId
+  story        Story   @relation(fields: [storyId], references: [id])
+  imageUrl     String
+  sharedPostId String? @db.ObjectId
+  position     Int
 
   @@unique([storyId, position])
 }
@@ -246,17 +252,17 @@ model Comment {
   parentComment   Comment?  @relation("CommentReplies", fields: [parentCommentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   replies         Comment[] @relation("CommentReplies")
 
-  likes CommentLike[]
+  likes    CommentLike[]
   mentions CommentMention[]
 }
 
 model FollowRequest {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  followerId String @db.ObjectId
-  follower Profile @relation("FollowRequestsSent", fields: [followerId], references: [id])
-  followingId String @db.ObjectId
-  following Profile @relation("FollowRequestsReceived", fields: [followingId], references: [id])
-  createdAt DateTime @default(now())
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  followerId  String   @db.ObjectId
+  follower    Profile  @relation("FollowRequestsSent", fields: [followerId], references: [id])
+  followingId String   @db.ObjectId
+  following   Profile  @relation("FollowRequestsReceived", fields: [followingId], references: [id])
+  createdAt   DateTime @default(now())
 
   @@unique([followerId, followingId])
   @@index([followingId, createdAt])
@@ -303,11 +309,11 @@ model ProfileLink {
 model CommentMention {
   id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  commentId String @db.ObjectId
-  comment Comment @relation(fields: [commentId], references: [id])
+  commentId String  @db.ObjectId
+  comment   Comment @relation(fields: [commentId], references: [id])
 
-  profileId String @db.ObjectId
-  profile Profile @relation(fields: [profileId], references: [id])
+  profileId String  @db.ObjectId
+  profile   Profile @relation(fields: [profileId], references: [id])
 
   createdAt DateTime @default(now())
 
@@ -329,48 +335,48 @@ model CommentLike {
 }
 
 model Report {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  reporterEmail String
-  targetType    String
-  targetId      String
-  targetUrl     String?
-  targetLabel   String?
+  id               String    @id @default(auto()) @map("_id") @db.ObjectId
+  reporterEmail    String
+  targetType       String
+  targetId         String
+  targetUrl        String?
+  targetLabel      String?
   targetOwnerEmail String?
-  reason        String
-  status        String   @default("open")
+  reason           String
+  status           String    @default("open")
   moderationAction String?
-  moderationNote String?
+  moderationNote   String?
   moderatedByEmail String?
-  moderatedAt DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  moderatedAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   @@index([status, createdAt])
   @@index([targetType, targetId])
 }
 
 model SupportTicket {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  requesterEmail String
-  status String @default("open")
+  id                 String                 @id @default(auto()) @map("_id") @db.ObjectId
+  requesterEmail     String
+  status             String                 @default("open")
   assignedAdminEmail String?
-  assignedAt DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  messages SupportTicketMessage[]
+  assignedAt         DateTime?
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+  messages           SupportTicketMessage[]
 
   @@index([status, updatedAt])
   @@index([requesterEmail, updatedAt])
 }
 
 model SupportTicketMessage {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  ticketId String @db.ObjectId
-  ticket SupportTicket @relation(fields: [ticketId], references: [id])
-  senderType String
+  id               String        @id @default(auto()) @map("_id") @db.ObjectId
+  ticketId         String        @db.ObjectId
+  ticket           SupportTicket @relation(fields: [ticketId], references: [id])
+  senderType       String
   senderAdminEmail String?
-  body String
-  createdAt DateTime @default(now())
+  body             String
+  createdAt        DateTime      @default(now())
 
   @@index([ticketId, createdAt])
 }
@@ -387,32 +393,33 @@ model AdminNote {
 }
 
 model AdminNoteComment {
-  id        String    @id @default(auto()) @map("_id") @db.ObjectId
-  noteId    String    @db.ObjectId
-  note      AdminNote @relation(fields: [noteId], references: [id])
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  noteId      String    @db.ObjectId
+  note        AdminNote @relation(fields: [noteId], references: [id])
   authorEmail String
-  body      String
-  createdAt DateTime  @default(now())
+  body        String
+  createdAt   DateTime  @default(now())
 
   @@index([noteId, createdAt])
 }
 
 model AdminNoteVote {
-  id        String    @id @default(auto()) @map("_id") @db.ObjectId
-  noteId    String    @db.ObjectId
-  note      AdminNote @relation(fields: [noteId], references: [id])
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  noteId     String    @db.ObjectId
+  note       AdminNote @relation(fields: [noteId], references: [id])
   voterEmail String
-  createdAt DateTime  @default(now())
+  createdAt  DateTime  @default(now())
 
   @@unique([noteId, voterEmail])
 }
 
 model AdminActivity {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
   actorEmail String
-  kind String
-  detail String
-  createdAt DateTime @default(now())
+  kind       String
+  detail     String
+  createdAt  DateTime @default(now())
+
   @@index([createdAt])
 }
 

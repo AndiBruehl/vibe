@@ -10,11 +10,13 @@ import VibeTeamBadge from "@/app/components/VibeTeamBadge";
 type Props = {
   conversation: any;
   currentUserId: string;
+  de: boolean;
 };
 
 export default function ConversationListItem({
   conversation,
   currentUserId,
+  de,
 }: Props) {
   const router = useRouter();
 
@@ -132,13 +134,13 @@ export default function ConversationListItem({
                     "Someone"}
                   :
                 </span>
-                <span className="truncate">{latestMessage.body}</span>
+                <span className="truncate">{latestMessage.sharedPost ? (latestMessage.sharedPost.description || (de ? "Beitrag mit Bild" : "Photo post")) : latestMessage.body}</span>
               </>
             ) : (
               "Start the conversation."
             )
           ) : (
-            latestMessage?.body || "Start the conversation."
+            latestMessage?.sharedPost ? (latestMessage.sharedPost.description || (de ? "Beitrag mit Bild" : "Photo post")) : (latestMessage?.body || (de ? "Starte die Unterhaltung." : "Start the conversation."))
           )}
         </p>
       </div>

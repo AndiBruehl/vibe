@@ -43,6 +43,7 @@ export default async function ConversationPage({
     },
     select: {
       id: true,
+      language: true,
     },
   });
 
@@ -86,6 +87,11 @@ export default async function ConversationPage({
               systemKind: true,
             },
           },
+          sharedPost: {
+            include: {
+              author: { select: { name: true, username: true, avatar: true } },
+            },
+          },
         },
         orderBy: {
           createdAt: "asc",
@@ -97,6 +103,8 @@ export default async function ConversationPage({
   if (!conversation) {
     notFound();
   }
+
+  const de = currentUserProfile.language === "de";
 
   const otherParticipant = conversation.participants.find(
     (participant: any) => participant.profileId !== currentUserProfile.id,
@@ -288,9 +296,14 @@ export default async function ConversationPage({
                       )}
                     </div>
                   ) : null}
-                  <p className="whitespace-pre-wrap wrap-break-word text-sm leading-6">
+                  {!message.sharedPost ? <p className="whitespace-pre-wrap wrap-break-word text-sm leading-6">
                     <MentionText text={message.body} linkClassName={isOwnMessage ? "font-semibold text-white underline decoration-white/60 underline-offset-2" : undefined} />
-                  </p>
+                  </p> : null}
+                  {message.sharedPost ? <p className={`mb-2 text-sm font-semibold ${isOwnMessage ? "text-white" : "text-slate-800 dark:text-slate-100"}`}>{isOwnMessage ? (de ? "Du hast einen Beitrag geteilt" : "You shared a post") : (de ? `${message.sender?.name || message.sender?.username || "Jemand"} hat einen Beitrag geteilt` : `${message.sender?.name || message.sender?.username || "Someone"} shared a post`)}</p> : null}
+                  {message.sharedPost ? <Link href={`/posts/${message.sharedPost.id}`} className={`block overflow-hidden rounded-xl no-underline ${isOwnMessage ? "bg-white/15 text-white" : "bg-slate-100 text-slate-900 dark:bg-slate-900 dark:text-slate-100"}`}>
+                    <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-700"><Image src={message.sharedPost.image} alt={de ? "Geteilter Beitrag" : "Shared post"} fill className="object-cover" unoptimized /></div>
+                    <div className="p-3"><p className={`text-xs font-bold uppercase tracking-wide ${isOwnMessage ? "text-white/75" : "text-slate-500"}`}>{de ? "Geteilter Beitrag" : "Shared post"}</p><p className="mt-1 truncate text-sm font-semibold">{message.sharedPost.author?.name || message.sharedPost.author?.username || "VIBE"}</p><p className={`mt-1 line-clamp-2 text-sm ${isOwnMessage ? "text-white/90" : "text-slate-600 dark:text-slate-300"}`}>{message.sharedPost.description || (de ? "Beitrag auf VIBE ansehen" : "View this post on VIBE")}</p></div>
+                  </Link> : null}
                   {message.imageUrl ? (
                     <Image
                       src={message.imageUrl}

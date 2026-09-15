@@ -22,6 +22,7 @@ export default async function MessagesPage() {
     },
     select: {
       id: true,
+      language: true,
     },
   });
 
@@ -65,6 +66,9 @@ export default async function MessagesPage() {
               avatar: true,
               isSystem: true,
             },
+          },
+          sharedPost: {
+            select: { id: true, description: true },
           },
         },
       },
@@ -135,6 +139,7 @@ export default async function MessagesPage() {
                 key={conversation.id}
                 conversation={{ ...conversation, unreadCount: unreadCounts[index] }}
                 currentUserId={currentUserProfile.id}
+                de={currentUserProfile.language === "de"}
               />
             ))}
           </div>

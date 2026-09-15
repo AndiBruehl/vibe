@@ -537,6 +537,42 @@ export async function createStory(formData: FormData): Promise<void> {
   revalidatePath("/home");
 }
 
+export async function sharePostToStory(formData: FormData): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.email) redirect("/");
+  await assertNotRestricted(session.user.email, "posts");
+  const postId = formData.get("postId");
+  if (typeof postId !== "string" || !isObjectId(postId)) throw new Error("Invalid post.");
+  await assertCanInteractWithPost(postId, session.user.email);
+  const post = await prisma.post.findUnique({ where: { id: postId }, select: { image: true } });
+  if (!post) throw new Error("Post not found.");
+  await prisma.story.create({ data: { authorEmail: session.user.email, expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), slides: { create: [{ imageUrl: post.image, sharedPostId: postId, position: 0 }] } } });
+  revalidatePath("/home");
+}
+
+export async function sharePostToConversation(formData: FormData): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.email) redirect("/");
+  await assertNotRestricted(session.user.email, "messages");
+  const postId = formData.get("postId");
+  const conversationId = formData.get("conversationId");
+  if (typeof postId !== "string" || !isObjectId(postId) || typeof conversationId !== "string" || !isObjectId(conversationId)) throw new Error("Invalid share.");
+  await assertCanInteractWithPost(postId, session.user.email);
+  const viewer = await prisma.profile.findUnique({ where: { email: session.user.email }, select: { id: true, language: true } });
+  if (!viewer) throw new Error("Profile not found.");
+  const conversation = await prisma.conversation.findFirst({ where: { id: conversationId, participants: { some: { profileId: viewer.id } } }, include: { participants: { include: { profile: { select: { isSystem: true } } } } } });
+  if (!conversation || conversation.participants.some((item) => item.profile.isSystem)) throw new Error("Conversation not available.");
+  const recipientIds = conversation.participants.map((item) => item.profileId).filter((id) => id !== viewer.id);
+  for (const recipientId of recipientIds) if (await usersAreBlocked(viewer.id, recipientId)) throw new Error("You cannot share with a blocked profile.");
+  const now = new Date();
+  await prisma.$transaction([
+    prisma.message.create({ data: { conversationId, senderId: viewer.id, body: viewer.language === "de" ? "Hat einen Beitrag geteilt." : "Shared a post.", sharedPostId: postId } }),
+    prisma.conversation.update({ where: { id: conversationId }, data: { updatedAt: now } }),
+    prisma.conversationParticipant.update({ where: { conversationId_profileId: { conversationId, profileId: viewer.id } }, data: { lastReadAt: now } }),
+  ]);
+  revalidatePath("/messages");
+  revalidatePath(`/messages/${conversationId}`);
+}
 export async function deleteStory(formData: FormData): Promise<void> {
   const session = await auth();
   if (!session?.user?.email) redirect("/");

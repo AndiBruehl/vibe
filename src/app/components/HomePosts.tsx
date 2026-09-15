@@ -17,6 +17,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import FeedModeSwitch from "./FeedModeSwitch";
+import SharePostButton from "./SharePostButton";
 import AdminBadge from "./AdminBadge";
 
 type Follow = {
@@ -439,6 +440,7 @@ export default async function HomePosts({
                       </Link>
                     </div>
 
+                    <SharePostButton postId={post.id} de={de} />
                     <BookmarkButton
                       postId={post.id}
                       initialBookmarked={isBookmarked}

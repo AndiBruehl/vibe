@@ -1,11 +1,11 @@
 {
   "android": {
-    "downloadUrl": "https://raw.githubusercontent.com/AndiBruehl/vibe/main/android-app/dist/Vibe-BETA-0.1.66.apk",
-    "version": "0.1.66"
+    "downloadUrl": "https://raw.githubusercontent.com/AndiBruehl/vibe/main/android-app/dist/Vibe-BETA-0.1.67.apk",
+    "version": "0.1.67"
   },
-  "releaseName": "BETA 0.1.66",
+  "releaseName": "BETA 0.1.67",
   "windows": {
-    "downloadUrl": "https://raw.githubusercontent.com/AndiBruehl/vibe/main/electron-app/dist/Vibe-Setup-BETA-0.1.66-x64.exe",
-    "version": "0.1.66"
+    "downloadUrl": "https://raw.githubusercontent.com/AndiBruehl/vibe/main/electron-app/dist/Vibe-Setup-BETA-0.1.67-x64.exe",
+    "version": "0.1.67"
   }
 }

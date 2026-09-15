@@ -16,6 +16,7 @@ import { deletePost, editPost, togglePostArchive } from "@/actions";
 import LocalizedText from "@/app/components/LocalizedText";
 import MentionText from "@/app/components/MentionText";
 import ReportButton from "@/app/components/ReportButton";
+import SharePostButton from "@/app/components/SharePostButton";
 import AdminBadge from "@/app/components/AdminBadge";
 
 
@@ -164,6 +165,8 @@ export default async function SinglePostPage({
                   showText
                 />
 
+                <SharePostButton postId={post.id} de={de} />
+
                 <BookmarkButton
                   postId={post.id}
                   initialBookmarked={!!isBookmarkedByViewer}
@@ -211,15 +214,18 @@ export default async function SinglePostPage({
                       <p className="text-sm font-semibold text-slate-900 dark:text-white">
                         Manage post
                       </p>
-                      <form action={deletePost} className="m-0">
-                        <input type="hidden" name="postId" value={post.id} />
-                        <button
+                      <div className="flex items-center gap-2">
+                        <SharePostButton postId={post.id} de={de} />
+                        <form action={deletePost} className="m-0">
+                          <input type="hidden" name="postId" value={post.id} />
+                          <button
                           type="submit"
                           className="rounded-full border border-red-300 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-100 dark:border-red-600 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900"
                         >
                           <LocalizedText en="Delete" de="Löschen" />
-                        </button>
-                      </form>
+                          </button>
+                        </form>
+                      </div>
                     </div>
                     <form action={togglePostArchive} className="mb-4">
                       <input type="hidden" name="postId" value={post.id} />
