@@ -57,3 +57,6 @@ android-app/android/.kotlin/
 android-app/apk-*-build.*.log
 
 dev-server-*.log
+
+electron-app/dist-691/
+git-push-*.log

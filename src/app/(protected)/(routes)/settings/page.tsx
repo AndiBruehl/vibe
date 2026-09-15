@@ -61,9 +61,14 @@ export default async function SettingsPage() {
 
           <div className="p-4 sm:p-5">
             <SettingsForm profile={profile} />
-            <Link href="/settings/blocked" className="mt-5 inline-flex text-sm font-semibold text-orange-600 hover:underline"><LocalizedText en="Manage blocked users" de="Blockierte Nutzer verwalten" /></Link>
-            <ReleaseDownloads />
-            <AppVersion />
+            <details className="group mt-5 rounded-xl border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-700/80 dark:bg-slate-800/30">
+              <summary className="cursor-pointer list-none text-sm font-semibold text-slate-700 marker:content-none dark:text-slate-200"><LocalizedText en="Safety & blocked users" de="Sicherheit & blockierte Nutzer" /></summary>
+              <div className="mt-3 border-t border-slate-200 pt-3 dark:border-slate-700/80"><Link href="/settings/blocked" className="inline-flex text-sm font-semibold text-orange-600 hover:underline"><LocalizedText en="Manage blocked users" de="Blockierte Nutzer verwalten" /></Link></div>
+            </details>
+            <details className="group mt-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-700/80 dark:bg-slate-800/30">
+              <summary className="cursor-pointer list-none text-sm font-semibold text-slate-700 marker:content-none dark:text-slate-200"><LocalizedText en="Apps & downloads" de="Apps & Downloads" /></summary>
+              <div className="mt-3 border-t border-slate-200 pt-3 dark:border-slate-700/80"><ReleaseDownloads /><AppVersion /></div>
+            </details>
           </div>
         </div>
       </section>
