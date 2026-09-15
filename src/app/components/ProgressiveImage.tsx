@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type ProgressiveImageProps = {
   src: string;
@@ -21,6 +21,14 @@ export default function ProgressiveImage({
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
   const [aspectRatio, setAspectRatio] = useState<string | null>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
+
+  function finishLoading(image: HTMLImageElement) {
+    const { naturalHeight, naturalWidth } = image;
+    if (!naturalWidth || !naturalHeight) return;
+    setAspectRatio(`${naturalWidth} / ${naturalHeight}`);
+    setLoaded(true);
+  }
 
   useEffect(() => {
     setLoaded(false);
@@ -28,9 +36,15 @@ export default function ProgressiveImage({
     setAspectRatio(null);
   }, [src]);
 
+  // Browsers can complete cached images before React attaches onLoad.
+  useEffect(() => {
+    const image = imageRef.current;
+    if (image?.complete) finishLoading(image);
+  }, [src]);
+
   return (
     <div
-      className={`relative overflow-hidden bg-slate-100 dark:bg-slate-900 ${containerClassName}`}
+      className={`relative overflow-hidden ${loaded ? "bg-transparent" : "bg-slate-100 dark:bg-slate-900"} ${containerClassName}`}
       style={{ aspectRatio: aspectRatio ?? "4 / 3" }}
     >
       {!loaded && !failed ? (
@@ -41,13 +55,10 @@ export default function ProgressiveImage({
       ) : null}
       <img
         src={src}
+        ref={imageRef}
         alt={alt}
         loading={loading}
-        onLoad={(event) => {
-          const { naturalHeight, naturalWidth } = event.currentTarget;
-          if (naturalWidth && naturalHeight) setAspectRatio(`${naturalWidth} / ${naturalHeight}`);
-          setLoaded(true);
-        }}
+        onLoad={(event) => finishLoading(event.currentTarget)}
         onError={() => setFailed(true)}
         className={`relative h-full w-full transition-opacity duration-200 ${className}`}
       />
