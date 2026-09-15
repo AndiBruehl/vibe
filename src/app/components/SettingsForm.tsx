@@ -223,7 +223,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
       </section>
       </div>
 
-      <div className={activeTab === "preferences" ? "contents" : "hidden"}>
+      <div className={activeTab === "preferences" ? "space-y-3" : "hidden"}>
       <section className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 dark:border-slate-700 dark:bg-slate-800/60">
         <div className="flex items-center gap-3">
           <span className="grid size-9 place-items-center rounded-xl bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200"><Moon size={17} /></span>
@@ -256,7 +256,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
         <Switch checked={isPrivate} onCheckedChange={setIsPrivate} />
       </section>
 
-      <div className="mt-3"><LanguageSwitcher onLanguageChange={setLanguage} /></div>
+      <LanguageSwitcher onLanguageChange={setLanguage} />
 
       </div>
       <div className={activeTab === "account" ? "space-y-3" : "hidden"}>
