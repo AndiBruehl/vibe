@@ -57,7 +57,7 @@ export default function MobileNav({
           </Link>
         </div>
 
-        <div className="relative -top-4 size-14 shrink-0 justify-center">
+        <div className="size-14 relative -top-4 justify-center w-35">
           <div className="absolute rounded-full border-[var(--ig-surface-bg)] bg-red-500 bg-clip-text border-t-transparent border-l-transparent dark:border-gray-800 dark:border-t-transparent dark:border-l-transparent rotate-45">
             <div className="border-4 size-15 border-transparent">
               <Link
