@@ -1,7 +1,7 @@
 "use client";
 
 import { ImagePlus, LoaderCircle, Send, X } from "lucide-react";
-import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { sendMessage } from "@/actions";
 import EmojiPicker from "@/app/components/EmojiPicker";
@@ -27,6 +27,23 @@ export default function MessageComposer({ conversationId, blocked = false, block
   const [isUploading, setIsUploading] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState("");
+  const [draftReady, setDraftReady] = useState(false);
+  const draftKey = `vibe.messageDraft.${conversationId}`;
+
+  useEffect(() => {
+    const draft = localStorage.getItem(draftKey);
+    if (draft) setBody(draft);
+    setDraftReady(true);
+  }, [draftKey]);
+
+  useEffect(() => {
+    if (!draftReady) return;
+    const timer = window.setTimeout(() => {
+      if (body.trim()) localStorage.setItem(draftKey, body);
+      else localStorage.removeItem(draftKey);
+    }, 500);
+    return () => window.clearTimeout(timer);
+  }, [body, draftKey, draftReady]);
 
   function insertEmoji(emoji: string) {
     const textarea = textareaRef.current;
@@ -76,6 +93,7 @@ export default function MessageComposer({ conversationId, blocked = false, block
       await sendMessage(data);
       formRef.current?.reset();
       setBody("");
+      localStorage.removeItem(draftKey);
       setImageUrl("");
       setPreviewUrl("");
       router.refresh();
@@ -115,6 +133,7 @@ export default function MessageComposer({ conversationId, blocked = false, block
         <button type="submit" disabled={isSending || isUploading || (!body.trim() && !imageUrl)} className="flex size-11 shrink-0 items-center justify-center rounded-full bg-linear-to-tr from-(--ig-orange) to-(--ig-red) text-white transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50" aria-label={de ? "Nachricht senden" : "Send message"}>{isSending ? <LoaderCircle className="animate-spin" size={18} /> : <Send size={18} />}</button>
       </div>
       {error && <p className="mt-2 text-xs text-red-600 dark:text-red-300">{error}</p>}
+      {!error && draftReady && body.trim() && <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">{de ? "Entwurf wird automatisch gespeichert" : "Draft saves automatically"}</p>}
       </>}
     </form>
   );

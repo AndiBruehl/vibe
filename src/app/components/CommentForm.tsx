@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { postComment } from "@/actions";
 import MentionTextarea from "./MentionTextarea";
 import useVibeLanguage from "./useVibeLanguage";
@@ -16,10 +16,30 @@ export default function CommentForm({ postId, compact = false }: CommentFormProp
   const de = useVibeLanguage() === "de";
   const formRef = useRef<HTMLFormElement>(null);
   const { textareaRef, insertEmoji } = useEmojiTextarea();
+  const [text, setText] = useState("");
+  const [draftReady, setDraftReady] = useState(false);
+  const draftKey = `vibe.commentDraft.${postId}`;
+
+  useEffect(() => {
+    const draft = localStorage.getItem(draftKey);
+    if (draft) setText(draft);
+    setDraftReady(true);
+  }, [draftKey]);
+
+  useEffect(() => {
+    if (!draftReady) return;
+    const timer = window.setTimeout(() => {
+      if (text.trim()) localStorage.setItem(draftKey, text);
+      else localStorage.removeItem(draftKey);
+    }, 500);
+    return () => window.clearTimeout(timer);
+  }, [draftKey, draftReady, text]);
 
   async function action(formData: FormData) {
     await postComment(formData);
     formRef.current?.reset();
+    setText("");
+    localStorage.removeItem(draftKey);
   }
 
   if (compact) {
@@ -32,6 +52,8 @@ export default function CommentForm({ postId, compact = false }: CommentFormProp
           name="text"
           rows={1}
           placeholder={de ? "Schreibe einen Kommentar..." : "Write a comment..."}
+          value={text}
+          onChange={(event) => setText(event.target.value)}
           className="vibe-composer-control w-full resize-none rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-orange-400 focus:ring-4 focus:ring-orange-500/15 dark:border-slate-600 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
           required
         />
@@ -51,6 +73,8 @@ export default function CommentForm({ postId, compact = false }: CommentFormProp
         name="text"
         rows={3}
         placeholder={de ? "Schreibe einen Kommentar..." : "Write a comment..."}
+        value={text}
+        onChange={(event) => setText(event.target.value)}
         className="w-full resize-none rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-500 dark:border-gray-600 dark:bg-gray-900 dark:text-white"
         required
       />
