@@ -13,7 +13,7 @@ export default function QuickSettings({ initialLanguage, initialTheme }: { initi
   const [open, setOpen] = useState(false);
   const [theme, setTheme] = useState<ThemePreference>(initialTheme);
   const [language, setLanguage] = useState<Language>(initialLanguage);
-  const [feedback, setFeedback] = useState<"saved" | "failed" | null>(null);
+  const [feedback, setFeedback] = useState<"saved" | "failed" | "working" | null>(null);
   const panel = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -64,7 +64,7 @@ export default function QuickSettings({ initialLanguage, initialTheme }: { initi
       window.setTimeout(() => setFeedback(null), 2200);
       return;
     }
-    setFeedback("saved");
+    setFeedback("working");
     window.setTimeout(() => setFeedback(null), 2200);
     window.dispatchEvent(new CustomEvent("vibe-language-change", { detail: next }));
   }
@@ -104,7 +104,7 @@ export default function QuickSettings({ initialLanguage, initialTheme }: { initi
             {(["en", "de"] as Language[]).map((option) => <button key={option} type="button" onClick={() => void chooseLanguage(option)} className={`rounded-lg px-2 py-1.5 text-xs font-bold transition ${language === option ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"}`}>{option === "en" ? "English" : "Deutsch"}</button>)}
           </div>
         </div>
-        {feedback && <p role="status" className={`mt-3 text-center text-xs font-semibold ${feedback === "saved" ? "text-emerald-600 dark:text-emerald-300" : "text-red-600 dark:text-red-300"}`}>{feedback === "saved" ? (de ? "Gespeichert" : "Saved") : (de ? "Speichern fehlgeschlagen" : "Could not save")}</p>}
+        {feedback && <p role="status" className={`mt-3 text-center text-xs font-semibold ${feedback === "saved" ? "text-emerald-600 dark:text-emerald-300" : feedback === "working" ? "bg-linear-to-r from-red-500 via-orange-500 to-amber-400 bg-clip-text text-transparent" : "text-red-600 dark:text-red-300"}`}>{feedback === "saved" ? (de ? "Gespeichert" : "Saved") : feedback === "working" ? "WORKING" : (de ? "Speichern fehlgeschlagen" : "Could not save")}</p>}
         <Link href="/settings" className="mt-3 block border-t border-slate-200 pt-3 text-center text-xs font-bold text-orange-600 hover:underline dark:border-slate-700 dark:text-orange-300">{de ? "Alle Einstellungen" : "Open settings"}</Link>
       </section>}
     </div>
