@@ -8,6 +8,7 @@ import SearchInput from "./SearchInput";
 import { searchScopes, type SearchScope } from "@/app/search-scopes";
 import img1 from "../profile/default.jpg";
 import LocalizedText from "@/app/components/LocalizedText";
+import ProgressiveImage from "@/app/components/ProgressiveImage";
 
 type SearchPageProps = {
   searchParams: Promise<{
@@ -237,13 +238,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                   >
                     <div className="relative aspect-square w-full overflow-hidden bg-slate-200 dark:bg-slate-700">
                       <PostImageCount images={post.images}/>
-              <Image
-                        src={post.image}
-                        alt={post.description || "Post image"}
-                        fill
-                        className="object-cover transition duration-300 group-hover:scale-[1.02]"
-                        unoptimized
-                      />
+              <ProgressiveImage src={post.image} alt={post.description || "Post image"} lockAspectRatio="1 / 1" containerClassName="size-full" className="object-cover transition duration-300 group-hover:scale-[1.02]" />
                     </div>
 
                     <div className="space-y-2 p-3">

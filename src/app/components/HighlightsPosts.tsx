@@ -1,8 +1,8 @@
 import PostImageCount from "@/app/components/PostImageCount";
 import SortablePosts from "./SortablePosts";
 import { prisma } from "@/db";
-import Image from "next/image";
 import Link from "next/link";
+import ProgressiveImage from "./ProgressiveImage";
 
 export default async function HighlightsPosts() {
   const posts = await prisma.post.findMany({
@@ -36,13 +36,7 @@ export default async function HighlightsPosts() {
           <article>
             <div className="relative aspect-square w-full overflow-hidden">
               <PostImageCount images={post.images}/>
-              <Image
-                src={post.image}
-                alt={post.description || "Highlight post image"}
-                fill
-                className="object-cover transition duration-300 group-hover:scale-[1.03]"
-                unoptimized
-              />
+              <ProgressiveImage src={post.image} alt={post.description || "Highlight post image"} lockAspectRatio="1 / 1" containerClassName="size-full" className="object-cover transition duration-300 group-hover:scale-[1.03]" />
             </div>
 
             <div className="space-y-2 p-3">

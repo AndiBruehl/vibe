@@ -3,8 +3,8 @@ import SortablePosts from "./SortablePosts";
 import BookmarkCollectionPicker from "./BookmarkCollectionPicker";
 import { createBookmarkCollection, deleteBookmarkCollection } from "@/actions";
 import { prisma } from "@/db";
-import Image from "next/image";
 import Link from "next/link";
+import ProgressiveImage from "./ProgressiveImage";
 import { Folder, Plus, Trash2 } from "lucide-react";
 
 type Props = { email: string; collectionId?: string; language?: "en" | "de" };
@@ -46,7 +46,7 @@ export default async function BookmarkPosts({ email, collectionId, language = "e
         <div className="rounded-2xl bg-white p-8 text-center shadow-md shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900"><p className="text-slate-600 dark:text-slate-300">{activeCollection ? (de ? "Diese Sammlung ist noch leer." : "This collection is empty.") : (de ? "Noch keine gespeicherten Beiträge." : "No bookmarked posts yet.")}</p></div>
       ) : (
         <SortablePosts posts={savedPosts.map((post) => ({ id: post.id, description: post.description, createdAt: post.createdAt }))} className="grid grid-cols-2 gap-4 md:grid-cols-3">
-          {savedPosts.map((post) => <article key={post.id} className="group relative z-0 overflow-visible rounded-2xl bg-white shadow-md shadow-gray-200 transition hover:z-20 hover:-translate-y-1 hover:shadow-lg dark:bg-gray-800 dark:shadow-gray-900"><Link href={`/posts/${post.id}`} className="block overflow-hidden rounded-t-2xl"><div className="relative aspect-square w-full overflow-hidden"><PostImageCount images={post.images}/><Image src={post.image} alt={post.description || (de ? "Gespeicherter Beitrag" : "Bookmarked post image")} fill className="object-cover transition duration-300 group-hover:scale-[1.03]" unoptimized /></div></Link><div className="space-y-2 p-3"><p className="line-clamp-2 text-sm text-slate-700 dark:text-slate-200">{post.description || (de ? "Keine Beschreibung" : "No description")}</p><div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400"><span>{post.likesCount} {de ? "Likes" : "likes"}</span><BookmarkCollectionPicker postId={post.id} collections={collections} assignedCollectionIds={collections.filter((collection) => collection.items.some((item) => item.postId === post.id)).map((collection) => collection.id)} language={language} /></div></div></article>)}
+          {savedPosts.map((post) => <article key={post.id} className="group relative z-0 overflow-visible rounded-2xl bg-white shadow-md shadow-gray-200 transition hover:z-20 hover:-translate-y-1 hover:shadow-lg dark:bg-gray-800 dark:shadow-gray-900"><Link href={`/posts/${post.id}`} className="block overflow-hidden rounded-t-2xl"><div className="relative aspect-square w-full overflow-hidden"><PostImageCount images={post.images}/><ProgressiveImage src={post.image} alt={post.description || (de ? "Gespeicherter Beitrag" : "Bookmarked post image")} lockAspectRatio="1 / 1" containerClassName="size-full" className="object-cover transition duration-300 group-hover:scale-[1.03]" /></div></Link><div className="space-y-2 p-3"><p className="line-clamp-2 text-sm text-slate-700 dark:text-slate-200">{post.description || (de ? "Keine Beschreibung" : "No description")}</p><div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400"><span>{post.likesCount} {de ? "Likes" : "likes"}</span><BookmarkCollectionPicker postId={post.id} collections={collections} assignedCollectionIds={collections.filter((collection) => collection.items.some((item) => item.postId === post.id)).map((collection) => collection.id)} language={language} /></div></div></article>)}
         </SortablePosts>
       )}
     </section>

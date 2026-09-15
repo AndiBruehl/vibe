@@ -8,6 +8,7 @@ type ProgressiveImageProps = {
   className?: string;
   containerClassName?: string;
   loading?: "eager" | "lazy";
+  lockAspectRatio?: string;
 };
 
 /** Keeps the reserved media area stable while a remote image is loading. */
@@ -17,6 +18,7 @@ export default function ProgressiveImage({
   className = "",
   containerClassName = "",
   loading = "lazy",
+  lockAspectRatio,
 }: ProgressiveImageProps) {
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -45,7 +47,7 @@ export default function ProgressiveImage({
   return (
     <div
       className={`relative overflow-hidden transition-[aspect-ratio] duration-500 ease-out motion-reduce:transition-none ${loaded ? "bg-transparent" : "bg-slate-100 dark:bg-slate-900"} ${containerClassName}`}
-      style={{ aspectRatio: aspectRatio ?? "4 / 3" }}
+      style={{ aspectRatio: lockAspectRatio ?? aspectRatio ?? "4 / 3" }}
     >
       {!failed ? (
         <div aria-hidden="true" className={`absolute inset-0 bg-linear-to-br from-slate-200 via-slate-100 to-slate-200 transition-opacity duration-400 ease-out dark:from-slate-800 dark:via-slate-700 dark:to-slate-800 motion-reduce:transition-none ${loaded ? "opacity-0" : "animate-pulse opacity-100"}`} />

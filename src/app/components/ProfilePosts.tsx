@@ -1,8 +1,8 @@
 import PostImageCount from "@/app/components/PostImageCount";
 import SortablePosts from "./SortablePosts";
 import { prisma } from "@/db";
-import Image from "next/image";
 import Link from "next/link"; // Re-enable topic chips
+import ProgressiveImage from "./ProgressiveImage";
 
 export default async function ProfilePosts({ email }: { email: string }) {
   const posts = await prisma.post.findMany({
@@ -34,12 +34,7 @@ export default async function ProfilePosts({ email }: { email: string }) {
           <Link href={`/posts/${post.id}`} className="block">
             <div className="relative aspect-square w-full overflow-hidden">
               <PostImageCount images={post.images}/>
-              <Image
-                src={post.image}
-                alt={post.description || "Post image"}
-                fill
-                className="object-cover transition duration-300 group-hover:scale-[1.03]"
-              />
+              <ProgressiveImage src={post.image} alt={post.description || "Post image"} lockAspectRatio="1 / 1" containerClassName="size-full" className="object-cover transition duration-300 group-hover:scale-[1.03]" />
             </div>
 
             <div className="space-y-2 p-3">

@@ -1,7 +1,7 @@
 import { prisma } from "@/db";
 import { togglePostArchive } from "@/actions";
-import Image from "next/image";
 import Link from "next/link";
+import ProgressiveImage from "./ProgressiveImage";
 
 export default async function ArchivedPosts({ email, language }: { email: string; language: "en" | "de" }) {
   const de = language === "de";
@@ -11,7 +11,7 @@ export default async function ArchivedPosts({ email, language }: { email: string
 
   return <><p className="mb-4 text-center text-sm text-slate-500 dark:text-slate-400">{de ? "Archivierte Beiträge sind nur für dich sichtbar." : "Archived posts are visible only to you."}</p><div className="grid grid-cols-2 gap-4 md:grid-cols-3">
     {posts.map((post) => <article key={post.id} className="overflow-hidden rounded-2xl bg-white shadow-md shadow-slate-200 dark:bg-slate-800 dark:shadow-slate-950">
-      <Link href={`/posts/${post.id}`} className="block"><div className="relative aspect-square"><Image src={post.image} alt={post.description || (de ? "Archivierter Beitrag" : "Archived post")} fill className="object-cover" unoptimized /></div></Link>
+      <Link href={`/posts/${post.id}`} className="block"><div className="relative aspect-square"><ProgressiveImage src={post.image} alt={post.description || (de ? "Archivierter Beitrag" : "Archived post")} lockAspectRatio="1 / 1" containerClassName="size-full" className="object-cover" /></div></Link>
       <div className="space-y-3 p-3"><p className="line-clamp-2 text-sm text-slate-700 dark:text-slate-200">{post.description || (de ? "Keine Beschreibung" : "No description")}</p><form action={togglePostArchive}><input type="hidden" name="postId" value={post.id} /><input type="hidden" name="archive" value="false" /><button className="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700">{de ? "Wiederherstellen" : "Restore"}</button></form></div>
     </article>)}
   </div></>;

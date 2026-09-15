@@ -12,6 +12,7 @@ import MentionText from "@/app/components/MentionText";
 import MessageComposer from "@/app/components/MessageComposer";
 import MessageReactionPicker from "@/app/components/MessageReactionPicker";
 import VibeTeamBadge from "@/app/components/VibeTeamBadge";
+import ProgressiveImage from "@/app/components/ProgressiveImage";
 
 import { isObjectId } from "@/object-id";
 type ConversationPageProps = {
@@ -300,7 +301,7 @@ export default async function ConversationPage({
                   </p> : null}
                   {message.sharedPost ? <p className={`mb-2 text-sm font-semibold ${isOwnMessage ? "text-white" : "text-slate-800 dark:text-slate-100"}`}>{isOwnMessage ? (de ? "Du hast einen Beitrag geteilt" : "You shared a post") : (de ? `${message.sender?.name || message.sender?.username || "Jemand"} hat einen Beitrag geteilt` : `${message.sender?.name || message.sender?.username || "Someone"} shared a post`)}</p> : null}
                   {message.sharedPost ? <Link href={`/posts/${message.sharedPost.id}`} className={`block overflow-hidden rounded-xl no-underline ${isOwnMessage ? "bg-white/15 text-white" : "bg-slate-100 text-slate-900 dark:bg-slate-900 dark:text-slate-100"}`}>
-                    <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-700"><Image src={message.sharedPost.image} alt={de ? "Geteilter Beitrag" : "Shared post"} fill className="object-cover" unoptimized /></div>
+                    <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-700"><ProgressiveImage src={message.sharedPost.image} alt={de ? "Geteilter Beitrag" : "Shared post"} lockAspectRatio="16 / 9" containerClassName="size-full" className="object-cover" /></div>
                     <div className="p-3"><p className={`text-xs font-bold uppercase tracking-wide ${isOwnMessage ? "text-white/75" : "text-slate-500"}`}>{de ? "Geteilter Beitrag" : "Shared post"}</p><p className="mt-1 truncate text-sm font-semibold">{message.sharedPost.author?.name || message.sharedPost.author?.username || "VIBE"}</p><p className={`mt-1 line-clamp-2 text-sm ${isOwnMessage ? "text-white/90" : "text-slate-600 dark:text-slate-300"}`}>{message.sharedPost.description || (de ? "Beitrag auf VIBE ansehen" : "View this post on VIBE")}</p></div>
                   </Link> : null}
                   {message.imageUrl ? (
