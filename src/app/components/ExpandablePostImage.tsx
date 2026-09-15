@@ -14,6 +14,7 @@ export default function ExpandablePostImage({
   alt,
 }: ExpandablePostImageProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -43,15 +44,19 @@ export default function ExpandablePostImage({
         className="block aspect-square w-full cursor-zoom-in"
         aria-label="Open image preview"
       >
-        <Image
-          src={src}
-          alt={alt}
-          width={800}
-          height={800}
-          className="h-full w-full object-contain"
-          priority
-          unoptimized
-        />
+        <span className="relative block h-full w-full overflow-hidden bg-slate-100 dark:bg-slate-900">
+          {!loaded ? <span aria-hidden="true" className="absolute inset-0 animate-pulse bg-linear-to-br from-slate-200 via-slate-100 to-slate-200 dark:from-slate-800 dark:via-slate-700 dark:to-slate-800" /> : null}
+          <Image
+            src={src}
+            alt={alt}
+            width={800}
+            height={800}
+            onLoad={() => setLoaded(true)}
+            className={`relative h-full w-full object-contain transition-opacity duration-200 ${loaded ? "opacity-100" : "opacity-0"}`}
+            priority
+            unoptimized
+          />
+        </span>
       </button>
 
       {isOpen && typeof document !== "undefined" ? createPortal(

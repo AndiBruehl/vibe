@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Heart } from "lucide-react";
 import ExpandablePostImage from "./ExpandablePostImage";
+import ProgressiveImage from "./ProgressiveImage";
 import { likePost } from "@/actions";
 
 export default function PostCarousel({
@@ -116,11 +117,12 @@ export default function PostCarousel({
                 tabIndex={i === index ? 0 : -1}
                 className="block"
               >
-                <img
+                <ProgressiveImage
                   src={src}
                   alt={`${alt} (${i + 1}/${images.length})`}
                   loading={i ? "lazy" : "eager"}
-                  className="aspect-square w-full object-contain"
+                  containerClassName="aspect-square w-full"
+                  className="object-contain"
                 />
               </Link>
             ) : (
