@@ -112,6 +112,13 @@ body {
   color: var(--ig-text);
 }
 
+/* Every protected mobile page starts below the device cutout with the same rhythm. */
+@media (max-width: 767px) {
+  [data-vibe-protected-main] {
+    padding-top: max(1rem, calc(env(safe-area-inset-top) + 0.75rem)) !important;
+  }
+}
+
 /* Light mode stays airy without the stark white canvas used by browsers. */
 html:not(.dark) .bg-white {
   background-color: var(--ig-surface-bg);
