@@ -78,11 +78,11 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   const de = profile.language === "de";
 
   return (
-    <main>
-      <section className="flex items-center justify-between">
+    <main className="mx-auto w-full max-w-5xl">
+      <section className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center">
         <Link
           href="/home"
-          className="group flex items-center gap-2 text-slate-800 no-underline visited:text-slate-800 hover:text-slate-600 dark:text-slate-200 dark:visited:text-slate-400 dark:hover:text-slate-500"
+          className="group flex justify-self-start items-center gap-2 text-slate-800 no-underline visited:text-slate-800 hover:text-slate-600 dark:text-slate-200 dark:visited:text-slate-400 dark:hover:text-slate-500"
         >
           <MoveLeft />
           <span className="opacity-0 transition-opacity duration-200 group-hover:opacity-100">
@@ -97,7 +97,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex justify-self-end items-center gap-1 sm:gap-3">
           <Link href="/support" className="inline-flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-semibold text-cyan-700 no-underline transition hover:bg-cyan-50 dark:text-cyan-300 dark:hover:bg-cyan-500/10">
             <LifeBuoy size={17} />
             <span className="hidden sm:inline">{de ? "Support" : "Support"}</span>
@@ -114,10 +114,10 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         </div>
       </section>
 
-      <section className="mt-8 flex justify-center">
-        <div className="flex size-44 items-center justify-center rounded-full bg-linear-to-tr from-(--ig-orange) to-(--ig-red)">
-          <div className="flex size-42 items-center justify-center rounded-full bg-white dark:bg-slate-900">
-            <div className="relative size-40 aspect-square overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+      <section className="mt-6 flex justify-center">
+        <div className="flex size-32 items-center justify-center rounded-full bg-linear-to-tr from-(--ig-orange) to-(--ig-red)">
+          <div className="flex size-[7.5rem] items-center justify-center rounded-full bg-white dark:bg-slate-900">
+            <div className="relative size-[7rem] aspect-square overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
               <Image
                 src={profile.avatar || img1.src}
                 alt="Avatar"
@@ -130,7 +130,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         </div>
       </section>
 
-      <section className="mt-8 text-center">
+      <section className="mx-auto mt-5 max-w-3xl text-center">
         <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">
           <span className="inline-flex items-center justify-center gap-2">{profile.name || (de ? "Nutzer" : "User")}<AdminBadge isAdmin={profile.isAdmin} /></span>
         </h1>
@@ -142,22 +142,20 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         <p className="text-slate-700 dark:text-slate-300">
           {profile.bio || ""}
         </p>
-        <div className="mt-5 flex flex-col items-center gap-2.5">
-          {profile.isAdmin ? <Link
+        {profile.isAdmin ? <div className="mt-4 flex flex-col items-center"> <Link
             href="/admin"
             className="inline-flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-semibold text-orange-600 no-underline transition hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-500/10"
           >
             <Shield size={16} />
             {de ? "Adminbereich" : "Admin area"}
-          </Link> : null}
-        </div>
+          </Link></div> : null}
         {profileLinks.length > 0 && (
           <div className="mt-4"><ProfileLinks links={profileLinks} language={de ? "de" : "en"} centered /></div>
         )}
         {shoutouts.length > 0 && <ProfileShoutouts shoutouts={shoutouts} language={de ? "de" : "en"} centered />}
       </section>
 
-      <section className="mt-6 flex justify-center gap-8 text-center text-sm">
+      <section className="mt-5 flex justify-center gap-10 text-center text-sm">
         <div>
           <p className="font-bold text-slate-900 dark:text-white">{postsCount}</p>
           <p className="text-slate-500 dark:text-slate-400">{de ? "Beiträge" : "Posts"}</p>
@@ -178,8 +176,8 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         </Link>
       </section>
 
-      <section className="mt-4">
-        <div className="flex justify-center gap-6">
+      <section className="mt-5">
+        <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
           <Link
             className={
               activeTab === "posts"

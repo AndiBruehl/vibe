@@ -55,11 +55,11 @@ export default async function SettingsPage() {
         </form>
       </section>
 
-      <section className="mx-auto mt-4 w-full max-w-5xl pb-4">
-        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-900/5 dark:border-slate-700/80 dark:bg-slate-900 dark:shadow-black/25">
+      <section className="mx-auto mt-4 w-full max-w-4xl pb-4">
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg shadow-slate-900/5 dark:border-slate-700/80 dark:bg-slate-900 dark:shadow-black/25">
           <SettingsHeading initialLanguage={profile.language === "de" ? "de" : "en"} />
 
-          <div className="p-5 sm:p-6">
+          <div className="p-4 sm:p-5">
             <SettingsForm profile={profile} />
             <Link href="/settings/blocked" className="mt-5 inline-flex text-sm font-semibold text-orange-600 hover:underline"><LocalizedText en="Manage blocked users" de="Blockierte Nutzer verwalten" /></Link>
             <ReleaseDownloads />
