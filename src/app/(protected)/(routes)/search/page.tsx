@@ -83,22 +83,20 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
   return (
     <main className="pb-24 md:pb-8">
-      <section className="flex items-center justify-between">
-        <Link
+      <section className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+        <div className="justify-self-start"><Link
           href="/home"
-          className="group flex items-center gap-2 text-slate-800 no-underline visited:text-slate-800 hover:text-slate-600 dark:text-slate-500 dark:visited:text-slate-400 dark:hover:text-slate-500"
+          className="group inline-flex min-h-11 items-center gap-2 rounded-xl px-2 text-slate-800 no-underline transition hover:bg-slate-100 hover:text-slate-600 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-slate-300"
         >
           <MoveLeft />
-          <span className="opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+          <span className="hidden opacity-0 transition-opacity duration-200 sm:inline group-hover:opacity-100">
             <LocalizedText en="Back to Home" de="Zurück zur Startseite" />
           </span>
-        </Link>
-
+        </Link></div>
         <h1 className="text-lg font-bold text-slate-800 dark:text-slate-500">
           <LocalizedText en="Search" de="Suche" />
         </h1>
-
-        <div className="w-24" />
+        <div />
       </section>
 
       <section className="mt-6">

@@ -25,22 +25,20 @@ export default async function BrowsePage() {
 
   return (
     <main className="pb-24 md:pb-8">
-      <section className="flex items-center justify-between">
-        <Link
+      <section className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+        <div className="justify-self-start"><Link
           href="/home"
-          className="group flex items-center gap-2 text-slate-800 no-underline visited:text-slate-800 hover:text-slate-600 dark:text-slate-200 dark:visited:text-slate-400 dark:hover:text-slate-500"
+          className="group inline-flex min-h-11 items-center gap-2 rounded-xl px-2 text-slate-800 no-underline transition hover:bg-slate-100 hover:text-slate-600 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-slate-300"
         >
           <MoveLeft />
-          <span className="opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+          <span className="hidden opacity-0 transition-opacity duration-200 sm:inline group-hover:opacity-100">
             <LocalizedText en="Back to Home" de="Zurück zur Startseite" />
           </span>
-        </Link>
-
+        </Link></div>
         <h1 className="text-lg font-bold text-slate-800 dark:text-slate-200">
           <LocalizedText en="Browse" de="Entdecken" />
         </h1>
-
-        <Link href="/profiles" className="inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-4 font-medium text-slate-800 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"><LocalizedText en="Profiles" de="Profile" /></Link>
+        <Link href="/profiles" className="justify-self-end inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-4 font-medium text-slate-800 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"><LocalizedText en="Profiles" de="Profile" /></Link>
       </section>
 
       <section className="mt-6">
