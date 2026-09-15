@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Bell, Heart, MessageCircle, MoveLeft, UserPlus } from "lucide-react";
-import MarkActivityRead from "@/app/components/MarkActivityRead";
+import ActivityReadControl from "@/app/components/ActivityReadControl";
 import img1 from "../profile/default.jpg";
 
 type ActivityItem = {
@@ -18,7 +18,24 @@ type ActivityItem = {
   avatar?: string | null;
   image?: string | null;
   context?: string;
+  isUnread?: boolean;
 };
+
+type ActivityGroup = ActivityItem & { count: number; unreadCount: number };
+
+function activityGroupKey(item: ActivityItem) {
+  return item.type === "like" || item.type === "comment" || item.type === "message"
+    ? `${item.type}:${item.href}`
+    : item.id;
+}
+
+function groupedActivityTitle(item: ActivityGroup, de: boolean) {
+  if (item.count === 1) return item.title;
+  if (item.type === "like") return de ? `${item.count} neue Reaktionen` : `${item.count} new reactions`;
+  if (item.type === "comment") return de ? `${item.count} neue Kommentare` : `${item.count} new comments`;
+  if (item.type === "message") return de ? `${item.count} neue Nachrichten` : `${item.count} new messages`;
+  return item.title;
+}
 
 function formatActivityDate(date: Date, language: "en" | "de") {
   return new Intl.DateTimeFormat(language === "de" ? "de-DE" : "en", {
@@ -97,7 +114,7 @@ export default async function ActivityPage() {
 
   const currentUserProfile = await prisma.profile.findUnique({
     where: { email: session.user.email },
-    select: { id: true, email: true, language: true, isAdmin: true },
+    select: { id: true, email: true, language: true, isAdmin: true, activityReadAt: true },
   });
 
   if (!currentUserProfile) notFound();
@@ -407,13 +424,26 @@ export default async function ActivityPage() {
           avatar: profile?.avatar,
         };
       }),
-  ]
+  ];
+
+  const sortedItems = items
+    .map((item) => ({ ...item, isUnread: !currentUserProfile.activityReadAt || item.createdAt > currentUserProfile.activityReadAt }))
     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
     .slice(0, 40);
+  const unreadCount = sortedItems.filter((item) => item.isUnread).length;
+  const groupedItems = sortedItems.reduce<ActivityGroup[]>((groups, item) => {
+    const previous = groups.find((group) => activityGroupKey(group) === activityGroupKey(item));
+    if (previous) {
+      previous.count += 1;
+      previous.unreadCount += item.isUnread ? 1 : 0;
+    } else {
+      groups.push({ ...item, count: 1, unreadCount: item.isUnread ? 1 : 0 });
+    }
+    return groups;
+  }, []);
 
   return (
     <main className="mx-auto w-full max-w-3xl pb-24 md:pb-8">
-      <MarkActivityRead />
       <section className="flex items-center justify-between">
         <Link
           href="/home"
@@ -428,11 +458,11 @@ export default async function ActivityPage() {
         <h1 className="text-lg font-bold text-slate-800 dark:text-slate-100">
           {de ? "Aktivität" : "Activity"}
         </h1>
-        <div className="w-24" />
+        <ActivityReadControl unreadCount={unreadCount} de={de} />
       </section>
 
       <section className="mt-6 overflow-hidden rounded-2xl bg-white shadow-md shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
-        {items.length === 0 ? (
+        {groupedItems.length === 0 ? (
           <div className="flex flex-col items-center gap-3 px-6 py-12 text-center">
             <div className="flex size-12 items-center justify-center rounded-full bg-gradient-to-tr from-orange-500 to-red-500 text-white">
               <Bell size={24} />
@@ -441,16 +471,16 @@ export default async function ActivityPage() {
               {de ? "Noch keine Aktivitäten." : "No activity yet."}
             </p>
             <p className="max-w-sm text-sm text-slate-500 dark:text-slate-400">
-              {de ? "Likes, Kommentare, Follows und Nachrichten erscheinen hier." : "Likes, comments, follows, and messages will appear here."}
+              {de ? "Sobald jemand mit dir oder deinen Beiträgen interagiert, erscheint es hier." : "When someone interacts with you or your posts, it will appear here."}
             </p>
           </div>
         ) : (
           <div className="divide-y divide-slate-100 dark:divide-slate-700">
-            {items.map((item) => (
+            {groupedItems.map((item) => (
               <Link
                 key={item.id}
                 href={item.href}
-                className="flex items-center gap-4 px-5 py-4 transition hover:bg-slate-50 dark:hover:bg-gray-700"
+                className={`flex items-center gap-4 px-5 py-4 transition hover:bg-slate-50 dark:hover:bg-gray-700 ${item.unreadCount ? "bg-orange-50/60 dark:bg-orange-500/5" : ""}`}
               >
                 <div className="relative size-12 shrink-0 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
                   <Image
@@ -468,7 +498,7 @@ export default async function ActivityPage() {
                       <ActivityIcon type={item.type} />
                     </span>
                     <p className="truncate font-semibold text-slate-800 dark:text-slate-100">
-                      {item.title}
+                      {groupedActivityTitle(item, de)}
                     </p>
                   </div>
                   <p className="mt-1 line-clamp-2 text-sm text-slate-500 dark:text-slate-400">
@@ -483,6 +513,8 @@ export default async function ActivityPage() {
                     {formatActivityDate(item.createdAt, de ? "de" : "en")}
                   </p>
                 </div>
+
+                {item.count > 1 && <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-200">{item.count}</span>}
 
                 {item.image && (
                   <div className="relative size-14 shrink-0 overflow-hidden rounded-md bg-slate-200 dark:bg-slate-700">
