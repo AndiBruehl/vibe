@@ -55,7 +55,13 @@ export default function QuickSettings({ initialLanguage, initialTheme }: { initi
     setLanguage(next);
     localStorage.setItem("vibe-language", next);
     document.documentElement.lang = next;
-    const response = await fetch("/api/profile/language", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ language: next }) });
+    setFeedback("working");
+    let response: Response;
+    try {
+      response = await fetch("/api/profile/language", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ language: next }) });
+    } catch {
+      response = new Response(null, { status: 503 });
+    }
     if (!response.ok) {
       setLanguage(previous);
       localStorage.setItem("vibe-language", previous);
@@ -64,9 +70,9 @@ export default function QuickSettings({ initialLanguage, initialTheme }: { initi
       window.setTimeout(() => setFeedback(null), 2200);
       return;
     }
-    setFeedback("working");
-    window.setTimeout(() => setFeedback(null), 2200);
-    window.dispatchEvent(new CustomEvent("vibe-language-change", { detail: next }));
+    window.setTimeout(() => setFeedback("saved"), 650);
+    window.setTimeout(() => window.dispatchEvent(new CustomEvent("vibe-language-change", { detail: next })), 1200);
+    window.setTimeout(() => setFeedback(null), 2600);
   }
 
   const de = language === "de";
