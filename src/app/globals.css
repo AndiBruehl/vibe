@@ -206,6 +206,29 @@ html:not(.dark) :is(input, textarea)::placeholder { color: #607b97; opacity: 1; 
   animation: vibe-quick-settings-enter 150ms ease-out both;
 }
 
+@keyframes vibe-quick-settings-success {
+  0% { transform: scale(0.94); filter: saturate(1.25); }
+  65% { transform: scale(1.06); }
+  100% { transform: scale(1); filter: saturate(1); }
+}
+
+.vibe-quick-settings-feedback {
+  min-width: 7rem;
+  border-radius: 9999px;
+  padding: 0.25rem 0.75rem;
+  color: white;
+  transition: background-color 380ms ease, transform 220ms ease;
+}
+
+.vibe-quick-settings-feedback-working {
+  background: linear-gradient(90deg, #ef4444, #f97316, #fbbf24);
+}
+
+.vibe-quick-settings-feedback-saved {
+  background: #22c55e;
+  animation: vibe-quick-settings-success 420ms ease-out both;
+}
+
 /* Embedded moderation previews show only the reported page content. */
 body.vibe-admin-preview [data-vibe-desktop-nav],
 body.vibe-admin-preview [data-vibe-mobile-nav] {
