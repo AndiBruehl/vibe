@@ -400,8 +400,8 @@ export default async function HomePosts({
                 </div>
               </div>
 
-              <div className="lg:grid lg:grid-cols-[minmax(0,1.08fr)_minmax(22rem,0.92fr)]">
-                <div className="border-b border-slate-200 dark:border-white/10 lg:border-r lg:border-b-0">
+              <div className="xl:grid xl:grid-cols-[minmax(0,1.08fr)_minmax(22rem,0.92fr)]">
+                <div className="border-b border-slate-200 dark:border-white/10 xl:border-r xl:border-b-0">
                   <PostCarousel
                     images={getPostImages(post)}
                     alt={post.description || "Post image"}
@@ -448,7 +448,7 @@ export default async function HomePosts({
                   </div>
                 </div>
 
-                <div className="flex min-w-0 flex-col px-4 py-5 sm:px-5 lg:max-h-[36rem]">
+                <div className="flex min-w-0 flex-col px-4 py-5 sm:px-5 xl:max-h-[36rem]">
                   <div className="space-y-3">
                     <p className="text-sm leading-6 text-slate-900 dark:text-slate-200">
                       <MentionText text={post.description} />
@@ -475,7 +475,7 @@ export default async function HomePosts({
                     )}
                   </div>
 
-                  <div className="mt-5 hidden min-h-0 flex-1 border-t border-slate-200 pt-4 dark:border-white/10 lg:block">
+                  <div className="mt-5 hidden min-h-0 flex-1 border-t border-slate-200 pt-4 dark:border-white/10 xl:block">
                     <div className="mb-3 flex items-center justify-between">
                       <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
                         <MessageCircle
@@ -543,7 +543,7 @@ export default async function HomePosts({
 
                   <Link
                     href={`/posts/${post.id}#comments`}
-                    className="mt-4 flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-orange-600 dark:text-slate-300 dark:hover:text-orange-300 lg:hidden"
+                    className="mt-4 flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-orange-600 dark:text-slate-300 dark:hover:text-orange-300 xl:hidden"
                   >
                     <MessageCircle size={16} />
 

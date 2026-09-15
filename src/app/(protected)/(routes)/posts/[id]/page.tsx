@@ -144,9 +144,9 @@ export default async function SinglePostPage({
         </Link>
       </section>
 
-      <main className="mx-auto w-full max-w-6xl p-4 md:p-8">
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:items-start">
-          <div className="self-start md:sticky md:top-8">
+      <main className="mx-auto w-full max-w-6xl p-3 sm:p-5 xl:p-8">
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(20rem,0.72fr)] xl:items-start xl:gap-6">
+          <div className="self-start xl:sticky xl:top-8">
             <article className="overflow-hidden rounded-2xl bg-white shadow-lg shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
               <div className="w-full">
                 <PostCarousel
@@ -157,7 +157,7 @@ export default async function SinglePostPage({
                 />
               </div>
 
-              <div className="flex items-center justify-between px-5 pt-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 px-4 pt-4 sm:px-5">
                 <LikeButton
                   postId={post.id}
                   initialLiked={!!isLikedByViewer}
@@ -172,15 +172,15 @@ export default async function SinglePostPage({
                   initialBookmarked={!!isBookmarkedByViewer}
                 />
               </div>
-              {!isOwner && <div className="flex justify-end px-5 pt-2"><ReportButton targetType="post" targetId={post.id} targetUrl={`/posts/${post.id}`} /></div>}
+              {!isOwner && <div className="flex justify-end px-4 pt-2 sm:px-5"><ReportButton targetType="post" targetId={post.id} targetUrl={`/posts/${post.id}`} /></div>}
 
-              {post.likesCount > 0 && <div className="px-5 pt-2">
+              {post.likesCount > 0 && <div className="px-4 pt-2 sm:px-5">
                 <Link href={`/posts/${post.id}/likes`} className="text-sm font-medium text-slate-600 hover:text-orange-600 hover:underline dark:text-slate-300 dark:hover:text-orange-300">
                   {post.likesCount} <LocalizedText en={post.likesCount === 1 ? "like" : "likes"} de="Likes" />
                 </Link>
               </div>}
 
-              <div className="space-y-4 p-5 md:p-6">
+              <div className="space-y-4 p-4 sm:p-5 md:p-6">
                 <h1 className="text-xl font-semibold text-slate-900 dark:text-white">
                   <LocalizedText en="Post" de="Beitrag" />
                 </h1>
@@ -210,11 +210,11 @@ export default async function SinglePostPage({
 
                 {isOwner ? (
                   <section className="rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-sm shadow-gray-200/50 dark:border-gray-700 dark:bg-gray-900 dark:shadow-gray-950">
-                    <div className="mb-4 flex items-center justify-between gap-3">
+                    <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                       <p className="text-sm font-semibold text-slate-900 dark:text-white">
                         Manage post
                       </p>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <SharePostButton postId={post.id} de={de} />
                         <form action={deletePost} className="m-0">
                           <input type="hidden" name="postId" value={post.id} />
@@ -256,7 +256,7 @@ export default async function SinglePostPage({
               href={author?.username ? `/profile/${encodeURIComponent(author.username)}` : "#"}
               className="group"
             >
-              <article className="flex h-28 items-center justify-between rounded-2xl bg-white px-5 shadow-md shadow-gray-200 transition hover:shadow-lg dark:bg-gray-800 dark:shadow-gray-900">
+              <article className="flex min-h-28 flex-wrap items-center justify-between gap-3 rounded-2xl bg-white px-4 py-4 shadow-md shadow-gray-200 transition hover:shadow-lg sm:px-5 dark:bg-gray-800 dark:shadow-gray-900">
                 <div className="flex items-center gap-3">
                   <div className="size-12 overflow-hidden rounded-full bg-gray-300">
                     {author?.avatar ? (

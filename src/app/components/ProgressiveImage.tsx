@@ -49,7 +49,7 @@ export default function ProgressiveImage({
           setLoaded(true);
         }}
         onError={() => setFailed(true)}
-        className={`relative h-full w-full transition-opacity duration-200 ${loaded ? "opacity-100" : "opacity-0"} ${className}`}
+        className={`relative h-full w-full transition-opacity duration-200 ${className}`}
       />
     </div>
   );
