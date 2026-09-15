@@ -1,6 +1,6 @@
 "use client";
 
-import { ImageUp, Link as LinkIcon, Lock, Moon, Plus, SlidersHorizontal, Trash2, UserRound } from "lucide-react";
+import { ImageUp, Link as LinkIcon, Lock, Moon, Plus, ShieldCheck, SlidersHorizontal, Trash2, UserRound } from "lucide-react";
 import { Switch } from "@radix-ui/themes";
 import type { Profile } from "@prisma/client";
 import { upsertProfile } from "@/actions";
@@ -8,6 +8,9 @@ import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import LanguageSwitcher from "@/app/components/LanguageSwitcher";
 import MentionTextarea from "@/app/components/MentionTextarea";
 import ShoutoutEditor from "@/app/components/ShoutoutEditor";
+import ReleaseDownloads from "@/app/components/ReleaseDownloads";
+import AppVersion from "@/app/components/AppVersion";
+import Link from "next/link";
 
 import defaultImg from "./default.jpg";
 
@@ -29,7 +32,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
   const [isPrivate, setIsPrivate] = useState(profile?.isPrivate ?? false);
   const [isThemeReady, setIsThemeReady] = useState(false);
   const [language, setLanguage] = useState<"en" | "de">("en");
-  const [activeTab, setActiveTab] = useState<"profile" | "preferences">("profile");
+  const [activeTab, setActiveTab] = useState<"profile" | "preferences" | "account">("profile");
   const [profileLinks, setProfileLinks] = useState<EditableProfileLink[]>(
     profile?.profileLinks?.map((link) => ({ id: link.id, label: link.label, url: link.url })) ?? [],
   );
@@ -96,6 +99,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
       <nav className="flex gap-2 rounded-xl bg-slate-100 p-1 dark:bg-slate-800" aria-label={copy("Settings sections", "Einstellungsbereiche")}>
         <button type="button" onClick={() => setActiveTab("profile")} className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ${activeTab === "profile" ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100"}`}><UserRound size={16} />{copy("Profile", "Profil")}</button>
         <button type="button" onClick={() => setActiveTab("preferences")} className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ${activeTab === "preferences" ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100"}`}><SlidersHorizontal size={16} />{copy("Appearance & privacy", "Darstellung & Privatsphäre")}</button>
+        <button type="button" onClick={() => setActiveTab("account")} className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ${activeTab === "account" ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100"}`}><ShieldCheck size={16} />{copy("Account & app", "Konto & App")}</button>
       </nav>
       <div className={activeTab === "profile" ? "flex flex-col gap-5 lg:flex-row lg:items-start" : "hidden"}>
       <section className="flex flex-col items-center gap-3 border-b border-slate-200 pb-5 dark:border-slate-700/80 lg:w-40 lg:shrink-0 lg:border-b-0 lg:border-r lg:pb-0 lg:pr-6">
@@ -252,13 +256,25 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
         <Switch checked={isPrivate} onCheckedChange={setIsPrivate} />
       </section>
 
+      <LanguageSwitcher onLanguageChange={setLanguage} />
+
       </div>
-      <div className="flex flex-col-reverse gap-3 border-t border-slate-200 pt-5 dark:border-slate-700/80 sm:flex-row sm:items-center sm:justify-between lg:ml-44">
-        <LanguageSwitcher onLanguageChange={setLanguage} />
+      <div className={activeTab === "account" ? "space-y-3" : "hidden"}>
+        <details className="group rounded-xl border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-700/80 dark:bg-slate-800/30">
+          <summary className="cursor-pointer list-none text-sm font-semibold text-slate-700 marker:content-none dark:text-slate-200">{copy("Safety & blocked users", "Sicherheit & blockierte Nutzer")}</summary>
+          <div className="mt-3 border-t border-slate-200 pt-3 dark:border-slate-700/80"><Link href="/settings/blocked" className="inline-flex text-sm font-semibold text-orange-600 hover:underline">{copy("Manage blocked users", "Blockierte Nutzer verwalten")}</Link></div>
+        </details>
+        <details className="group rounded-xl border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-700/80 dark:bg-slate-800/30">
+          <summary className="cursor-pointer list-none text-sm font-semibold text-slate-700 marker:content-none dark:text-slate-200">{copy("Apps & downloads", "Apps & Downloads")}</summary>
+          <div className="mt-3 border-t border-slate-200 pt-3 dark:border-slate-700/80"><ReleaseDownloads /></div>
+        </details>
+        <AppVersion />
+      </div>
+      <div className="flex justify-end border-t border-slate-200 pt-5 dark:border-slate-700/80">
         <button
           type="submit"
           disabled={isUploading}
-          className="self-end rounded-xl bg-linear-to-r from-orange-500 to-pink-500 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-orange-500/25 transition hover:scale-[1.02] hover:shadow-xl disabled:cursor-wait disabled:opacity-60 sm:self-auto"
+          className="rounded-xl bg-linear-to-r from-orange-500 to-pink-500 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-orange-500/25 transition hover:scale-[1.02] hover:shadow-xl disabled:cursor-wait disabled:opacity-60"
         >
           {copy("Save Settings", "Einstellungen speichern")}
         </button>
