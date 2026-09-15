@@ -218,9 +218,9 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
         </div>
         <div className="mt-3 grid grid-cols-3 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
           {([
-            { value: "system" as const, label: copy("System", "System"), Icon: MonitorSmartphone },
             { value: "light" as const, label: copy("Light", "Hell"), Icon: Sun },
             { value: "dark" as const, label: copy("Dark", "Dunkel"), Icon: Moon },
+            { value: "system" as const, label: copy("System", "System"), Icon: MonitorSmartphone },
           ]).map(({ value, label, Icon }) => <button key={value} type="button" onClick={() => { setThemePreference(value); localStorage.setItem("theme", value); applyTheme(value); void fetch("/api/profile/theme", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ theme: value }) }); }} className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-bold transition ${themePreference === value ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"}`}><Icon size={14} />{label}</button>)}
         </div>
       </section>

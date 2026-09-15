@@ -53,9 +53,9 @@ export default function QuickSettings({ initialLanguage, initialTheme }: { initi
 
   const de = language === "de";
   const themeOptions: { value: ThemePreference; label: string; icon: typeof Sun }[] = [
-    { value: "system", label: de ? "System" : "System", icon: MonitorSmartphone },
     { value: "light", label: de ? "Hell" : "Light", icon: Sun },
     { value: "dark", label: de ? "Dunkel" : "Dark", icon: Moon },
+    { value: "system", label: de ? "System" : "System", icon: MonitorSmartphone },
   ];
 
   return (
