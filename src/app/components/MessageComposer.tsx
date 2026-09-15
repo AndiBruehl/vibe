@@ -1,6 +1,6 @@
 "use client";
 
-import { ImagePlus, Send, X } from "lucide-react";
+import { ImagePlus, LoaderCircle, Send, X } from "lucide-react";
 import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { sendMessage } from "@/actions";
@@ -25,6 +25,7 @@ export default function MessageComposer({ conversationId, blocked = false, block
   const [imageUrl, setImageUrl] = useState("");
   const [previewUrl, setPreviewUrl] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState("");
 
   function insertEmoji(emoji: string) {
@@ -70,6 +71,7 @@ export default function MessageComposer({ conversationId, blocked = false, block
     if (blocked || systemNoReply || (!body.trim() && !imageUrl) || isUploading) return;
     const data = new FormData(event.currentTarget);
     setError("");
+    setIsSending(true);
     try {
       await sendMessage(data);
       formRef.current?.reset();
@@ -79,6 +81,8 @@ export default function MessageComposer({ conversationId, blocked = false, block
       router.refresh();
     } catch {
       setError(de ? "Nachrichten sind in dieser Unterhaltung nicht möglich." : "Messages are not available in this conversation.");
+    } finally {
+      setIsSending(false);
     }
   }
 
@@ -107,8 +111,8 @@ export default function MessageComposer({ conversationId, blocked = false, block
         <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={uploadImage} />
         <button type="button" onClick={() => inputRef.current?.click()} disabled={isUploading} className="flex size-11 shrink-0 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100 disabled:opacity-50 dark:text-slate-300 dark:hover:bg-slate-700" aria-label={de ? "Bild anhängen" : "Attach image"}><ImagePlus size={21} /></button>
         <EmojiPicker onSelect={insertEmoji} />
-        <MentionTextarea ref={textareaRef} name="body" value={body} onChange={(event) => setBody(event.target.value)} rows={1} placeholder={isUploading ? (de ? "Bild wird hochgeladen..." : "Uploading image...") : (de ? "Nachricht" : "Message")} className="max-h-32 min-h-11 flex-1 resize-y rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-red-400 dark:border-slate-700 dark:bg-gray-900 dark:text-slate-100" />
-        <button type="submit" disabled={isUploading || (!body.trim() && !imageUrl)} className="flex size-11 shrink-0 items-center justify-center rounded-full bg-linear-to-tr from-(--ig-orange) to-(--ig-red) text-white transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50" aria-label={de ? "Nachricht senden" : "Send message"}><Send size={18} /></button>
+        <MentionTextarea data-emoji-builtin="true" ref={textareaRef} name="body" value={body} onChange={(event) => setBody(event.target.value)} rows={1} placeholder={isUploading ? (de ? "Bild wird hochgeladen..." : "Uploading image...") : (de ? "Nachricht" : "Message")} className="max-h-32 min-h-11 flex-1 resize-y rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-red-400 dark:border-slate-700 dark:bg-gray-900 dark:text-slate-100" />
+        <button type="submit" disabled={isSending || isUploading || (!body.trim() && !imageUrl)} className="flex size-11 shrink-0 items-center justify-center rounded-full bg-linear-to-tr from-(--ig-orange) to-(--ig-red) text-white transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50" aria-label={de ? "Nachricht senden" : "Send message"}>{isSending ? <LoaderCircle className="animate-spin" size={18} /> : <Send size={18} />}</button>
       </div>
       {error && <p className="mt-2 text-xs text-red-600 dark:text-red-300">{error}</p>}
       </>}

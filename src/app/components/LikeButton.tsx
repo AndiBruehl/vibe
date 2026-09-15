@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Heart } from "lucide-react";
+import { Heart, LoaderCircle } from "lucide-react";
 import { togglePostLike } from "@/actions";
 import useVibeLanguage from "./useVibeLanguage";
 
@@ -39,7 +39,7 @@ export default function LikeButton({ postId, initialLiked, initialLikes, showCou
     <button type="button" onClick={() => void handleClick()} disabled={pending}
       aria-pressed={state.liked} aria-label={state.liked ? (de ? "Gefällt mir zurücknehmen" : "Unlike post") : (de ? "Beitrag liken" : "Like post")}
       className="inline-flex items-center gap-2 rounded-full px-2 py-1 text-sm transition hover:bg-black/5 dark:hover:bg-white/10">
-      <Heart className="size-5" style={{ color: state.liked ? "#ef4444" : "var(--ig-text)", fill: state.liked ? "#ef4444" : "none" }} />
+      {pending ? <LoaderCircle className="size-5 animate-spin" /> : <Heart className="size-5" style={{ color: state.liked ? "#ef4444" : "var(--ig-text)", fill: state.liked ? "#ef4444" : "none" }} />}
       {showCount && <span>{state.likes}{showText ? (de ? " Likes" : " likes") : ""}</span>}
     </button>
     {error && <span role="alert" className="text-xs">{de ? "Like konnte nicht gespeichert werden. Bitte erneut versuchen." : "Like could not be saved. Please try again."}</span>}

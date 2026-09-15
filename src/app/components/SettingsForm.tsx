@@ -134,6 +134,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
           <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
             {copy("Username", "Benutzername")}
             <input
+              data-emoji-disabled="true"
               name="username"
               defaultValue={profile?.username ?? ""}
               placeholder="your_username"

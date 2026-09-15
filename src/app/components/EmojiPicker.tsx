@@ -4,7 +4,7 @@ import { Smile } from "lucide-react";
 import { useState } from "react";
 import useVibeLanguage from "./useVibeLanguage";
 
-const EMOJIS = [
+export const EMOJIS = [
   "😀", "😁", "😂", "🥹", "😍", "😘", "😎", "🤔",
   "😢", "😭", "😡", "🎉", "🔥", "❤️", "👍", "👏",
   "🙏", "✨", "💯", "👀", "🤝", "💜", "😈", "🥳",

@@ -1,7 +1,7 @@
 "use client";
 
 import { useOptimistic, useTransition } from "react";
-import { Bookmark } from "lucide-react";
+import { Bookmark, LoaderCircle } from "lucide-react";
 import { togglePostBookmark } from "@/actions";
 import useVibeLanguage from "./useVibeLanguage";
 
@@ -59,13 +59,13 @@ export default function BookmarkButton({
       }
       title={optimisticState.bookmarked ? (de ? "Lesezeichen entfernen" : "Remove bookmark") : (de ? "Lesezeichen hinzufügen" : "Add bookmark")}
     >
-      <Bookmark
+      {isPending ? <LoaderCircle className="size-5 animate-spin" /> : <Bookmark
         className={`size-5 transition ${
           optimisticState.bookmarked
             ? "fill-slate-900 text-slate-900 dark:fill-white dark:text-white"
             : "fill-transparent text-slate-900 dark:text-white"
         }`}
-      />
+      />}
     </button>
   );
 }

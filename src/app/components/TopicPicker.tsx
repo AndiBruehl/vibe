@@ -203,7 +203,7 @@ export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
           <span
             key={t}
             data-topic={t}
-            className="inline-flex items-center gap-2 rounded-md bg-slate-100 px-2 py-1 text-sm"
+            className="inline-flex items-center gap-2 rounded-md bg-slate-100 px-2 py-1 text-sm text-slate-800 dark:bg-slate-800 dark:text-slate-100"
           >
             <span className="truncate max-w-40">{t}</span>
             <button
@@ -219,6 +219,7 @@ export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
 
       <div className="relative">
         <input
+          data-emoji-disabled="true"
           ref={inputRef}
           value={query}
           onChange={(e) => {
@@ -241,7 +242,7 @@ export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
             }
           }}
           placeholder={de ? "Topics hinzufügen (eingeben, Enter drücken oder Vorschlag wählen)" : "Add topics (type and press Enter or pick suggestion)"}
-          className="w-full rounded-md border px-3 py-2 text-sm"
+          className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
         />
 
         {limitMessage ? (
@@ -251,7 +252,7 @@ export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
         ) : null}
 
         {suggestions.length > 0 && (
-          <ul className="absolute z-40 mt-1 max-h-48 w-full overflow-auto rounded-md bg-white shadow ring-1 ring-black/5">
+          <ul className="absolute z-40 mt-1 max-h-48 w-full overflow-auto rounded-md bg-white text-slate-900 shadow ring-1 ring-black/5 dark:bg-slate-900 dark:text-slate-100 dark:ring-white/10">
             {suggestions.map((s) => (
               <li key={s.id}>
                 <button
@@ -261,7 +262,7 @@ export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
                     e.preventDefault();
                     add(s.name);
                   }}
-                  className="w-full text-left px-3 py-2 text-sm hover:bg-slate-50"
+                  className="w-full px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-800"
                 >
                   {s.name}{" "}
                   <span className="text-xs text-slate-400">#{s.slug}</span>

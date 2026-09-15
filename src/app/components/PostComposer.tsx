@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState, type DragEvent } from "react";
+import { LoaderCircle } from "lucide-react";
 import { useFormStatus } from "react-dom";
 import { unstable_rethrow } from "next/navigation";
 import { PinataSDK } from "pinata";
@@ -70,9 +71,9 @@ function Submit({ disabled, editing }: { disabled: boolean; editing: boolean }) 
     <button
       type="submit"
       disabled={disabled || pending}
-      className="w-full rounded-xl bg-red-600 px-4 py-3 font-semibold text-white disabled:opacity-50"
+      className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-3 font-semibold text-white disabled:opacity-50"
     >
-      {pending ? (de ? "Wird gespeichert…" : "Saving…") : editing ? (de ? "Änderungen speichern" : "Save changes") : (de ? "Veröffentlichen" : "Publish")}
+      {pending ? <><LoaderCircle size={18} className="animate-spin" />{de ? "Wird gespeichert…" : "Saving…"}</> : editing ? (de ? "Änderungen speichern" : "Save changes") : (de ? "Veröffentlichen" : "Publish")}
     </button>
   );
 }

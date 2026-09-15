@@ -32,7 +32,7 @@ export default function ProfileTagPicker({ initial = [] }: { initial?: TaggedPro
       </span>)}
     </div>
     <div className="relative">
-      <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={de ? "Profile zum Markieren suchen" : "Search profiles to tag"} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-700 dark:bg-gray-900 dark:text-white" />
+      <input data-emoji-disabled="true" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={de ? "Profile zum Markieren suchen" : "Search profiles to tag"} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-700 dark:bg-gray-900 dark:text-white" />
       {results.length > 0 && <div className="absolute z-50 mt-1 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-900">
         {results.filter((profile) => !selected.some((item) => item.id === profile.id)).map((profile) => <button key={profile.id} type="button" onClick={() => { if (selected.length < 10) setSelected((current) => [...current, profile]); setQuery(""); }} className="flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-slate-100 dark:hover:bg-white/10">
           {profile.avatar ? <img src={profile.avatar} alt="" className="size-8 rounded-full object-cover" /> : <span className="grid size-8 place-items-center rounded-full bg-slate-200 text-xs dark:bg-slate-700">{(profile.username || profile.name || "?")[0]}</span>}
