@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/db";
 import Image from "next/image";
 import Link from "next/link";
-import { MoveLeft, Grid3X3, Bookmark, Lock } from "lucide-react";
+import { Grid3X3, Bookmark, Lock } from "lucide-react";
 import ProfilePosts from "@/app/components/ProfilePosts";
 import BookmarkPosts from "@/app/components/BookmarkPosts";
 import MentionText from "@/app/components/MentionText";
@@ -110,17 +110,7 @@ export default async function ProfileByUsernamePage({
 
   return (
     <>
-      <section className="flex flex-row items-center justify-between">
-        <Link
-          href="/home"
-          className="group flex items-center gap-2 text-slate-900 no-underline hover:text-slate-700 dark:text-white dark:hover:text-slate-300"
-        >
-          <MoveLeft className="shrink-0" />
-          <span className="whitespace-nowrap opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-            Back
-          </span>
-        </Link>
-      </section>
+      <section className="flex flex-row items-center justify-between"><BackNavigationLink language={de ? "de" : "en"} /></section>
 
       <main className="mx-auto w-full max-w-6xl p-4 md:p-8">
         <section className="overflow-hidden rounded-2xl bg-white shadow-lg shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">

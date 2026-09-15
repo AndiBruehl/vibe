@@ -69,8 +69,8 @@ body {
 html::-webkit-scrollbar,
 body::-webkit-scrollbar,
 *::-webkit-scrollbar {
-  width: 28px;
-  height: 28px;
+  width: 12px;
+  height: 12px;
 }
 
 html::-webkit-scrollbar-track,
@@ -82,8 +82,8 @@ body::-webkit-scrollbar-track,
 html::-webkit-scrollbar-thumb,
 body::-webkit-scrollbar-thumb,
 *::-webkit-scrollbar-thumb {
-  min-height: 44px;
-  border: 4px solid var(--ig-scroll-track);
+  min-height: 36px;
+  border: 2px solid var(--ig-scroll-track);
   border-radius: 999px;
   background-color: var(--ig-scroll-thumb);
   background-image: linear-gradient(180deg, var(--ig-scroll-thumb-start) 0%, var(--ig-scroll-thumb-end) 100%);
@@ -199,4 +199,19 @@ body.vibe-admin-preview [data-vibe-protected-main] {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Keep keyboard navigation obvious without adding visual noise for pointer users. */
+:where(a, button, input, textarea, select, summary):focus-visible {
+  outline: 2px solid var(--ig-orange);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }
