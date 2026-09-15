@@ -175,7 +175,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
           />
         </label>
 
-        <details className="group mt-5 rounded-xl border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-700/80 dark:bg-slate-800/30" open={profileLinks.length > 0}>
+        <details className="group mt-5 rounded-xl border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-700/80 dark:bg-slate-800/30">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-slate-700 marker:content-none dark:text-slate-200">
             <span className="flex items-center gap-2"><LinkIcon size={16} className="text-orange-500" />{copy("Profile links", "Profil-Links")}</span>
             <span className="text-xs font-medium text-slate-500 group-open:hidden dark:text-slate-400">{profileLinks.length ? `${profileLinks.length}/5` : copy("Optional", "Optional")}</span>

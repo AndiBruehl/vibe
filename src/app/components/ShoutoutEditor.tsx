@@ -25,7 +25,7 @@ export default function ShoutoutEditor({ shoutouts, language }: { shoutouts: Sho
   const update = (id: string, change: Partial<Draft>) => setDrafts((current) => current.map((draft) => draft.id === id ? { ...draft, ...change } : draft));
 
   return (
-    <details className="group mt-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-700/80 dark:bg-slate-800/30" open={drafts.length > 0}>
+    <details className="group mt-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-700/80 dark:bg-slate-800/30">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-slate-700 marker:content-none dark:text-slate-200">
         <span className="flex items-center gap-2"><Heart size={16} className="text-pink-500" />{copy("Shoutouts", "Shoutouts")}</span>
         <span className="text-xs font-medium text-slate-500 group-open:hidden dark:text-slate-400">{drafts.length ? `${drafts.length}/5` : copy("Optional", "Optional")}</span>
