@@ -39,8 +39,8 @@
 ## BETA 0.1.69.3 (in progress)
 
 - Replace full-page language reloads with a unified translation-key system so every label switches instantly and consistently.
-- Consolidate mobile headers: shared safe-area spacing and collision-free placement for back, profile settings, and quick-settings controls.
-- Add automatic local drafts for message, comment, and support text inputs, with a clear restore/discard experience.
+- Consolidate mobile headers: shared safe-area spacing and collision-free placement for back, profile settings, and quick-settings controls. ✅
+- Add automatic local drafts for message, comment, and support text inputs, with a clear restore/discard experience. ✅
 
 ## Planned BETA 0.1.69.x
 
@@ -75,4 +75,4 @@
 
 ## BETA 0.1.69.3.1
 
-- For story slides that share a post, open a small dismissible pill on a short tap with a clear "View post / Beitrag ansehen" link and an X close control. Keep press-and-hold exclusively for pausing the story.
+- For story slides that share a post, open a small dismissible pill on a short tap with a clear "View post / Beitrag ansehen" link and an X close control. Keep press-and-hold exclusively for pausing the story. ✅
