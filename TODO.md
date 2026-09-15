@@ -49,3 +49,4 @@
 - **0.1.69.6:** Improve image loading, skeleton states, and layout stability.
 - **0.1.69.7:** Accessibility pass for keyboard navigation, contrast, screen-reader labels, and touch targets.
 - **0.1.69.8:** Improve quality-of-life feedback, including drafts and recently-seen indicators.
+- **0.1.69.9:** Add more profile personalization: an individual color picker for the profile-picture frame, plus carefully scoped visual profile options that remain readable in light and dark themes.
