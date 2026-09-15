@@ -4,24 +4,33 @@ import { prisma } from "@/db";
 import Image from "next/image";
 import Link from "next/link";
 import { MoveLeft } from "lucide-react";
-import SearchInput from "./SearchInput";
+import SearchInput, { searchScopes, type SearchScope } from "./SearchInput";
 import img1 from "../profile/default.jpg";
 import LocalizedText from "@/app/components/LocalizedText";
 
 type SearchPageProps = {
   searchParams: Promise<{
     q?: string;
+    scope?: string;
   }>;
 };
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
-  const { q } = await searchParams;
+  const { q, scope: requestedScope } = await searchParams;
   const query = q?.trim() || "";
+  const scope: SearchScope = searchScopes.includes(requestedScope as SearchScope)
+    ? (requestedScope as SearchScope)
+    : "all";
+  const topicQuery = query.replace(/^#/, "");
+  const includesProfiles = scope === "all" || scope === "profiles" || scope === "admins";
+  const includesPosts = scope === "all" || scope === "posts";
+  const includesTags = scope === "all" || scope === "tags";
 
-  const [users, posts] = query
+  const [users, posts, topics] = query
     ? await Promise.all([
-        prisma.profile.findMany({
+        includesProfiles ? prisma.profile.findMany({
           where: {
+            ...(scope === "admins" ? { isAdmin: true } : {}),
             OR: [
               {
                 username: {
@@ -53,15 +62,15 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             username: "asc",
           },
           take: 20,
-        }),
+        }) : Promise.resolve([]),
 
-        prisma.post.findMany({
+        includesPosts ? prisma.post.findMany({
           where: {
             isArchived: false,
-            description: {
-              contains: query,
-              mode: "insensitive",
-            },
+            OR: [
+              { description: { contains: query, mode: "insensitive" } },
+              { topics: { some: { topic: { name: { contains: topicQuery, mode: "insensitive" } } } } },
+            ],
           },
           include: {
             author: {
@@ -75,11 +84,24 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           orderBy: {
             createdAt: "desc",
           },
-        }),
+          take: 48,
+        }) : Promise.resolve([]),
+        includesTags ? prisma.topic.findMany({
+          where: {
+            OR: [
+              { name: { contains: topicQuery, mode: "insensitive" } },
+              { slug: { contains: topicQuery, mode: "insensitive" } },
+              { description: { contains: topicQuery, mode: "insensitive" } },
+            ],
+          },
+          include: { _count: { select: { posts: true } } },
+          orderBy: { name: "asc" },
+          take: 20,
+        }) : Promise.resolve([]),
       ])
-    : [[], []];
+    : [[], [], []];
 
-  const hasResults = users.length > 0 || posts.length > 0;
+  const hasResults = users.length > 0 || posts.length > 0 || topics.length > 0;
 
   return (
     <main className="pb-24 md:pb-8">
@@ -102,20 +124,20 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       </section>
 
       <section className="mt-6">
-        <SearchInput initialQuery={query} />
+        <SearchInput initialQuery={query} initialScope={scope} />
       </section>
 
       {!query ? (
         <section className="mt-6 rounded-2xl bg-white p-8 text-center shadow-md shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
           <p className="text-slate-700 dark:text-slate-300">
-            <LocalizedText en="Search for users or words inside post descriptions." de="Suche nach Nutzern oder Wörtern in Beitragsbeschreibungen." />
+            <LocalizedText en="Search profiles, posts, tags, or admins." de="Suche nach Profilen, Beiträgen, Tags oder Admins." />
           </p>
         </section>
       ) : null}
 
       {query ? (
         <>
-          <section className="mt-6">
+          {includesProfiles ? <section className="mt-6">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-500">
                 <LocalizedText en="Users" de="Nutzer" />
@@ -172,9 +194,23 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                 ))}
               </div>
             )}
-          </section>
+          </section> : null}
 
-          <section className="mt-8">
+          {includesTags ? <section className="mt-8">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100"><LocalizedText en="Tags" de="Tags" /></h2>
+              <span className="text-sm text-slate-500 dark:text-slate-400">{topics.length} <LocalizedText en={topics.length === 1 ? "result" : "results"} de={topics.length === 1 ? "Ergebnis" : "Ergebnisse"} /></span>
+            </div>
+            {topics.length === 0 ? (
+              <div className="rounded-2xl bg-white p-6 text-center shadow-md shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900"><p className="text-slate-700 dark:text-slate-300"><LocalizedText en="No tags found." de="Keine Tags gefunden." /></p></div>
+            ) : (
+              <div className="flex flex-wrap gap-3">
+                {topics.map((topic) => <Link key={topic.id} href={`/topics/${topic.slug}`} className="rounded-xl bg-white px-4 py-3 font-semibold text-slate-800 shadow-md shadow-gray-200 transition hover:-translate-y-0.5 hover:shadow-lg dark:bg-gray-800 dark:text-slate-100 dark:shadow-gray-900">#{topic.name}<span className="ml-2 text-sm font-normal text-slate-500 dark:text-slate-400">{topic._count.posts} <LocalizedText en="posts" de="Beiträge" /></span></Link>)}
+              </div>
+            )}
+          </section> : null}
+
+          {includesPosts ? <section className="mt-8">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-500">
                 <LocalizedText en="Posts" de="Beiträge" />
@@ -246,12 +282,12 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                 ))}
               </SortablePosts>
             )}
-          </section>
+          </section> : null}
 
           {!hasResults ? (
             <section className="mt-8 rounded-2xl bg-white p-8 text-center shadow-md shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
               <p className="text-slate-700 dark:text-slate-300">
-                Nothing found for{" "}
+                <LocalizedText en="Nothing found for" de="Nichts gefunden für" />{" "}
                 <span className="font-semibold">&quot;{query}&quot;</span>.
               </p>
             </section>
