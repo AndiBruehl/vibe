@@ -67,8 +67,9 @@ export default async function SettingsPage() {
             </details>
             <details className="group mt-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-700/80 dark:bg-slate-800/30">
               <summary className="cursor-pointer list-none text-sm font-semibold text-slate-700 marker:content-none dark:text-slate-200"><LocalizedText en="Apps & downloads" de="Apps & Downloads" /></summary>
-              <div className="mt-3 border-t border-slate-200 pt-3 dark:border-slate-700/80"><ReleaseDownloads /><AppVersion /></div>
+              <div className="mt-3 border-t border-slate-200 pt-3 dark:border-slate-700/80"><ReleaseDownloads /></div>
             </details>
+            <AppVersion />
           </div>
         </div>
       </section>
