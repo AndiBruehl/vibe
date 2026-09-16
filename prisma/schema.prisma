@@ -15,6 +15,7 @@ model Profile {
   name                String?
   subtitle            String?
   bio                 String?
+  avatarAccent        String    @default("#f97316")
   language            String    @default("en")
   theme               String    @default("system")
   isPrivate           Boolean   @default(false)

@@ -15,6 +15,7 @@ import VibeTeamBadge from "@/app/components/VibeTeamBadge";
 import { isProtectedAdmin, isSuperAdmin } from "@/admin";
 import DeleteProfileButton from "@/app/components/DeleteProfileButton";
 import ProfileShoutouts from "@/app/components/ProfileShoutouts";
+import { normalizeAvatarAccent } from "@/profile-personalization";
 
 type ProfileByUsernamePageProps = {
   params: Promise<{
@@ -69,6 +70,7 @@ export default async function ProfileByUsernamePage({
   }
 
   const de = viewerProfile?.language === "de";
+  const avatarAccent = normalizeAvatarAccent(profile.avatarAccent);
   const isOwnProfile = viewerEmail === profile.email;
   const isSystemProfile = profile.isSystem;
   const isSupportProfile = profile.systemKind === "support";
@@ -116,7 +118,7 @@ export default async function ProfileByUsernamePage({
         <section className="overflow-hidden rounded-2xl bg-white shadow-lg shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
           <div className="grid gap-5 p-5 text-center sm:p-6 md:grid-cols-[7rem_minmax(0,1fr)_auto] md:items-start md:p-8 md:text-left">
             <div className="flex justify-center md:block">
-              <div className="size-24 overflow-hidden rounded-full bg-gray-300 md:size-28">
+              <div className="size-24 overflow-hidden rounded-full border-4 bg-gray-300 md:size-28" style={{ borderColor: avatarAccent }}>
                 {profile.avatar ? (
                   <Image
                     src={profile.avatar}

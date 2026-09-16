@@ -13,6 +13,7 @@ import AppVersion from "@/app/components/AppVersion";
 import { applyTheme, type ThemePreference } from "@/app/components/ProfileThemeRuntime";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { AVATAR_ACCENT_PRESETS, DEFAULT_AVATAR_ACCENT, normalizeAvatarAccent } from "@/profile-personalization";
 
 import defaultImg from "./default.jpg";
 
@@ -30,6 +31,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
     profile?.avatar ?? null,
   );
   const [avatarUrl, setAvatarUrl] = useState<string>(profile?.avatar ?? "");
+  const [avatarAccent, setAvatarAccent] = useState(() => normalizeAvatarAccent(profile?.avatarAccent));
   const [isUploading, setIsUploading] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -128,7 +130,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
       </nav>
       <div className={activeTab === "profile" ? "flex flex-col gap-5 lg:flex-row lg:items-start" : "hidden"}>
       <section className="flex flex-col items-center gap-3 border-b border-slate-200 pb-5 dark:border-slate-700/80 lg:w-40 lg:shrink-0 lg:border-b-0 lg:border-r lg:pb-0 lg:pr-6">
-        <div className="size-32 shrink-0 overflow-hidden rounded-full border-4 border-white bg-slate-200 shadow-lg shadow-slate-900/15 dark:border-slate-700 dark:bg-slate-800 dark:shadow-black/30">
+        <div className="size-32 shrink-0 overflow-hidden rounded-full border-4 bg-slate-200 shadow-lg shadow-slate-900/15 dark:bg-slate-800 dark:shadow-black/30" style={{ borderColor: avatarAccent }}>
           <img
             src={avatarSrc}
             alt="Avatar"
@@ -147,6 +149,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
           />
 
           <input type="hidden" name="avatarUrl" value={avatarUrl} />
+          <input type="hidden" name="avatarAccent" value={avatarAccent} />
 
           <button
             type="button"
@@ -158,6 +161,16 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
             {isUploading ? copy("Uploading...", "Wird hochgeladen...") : copy("Change avatar", "Avatar ändern")}
           </button>
           <p className="mt-2 text-center text-xs text-slate-500 dark:text-slate-400">{copy("JPG, PNG or WEBP", "JPG, PNG oder WEBP")}</p>
+        </div>
+        <div className="w-full border-t border-slate-200 pt-3 dark:border-slate-700/80 lg:border-0 lg:pt-1">
+          <p className="text-center text-xs font-semibold text-slate-700 dark:text-slate-200">{copy("Avatar frame", "Avatar-Rahmen")}</p>
+          <div className="mt-2 flex flex-wrap justify-center gap-2">
+            {AVATAR_ACCENT_PRESETS.map((color) => <button key={color} type="button" onClick={() => { setAvatarAccent(color); setIsDirty(true); }} aria-label={`${copy("Use frame color", "Rahmenfarbe verwenden")}: ${color}`} className={`grid size-7 place-items-center rounded-full transition hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 ${avatarAccent === color ? "ring-2 ring-slate-700 ring-offset-2 dark:ring-slate-200 dark:ring-offset-slate-900" : ""}`} style={{ backgroundColor: color }}><span className="sr-only">{color}</span></button>)}
+            <label className="relative grid size-7 cursor-pointer place-items-center overflow-hidden rounded-full border border-slate-300 bg-conic from-red-500 via-yellow-400 via-emerald-400 via-cyan-400 via-violet-500 to-red-500 transition hover:scale-110 dark:border-slate-600" title={copy("Custom color", "Eigene Farbe")}>
+              <input type="color" value={avatarAccent} onChange={(event) => { setAvatarAccent(normalizeAvatarAccent(event.target.value)); setIsDirty(true); }} className="absolute inset-0 size-full cursor-pointer opacity-0" aria-label={copy("Choose a custom frame color", "Eigene Rahmenfarbe wählen")} />
+            </label>
+          </div>
+          {avatarAccent !== DEFAULT_AVATAR_ACCENT && <button type="button" onClick={() => { setAvatarAccent(DEFAULT_AVATAR_ACCENT); setIsDirty(true); }} className="mt-2 w-full text-xs font-semibold text-slate-500 transition hover:text-orange-600 dark:text-slate-400 dark:hover:text-orange-300">{copy("Reset frame", "Rahmen zurücksetzen")}</button>}
         </div>
       </section>
 
