@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/db";
 import { normalizeAvatarAccent, normalizeAvatarFrameDirection } from "@/profile-personalization";
+import { revalidatePath } from "next/cache";
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -23,5 +24,8 @@ export async function POST(request: Request) {
     update: { avatarAccent, avatarAccentEnd, avatarAccentDirection },
     create: { email: session.user.email, avatarAccent, avatarAccentEnd, avatarAccentDirection },
   });
+  revalidatePath("/profile");
+  revalidatePath("/settings");
+  revalidatePath("/profile/[username]", "page");
   return NextResponse.json({ avatarAccent, avatarAccentEnd, avatarAccentDirection });
 }
