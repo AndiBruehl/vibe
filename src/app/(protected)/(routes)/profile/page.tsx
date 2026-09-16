@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import { Check, MoveLeft, Settings, Shield } from "lucide-react";
+import { Check, CircleHelp, MoveLeft, Settings, Shield } from "lucide-react";
 import Link from "next/link";
 import img1 from "./default.jpg";
 import { prisma } from "@/db";
@@ -138,6 +138,13 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         <p className="text-slate-700 dark:text-slate-300">
           {profile.bio || ""}
         </p>
+        <Link
+          href="/support"
+          className="mx-auto mt-4 inline-flex items-center gap-2 rounded-full border border-cyan-300/70 bg-cyan-50/70 px-4 py-2 text-sm font-bold text-cyan-800 no-underline transition hover:-translate-y-0.5 hover:border-cyan-400 hover:bg-cyan-100 dark:border-cyan-400/40 dark:bg-cyan-500/10 dark:text-cyan-200 dark:hover:bg-cyan-500/20"
+        >
+          <CircleHelp size={16} aria-hidden="true" />
+          {de ? "Hilfe & Support" : "Help & support"}
+        </Link>
         {profile.isAdmin ? <div className="mt-4 flex flex-col items-center"> <Link
             href="/admin"
             className="inline-flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-semibold text-orange-600 no-underline transition hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-500/10"
