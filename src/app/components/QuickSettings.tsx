@@ -40,11 +40,15 @@ export default function QuickSettings({ initialLanguage, initialTheme }: { initi
       return;
     }
 
-    const header = document.querySelector("[data-vibe-browse-header]");
-    if (!header) return;
-    const observer = new IntersectionObserver(([entry]) => setBrowseHeaderVisible(entry.isIntersecting), { threshold: 0 });
-    observer.observe(header);
-    return () => observer.disconnect();
+    const syncHeaderVisibility = () => {
+      const header = document.querySelector("[data-vibe-browse-header]");
+      if (header) setBrowseHeaderVisible(header.getBoundingClientRect().bottom > 0);
+    };
+
+    syncHeaderVisibility();
+    window.setTimeout(syncHeaderVisibility, 0);
+    window.addEventListener("scroll", syncHeaderVisibility, { passive: true, capture: true });
+    return () => window.removeEventListener("scroll", syncHeaderVisibility, true);
   }, [pathname]);
 
   function showFeedback(next: "saved" | "failed" | "working") {
@@ -122,7 +126,7 @@ export default function QuickSettings({ initialLanguage, initialTheme }: { initi
     : "right-4 top-3.5 md:right-6 md:top-3.5";
 
   return (
-    <div ref={panel} className={`fixed ${position} z-50 transition-[right] duration-300`} data-vibe-quick-settings>
+    <div ref={panel} className={`fixed ${position} z-50 transition-[right] duration-300`} style={pathname === "/browse" && browseHeaderVisible ? { right: "7rem" } : undefined} data-vibe-quick-settings>
       <button type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open} aria-label={de ? "Schnelleinstellungen" : "Quick settings"}
         className="grid size-10 place-items-center rounded-full border border-slate-300/80 bg-white/90 text-slate-600 shadow-lg shadow-slate-900/10 backdrop-blur transition hover:-translate-y-0.5 hover:border-orange-300 hover:text-orange-500 dark:border-slate-600 dark:bg-slate-800/90 dark:text-slate-200 dark:shadow-black/30 dark:hover:border-orange-400 dark:hover:text-orange-300">
         <Settings2 size={18} aria-hidden="true" />
