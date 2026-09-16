@@ -13,7 +13,7 @@ import AppVersion from "@/app/components/AppVersion";
 import { applyTheme, type ThemePreference } from "@/app/components/ProfileThemeRuntime";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AVATAR_ACCENT_PRESETS, AVATAR_FRAME_GRADIENTS, DEFAULT_AVATAR_ACCENT, avatarFrameStyle, normalizeAvatarAccent } from "@/profile-personalization";
+import { AVATAR_ACCENT_PRESETS, AVATAR_FRAME_DIRECTIONS, AVATAR_FRAME_GRADIENTS, DEFAULT_AVATAR_ACCENT, avatarFrameConfig, avatarFrameStyle, normalizeAvatarAccent } from "@/profile-personalization";
 
 import defaultImg from "./default.jpg";
 
@@ -31,7 +31,10 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
     profile?.avatar ?? null,
   );
   const [avatarUrl, setAvatarUrl] = useState<string>(profile?.avatar ?? "");
-  const [avatarAccent, setAvatarAccent] = useState(() => normalizeAvatarAccent(profile?.avatarAccent));
+  const initialFrame = avatarFrameConfig(profile?.avatarAccent, profile?.avatarAccentEnd, profile?.avatarAccentDirection);
+  const [avatarAccent, setAvatarAccent] = useState(initialFrame.start);
+  const [avatarAccentEnd, setAvatarAccentEnd] = useState<string | null>(initialFrame.end);
+  const [avatarAccentDirection, setAvatarAccentDirection] = useState(initialFrame.direction);
   const [isSavingAccent, setIsSavingAccent] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
@@ -122,24 +125,29 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
     window.setTimeout(() => setSaveFeedback(null), 2500);
   }
 
-  async function updateAvatarAccent(next: string) {
-    if (next === avatarAccent || isSavingAccent) return;
-    const previous = avatarAccent;
-    setAvatarAccent(normalizeAvatarAccent(next));
+  async function updateAvatarAccent(next: string, end: string | null = avatarAccentEnd, direction = avatarAccentDirection) {
+    if (next === avatarAccent && end === avatarAccentEnd && direction === avatarAccentDirection || isSavingAccent) return;
+    const previous = { accent: avatarAccent, end: avatarAccentEnd, direction: avatarAccentDirection };
+    const accent = normalizeAvatarAccent(next);
+    setAvatarAccent(accent);
+    setAvatarAccentEnd(end);
+    setAvatarAccentDirection(direction);
     setIsSavingAccent(true);
     setSaveFeedback(null);
     try {
       const response = await fetch("/api/profile/avatar-accent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ avatarAccent: next }),
+        body: JSON.stringify({ avatarAccent: accent, avatarAccentEnd: end, avatarAccentDirection: direction }),
       });
       if (!response.ok) throw new Error("Avatar frame could not be saved");
       setSaveFeedback("saved");
       startTransition(() => router.refresh());
       window.setTimeout(() => setSaveFeedback(null), 2500);
     } catch {
-      setAvatarAccent(previous);
+      setAvatarAccent(previous.accent);
+      setAvatarAccentEnd(previous.end);
+      setAvatarAccentDirection(previous.direction);
       setSaveFeedback("failed");
     } finally {
       setIsSavingAccent(false);
@@ -155,7 +163,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
       </nav>
       <div className={activeTab === "profile" ? "flex flex-col gap-5 lg:flex-row lg:items-start" : "hidden"}>
       <section className="flex flex-col items-center gap-3 border-b border-slate-200 pb-5 dark:border-slate-700/80 lg:w-40 lg:shrink-0 lg:border-b-0 lg:border-r lg:pb-0 lg:pr-6">
-        <div className="size-32 shrink-0 rounded-full p-1 shadow-lg shadow-slate-900/15 dark:shadow-black/30" style={avatarFrameStyle(avatarAccent)}>
+        <div className="size-32 shrink-0 rounded-full p-1 shadow-lg shadow-slate-900/15 dark:shadow-black/30" style={avatarFrameStyle(avatarAccent, avatarAccentEnd, avatarAccentDirection)}>
           <div className="size-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800"><img
             src={avatarSrc}
             alt="Avatar"
@@ -175,6 +183,8 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
 
           <input type="hidden" name="avatarUrl" value={avatarUrl} />
           <input type="hidden" name="avatarAccent" value={avatarAccent} />
+          <input type="hidden" name="avatarAccentEnd" value={avatarAccentEnd ?? ""} />
+          <input type="hidden" name="avatarAccentDirection" value={avatarAccentDirection} />
 
           <button
             type="button"
@@ -190,12 +200,14 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
         <div className="w-full border-t border-slate-200 pt-3 dark:border-slate-700/80 lg:border-0 lg:pt-1">
           <p className="text-center text-xs font-semibold text-slate-700 dark:text-slate-200">{copy("Avatar frame", "Avatar-Rahmen")}</p>
           <div className="mt-2 flex flex-wrap justify-center gap-2">
-            {AVATAR_ACCENT_PRESETS.map((color) => <button key={color} type="button" onClick={() => void updateAvatarAccent(color)} disabled={isSavingAccent} aria-label={`${copy("Use frame color", "Rahmenfarbe verwenden")}: ${color}`} className={`grid size-7 place-items-center rounded-full transition hover:scale-110 disabled:cursor-wait disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 ${avatarAccent === color ? "ring-2 ring-slate-700 ring-offset-2 dark:ring-slate-200 dark:ring-offset-slate-900" : ""}`} style={{ backgroundColor: color }}><span className="sr-only">{color}</span></button>)}
-            {AVATAR_FRAME_GRADIENTS.map((gradient) => <button key={gradient} type="button" onClick={() => void updateAvatarAccent(gradient)} disabled={isSavingAccent} aria-label={gradient === "gradient-orange-yellow" ? copy("Orange to yellow gradient frame", "Orange-zu-Gelb-Verlaufsrahmen") : copy("Yellow to orange gradient frame", "Gelb-zu-Orange-Verlaufsrahmen")} className={`grid size-7 place-items-center rounded-full transition hover:scale-110 disabled:cursor-wait disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 ${avatarAccent === gradient ? "ring-2 ring-slate-700 ring-offset-2 dark:ring-slate-200 dark:ring-offset-slate-900" : ""}`} style={avatarFrameStyle(gradient)}><span className="sr-only">{gradient}</span></button>)}
+            {AVATAR_ACCENT_PRESETS.map((color) => <button key={color} type="button" onClick={() => void updateAvatarAccent(color, null)} disabled={isSavingAccent} aria-label={`${copy("Use frame color", "Rahmenfarbe verwenden")}: ${color}`} className={`grid size-7 place-items-center rounded-full transition hover:scale-110 disabled:cursor-wait disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 ${avatarAccent === color && !avatarAccentEnd ? "ring-2 ring-slate-700 ring-offset-2 dark:ring-slate-200 dark:ring-offset-slate-900" : ""}`} style={{ backgroundColor: color }}><span className="sr-only">{color}</span></button>)}
+            {AVATAR_FRAME_GRADIENTS.map((gradient) => { const preset = avatarFrameConfig(gradient); return <button key={gradient} type="button" onClick={() => void updateAvatarAccent(preset.start, preset.end, preset.direction)} disabled={isSavingAccent} aria-label={gradient === "gradient-orange-yellow" ? copy("Orange to yellow gradient frame", "Orange-zu-Gelb-Verlaufsrahmen") : copy("Yellow to orange gradient frame", "Gelb-zu-Orange-Verlaufsrahmen")} className="grid size-7 place-items-center rounded-full transition hover:scale-110 disabled:cursor-wait disabled:opacity-60" style={avatarFrameStyle(preset.start, preset.end, preset.direction)}><span className="sr-only">{gradient}</span></button>})}
             <label className="relative grid size-7 cursor-pointer place-items-center overflow-hidden rounded-full border border-slate-300 bg-conic from-red-500 via-yellow-400 via-emerald-400 via-cyan-400 via-violet-500 to-red-500 transition hover:scale-110 dark:border-slate-600" title={copy("Custom color", "Eigene Farbe")}>
-              <input type="color" value={avatarAccent.startsWith("gradient-") ? DEFAULT_AVATAR_ACCENT : avatarAccent} onChange={(event) => void updateAvatarAccent(event.target.value)} className="absolute inset-0 size-full cursor-pointer opacity-0" aria-label={copy("Choose a custom frame color", "Eigene Rahmenfarbe wählen")} />
+              <input type="color" value={avatarAccent} onChange={(event) => void updateAvatarAccent(event.target.value, null)} className="absolute inset-0 size-full cursor-pointer opacity-0" aria-label={copy("Choose a custom frame color", "Eigene Rahmenfarbe wählen")} />
             </label>
           </div>
+          <div className="mt-3 grid grid-cols-2 gap-2 rounded-xl bg-slate-100 p-1 text-xs font-bold dark:bg-slate-800"><button type="button" onClick={() => void updateAvatarAccent(avatarAccent, null)} className={`rounded-lg px-2 py-2 ${!avatarAccentEnd ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 dark:text-slate-400"}`}>{copy("Single", "Einzelfarbe")}</button><button type="button" onClick={() => void updateAvatarAccent(avatarAccent, avatarAccentEnd ?? "#eab308")} className={`rounded-lg px-2 py-2 ${avatarAccentEnd ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 dark:text-slate-400"}`}>{copy("Gradient", "Verlauf")}</button></div>
+          {avatarAccentEnd && <div className="mt-3 space-y-2"><div className="flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-slate-300"><span>{copy("Second color", "Zweite Farbe")}</span><input type="color" value={avatarAccentEnd} onChange={(event) => void updateAvatarAccent(avatarAccent, event.target.value)} aria-label={copy("Choose second gradient color", "Zweite Verlaufsfarbe wählen")} /></div><div className="grid grid-cols-4 gap-1">{AVATAR_FRAME_DIRECTIONS.map((direction) => <button key={direction} type="button" onClick={() => void updateAvatarAccent(avatarAccent, avatarAccentEnd, direction)} className={`rounded-lg py-1.5 text-sm ${avatarAccentDirection === direction ? "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300" : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"}`}>{({ "to-bottom-right": "↘", "to-bottom-left": "↙", "to-top-right": "↗", "to-top-left": "↖" } as Record<string, string>)[direction]}</button>)}</div></div>}
           {avatarAccent !== DEFAULT_AVATAR_ACCENT && <button type="button" onClick={() => void updateAvatarAccent(DEFAULT_AVATAR_ACCENT)} disabled={isSavingAccent} className="mt-2 w-full text-xs font-semibold text-slate-500 transition hover:text-orange-600 disabled:opacity-60 dark:text-slate-400 dark:hover:text-orange-300">{copy("Reset frame", "Rahmen zurücksetzen")}</button>}
         </div>
       </section>

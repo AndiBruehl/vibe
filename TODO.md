@@ -50,7 +50,7 @@
 - **0.1.69.7:** Accessibility pass for keyboard navigation, contrast, screen-reader labels, and touch targets. ✅
 - **0.1.69.8:** Improve quality-of-life feedback, including drafts and recently-seen indicators. ✅
 - **0.1.69.9:** Add more profile personalization: an individual color picker for the profile-picture frame, plus carefully scoped visual profile options that remain readable in light and dark themes. ✅
-- **0.1.69.10:** Add curated profile-frame presets (solid, gradient, subtle glow) alongside the custom color picker; keep a reset-to-default control and ensure every preset meets contrast rules.
+- **0.1.69.10:** Add curated profile-frame presets (solid, gradient, subtle glow) alongside the custom color picker; keep a reset-to-default control and ensure every preset meets contrast rules. ✅
 - **0.1.69.11:** Add a profile accent color that can style only personal UI details such as profile links, shoutouts, and section dividers—without changing VIBE’s global safety and action colors.
 - **0.1.69.12:** Add optional profile header layouts with a small set of responsive presets, so profiles can feel individual without hiding avatar, name, bio, counts, links, or actions.
 - **0.1.69.13:** Add profile background accents using restrained patterns or gradients, with automatic readable text overlays and a reduced-motion-friendly option.

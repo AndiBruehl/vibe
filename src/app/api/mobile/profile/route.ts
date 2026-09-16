@@ -1,7 +1,7 @@
 import { getMobileSession } from "@/mobile-auth";
 import { prisma } from "@/db";
 import { NextResponse, type NextRequest } from "next/server";
-import { normalizeAvatarAccent } from "@/profile-personalization";
+import { normalizeAvatarAccent, normalizeAvatarFrameDirection } from "@/profile-personalization";
 
 export async function GET(request: NextRequest) {
   const session = await getMobileSession(request);
@@ -23,6 +23,8 @@ export async function GET(request: NextRequest) {
       subtitle: true,
       bio: true,
       avatarAccent: true,
+      avatarAccentEnd: true,
+      avatarAccentDirection: true,
       profileLinks: { select: { id: true, label: true, url: true, position: true }, orderBy: { position: "asc" } },
     },
   });
@@ -63,8 +65,8 @@ export async function PATCH(request: NextRequest) {
   try {
     const profile = await prisma.profile.update({
       where: { id: session.profileId },
-      data: { username, name: text(body.name, 80), subtitle: text(body.subtitle, 160), bio: text(body.bio, 500), avatar: avatar || null, avatarAccent: normalizeAvatarAccent(body.avatarAccent), profileLinks: { deleteMany: {}, create: links } },
-      select: { id: true, email: true, name: true, username: true, avatar: true, avatarAccent: true, subtitle: true, bio: true, profileLinks: { select: { id: true, label: true, url: true, position: true }, orderBy: { position: "asc" } } },
+      data: { username, name: text(body.name, 80), subtitle: text(body.subtitle, 160), bio: text(body.bio, 500), avatar: avatar || null, avatarAccent: normalizeAvatarAccent(body.avatarAccent), avatarAccentEnd: typeof body.avatarAccentEnd === "string" && /^#[0-9a-fA-F]{6}$/.test(body.avatarAccentEnd) ? body.avatarAccentEnd.toLowerCase() : null, avatarAccentDirection: normalizeAvatarFrameDirection(body.avatarAccentDirection), profileLinks: { deleteMany: {}, create: links } },
+      select: { id: true, email: true, name: true, username: true, avatar: true, avatarAccent: true, avatarAccentEnd: true, avatarAccentDirection: true, subtitle: true, bio: true, profileLinks: { select: { id: true, label: true, url: true, position: true }, orderBy: { position: "asc" } } },
     });
     return NextResponse.json(profile);
   } catch (error) {

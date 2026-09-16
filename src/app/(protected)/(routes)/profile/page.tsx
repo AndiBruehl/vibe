@@ -112,7 +112,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
       </section>
 
       <section className="mt-6 flex justify-center">
-        <div className="flex size-32 items-center justify-center rounded-full" style={avatarFrameStyle(profile.avatarAccent)}>
+        <div className="flex size-32 items-center justify-center rounded-full" style={avatarFrameStyle(profile.avatarAccent, profile.avatarAccentEnd, profile.avatarAccentDirection)}>
           <div className="flex size-[7.5rem] items-center justify-center rounded-full bg-white dark:bg-slate-900">
             <div className="relative size-[7rem] aspect-square overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
               <Image

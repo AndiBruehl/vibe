@@ -12,7 +12,7 @@ import { appendSupportTicketMessage, sendSupportAcknowledgement } from "@/suppor
 import { supportTemplateText, type SupportTemplateKey } from "@/support-templates";
 
 import { isObjectId } from "@/object-id";
-import { normalizeAvatarAccent } from "@/profile-personalization";
+import { normalizeAvatarAccent, normalizeAvatarFrameDirection } from "@/profile-personalization";
 const MAX_STORY_SLIDES = 4;
 
 async function usersAreBlocked(profileIdA: string, profileIdB: string) {
@@ -130,6 +130,8 @@ export async function upsertProfile(formData: FormData): Promise<{ ok: true }> {
     bio: ((formData.get("bio") as string) || "").trim(),
     avatar: ((formData.get("avatarUrl") as string) || "").trim(),
     avatarAccent: normalizeAvatarAccent(formData.get("avatarAccent")),
+    avatarAccentEnd: typeof formData.get("avatarAccentEnd") === "string" && /^#[0-9a-fA-F]{6}$/.test(formData.get("avatarAccentEnd") as string) ? (formData.get("avatarAccentEnd") as string).toLowerCase() : null,
+    avatarAccentDirection: normalizeAvatarFrameDirection(formData.get("avatarAccentDirection")),
     isPrivate: formData.get("isPrivate") === "true",
   };
 

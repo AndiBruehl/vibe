@@ -117,7 +117,7 @@ export default async function ProfileByUsernamePage({
         <section className="overflow-hidden rounded-2xl bg-white shadow-lg shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
           <div className="grid gap-5 p-5 text-center sm:p-6 md:grid-cols-[7rem_minmax(0,1fr)_auto] md:items-start md:p-8 md:text-left">
             <div className="flex justify-center md:block">
-              <div className="size-24 rounded-full p-1 md:size-28" style={avatarFrameStyle(profile.avatarAccent)}><div className="size-full overflow-hidden rounded-full bg-gray-300">
+              <div className="size-24 rounded-full p-1 md:size-28" style={avatarFrameStyle(profile.avatarAccent, profile.avatarAccentEnd, profile.avatarAccentDirection)}><div className="size-full overflow-hidden rounded-full bg-gray-300">
                 {profile.avatar ? (
                   <Image
                     src={profile.avatar}
