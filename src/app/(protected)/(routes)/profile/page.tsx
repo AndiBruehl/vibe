@@ -81,9 +81,9 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   const profileHeaderLayout = normalizeProfileHeaderLayout(profile.profileHeaderLayout);
   const headerBackgroundStyle = profileHeaderBackgroundStyle(profile.profileHeaderBackgroundMode, profile.profileHeaderBackgroundImage, profile.profileHeaderBackgroundColor, profile.profileHeaderBackgroundEnd);
   const headerTextColor = normalizeProfileHeaderTextColor(profile.profileHeaderTextColor);
-  const avatarSize = profileHeaderLayout === "compact" ? "7.25rem" : profileHeaderLayout === "spotlight" ? "9rem" : "8rem";
-  const avatarInnerSize = profileHeaderLayout === "compact" ? "6.75rem" : profileHeaderLayout === "spotlight" ? "8.5rem" : "7.5rem";
-  const avatarImageSize = profileHeaderLayout === "compact" ? "6.25rem" : profileHeaderLayout === "spotlight" ? "8rem" : "7rem";
+  const avatarSize = profileHeaderLayout === "compact" ? "7.25rem" : profileHeaderLayout === "spotlight" ? "11rem" : "8rem";
+  const avatarInnerSize = profileHeaderLayout === "compact" ? "6.75rem" : profileHeaderLayout === "spotlight" ? "10.5rem" : "7.5rem";
+  const avatarImageSize = profileHeaderLayout === "compact" ? "6.25rem" : profileHeaderLayout === "spotlight" ? "10rem" : "7rem";
 
   return (
     <main className={`mx-auto w-full max-w-5xl ${profileHeaderLayout === "spotlight" ? "rounded-3xl border border-slate-200 bg-slate-50/60 px-4 py-5 shadow-sm dark:border-slate-700/80 dark:bg-slate-800/25 sm:px-7" : ""}`}>
@@ -118,7 +118,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         </div>
       </section>
 
-      <div className={`${profileHeaderLayout === "compact" ? "mx-auto mt-6 flex max-w-3xl flex-col items-start gap-4 rounded-2xl border border-slate-200 bg-slate-50/60 p-5 text-left sm:flex-row-reverse sm:items-start dark:border-slate-700/80 dark:bg-slate-800/30" : profileHeaderLayout === "spotlight" ? "mx-auto mt-6 max-w-4xl rounded-3xl border border-slate-200 bg-white/60 p-6 text-center shadow-lg shadow-slate-900/5 dark:border-slate-700/80 dark:bg-slate-900/25 dark:shadow-black/15" : "mx-auto mt-6 max-w-4xl rounded-3xl p-5 text-center"} ${headerBackgroundStyle ? "text-white [&_*]:!text-[color:inherit]" : ""}`} style={headerBackgroundStyle ? { ...headerBackgroundStyle, color: headerTextColor } : undefined}>
+      <div className={`${profileHeaderLayout === "compact" ? "mx-auto mt-6 flex max-w-3xl flex-col items-start gap-4 rounded-2xl border border-slate-200 bg-slate-50/60 p-5 text-left sm:flex-row-reverse sm:items-start dark:border-slate-700/80 dark:bg-slate-800/30" : profileHeaderLayout === "spotlight" ? "mx-auto mt-6 max-w-4xl rounded-3xl border border-slate-200 bg-white/60 p-10 text-center shadow-xl shadow-slate-900/15 dark:border-slate-700/80 dark:bg-slate-900/25 dark:shadow-black/25" : "mx-auto mt-6 max-w-4xl rounded-3xl p-5 text-center"} ${headerBackgroundStyle ? profileHeaderLayout === "spotlight" ? "min-h-[34rem]" : profileHeaderLayout === "compact" ? "min-h-[20rem]" : "min-h-[23rem]" : ""} ${headerBackgroundStyle ? "text-white [&_*]:!text-[color:inherit]" : ""}`} style={headerBackgroundStyle ? { ...headerBackgroundStyle, color: headerTextColor } : undefined}>
       <section className={`flex justify-center ${profileHeaderLayout === "compact" ? "mt-0 shrink-0 justify-start" : profileHeaderLayout === "spotlight" ? "mt-0 mb-2" : "mt-6"}`}>
         <div className="flex items-center justify-center rounded-full" style={{ ...avatarFrameStyle(profile.avatarAccent, profile.avatarAccentEnd, profile.avatarAccentDirection), width: avatarSize, height: avatarSize }}>
           <div className="flex items-center justify-center rounded-full bg-white dark:bg-slate-900" style={{ width: avatarInnerSize, height: avatarInnerSize }}>
