@@ -84,7 +84,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   const avatarImageSize = profileHeaderLayout === "compact" ? "5rem" : profileHeaderLayout === "spotlight" ? "8rem" : "7rem";
 
   return (
-    <main className="mx-auto w-full max-w-5xl">
+    <main className={`mx-auto w-full max-w-5xl ${profileHeaderLayout === "spotlight" ? "rounded-3xl border border-slate-200 bg-slate-50/60 px-4 py-5 shadow-sm dark:border-slate-700/80 dark:bg-slate-800/25 sm:px-7" : ""}`}>
       <section className="relative flex items-center justify-between">
         <Link
           href="/home"
@@ -116,7 +116,8 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         </div>
       </section>
 
-      <section className={`mt-6 flex justify-center ${profileHeaderLayout === "compact" ? "mb-1" : profileHeaderLayout === "spotlight" ? "mb-2" : ""}`}>
+      <div className={profileHeaderLayout === "compact" ? "mx-auto mt-6 flex max-w-3xl flex-col items-center gap-4 rounded-2xl border border-slate-200 bg-slate-50/60 p-5 sm:flex-row sm:items-start sm:text-left dark:border-slate-700/80 dark:bg-slate-800/30" : profileHeaderLayout === "spotlight" ? "mx-auto mt-6 max-w-4xl rounded-3xl border border-slate-200 bg-white/60 p-6 text-center shadow-lg shadow-slate-900/5 dark:border-slate-700/80 dark:bg-slate-900/25 dark:shadow-black/15" : ""}>
+      <section className={`flex justify-center ${profileHeaderLayout === "compact" ? "mt-0 shrink-0 sm:justify-start" : profileHeaderLayout === "spotlight" ? "mt-0 mb-2" : "mt-6"}`}>
         <div className="flex items-center justify-center rounded-full" style={{ ...avatarFrameStyle(profile.avatarAccent, profile.avatarAccentEnd, profile.avatarAccentDirection), width: avatarSize, height: avatarSize }}>
           <div className="flex items-center justify-center rounded-full bg-white dark:bg-slate-900" style={{ width: avatarInnerSize, height: avatarInnerSize }}>
             <div className="relative aspect-square overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700" style={{ width: avatarImageSize, height: avatarImageSize }}>
@@ -132,7 +133,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         </div>
       </section>
 
-      <section className={`mx-auto mt-5 text-center ${profileHeaderLayout === "compact" ? "max-w-2xl" : profileHeaderLayout === "spotlight" ? "max-w-4xl" : "max-w-3xl"}`}>
+      <section className={`mx-auto text-center ${profileHeaderLayout === "compact" ? "mt-0 max-w-2xl sm:text-left" : profileHeaderLayout === "spotlight" ? "mt-2 max-w-4xl" : "mt-5 max-w-3xl"}`}>
         <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">
           <span className="inline-flex items-center justify-center gap-2">{profile.name || (de ? "Nutzer" : "User")}<AdminBadge isAdmin={profile.isAdmin} /></span>
         </h1>
@@ -163,6 +164,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         )}
         {shoutouts.length > 0 && <ProfileShoutouts shoutouts={shoutouts} language={de ? "de" : "en"} centered />}
       </section>
+      </div>
 
       <section className="mt-5 flex justify-center gap-10 text-center text-sm">
         <div>
