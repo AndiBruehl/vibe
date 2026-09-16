@@ -17,7 +17,7 @@ import { AVATAR_ACCENT_PRESETS, AVATAR_FRAME_DIRECTIONS, AVATAR_FRAME_GRADIENTS,
 
 import defaultImg from "./default.jpg";
 
-type AppearancePreset = { id: string; name: string; avatarAccent: string; avatarAccentEnd: string | null; avatarAccentDirection: string; profileAccent: string; profileHeaderLayout: string; profileHeaderBackgroundMode: string; profileHeaderBackgroundImage: string | null; profileHeaderBackgroundColor: string; profileHeaderBackgroundEnd: string | null; profileHeaderTextColor: string };
+type AppearancePreset = { id: string; name: string; avatarAccent: string; avatarAccentEnd: string | null; avatarAccentDirection: string; profileAccent: string; profileHeaderLayout: string; profileHeaderBackgroundMode: string; profileHeaderBackgroundImage: string | null; profileHeaderBackgroundColor: string; profileHeaderBackgroundEnd: string | null; profileHeaderTextColor: string; isDefault: boolean };
 
 type SettingsFormProps = {
   profile: (Profile & { profileLinks?: { id: string; label: string; url: string }[]; shoutouts?: { id: string; label: string; targetProfile: { id: string; username: string | null; name: string | null; avatar: string | null } }[]; framePresets?: { id: string; startColor: string; endColor: string; direction: string; position: number }[]; appearancePresets?: AppearancePreset[] }) | null;
@@ -55,6 +55,10 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
   const [appearancePresetName, setAppearancePresetName] = useState("");
   const [isSavingAppearancePreset, setIsSavingAppearancePreset] = useState(false);
   const [isApplyingAppearancePreset, setIsApplyingAppearancePreset] = useState(false);
+  const [previewAppearancePreset, setPreviewAppearancePreset] = useState<AppearancePreset | null>(null);
+  const [lastAppliedAppearance, setLastAppliedAppearance] = useState<{ appearance: Omit<AppearancePreset, "id" | "name" | "isDefault">; presetName: string } | null>(null);
+  const [renamingAppearancePresetId, setRenamingAppearancePresetId] = useState<string | null>(null);
+  const [renamingAppearancePresetName, setRenamingAppearancePresetName] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -274,7 +278,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
     return { avatarAccent, avatarAccentEnd, avatarAccentDirection, profileAccent, profileHeaderLayout, profileHeaderBackgroundMode, profileHeaderBackgroundImage: profileHeaderBackgroundImage || null, profileHeaderBackgroundColor, profileHeaderBackgroundEnd, profileHeaderTextColor };
   }
 
-  function applyAppearanceToState(appearance: Omit<AppearancePreset, "id" | "name">) {
+  function applyAppearanceToState(appearance: Omit<AppearancePreset, "id" | "name" | "isDefault">) {
     setAvatarAccent(normalizeAvatarAccent(appearance.avatarAccent));
     setAvatarAccentEnd(appearance.avatarAccentEnd);
     setAvatarAccentDirection(avatarFrameConfig(appearance.avatarAccent, appearance.avatarAccentEnd, appearance.avatarAccentDirection).direction);
@@ -307,7 +311,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
     try {
       const response = await fetch("/api/profile/appearance-presets", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ presetId: preset.id }) });
       if (!response.ok) throw new Error("Could not apply profile look");
-      setSaveFeedback("saved"); startTransition(() => router.refresh());
+      setLastAppliedAppearance({ appearance: previous, presetName: preset.name }); setSaveFeedback("saved"); startTransition(() => router.refresh());
     } catch { applyAppearanceToState(previous); setSaveFeedback("failed"); } finally { setIsApplyingAppearancePreset(false); }
   }
 
@@ -325,6 +329,38 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
     const previous = appearancePresets; setAppearancePresets((current) => current.filter((preset) => preset.id !== id));
     try { const response = await fetch(`/api/profile/appearance-presets?id=${encodeURIComponent(id)}`, { method: "DELETE" }); if (!response.ok) throw new Error("Could not delete profile look"); }
     catch { setAppearancePresets(previous); setSaveFeedback("failed"); }
+  }
+
+  async function undoAppearancePreset() {
+    if (!lastAppliedAppearance || isApplyingAppearancePreset) return;
+    const restoring = lastAppliedAppearance; setIsApplyingAppearancePreset(true); setSaveFeedback(null);
+    try {
+      const response = await fetch("/api/profile/appearance-presets", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "restore", ...restoring.appearance }) });
+      if (!response.ok) throw new Error("Could not restore profile look");
+      applyAppearanceToState(restoring.appearance); setLastAppliedAppearance(null); setSaveFeedback("saved"); startTransition(() => router.refresh());
+    } catch { setSaveFeedback("failed"); } finally { setIsApplyingAppearancePreset(false); }
+  }
+
+  async function renameAppearancePreset(preset: AppearancePreset) {
+    const name = renamingAppearancePresetName.trim().replace(/\s+/g, " ");
+    if (!name || isApplyingAppearancePreset) return;
+    setIsApplyingAppearancePreset(true); setSaveFeedback(null);
+    try {
+      const response = await fetch("/api/profile/appearance-presets", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "rename", presetId: preset.id, name }) });
+      if (!response.ok) throw new Error("Could not rename profile look");
+      const { preset: updated } = await response.json() as { preset: AppearancePreset };
+      setAppearancePresets((current) => current.map((item) => item.id === updated.id ? updated : item)); setRenamingAppearancePresetId(null); setSaveFeedback("saved");
+    } catch { setSaveFeedback("failed"); } finally { setIsApplyingAppearancePreset(false); }
+  }
+
+  async function setDefaultAppearancePreset(preset: AppearancePreset) {
+    if (isApplyingAppearancePreset) return;
+    setIsApplyingAppearancePreset(true); setSaveFeedback(null);
+    try {
+      const response = await fetch("/api/profile/appearance-presets", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "set-default", presetId: preset.id }) });
+      if (!response.ok) throw new Error("Could not set default profile look");
+      setAppearancePresets((current) => current.map((item) => ({ ...item, isDefault: item.id === preset.id }))); setSaveFeedback("saved");
+    } catch { setSaveFeedback("failed"); } finally { setIsApplyingAppearancePreset(false); }
   }
 
   return (
@@ -544,7 +580,9 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
             <div className="rounded-lg bg-slate-950/40 p-3 backdrop-blur-sm" style={{ color: profileHeaderTextColor }}><div className={`flex gap-3 ${profileHeaderLayout === "spotlight" ? "flex-col items-center text-center" : profileHeaderLayout === "compact" ? "flex-row-reverse items-start text-left" : "items-center text-left"}`}><span className="size-12 shrink-0 rounded-full p-0.5" style={avatarFrameStyle(avatarAccent, avatarAccentEnd, avatarAccentDirection)}><span className="block size-full rounded-full bg-slate-200" /></span><span className="min-w-0"><span className="block truncate text-sm font-bold">{profile?.name || copy("Your profile", "Dein Profil")}</span><span className="mt-1 block text-xs opacity-85">{copy("A compact public preview", "Kompakte öffentliche Vorschau")}</span></span></div></div>
           </div>
           <div className="mt-3 flex flex-col gap-2 sm:flex-row"><input value={appearancePresetName} maxLength={32} onChange={(event) => setAppearancePresetName(event.target.value)} placeholder={copy("Name this look", "Diesen Look benennen")} className="min-h-10 min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-orange-400 focus:ring-4 focus:ring-orange-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500" /><button type="button" onClick={() => void saveAppearancePreset()} disabled={!appearancePresetName.trim() || isSavingAppearancePreset} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-orange-400/60 bg-orange-50 px-3 py-2 text-sm font-bold text-orange-700 transition hover:bg-orange-100 disabled:opacity-50 dark:bg-orange-500/10 dark:text-orange-300 dark:hover:bg-orange-500/20"><BookmarkPlus size={15} />{isSavingAppearancePreset ? copy("Saving...", "Wird gespeichert...") : copy("Save look", "Look speichern")}</button></div>
-          {appearancePresets.length > 0 ? <div className="mt-3 grid gap-2 sm:grid-cols-2">{appearancePresets.map((preset) => <div key={preset.id} className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800/50"><div className="h-12 bg-cover bg-center" style={profileHeaderBackgroundStyle(preset.profileHeaderBackgroundMode, preset.profileHeaderBackgroundImage, preset.profileHeaderBackgroundColor, preset.profileHeaderBackgroundEnd)} /><div className="flex items-center gap-2 p-2"><span className="size-8 shrink-0 rounded-full p-0.5" style={avatarFrameStyle(preset.avatarAccent, preset.avatarAccentEnd, preset.avatarAccentDirection)}><span className="block size-full rounded-full bg-slate-300 dark:bg-slate-600" /></span><p className="min-w-0 flex-1 truncate text-sm font-bold text-slate-800 dark:text-white">{preset.name}</p><button type="button" onClick={() => void applyAppearancePreset(preset)} disabled={isApplyingAppearancePreset} className="rounded-lg bg-slate-800 px-2.5 py-1.5 text-xs font-bold text-white transition hover:bg-slate-700 disabled:opacity-60 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white">{copy("Apply", "Anwenden")}</button><button type="button" onClick={() => void deleteAppearancePreset(preset.id)} className="grid size-9 place-items-center rounded-lg text-red-600 transition hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-500/10" aria-label={copy("Delete saved look", "Gespeicherten Look löschen")}><Trash2 size={15} /></button></div></div>)}</div> : <p className="mt-3 rounded-lg bg-slate-100 px-3 py-2 text-xs text-slate-500 dark:bg-slate-800 dark:text-slate-400">{copy("Your saved profile looks will appear here.", "Deine gespeicherten Profil-Looks erscheinen hier.")}</p>}
+          {lastAppliedAppearance && <div className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800 dark:border-emerald-400/40 dark:bg-emerald-500/10 dark:text-emerald-200"><span>{copy(`Applied ${lastAppliedAppearance.presetName}.`, `${lastAppliedAppearance.presetName} angewendet.`)}</span><button type="button" onClick={() => void undoAppearancePreset()} disabled={isApplyingAppearancePreset} className="rounded-md bg-emerald-700 px-2 py-1 font-bold text-white transition hover:bg-emerald-800 disabled:opacity-60">{copy("Undo", "Rückgängig")}</button></div>}
+          {appearancePresets.length > 0 ? <div className="mt-3 grid gap-2 sm:grid-cols-2">{appearancePresets.map((preset) => <div key={preset.id} className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800/50"><div className="h-12 bg-cover bg-center" style={profileHeaderBackgroundStyle(preset.profileHeaderBackgroundMode, preset.profileHeaderBackgroundImage, preset.profileHeaderBackgroundColor, preset.profileHeaderBackgroundEnd)} /><div className="p-2"><div className="flex items-center gap-2"><span className="size-8 shrink-0 rounded-full p-0.5" style={avatarFrameStyle(preset.avatarAccent, preset.avatarAccentEnd, preset.avatarAccentDirection)}><span className="block size-full rounded-full bg-slate-300 dark:bg-slate-600" /></span>{renamingAppearancePresetId === preset.id ? <form onSubmit={(event) => { event.preventDefault(); void renameAppearancePreset(preset); }} className="flex min-w-0 flex-1 gap-1"><input autoFocus value={renamingAppearancePresetName} maxLength={32} onChange={(event) => setRenamingAppearancePresetName(event.target.value)} className="min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-2 py-1 text-xs text-slate-900 dark:border-slate-600 dark:bg-slate-900 dark:text-white" /><button className="rounded-md bg-slate-800 px-2 text-xs font-bold text-white dark:bg-slate-100 dark:text-slate-900">{copy("Save", "Speichern")}</button></form> : <p className="min-w-0 flex-1 truncate text-sm font-bold text-slate-800 dark:text-white">{preset.name}{preset.isDefault && <span className="ml-1.5 rounded-full bg-orange-100 px-1.5 py-0.5 text-[10px] text-orange-700 dark:bg-orange-500/20 dark:text-orange-300">{copy("Default", "Standard")}</span>}</p>}<button type="button" onClick={() => { setRenamingAppearancePresetId(preset.id); setRenamingAppearancePresetName(preset.name); }} className="text-xs font-bold text-slate-500 hover:text-orange-600 dark:text-slate-400 dark:hover:text-orange-300">{copy("Rename", "Umbenennen")}</button></div><div className="mt-2 flex flex-wrap gap-1.5"><button type="button" onClick={() => setPreviewAppearancePreset(preset)} className="rounded-md border border-slate-300 px-2 py-1 text-xs font-bold text-slate-600 transition hover:bg-white dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700">{copy("Preview", "Vorschau")}</button><button type="button" onClick={() => void applyAppearancePreset(preset)} disabled={isApplyingAppearancePreset} className="rounded-md bg-slate-800 px-2 py-1 text-xs font-bold text-white transition hover:bg-slate-700 disabled:opacity-60 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white">{copy("Apply", "Anwenden")}</button><button type="button" onClick={() => void setDefaultAppearancePreset(preset)} disabled={isApplyingAppearancePreset || preset.isDefault} className="rounded-md border border-orange-400/60 px-2 py-1 text-xs font-bold text-orange-700 transition hover:bg-orange-50 disabled:opacity-50 dark:text-orange-300 dark:hover:bg-orange-500/10">{copy("Set default", "Als Standard")}</button><button type="button" onClick={() => void deleteAppearancePreset(preset.id)} className="grid size-7 place-items-center rounded-md text-red-600 transition hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-500/10" aria-label={copy("Delete saved look", "Gespeicherten Look löschen")}><Trash2 size={14} /></button></div></div></div>)}</div> : <p className="mt-3 rounded-lg bg-slate-100 px-3 py-2 text-xs text-slate-500 dark:bg-slate-800 dark:text-slate-400">{copy("Your saved profile looks will appear here.", "Deine gespeicherten Profil-Looks erscheinen hier.")}</p>}
+          {previewAppearancePreset && <div className="mt-3 overflow-hidden rounded-xl border border-slate-200 bg-slate-950 p-5 text-white shadow-lg dark:border-slate-700" style={profileHeaderBackgroundStyle(previewAppearancePreset.profileHeaderBackgroundMode, previewAppearancePreset.profileHeaderBackgroundImage, previewAppearancePreset.profileHeaderBackgroundColor, previewAppearancePreset.profileHeaderBackgroundEnd)}><div className={`rounded-xl bg-slate-950/45 p-5 backdrop-blur-sm ${previewAppearancePreset.profileHeaderLayout === "spotlight" ? "mx-auto max-w-lg text-center" : previewAppearancePreset.profileHeaderLayout === "compact" ? "text-left" : "max-w-xl text-left"}`} style={{ color: previewAppearancePreset.profileHeaderTextColor }}><div className={`flex gap-4 ${previewAppearancePreset.profileHeaderLayout === "spotlight" ? "flex-col items-center" : previewAppearancePreset.profileHeaderLayout === "compact" ? "flex-row-reverse items-start" : "items-center"}`}><span className="size-20 shrink-0 rounded-full p-1" style={avatarFrameStyle(previewAppearancePreset.avatarAccent, previewAppearancePreset.avatarAccentEnd, previewAppearancePreset.avatarAccentDirection)}><span className="block size-full rounded-full bg-slate-200" /></span><div><p className="text-lg font-bold">{profile?.name || copy("Your profile", "Dein Profil")}</p><p className="mt-1 text-sm opacity-90">{copy("Public profile preview", "Öffentliche Profilvorschau")}</p><p className="mt-3 text-xs opacity-80">{previewAppearancePreset.name} · {previewAppearancePreset.profileHeaderLayout}</p></div></div></div><button type="button" onClick={() => setPreviewAppearancePreset(null)} className="mt-3 rounded-lg bg-white/15 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-white/25">{copy("Close preview", "Vorschau schließen")}</button></div>}
           <button type="button" onClick={() => void resetAppearance()} disabled={isApplyingAppearancePreset} className="mt-3 flex min-h-10 w-full items-center justify-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-600 transition hover:bg-slate-100 disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">{copy("Reset full profile look", "Kompletten Profil-Look zurücksetzen")}</button>
         </section>
       </section>

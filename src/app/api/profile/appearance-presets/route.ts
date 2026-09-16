@@ -97,6 +97,38 @@ export async function PATCH(request: Request) {
     select: { id: true },
   });
 
+  if (body.action === "rename") {
+    if (typeof body.presetId !== "string" || typeof body.name !== "string") return NextResponse.json({ error: "Invalid preset." }, { status: 400 });
+    const name = body.name.trim().replace(/\s+/g, " ").slice(0, 32);
+    if (!name) return NextResponse.json({ error: "A preset name is required." }, { status: 400 });
+    const taken = await prisma.profileAppearancePreset.findFirst({ where: { profileId: profile.id, name, NOT: { id: body.presetId } }, select: { id: true } });
+    if (taken) return NextResponse.json({ error: "That preset name is already in use." }, { status: 400 });
+    const preset = await prisma.profileAppearancePreset.updateMany({ where: { id: body.presetId, profileId: profile.id }, data: { name } });
+    if (!preset.count) return NextResponse.json({ error: "Preset not found." }, { status: 404 });
+    const updated = await prisma.profileAppearancePreset.findUnique({ where: { id: body.presetId } });
+    revalidatePath("/settings");
+    return NextResponse.json({ preset: updated });
+  }
+
+  if (body.action === "set-default") {
+    if (typeof body.presetId !== "string") return NextResponse.json({ error: "Invalid preset." }, { status: 400 });
+    const exists = await prisma.profileAppearancePreset.findFirst({ where: { id: body.presetId, profileId: profile.id }, select: { id: true } });
+    if (!exists) return NextResponse.json({ error: "Preset not found." }, { status: 404 });
+    await prisma.$transaction([
+      prisma.profileAppearancePreset.updateMany({ where: { profileId: profile.id }, data: { isDefault: false } }),
+      prisma.profileAppearancePreset.update({ where: { id: body.presetId }, data: { isDefault: true } }),
+    ]);
+    revalidatePath("/settings");
+    return NextResponse.json({ defaultPresetId: body.presetId });
+  }
+
+  if (body.action === "restore") {
+    const appearance = presetData(body);
+    await prisma.profile.update({ where: { id: profile.id }, data: appearance });
+    revalidateAppearance();
+    return NextResponse.json({ restored: true, appearance });
+  }
+
   const data = body.action === "reset"
     ? {
         avatarAccent: DEFAULT_AVATAR_ACCENT,
