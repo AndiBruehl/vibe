@@ -34,7 +34,7 @@ The root application also contains the localized `not-found` page, global error 
 
 ### Profiles and appearance
 
-Each profile stores its own appearance preference in MongoDB so the same look is rendered on web, Android, and desktop. The profile header supports standard, compact, and spotlight layouts. Its background can be disabled, set to an uploaded image, or set to a solid color/gradient. Profile image frames, link accents, saved frame presets, and text color are independently configurable.
+Each profile stores its own appearance preference in MongoDB so the same look is rendered on web, Android, and desktop. The profile header supports standard, compact, and spotlight layouts. Its background can be disabled, set to an uploaded image, or set to a solid color/gradient. Profile image frames, link accents, saved frame presets, and text color are independently configurable. A member can also save up to six named complete profile looks and later preview, apply, replace, delete, or reset them.
 
 `ProfileAvatar`, `AdminBadge`, profile links, shoutouts, post grids, connection lists, and profile action controls are shared components used by profile and feed surfaces.
 
@@ -77,7 +77,7 @@ Home queries the active, unexpired poll and renders it directly above the feed. 
 
 Prisma targets MongoDB. The core models are:
 
-- `Profile`: identity, public profile data, language/theme, appearance settings, privacy, roles, verification, restrictions, and social relations.
+- `Profile` and `ProfileAppearancePreset`: identity, public profile data, language/theme, current appearance settings, saved complete profile looks, privacy, roles, verification, restrictions, and social relations.
 - `Post`, `Comment`, `PostLike`, `CommentLike`, and `PostBookmark`: published content and interactions.
 - `Story`, `StorySlide`, and `StoryView`: temporary story content and viewer tracking.
 - `Conversation`, `ConversationParticipant`, `Message`, and `MessageReaction`: direct and group messaging.
@@ -164,4 +164,3 @@ For schema changes, generate the Prisma client and apply the approved MongoDB sc
 6. Push only after explicit approval from the project owner.
 
 Native releases additionally require version updates in their own projects, successful artifact builds, verification, and an update to `public/releases/latest.json`.
-

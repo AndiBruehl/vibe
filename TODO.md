@@ -63,7 +63,7 @@
 - **0.1.69.11:** Add a profile accent color that can style only personal UI details such as profile links, shoutouts, and section dividers—without changing VIBE’s global safety and action colors. ✅
 - **0.1.69.12:** Add optional profile header layouts with a small set of responsive presets, so profiles can feel individual without hiding avatar, name, bio, counts, links, or actions. ✅
 - **0.1.69.13:** Add profile header backgrounds: optional responsive image, color, or gradient stored on the profile and applied consistently across devices. ✅
-- **0.1.69.14:** Add saved personalization presets: users can name, preview, apply, and reset a complete profile look; include a compact public-profile preview before saving.
+- **0.1.69.14:** Add saved personalization presets: users can name, preview, apply, and reset a complete profile look; include a compact public-profile preview before saving. ✅
 
 ### Persistent personalization principles
 
