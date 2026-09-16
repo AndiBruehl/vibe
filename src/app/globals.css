@@ -409,6 +409,34 @@ html, body { cursor: default; }
   }
 }
 
+@keyframes vibe-secret-edge-sparkle {
+  0%, 100% { opacity: 0; transform: scale(.35) rotate(0deg); }
+  28% { opacity: 1; transform: scale(1.5) rotate(28deg); }
+  56% { opacity: .4; transform: scale(.72) rotate(-18deg); }
+  78% { opacity: 1; transform: scale(1.2) rotate(8deg); }
+}
+
+@keyframes vibe-secret-inner-sparkle {
+  0%, 100% { opacity: .2; transform: translateY(0) scale(.8) rotate(0deg); }
+  50% { opacity: 1; transform: translateY(-5px) scale(1.3) rotate(18deg); }
+}
+
+@keyframes vibe-secret-gem {
+  0%, 100% { transform: scale(1) rotate(0deg); filter: brightness(1); }
+  38% { transform: scale(1.18) rotate(9deg); filter: brightness(1.28); }
+  62% { transform: scale(1.05) rotate(-7deg); filter: brightness(1.12); }
+}
+
+@keyframes vibe-secret-compass {
+  to { transform: rotate(360deg); }
+}
+
+.vibe-secret-edge-sparkle { animation: vibe-secret-edge-sparkle 1.15s ease-in-out infinite; }
+.vibe-secret-inner-sparkle { animation: vibe-secret-inner-sparkle 2.1s ease-in-out infinite; }
+.vibe-secret-inner-sparkle-delayed { animation-delay: .7s; }
+.vibe-secret-gem { animation: vibe-secret-gem 1.8s ease-in-out infinite; }
+.vibe-secret-compass { animation: vibe-secret-compass 15s linear infinite; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     scroll-behavior: auto !important;
