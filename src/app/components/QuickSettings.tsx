@@ -98,7 +98,6 @@ export default function QuickSettings({ initialLanguage, initialTheme }: { initi
   if (
     pathname === "/settings" ||
     pathname.startsWith("/settings/") ||
-    pathname === "/profile" ||
     pathname.startsWith("/profile/")
   ) return null;
 
