@@ -15,7 +15,7 @@ import VibeTeamBadge from "@/app/components/VibeTeamBadge";
 import { isProtectedAdmin, isSuperAdmin } from "@/admin";
 import DeleteProfileButton from "@/app/components/DeleteProfileButton";
 import ProfileShoutouts from "@/app/components/ProfileShoutouts";
-import { avatarFrameStyle } from "@/profile-personalization";
+import { avatarFrameStyle, normalizeProfileHeaderLayout } from "@/profile-personalization";
 
 type ProfileByUsernamePageProps = {
   params: Promise<{
@@ -108,6 +108,7 @@ export default async function ProfileByUsernamePage({
     followState = existingFollow ? "following" : existingRequest ? "requested" : "none";
   }
   const canViewPosts = !isBlocked && (!profile.isPrivate || isOwnProfile || followState === "following");
+  const profileHeaderLayout = normalizeProfileHeaderLayout(profile.profileHeaderLayout);
 
   return (
     <>
@@ -115,9 +116,9 @@ export default async function ProfileByUsernamePage({
 
       <main className="mx-auto w-full max-w-6xl p-4 md:p-8">
         <section className="overflow-hidden rounded-2xl bg-white shadow-lg shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
-          <div className="grid gap-5 p-5 text-center sm:p-6 lg:grid-cols-[7rem_minmax(0,1fr)_auto] lg:items-start lg:p-8 lg:text-left">
+          <div className={`grid gap-5 p-5 text-center sm:p-6 lg:items-start lg:p-8 lg:text-left ${profileHeaderLayout === "compact" ? "lg:grid-cols-[5.5rem_minmax(0,1fr)_auto]" : profileHeaderLayout === "spotlight" ? "lg:grid-cols-[8rem_minmax(0,1fr)_auto]" : "lg:grid-cols-[7rem_minmax(0,1fr)_auto]"}`}>
             <div className="flex justify-center lg:block">
-              <div className="size-24 rounded-full p-1 lg:size-28" style={avatarFrameStyle(profile.avatarAccent, profile.avatarAccentEnd, profile.avatarAccentDirection)}><div className="size-full overflow-hidden rounded-full bg-gray-300">
+              <div className={`${profileHeaderLayout === "compact" ? "size-20 lg:size-22" : profileHeaderLayout === "spotlight" ? "size-28 lg:size-32" : "size-24 lg:size-28"} rounded-full p-1`} style={avatarFrameStyle(profile.avatarAccent, profile.avatarAccentEnd, profile.avatarAccentDirection)}><div className="size-full overflow-hidden rounded-full bg-gray-300">
                 {profile.avatar ? (
                   <Image
                     src={profile.avatar}

@@ -19,6 +19,7 @@ model Profile {
   avatarAccentEnd     String?
   avatarAccentDirection String  @default("to-bottom-right")
   profileAccent       String    @default("#f97316")
+  profileHeaderLayout String    @default("standard")
   language            String    @default("en")
   theme               String    @default("system")
   isPrivate           Boolean   @default(false)

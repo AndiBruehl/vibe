@@ -13,7 +13,7 @@ import AppVersion from "@/app/components/AppVersion";
 import { applyTheme, type ThemePreference } from "@/app/components/ProfileThemeRuntime";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AVATAR_ACCENT_PRESETS, AVATAR_FRAME_DIRECTIONS, AVATAR_FRAME_GRADIENTS, DEFAULT_AVATAR_ACCENT, DEFAULT_PROFILE_ACCENT, avatarFrameConfig, avatarFrameStyle, normalizeAvatarAccent, normalizeProfileAccent } from "@/profile-personalization";
+import { AVATAR_ACCENT_PRESETS, AVATAR_FRAME_DIRECTIONS, AVATAR_FRAME_GRADIENTS, DEFAULT_AVATAR_ACCENT, DEFAULT_PROFILE_ACCENT, avatarFrameConfig, avatarFrameStyle, normalizeAvatarAccent, normalizeProfileAccent, normalizeProfileHeaderLayout, type ProfileHeaderLayout } from "@/profile-personalization";
 
 import defaultImg from "./default.jpg";
 
@@ -37,6 +37,8 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
   const [avatarAccentDirection, setAvatarAccentDirection] = useState(initialFrame.direction);
   const [profileAccent, setProfileAccent] = useState(profile?.profileAccent ?? DEFAULT_PROFILE_ACCENT);
   const [isSavingProfileAccent, setIsSavingProfileAccent] = useState(false);
+  const [profileHeaderLayout, setProfileHeaderLayout] = useState<ProfileHeaderLayout>(normalizeProfileHeaderLayout(profile?.profileHeaderLayout));
+  const [isSavingHeaderLayout, setIsSavingHeaderLayout] = useState(false);
   const [isSavingAccent, setIsSavingAccent] = useState(false);
   const [framePresets, setFramePresets] = useState(profile?.framePresets ?? []);
   const [isUploading, setIsUploading] = useState(false);
@@ -176,6 +178,25 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
     }
   }
 
+  async function updateProfileHeaderLayout(next: ProfileHeaderLayout) {
+    if (next === profileHeaderLayout || isSavingHeaderLayout) return;
+    const previous = profileHeaderLayout;
+    setProfileHeaderLayout(next);
+    setIsSavingHeaderLayout(true);
+    setSaveFeedback(null);
+    try {
+      const response = await fetch("/api/profile/header-layout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ profileHeaderLayout: next }) });
+      if (!response.ok) throw new Error("Profile header layout could not be saved");
+      setSaveFeedback("saved");
+      window.setTimeout(() => setSaveFeedback(null), 2500);
+    } catch {
+      setProfileHeaderLayout(previous);
+      setSaveFeedback("failed");
+    } finally {
+      setIsSavingHeaderLayout(false);
+    }
+  }
+
   async function saveFramePreset() {
     if (!avatarAccentEnd || framePresets.length >= 3) return;
     const response = await fetch("/api/profile/avatar-frame-presets", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ startColor: avatarAccent, endColor: avatarAccentEnd, direction: avatarAccentDirection }) });
@@ -222,6 +243,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
           <input type="hidden" name="avatarAccentEnd" value={avatarAccentEnd ?? ""} />
           <input type="hidden" name="avatarAccentDirection" value={avatarAccentDirection} />
           <input type="hidden" name="profileAccent" value={profileAccent} />
+          <input type="hidden" name="profileHeaderLayout" value={profileHeaderLayout} />
 
           <button
             type="button"
@@ -343,6 +365,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
 
       <section className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 dark:border-slate-700 dark:bg-slate-800/60">
         <div className="mb-3 flex items-center gap-3"><span className="grid size-9 place-items-center rounded-xl bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200"><Pipette size={17} /></span><div><p className="font-semibold text-slate-900 dark:text-white">{copy("Profile personalization", "Profil-Personalisierung")}</p><p className="text-xs text-slate-500 dark:text-slate-400">{copy("Avatar frame and link accent", "Avatar-Rahmen und Link-Akzent")}</p></div></div>
+        <div className="mb-4 rounded-xl border border-slate-200 bg-white/70 p-3 dark:border-slate-700/80 dark:bg-slate-900/30"><p className="text-xs font-semibold text-slate-700 dark:text-slate-200">{copy("Profile header layout", "Profilkopf-Layout")}</p><p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{copy("Choose how your profile introduction is arranged.", "Wähle die Anordnung deiner Profilvorstellung.")}</p><div className="mt-3 grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1 text-xs font-bold dark:bg-slate-800">{([{ value: "standard", label: copy("Standard", "Standard") }, { value: "compact", label: copy("Compact", "Kompakt") }, { value: "spotlight", label: copy("Spotlight", "Fokus") }] as const).map(({ value, label }) => <button key={value} type="button" onClick={() => void updateProfileHeaderLayout(value)} disabled={isSavingHeaderLayout} className={`rounded-lg px-2 py-2 transition disabled:cursor-wait disabled:opacity-60 ${profileHeaderLayout === value ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"}`}>{label}</button>)}</div></div>
         <div className="w-full border-t border-slate-200 pt-3 dark:border-slate-700/80">
           <p className="text-center text-xs font-semibold text-slate-700 dark:text-slate-200">{copy("Avatar frame", "Avatar-Rahmen")}</p>
           <div className="mt-2 flex flex-wrap justify-center gap-2">

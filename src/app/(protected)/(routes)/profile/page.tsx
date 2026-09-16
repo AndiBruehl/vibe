@@ -17,7 +17,7 @@ import ArchivedPosts from "@/app/components/ArchivedPosts";
 import AdminBadge from "@/app/components/AdminBadge";
 import { isVibeAdminEmail } from "@/admin";
 import ProfileShoutouts from "@/app/components/ProfileShoutouts";
-import { avatarFrameStyle, normalizeProfileAccent } from "@/profile-personalization";
+import { avatarFrameStyle, normalizeProfileAccent, normalizeProfileHeaderLayout } from "@/profile-personalization";
 
 type ProfilePageProps = {
   searchParams: Promise<{
@@ -78,6 +78,10 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   ]);
   const de = profile.language === "de";
   const profileAccent = normalizeProfileAccent(profile.profileAccent);
+  const profileHeaderLayout = normalizeProfileHeaderLayout(profile.profileHeaderLayout);
+  const avatarSize = profileHeaderLayout === "compact" ? "6rem" : profileHeaderLayout === "spotlight" ? "9rem" : "8rem";
+  const avatarInnerSize = profileHeaderLayout === "compact" ? "5.5rem" : profileHeaderLayout === "spotlight" ? "8.5rem" : "7.5rem";
+  const avatarImageSize = profileHeaderLayout === "compact" ? "5rem" : profileHeaderLayout === "spotlight" ? "8rem" : "7rem";
 
   return (
     <main className="mx-auto w-full max-w-5xl">
@@ -112,10 +116,10 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         </div>
       </section>
 
-      <section className="mt-6 flex justify-center">
-        <div className="flex size-32 items-center justify-center rounded-full" style={avatarFrameStyle(profile.avatarAccent, profile.avatarAccentEnd, profile.avatarAccentDirection)}>
-          <div className="flex size-[7.5rem] items-center justify-center rounded-full bg-white dark:bg-slate-900">
-            <div className="relative size-[7rem] aspect-square overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+      <section className={`mt-6 flex justify-center ${profileHeaderLayout === "compact" ? "mb-1" : profileHeaderLayout === "spotlight" ? "mb-2" : ""}`}>
+        <div className="flex items-center justify-center rounded-full" style={{ ...avatarFrameStyle(profile.avatarAccent, profile.avatarAccentEnd, profile.avatarAccentDirection), width: avatarSize, height: avatarSize }}>
+          <div className="flex items-center justify-center rounded-full bg-white dark:bg-slate-900" style={{ width: avatarInnerSize, height: avatarInnerSize }}>
+            <div className="relative aspect-square overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700" style={{ width: avatarImageSize, height: avatarImageSize }}>
               <Image
                 src={profile.avatar || img1.src}
                 alt="Avatar"
@@ -128,7 +132,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         </div>
       </section>
 
-      <section className="mx-auto mt-5 max-w-3xl text-center">
+      <section className={`mx-auto mt-5 text-center ${profileHeaderLayout === "compact" ? "max-w-2xl" : profileHeaderLayout === "spotlight" ? "max-w-4xl" : "max-w-3xl"}`}>
         <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">
           <span className="inline-flex items-center justify-center gap-2">{profile.name || (de ? "Nutzer" : "User")}<AdminBadge isAdmin={profile.isAdmin} /></span>
         </h1>
