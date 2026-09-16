@@ -115,9 +115,9 @@ export default async function ProfileByUsernamePage({
 
       <main className="mx-auto w-full max-w-6xl p-4 md:p-8">
         <section className="overflow-hidden rounded-2xl bg-white shadow-lg shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
-          <div className="grid gap-5 p-5 text-center sm:p-6 md:grid-cols-[7rem_minmax(0,1fr)_auto] md:items-start md:p-8 md:text-left">
-            <div className="flex justify-center md:block">
-              <div className="size-24 rounded-full p-1 md:size-28" style={avatarFrameStyle(profile.avatarAccent, profile.avatarAccentEnd, profile.avatarAccentDirection)}><div className="size-full overflow-hidden rounded-full bg-gray-300">
+          <div className="grid gap-5 p-5 text-center sm:p-6 lg:grid-cols-[7rem_minmax(0,1fr)_auto] lg:items-start lg:p-8 lg:text-left">
+            <div className="flex justify-center lg:block">
+              <div className="size-24 rounded-full p-1 lg:size-28" style={avatarFrameStyle(profile.avatarAccent, profile.avatarAccentEnd, profile.avatarAccentDirection)}><div className="size-full overflow-hidden rounded-full bg-gray-300">
                 {profile.avatar ? (
                   <Image
                     src={profile.avatar}
@@ -133,7 +133,7 @@ export default async function ProfileByUsernamePage({
 
               <div className="min-w-0">
                 <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-                  <span className="inline-flex items-center justify-center gap-2 md:justify-start">{profile.name || "Unknown"}<AdminBadge isAdmin={profile.isAdmin} /><VibeTeamBadge isSystem={profile.isSystem} /></span>
+                  <span className="inline-flex items-center justify-center gap-2 lg:justify-start">{profile.name || "Unknown"}<AdminBadge isAdmin={profile.isAdmin} /><VibeTeamBadge isSystem={profile.isSystem} /></span>
                 </h1>
 
                 <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -145,7 +145,7 @@ export default async function ProfileByUsernamePage({
                 )}
 
                 {profile.bio && (
-                  <p className="mx-auto mt-2 max-w-md whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-200 md:mx-0"><MentionText text={profile.bio} /></p>
+                  <p className="mx-auto mt-2 max-w-md whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-200 lg:mx-0"><MentionText text={profile.bio} /></p>
                 )}
 
                 {profile.profileLinks.length > 0 && (
@@ -153,15 +153,15 @@ export default async function ProfileByUsernamePage({
                 )}
                 {profile.shoutouts.length > 0 && <ProfileShoutouts shoutouts={profile.shoutouts} language={de ? "de" : "en"} centered="mobile" />}
 
-                {isOwnProfile && profile.isAdmin && <Link href="/admin" className="mx-auto mt-4 inline-flex w-fit rounded-xl border border-orange-400/60 px-3 py-2 text-sm font-semibold text-orange-600 hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-500/10 md:mx-0">{de ? "Adminbereich" : "Admin area"}</Link>}
+                {isOwnProfile && profile.isAdmin && <Link href="/admin" className="mx-auto mt-4 inline-flex w-fit rounded-xl border border-orange-400/60 px-3 py-2 text-sm font-semibold text-orange-600 hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-500/10 lg:mx-0">{de ? "Adminbereich" : "Admin area"}</Link>}
 
-                {isSystemProfile && <p className="mt-3 text-sm font-semibold text-slate-500 dark:text-slate-400">{isSupportProfile ? (de ? "Offizieller VIBE-Support · Deine Anfrage wird als Ticket an das Admin-Team weitergeleitet." : "Official VIBE support · Your request is forwarded to the admin team as a ticket.") : (de ? "Offizieller VIBE-Systemaccount · Nachrichten können nicht beantwortet werden." : "Official VIBE system account · Messages cannot be replied to.")}</p>}{isSupportProfile && <Link href="/support" className="mx-auto mt-4 inline-flex rounded-xl bg-linear-to-r from-cyan-600 to-violet-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm shadow-cyan-500/20 transition hover:brightness-110 md:mx-0">{de ? "Support kontaktieren" : "Contact support"}</Link>}{!isOwnProfile && !isBlocked && !isSystemProfile && <div className="mt-3 flex justify-center md:block"><ReportButton targetType="profile" targetId={profile.id} targetUrl={`/profile/${encodeURIComponent(profile.username ?? "")}`} /></div>}
+                {isSystemProfile && <p className="mt-3 text-sm font-semibold text-slate-500 dark:text-slate-400">{isSupportProfile ? (de ? "Offizieller VIBE-Support · Deine Anfrage wird als Ticket an das Admin-Team weitergeleitet." : "Official VIBE support · Your request is forwarded to the admin team as a ticket.") : (de ? "Offizieller VIBE-Systemaccount · Nachrichten können nicht beantwortet werden." : "Official VIBE system account · Messages cannot be replied to.")}</p>}{isSupportProfile && <Link href="/support" className="mx-auto mt-4 inline-flex rounded-xl bg-linear-to-r from-cyan-600 to-violet-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm shadow-cyan-500/20 transition hover:brightness-110 lg:mx-0">{de ? "Support kontaktieren" : "Contact support"}</Link>}{!isOwnProfile && !isBlocked && !isSystemProfile && <div className="mt-3 flex justify-center lg:block"><ReportButton targetType="profile" targetId={profile.id} targetUrl={`/profile/${encodeURIComponent(profile.username ?? "")}`} /></div>}
 
-                {canDeleteProfile && <div className="mt-3 flex justify-center md:block"><DeleteProfileButton profileId={profile.id} de={de} /></div>}
+                {canDeleteProfile && <div className="mt-3 flex justify-center lg:block"><DeleteProfileButton profileId={profile.id} de={de} /></div>}
 
                 {/* 🔥 FOLLOW BUTTON HIER */}
                 {!isOwnProfile && !isSystemProfile && (
-                  <div className="mt-5 flex flex-wrap justify-center gap-2 md:justify-start">
+                  <div className="mt-5 flex flex-wrap justify-center gap-2 lg:justify-start">
                     <ProfileActionControls
                       targetProfileId={profile.id}
                       targetUsername={profile.username || ""}
@@ -175,7 +175,7 @@ export default async function ProfileByUsernamePage({
                 )}
               </div>
 
-            <div className="grid w-full grid-cols-3 gap-3 border-t border-slate-200 pt-5 text-center text-sm dark:border-slate-700 md:w-auto md:self-start md:border-0 md:pt-2">
+            <div className="grid w-full grid-cols-3 gap-3 border-t border-slate-200 pt-5 text-center text-sm dark:border-slate-700 lg:w-auto lg:self-start lg:border-0 lg:pt-2">
               <div className="min-w-12">
                 <p className="font-semibold text-slate-900 dark:text-white">
                   {postsCount}
