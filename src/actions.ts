@@ -12,7 +12,7 @@ import { appendSupportTicketMessage, sendSupportAcknowledgement } from "@/suppor
 import { supportTemplateText, type SupportTemplateKey } from "@/support-templates";
 
 import { isObjectId } from "@/object-id";
-import { normalizeAvatarAccent, normalizeAvatarFrameDirection, normalizeProfileAccent, normalizeProfileHeaderBackgroundImage, normalizeProfileHeaderBackgroundMode, normalizeProfileHeaderLayout } from "@/profile-personalization";
+import { normalizeAvatarAccent, normalizeAvatarFrameDirection, normalizeProfileAccent, normalizeProfileHeaderBackgroundImage, normalizeProfileHeaderBackgroundMode, normalizeProfileHeaderLayout, normalizeProfileHeaderTextColor } from "@/profile-personalization";
 const MAX_STORY_SLIDES = 4;
 
 async function usersAreBlocked(profileIdA: string, profileIdB: string) {
@@ -138,6 +138,7 @@ export async function upsertProfile(formData: FormData): Promise<{ ok: true }> {
     profileHeaderBackgroundImage: normalizeProfileHeaderBackgroundImage(formData.get("profileHeaderBackgroundImage")),
     profileHeaderBackgroundColor: normalizeProfileAccent(formData.get("profileHeaderBackgroundColor")),
     profileHeaderBackgroundEnd: typeof formData.get("profileHeaderBackgroundEnd") === "string" && /^#[0-9a-fA-F]{6}$/.test(formData.get("profileHeaderBackgroundEnd") as string) ? (formData.get("profileHeaderBackgroundEnd") as string).toLowerCase() : null,
+    profileHeaderTextColor: normalizeProfileHeaderTextColor(formData.get("profileHeaderTextColor")),
     isPrivate: formData.get("isPrivate") === "true",
   };
 

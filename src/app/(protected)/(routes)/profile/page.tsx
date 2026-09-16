@@ -17,7 +17,7 @@ import ArchivedPosts from "@/app/components/ArchivedPosts";
 import AdminBadge from "@/app/components/AdminBadge";
 import { isVibeAdminEmail } from "@/admin";
 import ProfileShoutouts from "@/app/components/ProfileShoutouts";
-import { avatarFrameStyle, normalizeProfileAccent, normalizeProfileHeaderLayout, profileHeaderBackgroundStyle } from "@/profile-personalization";
+import { avatarFrameStyle, normalizeProfileAccent, normalizeProfileHeaderLayout, normalizeProfileHeaderTextColor, profileHeaderBackgroundStyle } from "@/profile-personalization";
 
 type ProfilePageProps = {
   searchParams: Promise<{
@@ -80,6 +80,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   const profileAccent = normalizeProfileAccent(profile.profileAccent);
   const profileHeaderLayout = normalizeProfileHeaderLayout(profile.profileHeaderLayout);
   const headerBackgroundStyle = profileHeaderBackgroundStyle(profile.profileHeaderBackgroundMode, profile.profileHeaderBackgroundImage, profile.profileHeaderBackgroundColor, profile.profileHeaderBackgroundEnd);
+  const headerTextColor = normalizeProfileHeaderTextColor(profile.profileHeaderTextColor);
   const avatarSize = profileHeaderLayout === "compact" ? "7.25rem" : profileHeaderLayout === "spotlight" ? "9rem" : "8rem";
   const avatarInnerSize = profileHeaderLayout === "compact" ? "6.75rem" : profileHeaderLayout === "spotlight" ? "8.5rem" : "7.5rem";
   const avatarImageSize = profileHeaderLayout === "compact" ? "6.25rem" : profileHeaderLayout === "spotlight" ? "8rem" : "7rem";
@@ -117,8 +118,8 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         </div>
       </section>
 
-      <div className={`${profileHeaderLayout === "compact" ? "mx-auto mt-6 flex max-w-3xl flex-col items-center gap-4 rounded-2xl border border-slate-200 bg-slate-50/60 p-5 sm:flex-row-reverse sm:items-start sm:text-left dark:border-slate-700/80 dark:bg-slate-800/30" : profileHeaderLayout === "spotlight" ? "mx-auto mt-6 max-w-4xl rounded-3xl border border-slate-200 bg-white/60 p-6 text-center shadow-lg shadow-slate-900/5 dark:border-slate-700/80 dark:bg-slate-900/25 dark:shadow-black/15" : headerBackgroundStyle ? "mx-auto mt-6 max-w-4xl rounded-3xl p-6 text-center shadow-lg" : ""} ${headerBackgroundStyle ? "text-white" : ""}`} style={headerBackgroundStyle}>
-      <section className={`flex justify-center ${profileHeaderLayout === "compact" ? "mt-0 shrink-0 sm:justify-start" : profileHeaderLayout === "spotlight" ? "mt-0 mb-2" : "mt-6"}`}>
+      <div className={`${profileHeaderLayout === "compact" ? "mx-auto mt-6 flex max-w-3xl flex-col items-start gap-4 rounded-2xl border border-slate-200 bg-slate-50/60 p-5 text-left sm:flex-row-reverse sm:items-start dark:border-slate-700/80 dark:bg-slate-800/30" : profileHeaderLayout === "spotlight" ? "mx-auto mt-6 max-w-4xl rounded-3xl border border-slate-200 bg-white/60 p-6 text-center shadow-lg shadow-slate-900/5 dark:border-slate-700/80 dark:bg-slate-900/25 dark:shadow-black/15" : headerBackgroundStyle ? "mx-auto mt-6 max-w-4xl rounded-3xl p-6 text-center shadow-lg" : ""} ${headerBackgroundStyle ? "text-white [&_*]:!text-[color:inherit]" : ""}`} style={headerBackgroundStyle ? { ...headerBackgroundStyle, color: headerTextColor } : undefined}>
+      <section className={`flex justify-center ${profileHeaderLayout === "compact" ? "mt-0 shrink-0 justify-start" : profileHeaderLayout === "spotlight" ? "mt-0 mb-2" : "mt-6"}`}>
         <div className="flex items-center justify-center rounded-full" style={{ ...avatarFrameStyle(profile.avatarAccent, profile.avatarAccentEnd, profile.avatarAccentDirection), width: avatarSize, height: avatarSize }}>
           <div className="flex items-center justify-center rounded-full bg-white dark:bg-slate-900" style={{ width: avatarInnerSize, height: avatarInnerSize }}>
             <div className="relative aspect-square overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700" style={{ width: avatarImageSize, height: avatarImageSize }}>
@@ -134,9 +135,9 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         </div>
       </section>
 
-      <section className={`mx-auto text-center ${profileHeaderLayout === "compact" ? "mt-0 max-w-2xl sm:text-left" : profileHeaderLayout === "spotlight" ? "mt-2 max-w-4xl" : "mt-5 max-w-3xl"}`}>
+      <section className={`mx-0 text-left ${profileHeaderLayout === "compact" ? "mt-0 max-w-2xl" : profileHeaderLayout === "spotlight" ? "mt-2 max-w-4xl" : "mt-5 max-w-3xl"}`}>
         <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">
-          <span className="inline-flex items-center justify-center gap-2">{profile.name || (de ? "Nutzer" : "User")}<AdminBadge isAdmin={profile.isAdmin} /></span>
+          <span className={`inline-flex items-center gap-2 ${profileHeaderLayout === "compact" ? "justify-start" : "justify-center"}`}>{profile.name || (de ? "Nutzer" : "User")}<AdminBadge isAdmin={profile.isAdmin} /></span>
         </h1>
 
         <p className="my-1 text-slate-600 dark:text-slate-300">
@@ -148,12 +149,12 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         </p>
         <Link
           href="/support"
-          className="mx-auto mt-4 inline-flex items-center gap-2 rounded-full border border-cyan-300/70 bg-cyan-50/70 px-4 py-2 text-sm font-bold text-cyan-800 no-underline transition hover:-translate-y-0.5 hover:border-cyan-400 hover:bg-cyan-100 dark:border-cyan-400/40 dark:bg-cyan-500/10 dark:text-cyan-200 dark:hover:bg-cyan-500/20"
+          className={`${profileHeaderLayout === "compact" ? "mx-0" : "mx-auto"} mt-4 inline-flex items-center gap-2 rounded-full border border-cyan-300/70 bg-cyan-50/70 px-4 py-2 text-sm font-bold text-cyan-800 no-underline transition hover:-translate-y-0.5 hover:border-cyan-400 hover:bg-cyan-100 dark:border-cyan-400/40 dark:bg-cyan-500/10 dark:text-cyan-200 dark:hover:bg-cyan-500/20`}
         >
           <CircleHelp size={16} aria-hidden="true" />
           {de ? "Hilfe & Support" : "Help & support"}
         </Link>
-        {profile.isAdmin ? <div className="mt-4 flex flex-col items-center"> <Link
+        {profile.isAdmin ? <div className={`mt-4 flex flex-col ${profileHeaderLayout === "compact" ? "items-start" : "items-center"}`}> <Link
             href="/admin"
             className="inline-flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-semibold text-orange-600 no-underline transition hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-500/10"
           >
@@ -161,9 +162,9 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
             {de ? "Adminbereich" : "Admin area"}
           </Link></div> : null}
         {profileLinks.length > 0 && (
-          <div className="mt-4"><ProfileLinks links={profileLinks} language={de ? "de" : "en"} centered accent={profileAccent} /></div>
+          <div className="mt-4"><ProfileLinks links={profileLinks} language={de ? "de" : "en"} centered={profileHeaderLayout !== "compact"} accent={profileAccent} /></div>
         )}
-        {shoutouts.length > 0 && <ProfileShoutouts shoutouts={shoutouts} language={de ? "de" : "en"} centered />}
+        {shoutouts.length > 0 && <ProfileShoutouts shoutouts={shoutouts} language={de ? "de" : "en"} centered={profileHeaderLayout !== "compact"} />}
       </section>
       </div>
 

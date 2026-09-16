@@ -45,6 +45,10 @@ export function normalizeProfileHeaderLayout(value: unknown): ProfileHeaderLayou
     : "standard";
 }
 
+export function normalizeProfileHeaderTextColor(value: unknown) {
+  return typeof value === "string" && /^#[0-9a-fA-F]{6}$/.test(value) ? value.toLowerCase() : "#ffffff";
+}
+
 export function normalizeProfileHeaderBackgroundMode(value: unknown): ProfileHeaderBackgroundMode {
   return typeof value === "string" && (PROFILE_HEADER_BACKGROUND_MODES as readonly string[]).includes(value)
     ? value as ProfileHeaderBackgroundMode
