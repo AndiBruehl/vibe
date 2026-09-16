@@ -90,8 +90,9 @@ export default async function ProtectedLayout({
       <ActionButtonFeedback />
       <QuickSettings initialLanguage={profile.language === "de" ? "de" : "en"} initialTheme={profile.theme === "light" || profile.theme === "dark" ? profile.theme : "system"} />
 
+      <a href="#vibe-main-content" className="vibe-skip-link">{profile.language === "de" ? "Zum Inhalt springen" : "Skip to content"}</a>
       <div data-vibe-protected-content className="md:pl-44">
-        <main data-vibe-protected-main className="min-h-screen p-4 pb-28 md:pb-4"><PageTransition>{children}</PageTransition></main>
+        <main id="vibe-main-content" data-vibe-protected-main tabIndex={-1} className="min-h-screen p-4 pb-28 md:pb-4"><PageTransition>{children}</PageTransition></main>
       </div>
     </>
   );

@@ -34,14 +34,14 @@ export default function MobileNav({
       {" "}
       <div className="flex text-slate-700 dark:text-slate-300 *:flex *:items-center">
         <div className="pl-2 bg-white dark:bg-gray-800 rounded-t-xl w-full relative z-10 *:size-12 *:flex *:flex-col *:items-center *:justify-center justify-around pt-4">
-          <Link href="/home" className="group">
+          <Link href="/home" aria-label={labels.home} className="group">
             <HomeIcon className="transition-transform duration-200 group-hover:scale-90" />
             <span className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               {labels.home}
             </span>
           </Link>
 
-          <Link href="/activity" className="group relative">
+          <Link href="/activity" aria-label={labels.activity} className="group relative">
             <BellIcon className="transition-transform duration-200 group-hover:scale-90" />
             <ActivityUnreadBadge initialCount={unreadActivityCount} className="absolute right-1 top-0 flex min-w-4 items-center justify-center rounded-full bg-red-600 px-1 py-0.5 text-[10px] font-bold leading-none text-white" />
             <span className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity duration-200">
@@ -49,7 +49,7 @@ export default function MobileNav({
             </span>
           </Link>
 
-          <Link href="/search" className="group">
+          <Link href="/search" aria-label={labels.search} className="group">
             <SearchIcon className="transition-transform duration-200 group-hover:scale-90" />
             <span className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               {labels.search}
@@ -62,6 +62,7 @@ export default function MobileNav({
             <div className="border-4 size-15 border-transparent">
               <Link
                 href="/create"
+                aria-label={labels.create}
                 className="group -rotate-45 bg-linear-to-tr from-ig-orange to-ig-red to-70% size-12 flex flex-col items-center justify-center text-white rounded-full"
               >
                 <div className="absolute inset-0 overflow-hidden rounded-full shadow-md transition-transform duration-200 group-hover:scale-105">
@@ -80,6 +81,7 @@ export default function MobileNav({
         <div className="pr-2 w-full bg-white dark:bg-gray-800 rounded-t-xl relative z-10 *:size-12 *:flex *:flex-col *:items-center *:justify-center justify-around pt-4">
           <Link
             href="/browse"
+            aria-label={labels.browse}
             className="group text-ig-red dark:text-ig-orange"
           >
             <LayoutGridIcon className="transition-transform duration-200 group-hover:scale-90" />
@@ -88,7 +90,7 @@ export default function MobileNav({
             </span>
           </Link>
 
-          <Link href="/messages" className="group relative">
+          <Link href="/messages" aria-label={labels.messages} className="group relative">
             <MessageCircleIcon className="transition-transform duration-200 group-hover:scale-90" />
             <MessageUnreadBadge
               initialCount={unreadConversationCount}
@@ -99,7 +101,7 @@ export default function MobileNav({
             </span>
           </Link>
 
-          <Link href="/profile" className="group">
+          <Link href="/profile" aria-label={labels.profile} className="group">
             <UserIcon className="transition-transform duration-200 group-hover:scale-90" />
             <span className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               {labels.profile}

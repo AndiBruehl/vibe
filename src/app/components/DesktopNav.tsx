@@ -39,7 +39,7 @@ export default function DesktopNav({
         >
           <Image
             src="/logo.svg"
-            alt="logo"
+            alt="VIBE home"
             width={120}
             height={120}
             className="mx-auto w-20"
