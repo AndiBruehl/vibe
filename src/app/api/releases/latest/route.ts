@@ -57,9 +57,9 @@ export async function GET() {
   const [windows, android] = await Promise.all([
     getLatestRelease(
       "electron-app/dist",
-      /^Vibe-Setup-(?:BETA-)?(\d+(?:\.\d+){2,3})-x64\.exe$/,
+      /^Vibe-Setup-(?:BETA-)?(\d+(?:\.\d+){2,4})-x64\.exe$/,
     ),
-    getLatestRelease("android-app/dist", /^Vibe-(?:BETA-)?(\d+(?:\.\d+){2,3})\.apk$/),
+    getLatestRelease("android-app/dist", /^Vibe-(?:BETA-)?(\d+(?:\.\d+){2,4})\.apk$/),
   ]);
 
   return NextResponse.json(

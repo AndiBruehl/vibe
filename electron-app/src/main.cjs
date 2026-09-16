@@ -12,11 +12,11 @@ let updateCheckStarted = false;
 const RELEASE_MANIFEST_URL = "https://api.github.com/repos/AndiBruehl/vibe/contents/public/releases/latest.json";
 
 function displayVersion(version = app.getVersion()) {
-  return version.replace(/-beta\.(\d+)$/, ".$1").replace(/-(\d+(?:\.\d+)*)$/, ".$1");
+  return version.replace(/-beta\.(\d+(?:\.\d+)*)$/, ".$1").replace(/-(\d+(?:\.\d+)*)$/, ".$1");
 }
 
 function compareVersions(left, right) {
-  const normalize = version => version.replace(/-beta\.(\d+)$/, ".$1").split(".").map(part => Number(part) || 0);
+  const normalize = version => version.replace(/-beta\.(\d+(?:\.\d+)*)$/, ".$1").split(".").map(part => Number(part) || 0);
   const leftParts = normalize(left);
   const rightParts = normalize(right);
   const length = Math.max(leftParts.length, rightParts.length);

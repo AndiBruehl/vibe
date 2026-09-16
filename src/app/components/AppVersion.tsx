@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import useVibeLanguage from "@/app/components/useVibeLanguage";
 
-const WEB_VERSION = "0.1.69.13.1";
+const WEB_VERSION = "0.1.69.13.2";
 const BETA_FLAIR = " 😈🔥";
 
 export default function AppVersion() {
@@ -14,10 +14,10 @@ export default function AppVersion() {
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setDesktopVersion(
-        navigator.userAgent.match(/VibeDesktop\/(\d+(?:\.\d+){2,3})/)?.[1] ?? null,
+        navigator.userAgent.match(/VibeDesktop\/(\d+(?:\.\d+){2,4})/)?.[1] ?? null,
       );
       setAndroidVersion(
-        navigator.userAgent.match(/VibeAndroid\/(\d+(?:\.\d+){2,3})/)?.[1] ?? null,
+        navigator.userAgent.match(/VibeAndroid\/(\d+(?:\.\d+){2,4})/)?.[1] ?? null,
       );
     }, 0);
 
