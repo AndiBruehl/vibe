@@ -109,12 +109,12 @@ export async function getUnreadInteractionStatus(
     }
   }
 
-  const visibleCommentCount = profile.notificationComments ? commentCount : 0;
-  const visibleReplyCount = profile.notificationComments ? replyCount : 0;
-  const visibleLikeCount = profile.notificationLikes ? likeCount : 0;
-  const visibleMentionCount = profile.notificationMentions ? mentionCount : 0;
-  const visibleFollowRequestCount = profile.notificationFollowRequests ? followRequests.length : 0;
-  const visibleAdminCount = profile.notificationAdmin ? adminActivities.length : 0;
+  const visibleCommentCount = profile.notificationComments !== false ? commentCount : 0;
+  const visibleReplyCount = profile.notificationComments !== false ? replyCount : 0;
+  const visibleLikeCount = profile.notificationLikes !== false ? likeCount : 0;
+  const visibleMentionCount = profile.notificationMentions !== false ? mentionCount : 0;
+  const visibleFollowRequestCount = profile.notificationFollowRequests !== false ? followRequests.length : 0;
+  const visibleAdminCount = profile.notificationAdmin !== false ? adminActivities.length : 0;
 
   return {
     commentCount: visibleCommentCount,
@@ -124,12 +124,12 @@ export async function getUnreadInteractionStatus(
     followRequestCount: visibleFollowRequestCount,
     adminCount: visibleAdminCount,
     latestUnreadAt: [
-      profile.notificationComments ? interactions[0]?.createdAt : null,
-      profile.notificationLikes ? postLikes[0]?.createdAt : null,
-      profile.notificationLikes ? commentLikes[0]?.createdAt : null,
-      profile.notificationMentions ? mentions[0]?.createdAt : null,
-      profile.notificationFollowRequests ? followRequests[0]?.createdAt : null,
-      profile.notificationAdmin ? adminActivities[0]?.createdAt : null,
+      profile.notificationComments !== false ? interactions[0]?.createdAt : null,
+      profile.notificationLikes !== false ? postLikes[0]?.createdAt : null,
+      profile.notificationLikes !== false ? commentLikes[0]?.createdAt : null,
+      profile.notificationMentions !== false ? mentions[0]?.createdAt : null,
+      profile.notificationFollowRequests !== false ? followRequests[0]?.createdAt : null,
+      profile.notificationAdmin !== false ? adminActivities[0]?.createdAt : null,
     ]
       .filter((date): date is Date => Boolean(date))
       .sort((left, right) => right.getTime() - left.getTime())[0]
