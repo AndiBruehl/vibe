@@ -400,7 +400,13 @@ html, body { cursor: default; }
 
 /* A desktop-only easter egg: it has no visible shape, only this X cursor. */
 .vibe-secret-cursor {
-  cursor: url("/secret-x-cursor.svg") 12 12, pointer;
+  cursor: pointer;
+}
+
+@media (min-width: 768px) {
+  .vibe-secret-cursor {
+    cursor: url("/secret-x-cursor.svg") 12 12, pointer;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

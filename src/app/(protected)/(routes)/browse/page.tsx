@@ -43,7 +43,7 @@ export default async function BrowsePage() {
           <h1 className="text-lg font-bold text-slate-800 dark:text-slate-200">
             <LocalizedText en="Browse" de="Entdecken" />
           </h1>
-          <Link href="/games" aria-label="Open VIBE Games" className="vibe-secret-cursor absolute -right-6 top-1/2 hidden size-[18px] -translate-y-1/2 opacity-0 md:block" />
+          <Link href="/games" aria-label="Open VIBE Games" className="vibe-secret-cursor absolute -right-12 top-1/2 size-11 -translate-y-1/2 opacity-0 md:-right-6 md:size-[18px]" />
         </div>
         <Link href="/profiles" className="justify-self-end inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-4 font-medium text-slate-800 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"><LocalizedText en="Profiles" de="Profile" /></Link>
       </section>
