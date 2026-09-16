@@ -151,8 +151,7 @@ export default async function ProfileByUsernamePage({
                 {profile.profileLinks.length > 0 && (
                   <ProfileLinks links={profile.profileLinks} language={de ? "de" : "en"} centered="mobile" accent={profile.profileAccent} />
                 )}
-                {(profile.profileLinks.length > 0 || profile.shoutouts.length > 0) && <div className="mx-auto mt-4 h-px w-16 opacity-45 lg:mx-0" style={{ backgroundColor: profile.profileAccent }} />}
-                {profile.shoutouts.length > 0 && <ProfileShoutouts shoutouts={profile.shoutouts} language={de ? "de" : "en"} centered="mobile" accent={profile.profileAccent} />}
+                {profile.shoutouts.length > 0 && <ProfileShoutouts shoutouts={profile.shoutouts} language={de ? "de" : "en"} centered="mobile" />}
 
                 {isOwnProfile && profile.isAdmin && <Link href="/admin" className="mx-auto mt-4 inline-flex w-fit rounded-xl border border-orange-400/60 px-3 py-2 text-sm font-semibold text-orange-600 hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-500/10 lg:mx-0">{de ? "Adminbereich" : "Admin area"}</Link>}
 

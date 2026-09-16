@@ -157,8 +157,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         {profileLinks.length > 0 && (
           <div className="mt-4"><ProfileLinks links={profileLinks} language={de ? "de" : "en"} centered accent={profileAccent} /></div>
         )}
-        {(profileLinks.length > 0 || shoutouts.length > 0) && <div className="mx-auto mt-4 h-px w-16 opacity-55" style={{ backgroundColor: profileAccent }} />}
-        {shoutouts.length > 0 && <ProfileShoutouts shoutouts={shoutouts} language={de ? "de" : "en"} centered accent={profileAccent} />}
+        {shoutouts.length > 0 && <ProfileShoutouts shoutouts={shoutouts} language={de ? "de" : "en"} centered />}
       </section>
 
       <section className="mt-5 flex justify-center gap-10 text-center text-sm">
