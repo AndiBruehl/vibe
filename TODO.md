@@ -45,6 +45,12 @@
 - Let members export a saved profile look as a shareable link or file and import a compatible look into their own saved looks.
 - Define the sharing and validation model first so imported data contains only safe appearance fields and never profile identity, roles, links, or private data.
 
+## BETA 0.1.69.14.6 — Activity notification preferences
+
+- Let members choose whether likes, comments and replies, mentions, follow requests, and admin updates contribute to the activity counter and in-app activity notifications. ✅
+- Store the preferences on the profile and filter the web activity status accordingly. ✅
+- Extend the Android and desktop clients with the same controls and apply message-notification preferences in a follow-up patch.
+
 ## BETA 0.1.69.15 — Pinned profile posts
 
 - Let members choose and order up to three of their own posts as pinned profile posts.

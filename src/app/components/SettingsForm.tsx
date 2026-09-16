@@ -65,6 +65,14 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
   const [saveFeedback, setSaveFeedback] = useState<"saved" | "failed" | null>(null);
   const [themePreference, setThemePreference] = useState<ThemePreference>(profile?.theme === "light" || profile?.theme === "dark" ? profile.theme : "system");
   const [isPrivate, setIsPrivate] = useState(profile?.isPrivate ?? false);
+  const [notificationPreferences, setNotificationPreferences] = useState({
+    notificationLikes: profile?.notificationLikes ?? true,
+    notificationComments: profile?.notificationComments ?? true,
+    notificationMentions: profile?.notificationMentions ?? true,
+    notificationFollowRequests: profile?.notificationFollowRequests ?? true,
+    notificationAdmin: profile?.notificationAdmin ?? true,
+  });
+  const [isSavingNotificationPreferences, setIsSavingNotificationPreferences] = useState(false);
   const [language, setLanguage] = useState<"en" | "de">("en");
   const [activeTab, setActiveTab] = useState<"profile" | "preferences" | "account">("profile");
   const [activeAppearanceSection, setActiveAppearanceSection] = useState<"general" | "profile">("general");
@@ -272,6 +280,18 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
   async function deleteFramePreset(id: string) {
     await fetch(`/api/profile/avatar-frame-presets?id=${encodeURIComponent(id)}`, { method: "DELETE" });
     setFramePresets((current) => current.filter((preset) => preset.id !== id));
+  }
+
+  async function updateNotificationPreference(key: keyof typeof notificationPreferences, value: boolean) {
+    if (isSavingNotificationPreferences) return;
+    const previous = notificationPreferences;
+    const next = { ...notificationPreferences, [key]: value };
+    setNotificationPreferences(next); setIsSavingNotificationPreferences(true); setSaveFeedback(null);
+    try {
+      const response = await fetch("/api/profile/notification-preferences", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(next) });
+      if (!response.ok) throw new Error("Notification preferences could not be saved");
+      setSaveFeedback("saved");
+    } catch { setNotificationPreferences(previous); setSaveFeedback("failed"); } finally { setIsSavingNotificationPreferences(false); }
   }
 
   function currentAppearance() {
@@ -599,6 +619,16 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
       </div>
       </div>
       <div className={activeTab === "account" ? "space-y-3" : "hidden"}>
+        <details className="group rounded-xl border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-700/80 dark:bg-slate-800/30">
+          <summary className="cursor-pointer list-none text-sm font-semibold text-slate-700 marker:content-none dark:text-slate-200">{copy("Activity notifications", "Aktivitäts-Benachrichtigungen")}</summary>
+          <div className="mt-3 space-y-2 border-t border-slate-200 pt-3 dark:border-slate-700/80"><p className="text-xs text-slate-500 dark:text-slate-400">{copy("Choose what contributes to the activity counter and in-app activity notifications.", "Wähle, was zum Aktivitäts-Zähler und zu In-App-Aktivitätsbenachrichtigungen beiträgt.")}</p>{([
+            ["notificationLikes", copy("Likes", "Likes")],
+            ["notificationComments", copy("Comments and replies", "Kommentare und Antworten")],
+            ["notificationMentions", copy("Mentions", "Erwähnungen")],
+            ["notificationFollowRequests", copy("Follow requests", "Follow-Anfragen")],
+            ["notificationAdmin", copy("Admin updates", "Admin-Hinweise")],
+          ] as const).map(([key, label]) => <label key={key} className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"><span>{label}</span><Switch checked={notificationPreferences[key]} disabled={isSavingNotificationPreferences} onCheckedChange={(value) => void updateNotificationPreference(key, value)} /></label>)}</div>
+        </details>
         <details className="group rounded-xl border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-700/80 dark:bg-slate-800/30">
           <summary className="cursor-pointer list-none text-sm font-semibold text-slate-700 marker:content-none dark:text-slate-200">{copy("Safety & blocked users", "Sicherheit & blockierte Nutzer")}</summary>
           <div className="mt-3 border-t border-slate-200 pt-3 dark:border-slate-700/80"><Link href="/settings/blocked" className="inline-flex min-h-10 items-center justify-center rounded-lg border border-orange-400/60 bg-orange-50 px-3 py-2 text-sm font-bold text-orange-700 transition hover:bg-orange-100 dark:bg-orange-500/10 dark:text-orange-300 dark:hover:bg-orange-500/20">{copy("Manage blocked users", "Blockierte Nutzer verwalten")}</Link></div>

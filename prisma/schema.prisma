@@ -38,6 +38,11 @@ model Profile {
   restrictionComments Boolean   @default(false)
   restrictionPosts    Boolean   @default(false)
   activityReadAt      DateTime?
+  notificationLikes   Boolean   @default(true)
+  notificationComments Boolean  @default(true)
+  notificationMentions Boolean  @default(true)
+  notificationFollowRequests Boolean @default(true)
+  notificationAdmin   Boolean   @default(true)
 
   posts               Post[]
   comments            Comment[]

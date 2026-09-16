@@ -22,7 +22,7 @@ export async function getUnreadInteractionStatus(
 
   const profile = await prisma.profile.findUnique({
     where: { email: sessionEmail },
-    select: { id: true, activityReadAt: true, isAdmin: true },
+    select: { id: true, activityReadAt: true, isAdmin: true, notificationLikes: true, notificationComments: true, notificationMentions: true, notificationFollowRequests: true, notificationAdmin: true },
   });
 
   if (!profile) {
@@ -109,20 +109,27 @@ export async function getUnreadInteractionStatus(
     }
   }
 
+  const visibleCommentCount = profile.notificationComments ? commentCount : 0;
+  const visibleReplyCount = profile.notificationComments ? replyCount : 0;
+  const visibleLikeCount = profile.notificationLikes ? likeCount : 0;
+  const visibleMentionCount = profile.notificationMentions ? mentionCount : 0;
+  const visibleFollowRequestCount = profile.notificationFollowRequests ? followRequests.length : 0;
+  const visibleAdminCount = profile.notificationAdmin ? adminActivities.length : 0;
+
   return {
-    commentCount,
-    replyCount,
-    likeCount,
-    mentionCount,
-    followRequestCount: followRequests.length,
-    adminCount: adminActivities.length,
+    commentCount: visibleCommentCount,
+    replyCount: visibleReplyCount,
+    likeCount: visibleLikeCount,
+    mentionCount: visibleMentionCount,
+    followRequestCount: visibleFollowRequestCount,
+    adminCount: visibleAdminCount,
     latestUnreadAt: [
-      interactions[0]?.createdAt,
-      postLikes[0]?.createdAt,
-      commentLikes[0]?.createdAt,
-      mentions[0]?.createdAt,
-      followRequests[0]?.createdAt,
-      adminActivities[0]?.createdAt,
+      profile.notificationComments ? interactions[0]?.createdAt : null,
+      profile.notificationLikes ? postLikes[0]?.createdAt : null,
+      profile.notificationLikes ? commentLikes[0]?.createdAt : null,
+      profile.notificationMentions ? mentions[0]?.createdAt : null,
+      profile.notificationFollowRequests ? followRequests[0]?.createdAt : null,
+      profile.notificationAdmin ? adminActivities[0]?.createdAt : null,
     ]
       .filter((date): date is Date => Boolean(date))
       .sort((left, right) => right.getTime() - left.getTime())[0]
