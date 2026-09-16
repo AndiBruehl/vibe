@@ -431,9 +431,7 @@ html, body { cursor: default; }
   to { transform: rotate(360deg); }
 }
 
-.vibe-secret-edge-sparkle { transform: scale(.55); transition: opacity 280ms ease-out, transform 280ms ease-out; }
-.vibe-secret-edge-sparkle-active { animation: vibe-secret-edge-sparkle 2.35s ease-in-out infinite; }
-.vibe-secret-edge-sparkle-idle { opacity: .18; }
+.vibe-secret-edge-sparkle { animation: vibe-secret-edge-sparkle 2.35s ease-in-out infinite; }
 .vibe-secret-inner-sparkle { animation: vibe-secret-inner-sparkle 2.1s ease-in-out infinite; }
 .vibe-secret-inner-sparkle-delayed { animation-delay: .7s; }
 .vibe-secret-gem { animation: vibe-secret-gem 1.8s ease-in-out infinite; }
