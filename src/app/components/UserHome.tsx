@@ -64,6 +64,9 @@ export default async function UserHome({ session, feedMode }: UserHomeProps) {
     authorName: string;
     authorUsername: string;
     authorAvatar: string | null;
+    authorAvatarAccent: string;
+    authorAvatarAccentEnd: string | null;
+    authorAvatarAccentDirection: string;
     slides: { id: string; storyId: string; imageUrl: string; expiresAt: string; sharedPostId: string | null }[];
     storyIds: string[];
   }>();
@@ -77,6 +80,9 @@ export default async function UserHome({ session, feedMode }: UserHomeProps) {
       authorName: author.name || "VIBE member",
       authorUsername: author.username || "",
       authorAvatar: author.avatar,
+      authorAvatarAccent: author.avatarAccent,
+      authorAvatarAccentEnd: author.avatarAccentEnd,
+      authorAvatarAccentDirection: author.avatarAccentDirection,
       slides: [] as { id: string; storyId: string; imageUrl: string; expiresAt: string; sharedPostId: string | null }[],
       storyIds: [] as string[],
     };

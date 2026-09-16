@@ -7,7 +7,6 @@ import { auth } from "@/auth";
 import BookmarkButton from "./../components/BookmarkButton";
 import LikesInfo from "./../components/LikesInfo";
 import { prisma } from "@/db";
-import { Avatar } from "@radix-ui/themes";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
@@ -19,6 +18,7 @@ import {
 import FeedModeSwitch from "./FeedModeSwitch";
 import SharePostButton from "./SharePostButton";
 import AdminBadge from "./AdminBadge";
+import ProfileAvatar from "./ProfileAvatar";
 
 type Follow = {
   followingId: string;
@@ -306,16 +306,7 @@ export default async function HomePosts({
                     className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 transition hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
                   >
                     <div className="flex min-w-0 items-center gap-3">
-                      <Avatar
-                        radius="full"
-                        src={user.avatar || undefined}
-                        size="3"
-                        fallback={(
-                          user.username?.[0] ||
-                          user.name?.[0] ||
-                          "?"
-                        ).toUpperCase()}
-                      />
+                      <ProfileAvatar {...user} sizeClass="size-8" />
 
                       <div className="min-w-0">
                         <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
@@ -371,12 +362,7 @@ export default async function HomePosts({
             >
               <div className="relative z-20 flex items-center justify-between border-b border-slate-200 px-4 py-4 sm:px-5 dark:border-white/10">
                 <div className="flex min-w-0 items-center gap-3">
-                  <Avatar
-                    radius="full"
-                    src={profile?.avatar || undefined}
-                    size="3"
-                    fallback={(profile?.username?.[0] || "?").toUpperCase()}
-                  />
+                  <ProfileAvatar {...profile} sizeClass="size-8" />
 
                   <div className="min-w-0">
                     <Link

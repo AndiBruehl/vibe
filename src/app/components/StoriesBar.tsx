@@ -3,6 +3,7 @@
 import { createStory, deleteStory } from "@/actions";
 import StoryRemainingTime from "./StoryRemainingTime";
 import { PinataSDK } from "pinata";
+import ProfileAvatar from "@/app/components/ProfileAvatar";
 import { Eye, Plus, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import useVibeLanguage from "@/app/components/useVibeLanguage";
@@ -13,6 +14,9 @@ type Story = {
   authorName: string;
   authorUsername: string;
   authorAvatar: string | null;
+  authorAvatarAccent: string;
+  authorAvatarAccentEnd: string | null;
+  authorAvatarAccentDirection: string;
   slides: { id: string; storyId: string; imageUrl: string; expiresAt: string; sharedPostId: string | null }[];
   storyIds: string[];
   seen: boolean;
@@ -202,7 +206,7 @@ export default function StoriesBar({ stories: suppliedStories, viewerEmail }: { 
           <span className="mt-2 w-full truncate text-center text-xs font-medium text-slate-600 dark:text-slate-400">{de ? "Deine Story" : "Your story"}</span>
         </button>
         {stories.map((story, index) => <button key={story.id} type="button" onClick={() => setOpenStoryIndex(index)} className="group flex w-20 shrink-0 flex-col items-center">
-          <span className={`rounded-full p-0.75 ${story.seen ? "bg-slate-300 dark:bg-slate-600" : "bg-linear-to-br from-(--ig-orange) to-(--ig-red)"}`}><span className="grid size-16 place-items-center overflow-hidden rounded-full bg-white p-1 dark:bg-slate-950">{story.authorAvatar ? <img src={story.authorAvatar} alt="" className="size-14 rounded-full bg-slate-200 object-cover" /> : <span className="grid size-14 place-items-center rounded-full bg-slate-200 text-lg font-bold text-slate-600">{story.authorUsername[0] || story.authorName[0] || "?"}</span>}</span></span>
+          <span className={`rounded-full p-0.75 ${story.seen ? "bg-slate-300 dark:bg-slate-600" : "bg-linear-to-br from-(--ig-orange) to-(--ig-red)"}`}><ProfileAvatar avatar={story.authorAvatar} name={story.authorName} username={story.authorUsername} avatarAccent={story.authorAvatarAccent} avatarAccentEnd={story.authorAvatarAccentEnd} avatarAccentDirection={story.authorAvatarAccentDirection} sizeClass="size-16" /></span>
           <span className="mt-2 w-full truncate text-center text-xs font-medium text-slate-600 dark:text-slate-400">{story.authorUsername || story.authorName}</span>
         </button>)}
       </div></div>
