@@ -40,6 +40,11 @@
 
 - Plan and implement an **Impressum**: decide its placement and provide a consistent entry point in the web, Android, and desktop apps.
 
+## BETA 0.1.69.14.5 — Profile look export and import
+
+- Let members export a saved profile look as a shareable link or file and import a compatible look into their own saved looks.
+- Define the sharing and validation model first so imported data contains only safe appearance fields and never profile identity, roles, links, or private data.
+
 ## VIBE 2.0.0.0.0 — Vollversion 2.0
 
 - Add post sharing only after public post URLs or an explicit sharing/visibility model exists; protected-only posts should not be shared externally.
