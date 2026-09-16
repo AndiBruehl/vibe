@@ -116,9 +116,9 @@ export default async function ProfileByUsernamePage({
 
       <main className="mx-auto w-full max-w-6xl p-4 md:p-8">
         <section className={`overflow-hidden rounded-2xl bg-white shadow-lg shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900 ${profileHeaderLayout === "spotlight" ? "border-2 border-slate-300/90 bg-linear-to-b from-slate-100 to-white shadow-xl dark:border-slate-600 dark:from-slate-800 dark:to-slate-900" : ""}`}>
-          <div className={`grid gap-5 p-5 text-center sm:p-6 lg:items-start lg:p-8 lg:text-left ${profileHeaderLayout === "compact" ? "grid-cols-[minmax(0,1fr)_5.5rem] text-left lg:grid-cols-[minmax(0,1fr)_5.5rem]" : profileHeaderLayout === "spotlight" ? "grid-cols-1 gap-7 p-6 lg:grid-cols-1 lg:text-center" : "lg:grid-cols-[7rem_minmax(0,1fr)_auto]"}`}>
+          <div className={`grid gap-5 p-5 text-center sm:p-6 lg:items-start lg:p-8 lg:text-left ${profileHeaderLayout === "compact" ? "grid-cols-[minmax(0,1fr)_5.5rem] text-left lg:grid-cols-[minmax(0,1fr)_13rem]" : profileHeaderLayout === "spotlight" ? "grid-cols-1 gap-7 p-6 lg:grid-cols-1 lg:text-center" : "lg:grid-cols-[7rem_minmax(0,1fr)_auto]"}`}>
             <div className={`flex justify-center lg:block ${profileHeaderLayout === "compact" ? "order-2 self-start justify-self-end lg:order-2 lg:self-start lg:justify-self-end" : profileHeaderLayout === "spotlight" ? "order-2 justify-self-center lg:order-1 lg:justify-self-center" : ""}`}>
-              <div className={`${profileHeaderLayout === "compact" ? "size-36 lg:size-44" : profileHeaderLayout === "spotlight" ? "size-40 lg:size-40" : "size-24 lg:size-28"} rounded-full p-1 shadow-lg shadow-slate-900/20`} style={avatarFrameStyle(profile.avatarAccent, profile.avatarAccentEnd, profile.avatarAccentDirection)}><div className="size-full overflow-hidden rounded-full bg-gray-300">
+              <div className={`${profileHeaderLayout === "compact" ? "size-36 lg:size-52" : profileHeaderLayout === "spotlight" ? "size-40 lg:size-40" : "size-24 lg:size-28"} rounded-full p-1 shadow-lg shadow-slate-900/20`} style={avatarFrameStyle(profile.avatarAccent, profile.avatarAccentEnd, profile.avatarAccentDirection)}><div className="size-full overflow-hidden rounded-full bg-gray-300">
                 {profile.avatar ? (
                   <Image
                     src={profile.avatar}
@@ -133,20 +133,20 @@ export default async function ProfileByUsernamePage({
             </div>
 
               <div className={`min-w-0 ${profileHeaderLayout === "compact" ? "order-1 lg:order-1" : profileHeaderLayout === "spotlight" ? "order-3 text-center lg:order-2 lg:text-center" : ""}`}>
-                <h1 className={`${profileHeaderLayout === "spotlight" ? "text-3xl" : "text-2xl"} font-bold text-slate-900 dark:text-white`}>
+                <h1 className={`${profileHeaderLayout === "spotlight" ? "text-3xl" : profileHeaderLayout === "compact" ? "text-2xl lg:text-3xl" : "text-2xl"} font-bold text-slate-900 dark:text-white`}>
                   <span className={`inline-flex items-center justify-center gap-2 ${profileHeaderLayout === "spotlight" ? "lg:justify-center" : "lg:justify-start"}`}>{profile.name || "Unknown"}<AdminBadge isAdmin={profile.isAdmin} /><VibeTeamBadge isSystem={profile.isSystem} /></span>
                 </h1>
 
-                <p className="text-sm text-slate-500 dark:text-slate-400">
+                <p className={`${profileHeaderLayout === "compact" ? "text-sm lg:text-base" : "text-sm"} text-slate-500 dark:text-slate-400`}>
                   @{profile.username}
                 </p>
 
                 {profile.subtitle && (
-                  <p className="mt-2 text-sm text-slate-600 dark:text-slate-300"><MentionText text={profile.subtitle} /></p>
+                  <p className={`mt-2 ${profileHeaderLayout === "compact" ? "text-sm lg:text-base" : "text-sm"} text-slate-600 dark:text-slate-300"><MentionText text={profile.subtitle} /></p>
                 )}
 
                 {profile.bio && (
-                  <p className={`mx-auto mt-2 max-w-md whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-200 ${profileHeaderLayout === "spotlight" ? "lg:mx-auto" : "lg:mx-0"}`}><MentionText text={profile.bio} /></p>
+                  <p className={`mx-auto mt-2 max-w-md whitespace-pre-wrap ${profileHeaderLayout === "compact" ? "text-sm lg:text-base" : "text-sm"} text-slate-700 dark:text-slate-200 ${profileHeaderLayout === "spotlight" ? "lg:mx-auto" : "lg:mx-0"}`}><MentionText text={profile.bio} /></p>
                 )}
 
                 {profile.profileLinks.length > 0 && (
