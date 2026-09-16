@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useState } from "react";
 import { BarChart3, Plus, Trash2 } from "lucide-react";
 import { createPoll, deletePoll, togglePollLive } from "@/actions";
 
@@ -11,13 +11,16 @@ type Poll = {
 
 export default function AdminPollManager({ polls, de, referenceTime }: { polls: Poll[]; de: boolean; referenceTime: string }) {
   const [options, setOptions] = useState(["", ""]);
+  const [draftState, draftAction, draftPending] = useActionState(createPoll, {});
   const format = new Intl.DateTimeFormat(de ? "de-DE" : "en-US", { dateStyle: "medium", timeStyle: "short" });
   return <section className="space-y-6">
     <div className="flex items-center gap-3"><span className="grid size-10 place-items-center rounded-2xl bg-orange-500/15 text-orange-500"><BarChart3 size={20} /></span><div><h2 className="font-black text-slate-900 dark:text-white">{de ? "Homepage-Polls" : "Homepage polls"}</h2><p className="text-sm text-slate-500 dark:text-slate-400">{de ? "Entwürfe vorbereiten und für 72 Stunden live schalten." : "Prepare drafts and put one live for 72 hours."}</p></div></div>
-    <form action={createPoll} className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
+    <form action={draftAction} className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
       <label className="block text-sm font-bold text-slate-800 dark:text-white">{de ? "Neue Frage" : "New question"}<input required name="question" maxLength={240} placeholder={de ? "Was möchtest du die Community fragen?" : "What would you like to ask the community?"} className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-500 dark:border-slate-600 dark:bg-slate-900" /></label>
       <div className="mt-3 space-y-2">{options.map((_, index) => <div key={index} className="flex gap-2"><input required name="option" maxLength={120} placeholder={`${de ? "Antwort" : "Answer"} ${index + 1}`} className="min-w-0 flex-1 rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-500 dark:border-slate-600 dark:bg-slate-900" />{options.length > 2 && <button type="button" aria-label="Remove answer" onClick={() => setOptions(options.filter((_, itemIndex) => itemIndex !== index))} className="rounded-xl border border-slate-300 px-3 text-slate-500 hover:text-rose-500 dark:border-slate-600"><Trash2 size={16}/></button>}</div>)}</div>
-      <div className="mt-4 flex flex-wrap gap-2"><button type="button" disabled={options.length >= 6} onClick={() => setOptions([...options, ""])} className="inline-flex items-center gap-1 rounded-xl border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 disabled:opacity-40 dark:border-slate-600 dark:text-slate-200"><Plus size={16}/>{de ? "Antwort" : "Answer"}</button><button className="rounded-xl bg-linear-to-r from-orange-500 to-rose-500 px-4 py-2 text-sm font-black text-white shadow">{de ? "Als Entwurf speichern" : "Save draft"}</button></div>
+      {draftState.error ? <p role="alert" className="mt-3 rounded-xl border border-rose-300/60 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">{draftState.error}</p> : null}
+      {draftState.saved ? <p className="mt-3 rounded-xl border border-emerald-300/60 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">{de ? "Poll als Entwurf gespeichert." : "Poll saved as a draft."}</p> : null}
+      <div className="mt-4 flex flex-wrap gap-2"><button type="button" disabled={options.length >= 6} onClick={() => setOptions([...options, ""])} className="inline-flex items-center gap-1 rounded-xl border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 disabled:opacity-40 dark:border-slate-600 dark:text-slate-200"><Plus size={16}/>{de ? "Antwort" : "Answer"}</button><button disabled={draftPending} className="rounded-xl bg-linear-to-r from-orange-500 to-rose-500 px-4 py-2 text-sm font-black text-white shadow disabled:opacity-60">{draftPending ? (de ? "Speichert …" : "Saving …") : (de ? "Als Entwurf speichern" : "Save draft")}</button></div>
     </form>
     <div className="space-y-3">{polls.length === 0 ? <p className="rounded-2xl border border-dashed border-slate-300 p-5 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">{de ? "Noch keine Polls vorbereitet." : "No polls prepared yet."}</p> : polls.map((poll) => {
       const now = new Date(referenceTime).getTime(); const live = poll.isActive && Boolean(poll.expiresAt && new Date(poll.expiresAt).getTime() > now); const ended = Boolean(poll.expiresAt && new Date(poll.expiresAt).getTime() <= now); const total = poll.options.reduce((sum, option) => sum + option.votes.length, 0);

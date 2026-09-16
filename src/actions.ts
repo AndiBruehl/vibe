@@ -1409,11 +1409,15 @@ async function requirePollAdmin() {
   return email;
 }
 
-export async function createPoll(formData: FormData) {
+export type PollDraftState = { error?: string; saved?: boolean };
+
+export async function createPoll(_previousState: PollDraftState, formData: FormData): Promise<PollDraftState> {
   const actorEmail = await requirePollAdmin();
   const question = typeof formData.get("question") === "string" ? String(formData.get("question")).trim().slice(0, 240) : "";
   const options = [...new Set(formData.getAll("option").map((value) => typeof value === "string" ? value.trim().slice(0, 120) : "").filter(Boolean))];
-  if (!question || options.length < 2 || options.length > 6) throw new Error("A poll needs a question and between two and six unique answers.");
+  if (!question) return { error: "Bitte gib eine Frage ein." };
+  if (options.length < 2) return { error: "Bitte gib mindestens zwei unterschiedliche Antworten ein." };
+  if (options.length > 6) return { error: "Ein Poll darf höchstens sechs Antworten haben." };
 
   await prisma.poll.create({
     data: {
@@ -1424,6 +1428,7 @@ export async function createPoll(formData: FormData) {
   });
   await notifyAdmins(actorEmail, "poll-create", `Created poll: ${question}`);
   revalidatePath("/admin");
+  return { saved: true };
 }
 
 export async function togglePollLive(formData: FormData) {
