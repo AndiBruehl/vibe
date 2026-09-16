@@ -13,7 +13,7 @@ import AppVersion from "@/app/components/AppVersion";
 import { applyTheme, type ThemePreference } from "@/app/components/ProfileThemeRuntime";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AVATAR_ACCENT_PRESETS, AVATAR_FRAME_DIRECTIONS, AVATAR_FRAME_GRADIENTS, DEFAULT_AVATAR_ACCENT, DEFAULT_PROFILE_ACCENT, avatarFrameConfig, avatarFrameStyle, normalizeAvatarAccent, normalizeProfileAccent, normalizeProfileHeaderLayout, type ProfileHeaderLayout } from "@/profile-personalization";
+import { AVATAR_ACCENT_PRESETS, AVATAR_FRAME_DIRECTIONS, AVATAR_FRAME_GRADIENTS, DEFAULT_AVATAR_ACCENT, DEFAULT_PROFILE_ACCENT, DEFAULT_PROFILE_HEADER_BACKGROUND_COLOR, avatarFrameConfig, avatarFrameStyle, normalizeAvatarAccent, normalizeProfileAccent, normalizeProfileHeaderBackgroundMode, normalizeProfileHeaderLayout, profileHeaderBackgroundStyle, type ProfileHeaderBackgroundMode, type ProfileHeaderLayout } from "@/profile-personalization";
 
 import defaultImg from "./default.jpg";
 
@@ -26,6 +26,7 @@ type EditableProfileLink = { id: string; label: string; url: string };
 export default function SettingsForm({ profile }: SettingsFormProps) {
   const router = useRouter();
   const fileInRef = useRef<HTMLInputElement>(null);
+  const headerBackgroundFileRef = useRef<HTMLInputElement>(null);
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(
     profile?.avatar ?? null,
@@ -39,6 +40,12 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
   const [isSavingProfileAccent, setIsSavingProfileAccent] = useState(false);
   const [profileHeaderLayout, setProfileHeaderLayout] = useState<ProfileHeaderLayout>(normalizeProfileHeaderLayout(profile?.profileHeaderLayout));
   const [isSavingHeaderLayout, setIsSavingHeaderLayout] = useState(false);
+  const [profileHeaderBackgroundMode, setProfileHeaderBackgroundMode] = useState<ProfileHeaderBackgroundMode>(normalizeProfileHeaderBackgroundMode(profile?.profileHeaderBackgroundMode));
+  const [profileHeaderBackgroundImage, setProfileHeaderBackgroundImage] = useState(profile?.profileHeaderBackgroundImage ?? "");
+  const [profileHeaderBackgroundColor, setProfileHeaderBackgroundColor] = useState(profile?.profileHeaderBackgroundColor ?? DEFAULT_PROFILE_HEADER_BACKGROUND_COLOR);
+  const [profileHeaderBackgroundEnd, setProfileHeaderBackgroundEnd] = useState<string | null>(profile?.profileHeaderBackgroundEnd ?? null);
+  const [isSavingHeaderBackground, setIsSavingHeaderBackground] = useState(false);
+  const [isUploadingHeaderBackground, setIsUploadingHeaderBackground] = useState(false);
   const [isSavingAccent, setIsSavingAccent] = useState(false);
   const [framePresets, setFramePresets] = useState(profile?.framePresets ?? []);
   const [isUploading, setIsUploading] = useState(false);
@@ -49,6 +56,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
   const [isPrivate, setIsPrivate] = useState(profile?.isPrivate ?? false);
   const [language, setLanguage] = useState<"en" | "de">("en");
   const [activeTab, setActiveTab] = useState<"profile" | "preferences" | "account">("profile");
+  const [activeAppearanceSection, setActiveAppearanceSection] = useState<"general" | "profile">("general");
   const [profileLinks, setProfileLinks] = useState<EditableProfileLink[]>(
     profile?.profileLinks?.map((link) => ({ id: link.id, label: link.label, url: link.url })) ?? [],
   );
@@ -197,6 +205,25 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
     }
   }
 
+  async function updateProfileHeaderBackground(nextMode: ProfileHeaderBackgroundMode, nextImage = profileHeaderBackgroundImage, nextColor = profileHeaderBackgroundColor, nextEnd = profileHeaderBackgroundEnd) {
+    const previous = { mode: profileHeaderBackgroundMode, image: profileHeaderBackgroundImage, color: profileHeaderBackgroundColor, end: profileHeaderBackgroundEnd };
+    setProfileHeaderBackgroundMode(nextMode); setProfileHeaderBackgroundImage(nextImage); setProfileHeaderBackgroundColor(nextColor); setProfileHeaderBackgroundEnd(nextEnd); setIsSavingHeaderBackground(true); setSaveFeedback(null);
+    try {
+      const response = await fetch("/api/profile/header-background", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ profileHeaderBackgroundMode: nextMode, profileHeaderBackgroundImage: nextImage || null, profileHeaderBackgroundColor: nextColor, profileHeaderBackgroundEnd: nextEnd }) });
+      if (!response.ok) throw new Error("Header background could not be saved");
+      setSaveFeedback("saved"); window.setTimeout(() => setSaveFeedback(null), 2500);
+    } catch {
+      setProfileHeaderBackgroundMode(previous.mode); setProfileHeaderBackgroundImage(previous.image); setProfileHeaderBackgroundColor(previous.color); setProfileHeaderBackgroundEnd(previous.end); setSaveFeedback("failed");
+    } finally { setIsSavingHeaderBackground(false); }
+  }
+
+  async function uploadHeaderBackground(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]; if (!file) return;
+    const data = new FormData(); data.set("file", file); setIsUploadingHeaderBackground(true);
+    try { const response = await fetch("/api/upload", { method: "POST", body: data }); if (!response.ok) throw new Error("Header image upload failed"); const { url } = await response.json(); await updateProfileHeaderBackground("image", url); }
+    catch { setSaveFeedback("failed"); } finally { setIsUploadingHeaderBackground(false); event.target.value = ""; }
+  }
+
   async function saveFramePreset() {
     if (!avatarAccentEnd || framePresets.length >= 3) return;
     const response = await fetch("/api/profile/avatar-frame-presets", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ startColor: avatarAccent, endColor: avatarAccentEnd, direction: avatarAccentDirection }) });
@@ -244,6 +271,10 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
           <input type="hidden" name="avatarAccentDirection" value={avatarAccentDirection} />
           <input type="hidden" name="profileAccent" value={profileAccent} />
           <input type="hidden" name="profileHeaderLayout" value={profileHeaderLayout} />
+          <input type="hidden" name="profileHeaderBackgroundMode" value={profileHeaderBackgroundMode} />
+          <input type="hidden" name="profileHeaderBackgroundImage" value={profileHeaderBackgroundImage} />
+          <input type="hidden" name="profileHeaderBackgroundColor" value={profileHeaderBackgroundColor} />
+          <input type="hidden" name="profileHeaderBackgroundEnd" value={profileHeaderBackgroundEnd ?? ""} />
 
           <button
             type="button"
@@ -346,6 +377,8 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
       </div>
 
       <div className={activeTab === "preferences" ? "space-y-3" : "hidden"}>
+      <div className="grid grid-cols-2 rounded-xl bg-slate-100 p-1 text-xs font-bold dark:bg-slate-800"><button type="button" onClick={() => setActiveAppearanceSection("general")} className={`rounded-lg px-3 py-2 transition ${activeAppearanceSection === "general" ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 dark:text-slate-400"}`}>{copy("General", "Allgemein")}</button><button type="button" onClick={() => setActiveAppearanceSection("profile")} className={`rounded-lg px-3 py-2 transition ${activeAppearanceSection === "profile" ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 dark:text-slate-400"}`}>{copy("Profile look", "Profil-Look")}</button></div>
+      <div className={activeAppearanceSection === "general" ? "space-y-3" : "hidden"}>
       <section className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 dark:border-slate-700 dark:bg-slate-800/60">
         <div className="flex items-center gap-3">
           <span className="grid size-9 place-items-center rounded-xl bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200"><MonitorSmartphone size={17} /></span>
@@ -363,9 +396,12 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
         </div>
       </section>
 
+      </div>
+      <div className={activeAppearanceSection === "profile" ? "space-y-3" : "hidden"}>
       <section className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 dark:border-slate-700 dark:bg-slate-800/60">
         <div className="mb-3 flex items-center gap-3"><span className="grid size-9 place-items-center rounded-xl bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200"><Pipette size={17} /></span><div><p className="font-semibold text-slate-900 dark:text-white">{copy("Profile personalization", "Profil-Personalisierung")}</p><p className="text-xs text-slate-500 dark:text-slate-400">{copy("Avatar frame and link accent", "Avatar-Rahmen und Link-Akzent")}</p></div></div>
         <div className="mb-4 rounded-xl border border-slate-200 bg-white/70 p-3 dark:border-slate-700/80 dark:bg-slate-900/30"><p className="text-xs font-semibold text-slate-700 dark:text-slate-200">{copy("Profile header layout", "Profilkopf-Layout")}</p><p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{copy("Choose how your profile introduction is arranged.", "Wähle die Anordnung deiner Profilvorstellung.")}</p><div className="mt-3 grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1 text-xs font-bold dark:bg-slate-800">{([{ value: "standard", label: copy("Standard", "Standard") }, { value: "compact", label: copy("Compact", "Kompakt") }, { value: "spotlight", label: copy("Spotlight", "Fokus") }] as const).map(({ value, label }) => <button key={value} type="button" onClick={() => void updateProfileHeaderLayout(value)} disabled={isSavingHeaderLayout} className={`rounded-lg px-2 py-2 transition disabled:cursor-wait disabled:opacity-60 ${profileHeaderLayout === value ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"}`}>{label}</button>)}</div><div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700/80 dark:bg-slate-950/30"><p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">{copy("Preview", "Vorschau")}</p><div aria-hidden="true" className="animate-pulse motion-reduce:animate-none">{profileHeaderLayout === "standard" ? <div className="grid grid-cols-[2.75rem_minmax(0,1fr)_4rem] items-center gap-3"><span className="size-10 rounded-full bg-slate-300 dark:bg-slate-600" /><span className="space-y-2"><span className="block h-2.5 w-3/4 rounded bg-slate-300 dark:bg-slate-600" /><span className="block h-2 w-full rounded bg-slate-200 dark:bg-slate-700" /><span className="block h-2 w-2/3 rounded bg-slate-200 dark:bg-slate-700" /></span><span className="grid grid-cols-3 gap-1"><i className="h-5 rounded bg-slate-300 dark:bg-slate-600" /><i className="h-5 rounded bg-slate-300 dark:bg-slate-600" /><i className="h-5 rounded bg-slate-300 dark:bg-slate-600" /></span></div> : profileHeaderLayout === "compact" ? <div className="grid grid-cols-[minmax(0,1fr)_2.75rem] gap-x-3 gap-y-3"><span className="space-y-2"><span className="block h-2.5 w-2/3 rounded bg-slate-300 dark:bg-slate-600" /><span className="block h-2 w-full rounded bg-slate-200 dark:bg-slate-700" /><span className="block h-2 w-4/5 rounded bg-slate-200 dark:bg-slate-700" /></span><span className="size-12 self-center rounded-full bg-slate-300 dark:bg-slate-600" /><span className="col-span-2 grid grid-cols-3 gap-2 border-t border-slate-200 pt-2 dark:border-slate-700"><i className="h-4 rounded bg-slate-300 dark:bg-slate-600" /><i className="h-4 rounded bg-slate-300 dark:bg-slate-600" /><i className="h-4 rounded bg-slate-300 dark:bg-slate-600" /></span></div> : <div className="flex flex-col items-center gap-3"><span className="size-14 rounded-full bg-slate-300 dark:bg-slate-600" /><span className="w-full max-w-48 space-y-2"><span className="mx-auto block h-3 w-3/4 rounded bg-slate-300 dark:bg-slate-600" /><span className="block h-2 w-full rounded bg-slate-200 dark:bg-slate-700" /><span className="mx-auto block h-2 w-2/3 rounded bg-slate-200 dark:bg-slate-700" /></span><span className="grid w-full grid-cols-3 gap-2 border-t border-slate-200 pt-2 dark:border-slate-700"><i className="h-4 rounded bg-slate-300 dark:bg-slate-600" /><i className="h-4 rounded bg-slate-300 dark:bg-slate-600" /><i className="h-4 rounded bg-slate-300 dark:bg-slate-600" /></span></div>}</div></div></div>
+        <div className="mb-4 rounded-xl border border-slate-200 bg-white/70 p-3 dark:border-slate-700/80 dark:bg-slate-900/30"><p className="text-xs font-semibold text-slate-700 dark:text-slate-200">{copy("Header background", "Header-Hintergrund")}</p><p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{copy("Optional and visible on every device.", "Optional und auf allen Geräten sichtbar.")}</p><div className="mt-3 grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1 text-xs font-bold dark:bg-slate-800">{([{ value: "none", label: copy("None", "Nichts") }, { value: "image", label: copy("Image", "Bild") }, { value: "color", label: copy("Color / gradient", "Farbe / Verlauf") }] as const).map(({ value, label }) => <button key={value} type="button" disabled={isSavingHeaderBackground} onClick={() => void updateProfileHeaderBackground(value)} className={`rounded-lg px-2 py-2 transition disabled:opacity-60 ${profileHeaderBackgroundMode === value ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 dark:text-slate-400"}`}>{label}</button>)}</div><div className="mt-3 min-h-20 rounded-lg border border-slate-200 bg-slate-100 bg-cover bg-center dark:border-slate-700 dark:bg-slate-800" style={profileHeaderBackgroundStyle(profileHeaderBackgroundMode, profileHeaderBackgroundImage, profileHeaderBackgroundColor, profileHeaderBackgroundEnd)} />{profileHeaderBackgroundMode === "image" && <div className="mt-3"><input ref={headerBackgroundFileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" className="hidden" onChange={uploadHeaderBackground} /><button type="button" onClick={() => headerBackgroundFileRef.current?.click()} disabled={isUploadingHeaderBackground || isSavingHeaderBackground} className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"><ImageUp size={15} />{isUploadingHeaderBackground ? copy("Uploading...", "Wird hochgeladen...") : copy("Choose header image", "Headerbild wählen")}</button>{profileHeaderBackgroundImage && <button type="button" onClick={() => void updateProfileHeaderBackground("image", "")} className="ml-2 text-xs font-semibold text-red-600 dark:text-red-300">{copy("Remove image", "Bild entfernen")}</button>}</div>}{profileHeaderBackgroundMode === "color" && <div className="mt-3 grid grid-cols-2 gap-4"><label className="text-xs font-semibold text-slate-600 dark:text-slate-300">{copy("First color", "Erste Farbe")}<span className="mt-1 flex items-center gap-2"><span className="relative grid size-9 cursor-pointer place-items-center overflow-hidden rounded-full border border-white/70" style={{ backgroundColor: profileHeaderBackgroundColor }}><Pipette size={15} className="text-white" /><input type="color" value={profileHeaderBackgroundColor} onChange={(event) => void updateProfileHeaderBackground("color", profileHeaderBackgroundImage, event.target.value, profileHeaderBackgroundEnd)} className="absolute inset-0 opacity-0" /></span></span></label><label className="text-xs font-semibold text-slate-600 dark:text-slate-300">{copy("Second color", "Zweite Farbe")}<span className="mt-1 flex items-center gap-2"><span className="relative grid size-9 cursor-pointer place-items-center overflow-hidden rounded-full border border-white/70" style={{ backgroundColor: profileHeaderBackgroundEnd ?? profileHeaderBackgroundColor }}><Pipette size={15} className="text-white" /><input type="color" value={profileHeaderBackgroundEnd ?? profileHeaderBackgroundColor} onChange={(event) => void updateProfileHeaderBackground("color", profileHeaderBackgroundImage, profileHeaderBackgroundColor, event.target.value)} className="absolute inset-0 opacity-0" /></span></span></label>{profileHeaderBackgroundEnd && <button type="button" onClick={() => void updateProfileHeaderBackground("color", profileHeaderBackgroundImage, profileHeaderBackgroundColor, null)} className="col-span-2 justify-self-start text-xs font-semibold text-slate-500 underline dark:text-slate-300">{copy("Use a single color", "Nur eine Farbe")}</button>}</div>}</div>
         <div className="w-full border-t border-slate-200 pt-3 dark:border-slate-700/80">
           <p className="text-center text-xs font-semibold text-slate-700 dark:text-slate-200">{copy("Avatar frame", "Avatar-Rahmen")}</p>
           <div className="mt-2 flex flex-wrap justify-center gap-2">
@@ -391,6 +427,8 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
           </div>
         </div>
       </section>
+      </div>
+      <div className={activeAppearanceSection === "general" ? "space-y-3" : "hidden"}>
       <section className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 dark:border-slate-700 dark:bg-slate-800/60">
         <div className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-xl bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200"><Lock size={17} /></span><div><p className="font-semibold text-slate-900 dark:text-white">{copy("Private profile", "Privates Profil")}</p><p className="text-xs text-slate-500 dark:text-slate-400">{copy("Approve follow requests before people can see your posts", "Bestätige Follow-Anfragen, bevor Nutzer deine Beiträge sehen")}</p></div></div>
         <input type="hidden" name="isPrivate" value={isPrivate ? "true" : "false"} />
@@ -399,6 +437,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
 
       <LanguageSwitcher onLanguageChange={setLanguage} />
 
+      </div>
       </div>
       <div className={activeTab === "account" ? "space-y-3" : "hidden"}>
         <details className="group rounded-xl border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-700/80 dark:bg-slate-800/30">

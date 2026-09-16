@@ -2,6 +2,9 @@ export const DEFAULT_AVATAR_ACCENT = "#f97316";
 export const DEFAULT_PROFILE_ACCENT = "#f97316";
 export const PROFILE_HEADER_LAYOUTS = ["standard", "compact", "spotlight"] as const;
 export type ProfileHeaderLayout = (typeof PROFILE_HEADER_LAYOUTS)[number];
+export const PROFILE_HEADER_BACKGROUND_MODES = ["none", "image", "color"] as const;
+export type ProfileHeaderBackgroundMode = (typeof PROFILE_HEADER_BACKGROUND_MODES)[number];
+export const DEFAULT_PROFILE_HEADER_BACKGROUND_COLOR = "#4f46e5";
 
 export const AVATAR_ACCENT_PRESETS = [
   "#f97316",
@@ -40,6 +43,34 @@ export function normalizeProfileHeaderLayout(value: unknown): ProfileHeaderLayou
   return typeof value === "string" && (PROFILE_HEADER_LAYOUTS as readonly string[]).includes(value)
     ? value as ProfileHeaderLayout
     : "standard";
+}
+
+export function normalizeProfileHeaderBackgroundMode(value: unknown): ProfileHeaderBackgroundMode {
+  return typeof value === "string" && (PROFILE_HEADER_BACKGROUND_MODES as readonly string[]).includes(value)
+    ? value as ProfileHeaderBackgroundMode
+    : "none";
+}
+
+export function normalizeProfileHeaderBackgroundImage(value: unknown) {
+  if (typeof value !== "string" || value.length > 2048) return null;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" || url.protocol === "http:" ? url.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
+export function profileHeaderBackgroundStyle(mode: unknown, image: unknown, color: unknown, end: unknown) {
+  const backgroundMode = normalizeProfileHeaderBackgroundMode(mode);
+  const start = normalizeProfileAccent(color ?? DEFAULT_PROFILE_HEADER_BACKGROUND_COLOR);
+  const endColor = typeof end === "string" && /^#[0-9a-fA-F]{6}$/.test(end) ? end.toLowerCase() : null;
+  if (backgroundMode === "image") {
+    const imageUrl = normalizeProfileHeaderBackgroundImage(image);
+    if (imageUrl) return { backgroundImage: `linear-gradient(135deg, rgba(15, 23, 42, 0.34), rgba(15, 23, 42, 0.68)), url("${imageUrl}")`, backgroundSize: "cover", backgroundPosition: "center" };
+  }
+  if (backgroundMode === "color") return { backgroundImage: endColor ? `linear-gradient(135deg, ${start}, ${endColor})` : undefined, backgroundColor: endColor ? undefined : start };
+  return undefined;
 }
 
 export function normalizeAvatarFrameDirection(value: unknown): AvatarFrameDirection {

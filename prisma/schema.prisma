@@ -20,6 +20,10 @@ model Profile {
   avatarAccentDirection String  @default("to-bottom-right")
   profileAccent       String    @default("#f97316")
   profileHeaderLayout String    @default("standard")
+  profileHeaderBackgroundMode String @default("none")
+  profileHeaderBackgroundImage String?
+  profileHeaderBackgroundColor String @default("#4f46e5")
+  profileHeaderBackgroundEnd String?
   language            String    @default("en")
   theme               String    @default("system")
   isPrivate           Boolean   @default(false)

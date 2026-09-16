@@ -15,7 +15,7 @@ import VibeTeamBadge from "@/app/components/VibeTeamBadge";
 import { isProtectedAdmin, isSuperAdmin } from "@/admin";
 import DeleteProfileButton from "@/app/components/DeleteProfileButton";
 import ProfileShoutouts from "@/app/components/ProfileShoutouts";
-import { avatarFrameStyle, normalizeProfileHeaderLayout } from "@/profile-personalization";
+import { avatarFrameStyle, normalizeProfileHeaderLayout, profileHeaderBackgroundStyle } from "@/profile-personalization";
 
 type ProfileByUsernamePageProps = {
   params: Promise<{
@@ -109,13 +109,14 @@ export default async function ProfileByUsernamePage({
   }
   const canViewPosts = !isBlocked && (!profile.isPrivate || isOwnProfile || followState === "following");
   const profileHeaderLayout = normalizeProfileHeaderLayout(profile.profileHeaderLayout);
+  const headerBackgroundStyle = profileHeaderBackgroundStyle(profile.profileHeaderBackgroundMode, profile.profileHeaderBackgroundImage, profile.profileHeaderBackgroundColor, profile.profileHeaderBackgroundEnd);
 
   return (
     <>
       <section className="flex flex-row items-center justify-between"><BackNavigationLink language={de ? "de" : "en"} /></section>
 
       <main className="mx-auto w-full max-w-6xl p-4 md:p-8">
-        <section className={`overflow-hidden rounded-2xl bg-white shadow-lg shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900 ${profileHeaderLayout === "spotlight" ? "border-2 border-slate-300/90 bg-linear-to-b from-slate-100 to-white shadow-xl dark:border-slate-600 dark:from-slate-800 dark:to-slate-900" : ""}`}>
+        <section className={`overflow-hidden rounded-2xl bg-white shadow-lg shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900 ${headerBackgroundStyle ? "text-white shadow-xl" : ""} ${profileHeaderLayout === "spotlight" ? "border-2 border-slate-300/90 bg-linear-to-b from-slate-100 to-white shadow-xl dark:border-slate-600 dark:from-slate-800 dark:to-slate-900" : ""}`} style={headerBackgroundStyle}>
           <div className={`grid gap-5 p-5 text-center sm:p-6 lg:items-start lg:p-8 lg:text-left ${profileHeaderLayout === "compact" ? "grid-cols-[minmax(0,1fr)_5.5rem] text-left lg:grid-cols-[minmax(0,1fr)_13rem]" : profileHeaderLayout === "spotlight" ? "grid-cols-1 gap-7 p-6 lg:grid-cols-1 lg:text-center" : "lg:grid-cols-[7rem_minmax(0,1fr)_auto]"}`}>
             <div className={`flex justify-center lg:block ${profileHeaderLayout === "compact" ? "order-2 self-start justify-self-end lg:order-2 lg:self-start lg:justify-self-end" : profileHeaderLayout === "spotlight" ? "order-2 justify-self-center lg:order-1 lg:justify-self-center" : ""}`}>
               <div className={`${profileHeaderLayout === "compact" ? "size-36 lg:size-52" : profileHeaderLayout === "spotlight" ? "size-40 lg:size-40" : "size-24 lg:size-28"} rounded-full p-1 shadow-lg shadow-slate-900/20`} style={avatarFrameStyle(profile.avatarAccent, profile.avatarAccentEnd, profile.avatarAccentDirection)}><div className="size-full overflow-hidden rounded-full bg-gray-300">
