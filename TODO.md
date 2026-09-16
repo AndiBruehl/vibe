@@ -30,8 +30,9 @@
 - Video-Upload ermöglichen.
 - Nativen Video-Player für die Wiedergabe integrieren.
 
-## Später — VIBE Games
+## BETA 0.1.69.13.1 — VIBE Games
 
+- Die `/games`-Startseite für eine spätere Sammlung von JavaScript-Minispielen bereitstellen. ✅
 - Einen versteckten, ausschließlich auf Desktop verfügbaren Einstieg zu `/games` ergänzen: ohne sichtbaren Button, Hover-Effekt oder Umrandung; nur der Cursor wechselt über der Fläche zu einem X.
 - Auf `/games` eine kleine Sammlung von JavaScript-Minispielen als Zeitvertreib einbauen. Die konkreten Spiele werden später festgelegt.
 
