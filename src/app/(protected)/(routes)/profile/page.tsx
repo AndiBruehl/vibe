@@ -135,9 +135,9 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         </div>
       </section>
 
-      <section className={`${profileHeaderLayout === "spotlight" ? "mx-auto mt-1 max-w-xl rounded-2xl bg-slate-950/25 p-4 text-center shadow-lg backdrop-blur-sm" : "mx-0 text-left"} ${profileHeaderLayout === "compact" ? "mt-0 max-w-2xl" : profileHeaderLayout === "spotlight" ? "" : "mt-5 max-w-3xl"}`}>
+      <section className={`${profileHeaderLayout === "spotlight" ? "mx-auto mt-1 max-w-xl rounded-2xl bg-slate-950/25 p-4 text-center shadow-lg backdrop-blur-sm" : profileHeaderLayout === "standard" && headerBackgroundStyle ? "mx-0 mt-4 max-w-xl rounded-2xl bg-slate-950/25 p-4 text-left shadow-lg backdrop-blur-sm" : "mx-0 text-left"} ${profileHeaderLayout === "compact" ? "mt-0 max-w-2xl" : profileHeaderLayout === "spotlight" || headerBackgroundStyle ? "" : "mt-5 max-w-3xl"}`}>
         <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">
-          <span className={`inline-flex items-center gap-2 ${profileHeaderLayout === "compact" ? "justify-start" : "justify-center"}`}>{profile.name || (de ? "Nutzer" : "User")}<AdminBadge isAdmin={profile.isAdmin} /></span>
+          <span className={`inline-flex items-center gap-2 ${profileHeaderLayout === "compact" || (profileHeaderLayout === "standard" && headerBackgroundStyle) ? "justify-start" : "justify-center"}`}>{profile.name || (de ? "Nutzer" : "User")}<AdminBadge isAdmin={profile.isAdmin} /></span>
         </h1>
 
         <p className="my-1 text-slate-600 dark:text-slate-300">
@@ -149,12 +149,12 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         </p>
         <Link
           href="/support"
-          className={`${profileHeaderLayout === "compact" ? "mx-0" : "mx-auto"} mt-4 inline-flex items-center gap-2 rounded-full border border-cyan-300/70 bg-cyan-50/70 px-4 py-2 text-sm font-bold text-cyan-800 no-underline transition hover:-translate-y-0.5 hover:border-cyan-400 hover:bg-cyan-100 dark:border-cyan-400/40 dark:bg-cyan-500/10 dark:text-cyan-200 dark:hover:bg-cyan-500/20`}
+          className={`${profileHeaderLayout === "compact" || (profileHeaderLayout === "standard" && headerBackgroundStyle) ? "mx-0" : "mx-auto"} mt-4 inline-flex items-center gap-2 rounded-full border border-cyan-300/70 bg-cyan-50/70 px-4 py-2 text-sm font-bold text-cyan-800 no-underline transition hover:-translate-y-0.5 hover:border-cyan-400 hover:bg-cyan-100 dark:border-cyan-400/40 dark:bg-cyan-500/10 dark:text-cyan-200 dark:hover:bg-cyan-500/20`}
         >
           <CircleHelp size={16} aria-hidden="true" />
           {de ? "Hilfe & Support" : "Help & support"}
         </Link>
-        {profile.isAdmin ? <div className={`mt-4 flex flex-col ${profileHeaderLayout === "compact" ? "items-start" : "items-center"}`}> <Link
+        {profile.isAdmin ? <div className={`mt-4 flex flex-col ${profileHeaderLayout === "compact" || (profileHeaderLayout === "standard" && headerBackgroundStyle) ? "items-start" : "items-center"}`}> <Link
             href="/admin"
             className="inline-flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-semibold text-orange-600 no-underline transition hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-500/10"
           >
@@ -162,9 +162,9 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
             {de ? "Adminbereich" : "Admin area"}
           </Link></div> : null}
         {profileLinks.length > 0 && (
-          <div className="mt-4"><ProfileLinks links={profileLinks} language={de ? "de" : "en"} centered={profileHeaderLayout !== "compact"} accent={profileAccent} /></div>
+          <div className="mt-4"><ProfileLinks links={profileLinks} language={de ? "de" : "en"} centered={profileHeaderLayout !== "compact" && !(profileHeaderLayout === "standard" && headerBackgroundStyle)} accent={profileAccent} /></div>
         )}
-        {shoutouts.length > 0 && <ProfileShoutouts shoutouts={shoutouts} language={de ? "de" : "en"} centered={profileHeaderLayout !== "compact"} />}
+        {shoutouts.length > 0 && <ProfileShoutouts shoutouts={shoutouts} language={de ? "de" : "en"} centered={profileHeaderLayout !== "compact" && !(profileHeaderLayout === "standard" && headerBackgroundStyle)} />}
       </section>
       </div>
 
