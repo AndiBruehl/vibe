@@ -1,12 +1,12 @@
 import { getProfileDirectory } from "@/profile-directory";
 import { profileSortOptions } from "@/profile-directory-order";
 import Link from "next/link";
-import Image from "next/image";
 import { MoveLeft, Users } from "lucide-react";
 import AdminBadge from "@/app/components/AdminBadge";
 import AdminProfileFilter from "@/app/components/AdminProfileFilter";
 import { auth } from "@/auth";
 import { prisma } from "@/db";
+import ProfileAvatar from "@/app/components/ProfileAvatar";
 
 export default async function ProfilesPage({ searchParams }: {
   searchParams: Promise<{ q?: string; sort?: string; admin?: string }>;
@@ -46,9 +46,7 @@ export default async function ProfilesPage({ searchParams }: {
     </div> : <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {profiles.map(profile => {
         const content = <>
-          <div className="relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-200 text-xl text-slate-600 dark:bg-slate-700 dark:text-slate-200">
-            {profile.avatar ? <Image src={profile.avatar} alt="" fill sizes="64px" unoptimized className="object-cover" /> : (profile.name || profile.username || "?").slice(0, 1).toUpperCase()}
-          </div>
+          <ProfileAvatar {...profile} sizeClass="size-16" className="text-xl" />
           <div className="min-w-0">
             <h2 className="flex flex-wrap items-center gap-2 break-words font-semibold text-slate-900 dark:text-white">{profile.name || profile.username || (de ? "Unbenanntes Profil" : "Unnamed profile")}<AdminBadge isAdmin={profile.isAdmin} /></h2>
             {profile.username && <p className="break-words text-sm text-slate-600 dark:text-slate-400">@{profile.username}</p>}

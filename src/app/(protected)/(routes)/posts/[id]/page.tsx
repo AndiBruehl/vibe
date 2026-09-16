@@ -1,7 +1,6 @@
 import { auth } from "@/auth";
 import { isSuperAdmin } from "@/admin";
 import { prisma } from "@/db";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { MoveLeft } from "lucide-react";
@@ -18,6 +17,7 @@ import MentionText from "@/app/components/MentionText";
 import ReportButton from "@/app/components/ReportButton";
 import SharePostButton from "@/app/components/SharePostButton";
 import AdminBadge from "@/app/components/AdminBadge";
+import ProfileAvatar from "@/app/components/ProfileAvatar";
 
 
 export default async function SinglePostPage({
@@ -258,18 +258,7 @@ export default async function SinglePostPage({
             >
               <article className="flex min-h-28 flex-wrap items-center justify-between gap-3 rounded-2xl bg-white px-4 py-4 shadow-md shadow-gray-200 transition hover:shadow-lg sm:px-5 dark:bg-gray-800 dark:shadow-gray-900">
                 <div className="flex items-center gap-3">
-                  <div className="size-12 overflow-hidden rounded-full bg-gray-300">
-                    {author?.avatar ? (
-                      <Image
-                        src={author.avatar}
-                        alt={author.name || "author"}
-                        width={48}
-                        height={48}
-                        className="h-full w-full object-cover"
-                        unoptimized
-                      />
-                    ) : null}
-                  </div>
+                  <ProfileAvatar {...author} alt={author?.name || "author"} sizeClass="size-12" />
 
                   <div>
                     <p className="font-semibold text-slate-900 dark:text-white">

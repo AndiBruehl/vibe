@@ -1,11 +1,11 @@
 import PostImageCount from "@/app/components/PostImageCount";
 import SortablePosts from "@/app/components/SortablePosts";
 import { prisma } from "@/db";
-import Image from "next/image";
 import Link from "next/link";
 import { MoveLeft } from "lucide-react";
 import LocalizedText from "@/app/components/LocalizedText";
 import ProgressiveImage from "@/app/components/ProgressiveImage";
+import ProfileAvatar from "@/app/components/ProfileAvatar";
 
 export default async function BrowsePage() {
   const posts = await prisma.post.findMany({
@@ -19,6 +19,9 @@ export default async function BrowsePage() {
           username: true,
           name: true,
           avatar: true,
+          avatarAccent: true,
+          avatarAccentEnd: true,
+          avatarAccentDirection: true,
         },
       },
     },
@@ -64,17 +67,7 @@ export default async function BrowsePage() {
 
                 <div className="space-y-2 p-3">
                   <div className="flex items-center gap-2">
-                    <div className="relative size-8 overflow-hidden rounded-full bg-slate-300 dark:bg-slate-600">
-                      {post.author?.avatar ? (
-                        <Image
-                          src={post.author.avatar}
-                          alt={post.author.name || "Author avatar"}
-                          fill
-                          className="object-cover"
-                          unoptimized
-                        />
-                      ) : null}
-                    </div>
+                    <ProfileAvatar {...post.author} alt={post.author?.name || "Author avatar"} sizeClass="size-8" />
 
                     <div className="min-w-0">
                       <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-200">

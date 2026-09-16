@@ -101,9 +101,9 @@ export default function QuickSettings({ initialLanguage, initialTheme }: { initi
     pathname === "/profile"
   ) return null;
 
-  // Browse has its own right-aligned Profiles action in the header. Keep the
-  // floating control directly below that header on mobile instead of covering it.
-  const mobilePosition = pathname === "/browse" ? "top-16" : "top-3.5";
+  // Browse has a right-aligned Profiles action in its header. Leave a full row
+  // below it on mobile so both controls remain independently tappable.
+  const mobilePosition = pathname === "/browse" ? "top-28" : "top-3.5";
 
   return (
     <div ref={panel} className={`fixed right-4 ${mobilePosition} z-50 md:right-6 md:top-3.5`} data-vibe-quick-settings>

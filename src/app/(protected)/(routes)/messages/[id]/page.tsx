@@ -13,6 +13,7 @@ import MessageComposer from "@/app/components/MessageComposer";
 import MessageReactionPicker from "@/app/components/MessageReactionPicker";
 import VibeTeamBadge from "@/app/components/VibeTeamBadge";
 import ProgressiveImage from "@/app/components/ProgressiveImage";
+import ProfileAvatar from "@/app/components/ProfileAvatar";
 
 import { isObjectId } from "@/object-id";
 type ConversationPageProps = {
@@ -68,6 +69,9 @@ export default async function ConversationPage({
               name: true,
               username: true,
               avatar: true,
+              avatarAccent: true,
+              avatarAccentEnd: true,
+              avatarAccentDirection: true,
               isSystem: true,
               systemKind: true,
             },
@@ -82,6 +86,9 @@ export default async function ConversationPage({
               name: true,
               username: true,
               avatar: true,
+              avatarAccent: true,
+              avatarAccentEnd: true,
+              avatarAccentDirection: true,
               isSystem: true,
               systemKind: true,
             },
@@ -185,30 +192,11 @@ export default async function ConversationPage({
               />
             </div>
           ) : otherProfile?.username ? (
-            <Link
-              href={`/profile/${encodeURIComponent(otherProfile.username)}`}
-              className="block relative size-10 shrink-0 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700"
-            >
-              <div className="absolute inset-0">
-                <Image
-                  src={otherProfile?.avatar || img1.src}
-                  alt={otherProfile?.name || "User avatar"}
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
-              </div>
+            <Link href={`/profile/${encodeURIComponent(otherProfile.username)}`} className="block">
+              <ProfileAvatar {...otherProfile} alt={otherProfile.name || "User avatar"} sizeClass="size-10" />
             </Link>
           ) : (
-            <div className="relative size-10 shrink-0 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-              <Image
-                src={otherProfile?.avatar || img1.src}
-                alt={otherProfile?.name || "User avatar"}
-                fill
-                className="object-cover"
-                unoptimized
-              />
-            </div>
+            <ProfileAvatar {...otherProfile} alt={otherProfile?.name || "User avatar"} sizeClass="size-10" />
           )}
           <div className="min-w-0 text-right">
             {isGroup ? (

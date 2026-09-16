@@ -8,6 +8,7 @@ export const profileSortOptions = [
 export type PublicProfile = {
   id: string; name: string | null; username: string | null;
   avatar: string | null; subtitle: string | null; bio: string | null;
+  avatarAccent: string | null; avatarAccentEnd: string | null; avatarAccentDirection: string;
   isAdmin: boolean;
 };
 

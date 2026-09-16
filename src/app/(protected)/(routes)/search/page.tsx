@@ -1,14 +1,13 @@
 import PostImageCount from "@/app/components/PostImageCount";
 import SortablePosts from "@/app/components/SortablePosts";
 import { prisma } from "@/db";
-import Image from "next/image";
 import Link from "next/link";
 import { MoveLeft } from "lucide-react";
 import SearchInput from "./SearchInput";
 import { searchScopes, type SearchScope } from "@/app/search-scopes";
-import img1 from "../profile/default.jpg";
 import LocalizedText from "@/app/components/LocalizedText";
 import ProgressiveImage from "@/app/components/ProgressiveImage";
+import ProfileAvatar from "@/app/components/ProfileAvatar";
 
 type SearchPageProps = {
   searchParams: Promise<{
@@ -80,6 +79,9 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                 username: true,
                 name: true,
                 avatar: true,
+                avatarAccent: true,
+                avatarAccentEnd: true,
+                avatarAccentDirection: true,
               },
             },
           },
@@ -167,15 +169,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                   >
                     <article className="flex items-center justify-between rounded-2xl bg-white px-5 py-4 shadow-md shadow-gray-200 transition hover:shadow-lg dark:bg-gray-800 dark:shadow-gray-900">
                       <div className="flex min-w-0 items-center gap-3">
-                        <div className="relative size-12 shrink-0 overflow-hidden rounded-full bg-slate-300 dark:bg-slate-700">
-                          <Image
-                            src={user.avatar || img1.src}
-                            alt={user.name || user.username || "User avatar"}
-                            fill
-                            className="object-cover"
-                            unoptimized
-                          />
-                        </div>
+                        <ProfileAvatar {...user} alt={user.name || user.username || "User avatar"} sizeClass="size-12" />
 
                         <div className="min-w-0">
                           <p className="truncate font-semibold text-slate-800 transition group-hover:text-slate-600 dark:text-slate-500 dark:group-hover:text-slate-300">
@@ -243,15 +237,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
                     <div className="space-y-2 p-3">
                       <div className="flex items-center gap-2">
-                        <div className="relative size-8 shrink-0 overflow-hidden rounded-full bg-slate-300 dark:bg-slate-600">
-                          <Image
-                            src={post.author.avatar || img1.src}
-                            alt={post.author.name || "Author avatar"}
-                            fill
-                            className="object-cover"
-                            unoptimized
-                          />
-                        </div>
+                        <ProfileAvatar {...post.author} alt={post.author.name || "Author avatar"} sizeClass="size-8" />
 
                         <div className="min-w-0">
                           <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-500">
