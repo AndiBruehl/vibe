@@ -2,19 +2,33 @@
 
 import { Gem, MapPinned, Sparkles } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
+import { useEffect, useState } from "react";
 import useVibeLanguage from "@/app/components/useVibeLanguage";
 
 const edgeSparkles = [
-  { className: "-left-3 top-6", size: 22, delay: 0 },
-  { className: "-right-3 top-10", size: 26, delay: 0.8 },
-  { className: "left-[22%] -top-3", size: 17, delay: 1.35 },
-  { className: "right-[20%] -bottom-3", size: 20, delay: 2 },
+  { size: 22, delay: 0 },
+  { size: 26, delay: 0.8 },
+  { size: 17, delay: 1.35 },
+  { size: 20, delay: 2 },
 ];
+
+const edgePositions = ["-left-3 top-6", "-right-3 top-10", "left-[22%] -top-3", "right-[20%] -bottom-3", "-left-3 bottom-8", "-right-3 bottom-6", "left-[45%] -top-4", "left-[46%] -bottom-4", "-left-2 top-1/2", "-right-2 top-1/2"];
+
+function shuffledEdgePositions() {
+  return [...edgePositions].sort(() => Math.random() - 0.5).slice(0, edgeSparkles.length);
+}
 
 export default function SecretFoundMap() {
   const language = useVibeLanguage();
   const reduceMotion = useReducedMotion();
   const de = language === "de";
+  const [sparklePositions, setSparklePositions] = useState(() => edgePositions.slice(0, edgeSparkles.length));
+
+  useEffect(() => {
+    if (reduceMotion) return;
+    const interval = window.setInterval(() => setSparklePositions(shuffledEdgePositions()), 3600);
+    return () => window.clearInterval(interval);
+  }, [reduceMotion]);
 
   return (
     <motion.div
@@ -23,12 +37,12 @@ export default function SecretFoundMap() {
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       className="relative mx-auto mb-8 max-w-xs"
     >
-      {edgeSparkles.map((sparkle) => (
+      {edgeSparkles.map((sparkle, index) => (
         <span
-          key={sparkle.className}
+          key={index}
           aria-hidden="true"
           style={{ animationDelay: `${sparkle.delay}s` }}
-          className={`vibe-secret-edge-sparkle pointer-events-none absolute z-20 text-white drop-shadow-[0_0_10px_rgba(255,255,255,1)] ${sparkle.className}`}
+          className={`vibe-secret-edge-sparkle pointer-events-none absolute z-20 text-white drop-shadow-[0_0_10px_rgba(255,255,255,1)] transition-all duration-700 ease-in-out ${sparklePositions[index]}`}
         >
           <Sparkles size={sparkle.size} fill="currentColor" />
         </span>
