@@ -4,7 +4,7 @@ import { ImageUp, Link as LinkIcon, Lock, MonitorSmartphone, Moon, Plus, ShieldC
 import { Switch } from "@radix-ui/themes";
 import type { Profile } from "@prisma/client";
 import { upsertProfile } from "@/actions";
-import { useEffect, useRef, useState, type ChangeEvent } from "react";
+import { startTransition, useEffect, useRef, useState, type ChangeEvent } from "react";
 import LanguageSwitcher from "@/app/components/LanguageSwitcher";
 import MentionTextarea from "@/app/components/MentionTextarea";
 import ShoutoutEditor from "@/app/components/ShoutoutEditor";
@@ -93,7 +93,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
       await upsertProfile(formData);
       setIsDirty(false);
       setSaveFeedback("saved");
-      router.refresh();
+      startTransition(() => router.refresh());
       window.setTimeout(() => setSaveFeedback(null), 2500);
     } catch {
       setSaveFeedback("failed");
