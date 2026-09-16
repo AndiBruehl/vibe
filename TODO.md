@@ -63,6 +63,12 @@
 - Keep Admin and Verified as protected system statuses while allowing future badges to be independently awarded, time-limited, or opt-in.
 - Give members clear visibility controls for optional badges without allowing custom CSS or arbitrary user-supplied badge markup.
 
+## BETA 0.1.69.18 — Profile milestones
+
+- Award subtle, optional achievement badges for milestones such as a first post, one year on VIBE, a first 100 likes, or story creation.
+- Build on the badge model from .17 and let members control whether earned milestones are visible on their profile.
+- Keep milestone rules transparent, non-competitive, and independent of protected Admin and Verified statuses.
+
 ## VIBE 2.0.0.0.0 — Vollversion 2.0
 
 - Add post sharing only after public post URLs or an explicit sharing/visibility model exists; protected-only posts should not be shared externally.
