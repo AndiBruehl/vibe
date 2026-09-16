@@ -28,15 +28,20 @@ export default function SecretFoundMap() {
   const reduceMotion = useReducedMotion();
   const de = language === "de";
   const [sparklePositions, setSparklePositions] = useState<EdgePosition[]>(() => [{ left: -8, top: 24 }, { left: 105, top: 68 }]);
+  const [visibleStars, setVisibleStars] = useState([true, true]);
 
   useEffect(() => {
     if (reduceMotion) return;
     const timeouts: number[] = [];
     const moveStar = (index: number) => {
       timeouts[index] = window.setTimeout(() => {
-        setSparklePositions((current) => current.map((position, currentIndex) => currentIndex === index ? randomEdgePosition() : position));
-        moveStar(index);
-      }, 1900 + Math.random() * 2200);
+        setVisibleStars((current) => current.map((visible, currentIndex) => currentIndex === index ? false : visible));
+        timeouts[index] = window.setTimeout(() => {
+          setSparklePositions((current) => current.map((position, currentIndex) => currentIndex === index ? randomEdgePosition() : position));
+          setVisibleStars((current) => current.map((visible, currentIndex) => currentIndex === index ? true : visible));
+          moveStar(index);
+        }, 260);
+      }, 2200 + Math.random() * 2600);
     };
     edgeSparkles.forEach((_, index) => moveStar(index));
     return () => {
@@ -58,9 +63,8 @@ export default function SecretFoundMap() {
           style={{
             left: `${sparklePositions[index].left}%`,
             top: `${sparklePositions[index].top}%`,
-            transition: "left 1.45s cubic-bezier(.22,1,.36,1), top 1.45s cubic-bezier(.22,1,.36,1)",
           }}
-          className="vibe-secret-edge-sparkle pointer-events-none absolute z-20 text-white drop-shadow-[0_0_10px_rgba(255,255,255,1)]"
+          className={`vibe-secret-edge-sparkle pointer-events-none absolute z-20 text-white drop-shadow-[0_0_10px_rgba(255,255,255,1)] transition-opacity duration-200 ${visibleStars[index] ? "opacity-100" : "opacity-0"}`}
         >
           <Sparkles size={sparkle.size} fill="currentColor" />
         </span>
