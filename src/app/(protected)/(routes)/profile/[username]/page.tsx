@@ -116,8 +116,8 @@ export default async function ProfileByUsernamePage({
 
       <main className="mx-auto w-full max-w-6xl p-4 md:p-8">
         <section className={`overflow-hidden rounded-2xl bg-white shadow-lg shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900 ${profileHeaderLayout === "spotlight" ? "ring-1 ring-slate-300/80 dark:ring-slate-600" : ""}`}>
-          <div className={`grid gap-5 p-5 text-center sm:p-6 lg:items-start lg:p-8 lg:text-left ${profileHeaderLayout === "compact" ? "lg:grid-cols-[5.5rem_minmax(0,1fr)]" : profileHeaderLayout === "spotlight" ? "lg:grid-cols-[minmax(0,1fr)_9rem]" : "lg:grid-cols-[7rem_minmax(0,1fr)_auto]"}`}>
-            <div className={`flex justify-center lg:block ${profileHeaderLayout === "spotlight" ? "lg:order-2 lg:self-center lg:justify-self-end" : ""}`}>
+          <div className={`grid gap-5 p-5 text-center sm:p-6 lg:items-start lg:p-8 lg:text-left ${profileHeaderLayout === "compact" ? "lg:grid-cols-[minmax(0,1fr)_5.5rem]" : profileHeaderLayout === "spotlight" ? "lg:grid-cols-[minmax(0,1fr)_9rem]" : "lg:grid-cols-[7rem_minmax(0,1fr)_auto]"}`}>
+            <div className={`flex justify-center lg:block ${profileHeaderLayout === "compact" || profileHeaderLayout === "spotlight" ? "lg:order-2 lg:self-center lg:justify-self-end" : ""}`}>
               <div className={`${profileHeaderLayout === "compact" ? "size-20 lg:size-22" : profileHeaderLayout === "spotlight" ? "size-28 lg:size-36" : "size-24 lg:size-28"} rounded-full p-1`} style={avatarFrameStyle(profile.avatarAccent, profile.avatarAccentEnd, profile.avatarAccentDirection)}><div className="size-full overflow-hidden rounded-full bg-gray-300">
                 {profile.avatar ? (
                   <Image
@@ -132,7 +132,7 @@ export default async function ProfileByUsernamePage({
               </div></div>
             </div>
 
-              <div className={`min-w-0 ${profileHeaderLayout === "spotlight" ? "lg:order-1" : ""}`}>
+              <div className={`min-w-0 ${profileHeaderLayout === "compact" || profileHeaderLayout === "spotlight" ? "lg:order-1" : ""}`}>
                 <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
                   <span className="inline-flex items-center justify-center gap-2 lg:justify-start">{profile.name || "Unknown"}<AdminBadge isAdmin={profile.isAdmin} /><VibeTeamBadge isSystem={profile.isSystem} /></span>
                 </h1>
