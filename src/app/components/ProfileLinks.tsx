@@ -11,7 +11,7 @@ export default function ProfileLinks({ links, language = "en", centered = false 
   const label = de ? `${links.length} Link${links.length === 1 ? "" : "s"}` : `${links.length} link${links.length === 1 ? "" : "s"}`;
 
   return (
-    <div className={`mt-3 ${centered === true ? "flex flex-col items-center" : centered === "mobile" ? "flex flex-col items-center md:block" : ""}`}>
+    <div className={`mt-3 ${centered === true ? "flex flex-col items-center" : centered === "mobile" ? "flex flex-col items-center lg:block" : ""}`}>
       <button
         type="button"
         onClick={() => setExpanded((current) => !current)}
@@ -23,7 +23,7 @@ export default function ProfileLinks({ links, language = "en", centered = false 
         {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
       </button>
       {expanded && (
-        <div className={`mt-2 flex flex-wrap gap-2 ${centered === true ? "justify-center" : centered === "mobile" ? "justify-center md:justify-start" : ""}`}>
+        <div className={`mt-2 flex flex-wrap gap-2 ${centered === true ? "justify-center" : centered === "mobile" ? "justify-center lg:justify-start" : ""}`}>
           {links.map((link) => (
             <a key={link.id} href={link.url} target="_blank" rel="noreferrer" className="rounded-lg border border-orange-300 px-3 py-1.5 text-sm font-semibold text-orange-600 transition hover:bg-orange-50 dark:border-orange-400/60 dark:text-orange-300 dark:hover:bg-orange-400/10">
               {link.label}
