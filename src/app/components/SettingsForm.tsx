@@ -402,4 +402,3 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
     </form>
   );
 }
-
