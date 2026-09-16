@@ -6,8 +6,8 @@ import { useEffect, useState } from "react";
 import useVibeLanguage from "@/app/components/useVibeLanguage";
 
 const edgeSparkles = [
-  { size: 24, delay: 0, duration: "3.4s" },
-  { size: 19, delay: 1.15, duration: "4.1s" },
+  { size: 24 },
+  { size: 19 },
 ];
 
 type EdgePosition = { left: number; top: number };
@@ -21,18 +21,22 @@ export default function SecretFoundMap() {
   const reduceMotion = useReducedMotion();
   const de = language === "de";
   const [sparklePositions, setSparklePositions] = useState<EdgePosition[]>(() => [edgePositions[0], edgePositions[3]]);
+  const [activeStar, setActiveStar] = useState(0);
 
   useEffect(() => {
     if (reduceMotion) return;
-    const timeouts: number[] = [];
-    const moveStar = (index: number) => {
-      timeouts[index] = window.setTimeout(() => {
-        setSparklePositions((current) => current.map((position, currentIndex) => currentIndex === index ? randomEdgePosition() : position));
-        moveStar(index);
-      }, 3400 + Math.random() * 3000);
+    let currentStar = 0;
+    let revealTimeout: number | undefined;
+    const interval = window.setInterval(() => {
+      const nextStar = currentStar === 0 ? 1 : 0;
+      setSparklePositions((current) => current.map((position, index) => index === nextStar ? randomEdgePosition() : position));
+      revealTimeout = window.setTimeout(() => setActiveStar(nextStar), 280);
+      currentStar = nextStar;
+    }, 3200);
+    return () => {
+      window.clearInterval(interval);
+      if (revealTimeout) window.clearTimeout(revealTimeout);
     };
-    edgeSparkles.forEach((_, index) => moveStar(index));
-    return () => timeouts.forEach((timeout) => window.clearTimeout(timeout));
   }, [reduceMotion]);
 
   return (
@@ -47,13 +51,11 @@ export default function SecretFoundMap() {
           key={index}
           aria-hidden="true"
           style={{
-            animationDelay: `${sparkle.delay}s`,
-            animationDuration: sparkle.duration,
             left: `${sparklePositions[index].left}%`,
             top: `${sparklePositions[index].top}%`,
-            transition: "left 1.8s cubic-bezier(.22,1,.36,1), top 1.8s cubic-bezier(.22,1,.36,1)",
+            transition: "left .25s ease-out, top .25s ease-out",
           }}
-          className="vibe-secret-edge-sparkle pointer-events-none absolute z-20 text-white drop-shadow-[0_0_10px_rgba(255,255,255,1)]"
+          className={`vibe-secret-edge-sparkle ${activeStar === index ? "vibe-secret-edge-sparkle-active" : "vibe-secret-edge-sparkle-idle"} pointer-events-none absolute z-20 text-white drop-shadow-[0_0_10px_rgba(255,255,255,1)]`}
         >
           <Sparkles size={sparkle.size} fill="currentColor" />
         </span>
