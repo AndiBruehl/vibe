@@ -64,7 +64,7 @@ export default function NavigationFeedback() {
     <div className="pointer-events-none fixed inset-0 z-[90] grid place-items-center bg-slate-950/18 p-6 backdrop-blur-[2px] dark:bg-slate-950/45">
       <div role="status" className="vibe-loading-screen vibe-modal-enter w-full max-w-sm rounded-3xl border border-white/15 px-8 py-9 text-center shadow-2xl">
         <div aria-hidden="true" className="vibe-loader-orbit mx-auto grid size-20 place-items-center rounded-full">
-          <span className="vibe-loader-core grid size-12 place-items-center rounded-full text-lg font-black text-white">V</span>
+          <span className="vibe-loader-core size-12 rounded-full" />
         </div>
         <p className="mt-5 text-xs font-black tracking-[0.24em] text-orange-400">VIBE</p>
         <p className="mt-2 text-sm font-semibold text-slate-700 dark:text-slate-200">{de ? "Dein nächster Moment lädt…" : "Loading your next moment…"}</p>

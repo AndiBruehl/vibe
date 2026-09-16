@@ -269,10 +269,6 @@ html:not(.dark) :is(input, textarea)::placeholder { color: #607b97; opacity: 1; 
   to { transform: rotate(360deg); }
 }
 
-@keyframes vibe-loader-core {
-  50% { transform: scale(0.9); filter: saturate(1.2) brightness(1.08); }
-}
-
 @keyframes vibe-loading-line {
   from { transform: translateX(-105%); }
   to { transform: translateX(260%); }
@@ -289,8 +285,7 @@ html:not(.dark) :is(input, textarea)::placeholder { color: #607b97; opacity: 1; 
 }
 
 .vibe-loader-core {
-  background: var(--ig-page-bg);
-  animation: vibe-loader-core 1.25s ease-in-out infinite;
+  background: url("/logo.svg") center / 72% no-repeat, var(--ig-page-bg);
 }
 
 .vibe-loading-line {
