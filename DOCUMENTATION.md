@@ -42,6 +42,10 @@ Each profile stores its own appearance preference in MongoDB so the same look is
 
 The product supports German and English. Client language state is maintained by the language runtime and shared language hooks; server-rendered content is refreshed in the background after a language change. Theme preference is persisted on the profile and applied by the theme runtime.
 
+### Activity notification preferences
+
+Profiles store individual activity-notification preferences for likes, comments and replies, mentions, follow requests, and admin updates. The Activity counter and in-app activity notification polling use these preferences before calculating their totals and latest activity timestamp. Opening the Activity page marks the current activity inbox as read and immediately clears its navigation badge.
+
 ### Social features
 
 Members can create image posts, edit or archive their own posts, add comments and replies, react with likes, bookmark posts into collections, mention profiles, follow profiles, manage follow requests for private accounts, block accounts, and use topic feeds. Stories expire automatically and record viewers.
