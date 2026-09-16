@@ -13,7 +13,7 @@ import AppVersion from "@/app/components/AppVersion";
 import { applyTheme, type ThemePreference } from "@/app/components/ProfileThemeRuntime";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AVATAR_ACCENT_PRESETS, AVATAR_FRAME_DIRECTIONS, AVATAR_FRAME_GRADIENTS, DEFAULT_AVATAR_ACCENT, avatarFrameConfig, avatarFrameStyle, normalizeAvatarAccent } from "@/profile-personalization";
+import { AVATAR_ACCENT_PRESETS, AVATAR_FRAME_DIRECTIONS, AVATAR_FRAME_GRADIENTS, DEFAULT_AVATAR_ACCENT, DEFAULT_PROFILE_ACCENT, avatarFrameConfig, avatarFrameStyle, normalizeAvatarAccent, normalizeProfileAccent } from "@/profile-personalization";
 
 import defaultImg from "./default.jpg";
 
@@ -35,6 +35,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
   const [avatarAccent, setAvatarAccent] = useState(initialFrame.start);
   const [avatarAccentEnd, setAvatarAccentEnd] = useState<string | null>(initialFrame.end);
   const [avatarAccentDirection, setAvatarAccentDirection] = useState(initialFrame.direction);
+  const [profileAccent, setProfileAccent] = useState(profile?.profileAccent ?? DEFAULT_PROFILE_ACCENT);
   const [isSavingAccent, setIsSavingAccent] = useState(false);
   const [framePresets, setFramePresets] = useState(profile?.framePresets ?? []);
   const [isUploading, setIsUploading] = useState(false);
@@ -199,6 +200,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
           <input type="hidden" name="avatarAccent" value={avatarAccent} />
           <input type="hidden" name="avatarAccentEnd" value={avatarAccentEnd ?? ""} />
           <input type="hidden" name="avatarAccentDirection" value={avatarAccentDirection} />
+          <input type="hidden" name="profileAccent" value={profileAccent} />
 
           <button
             type="button"
@@ -226,6 +228,13 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
           {framePresets.length > 0 && <div className="mt-3 space-y-1"><p className="text-xs font-semibold text-slate-600 dark:text-slate-300">{copy("Saved gradients", "Gespeicherte Verläufe")} · {framePresets.length}/3</p><div className="flex gap-3">{framePresets.map((preset) => <span key={preset.id} className="relative"><button type="button" onClick={() => void updateAvatarAccent(preset.startColor, preset.endColor, preset.direction)} className="size-10 rounded-full ring-1 ring-slate-300 ring-offset-2 transition hover:scale-110 dark:ring-slate-600 dark:ring-offset-slate-900" style={avatarFrameStyle(preset.startColor, preset.endColor, preset.direction)} aria-label={copy("Use saved gradient", "Gespeicherten Verlauf verwenden")} /><button type="button" onClick={() => void deleteFramePreset(preset.id)} className="absolute -right-4 -top-4 grid size-11 place-items-center text-red-600 transition hover:scale-110 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300" aria-label={copy("Delete saved gradient", "Gespeicherten Verlauf löschen")}><Trash2 size={16} /></button></span>)}</div></div>}
           {avatarAccentEnd && framePresets.length < 3 && <button type="button" onClick={() => void saveFramePreset()} className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-orange-600 dark:text-orange-300"><BookmarkPlus size={14} />{copy("Save gradient", "Verlauf speichern")}</button>}
           {(avatarAccent !== DEFAULT_AVATAR_ACCENT || avatarAccentEnd) && <button type="button" onClick={() => void updateAvatarAccent(DEFAULT_AVATAR_ACCENT, null, "to-bottom-right")} disabled={isSavingAccent} className="mt-2 w-full text-xs font-semibold text-slate-500 transition hover:text-orange-600 disabled:opacity-60 dark:text-slate-400 dark:hover:text-orange-300">{copy("Reset frame", "Rahmen zurücksetzen")}</button>}
+          <div className="mt-4 border-t border-slate-200 pt-3 dark:border-slate-700/80">
+            <p className="text-center text-xs font-semibold text-slate-700 dark:text-slate-200">{copy("Profile accent", "Profil-Akzent")}</p>
+            <label className="mx-auto mt-2 flex w-fit items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+              <span className="relative grid size-8 cursor-pointer place-items-center overflow-hidden rounded-full border border-white/70 text-white shadow-sm dark:border-slate-500" style={{ backgroundColor: profileAccent }}><Pipette size={15} aria-hidden="true" /><input type="color" value={profileAccent} onChange={(event) => { setProfileAccent(normalizeProfileAccent(event.target.value)); setIsDirty(true); }} className="absolute inset-0 size-full cursor-pointer opacity-0" aria-label={copy("Choose profile accent", "Profil-Akzent wählen")} /></span>
+              {copy("Links & shoutouts", "Links & Shoutouts")}
+            </label>
+          </div>
         </div>
       </section>
 

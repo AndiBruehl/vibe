@@ -1,4 +1,5 @@
 export const DEFAULT_AVATAR_ACCENT = "#f97316";
+export const DEFAULT_PROFILE_ACCENT = "#f97316";
 
 export const AVATAR_ACCENT_PRESETS = [
   "#f97316",
@@ -25,6 +26,12 @@ export function normalizeAvatarAccent(value: unknown): AvatarFrameValue {
   return typeof value === "string" && /^#[0-9a-fA-F]{6}$/.test(value)
     ? value.toLowerCase() as AvatarFrameValue
     : DEFAULT_AVATAR_ACCENT;
+}
+
+export function normalizeProfileAccent(value: unknown) {
+  return typeof value === "string" && /^#[0-9a-fA-F]{6}$/.test(value)
+    ? value.toLowerCase()
+    : DEFAULT_PROFILE_ACCENT;
 }
 
 export function normalizeAvatarFrameDirection(value: unknown): AvatarFrameDirection {
