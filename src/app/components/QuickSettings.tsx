@@ -125,7 +125,7 @@ export default function QuickSettings({ initialLanguage, initialTheme }: { initi
   const position = pathname === "/browse" && browseHeaderVisible
     ? "right-28 top-3.5 md:right-28 md:top-3.5"
     : isConversation
-      ? "right-4 top-16 md:right-6 md:top-16"
+      ? "right-4 top-24 md:right-6 md:top-24"
     : "right-4 top-3.5 md:right-6 md:top-3.5";
 
   return (
