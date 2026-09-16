@@ -391,9 +391,16 @@ body.vibe-admin-preview [data-vibe-protected-main] {
   outline-offset: 2px;
 }
 
+/* Plain text must never switch to the browser's I-beam cursor. */
+html, body { cursor: default; }
+
+:where(input, textarea, [contenteditable="true"]) { cursor: text; }
+
+:where(a[href], button, summary, select, input[type="checkbox"], input[type="radio"], input[type="range"], label[for]) { cursor: pointer; }
+
 /* A desktop-only easter egg: it has no visible shape, only this X cursor. */
 .vibe-secret-cursor {
-  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath d='M4 4 16 16M16 4 4 16' stroke='%23fff' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M4 4 16 16M16 4 4 16' stroke='%23111827' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E") 10 10, pointer;
+  cursor: url("/secret-x-cursor.svg") 12 12, pointer;
 }
 
 @media (prefers-reduced-motion: reduce) {
