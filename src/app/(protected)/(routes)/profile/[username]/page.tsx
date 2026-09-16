@@ -116,8 +116,8 @@ export default async function ProfileByUsernamePage({
 
       <main className="mx-auto w-full max-w-6xl p-4 md:p-8">
         <section className={`overflow-hidden rounded-2xl bg-white shadow-lg shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900 ${profileHeaderLayout === "spotlight" ? "ring-1 ring-slate-300/80 dark:ring-slate-600" : ""}`}>
-          <div className={`grid gap-5 p-5 text-center sm:p-6 lg:items-start lg:p-8 lg:text-left ${profileHeaderLayout === "compact" ? "lg:grid-cols-[minmax(0,1fr)_5.5rem]" : profileHeaderLayout === "spotlight" ? "lg:grid-cols-1 lg:text-center" : "lg:grid-cols-[7rem_minmax(0,1fr)_auto]"}`}>
-            <div className={`flex justify-center lg:block ${profileHeaderLayout === "compact" ? "lg:order-2 lg:self-center lg:justify-self-end" : profileHeaderLayout === "spotlight" ? "lg:order-1 lg:justify-self-center" : ""}`}>
+          <div className={`grid gap-5 p-5 text-center sm:p-6 lg:items-start lg:p-8 lg:text-left ${profileHeaderLayout === "compact" ? "grid-cols-[minmax(0,1fr)_5.5rem] text-left lg:grid-cols-[minmax(0,1fr)_5.5rem]" : profileHeaderLayout === "spotlight" ? "grid-cols-1 lg:grid-cols-1 lg:text-center" : "lg:grid-cols-[7rem_minmax(0,1fr)_auto]"}`}>
+            <div className={`flex justify-center lg:block ${profileHeaderLayout === "compact" ? "order-2 self-center justify-self-end lg:order-2 lg:self-center lg:justify-self-end" : profileHeaderLayout === "spotlight" ? "order-2 justify-self-center lg:order-1 lg:justify-self-center" : ""}`}>
               <div className={`${profileHeaderLayout === "compact" ? "size-24 lg:size-28" : profileHeaderLayout === "spotlight" ? "size-28 lg:size-36" : "size-24 lg:size-28"} rounded-full p-1`} style={avatarFrameStyle(profile.avatarAccent, profile.avatarAccentEnd, profile.avatarAccentDirection)}><div className="size-full overflow-hidden rounded-full bg-gray-300">
                 {profile.avatar ? (
                   <Image
@@ -132,7 +132,7 @@ export default async function ProfileByUsernamePage({
               </div></div>
             </div>
 
-              <div className={`min-w-0 ${profileHeaderLayout === "compact" ? "lg:order-1" : profileHeaderLayout === "spotlight" ? "lg:order-2 lg:text-center" : ""}`}>
+              <div className={`min-w-0 ${profileHeaderLayout === "compact" ? "order-1 lg:order-1" : profileHeaderLayout === "spotlight" ? "order-3 text-center lg:order-2 lg:text-center" : ""}`}>
                 <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
                   <span className={`inline-flex items-center justify-center gap-2 ${profileHeaderLayout === "spotlight" ? "lg:justify-center" : "lg:justify-start"}`}>{profile.name || "Unknown"}<AdminBadge isAdmin={profile.isAdmin} /><VibeTeamBadge isSystem={profile.isSystem} /></span>
                 </h1>
@@ -176,7 +176,7 @@ export default async function ProfileByUsernamePage({
                 )}
               </div>
 
-            <div className={`grid w-full grid-cols-3 gap-3 border-t border-slate-200 pt-5 text-center text-sm dark:border-slate-700 lg:w-auto lg:self-start lg:border-0 lg:pt-2 ${profileHeaderLayout === "compact" ? "lg:col-span-2 lg:mt-1 lg:w-full lg:border-t lg:pt-4" : profileHeaderLayout === "spotlight" ? "lg:order-3 lg:mt-1 lg:w-full lg:max-w-lg lg:justify-self-center lg:border-t lg:pt-4" : ""}`}>
+            <div className={`grid w-full grid-cols-3 gap-3 border-t border-slate-200 pt-5 text-center text-sm dark:border-slate-700 lg:w-auto lg:self-start lg:border-0 lg:pt-2 ${profileHeaderLayout === "compact" ? "order-3 col-span-2 lg:col-span-2 lg:mt-1 lg:w-full lg:border-t lg:pt-4" : profileHeaderLayout === "spotlight" ? "order-1 lg:order-3 lg:mt-1 lg:w-full lg:max-w-lg lg:justify-self-center lg:border-t lg:pt-4" : ""}`}>
               <div className="min-w-12">
                 <p className="font-semibold text-slate-900 dark:text-white">
                   {postsCount}
