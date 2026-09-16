@@ -116,8 +116,8 @@ export default async function ProfileByUsernamePage({
 
       <main className="mx-auto w-full max-w-6xl p-4 md:p-8">
         <section className={`overflow-hidden rounded-2xl bg-white shadow-lg shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900 ${profileHeaderLayout === "spotlight" ? "ring-1 ring-slate-300/80 dark:ring-slate-600" : ""}`}>
-          <div className={`grid gap-5 p-5 text-center sm:p-6 lg:items-start lg:p-8 lg:text-left ${profileHeaderLayout === "compact" ? "lg:grid-cols-[minmax(0,1fr)_5.5rem]" : profileHeaderLayout === "spotlight" ? "lg:grid-cols-[minmax(0,1fr)_9rem]" : "lg:grid-cols-[7rem_minmax(0,1fr)_auto]"}`}>
-            <div className={`flex justify-center lg:block ${profileHeaderLayout === "compact" || profileHeaderLayout === "spotlight" ? "lg:order-2 lg:self-center lg:justify-self-end" : ""}`}>
+          <div className={`grid gap-5 p-5 text-center sm:p-6 lg:items-start lg:p-8 lg:text-left ${profileHeaderLayout === "compact" ? "lg:grid-cols-[minmax(0,1fr)_5.5rem]" : profileHeaderLayout === "spotlight" ? "lg:grid-cols-1 lg:text-center" : "lg:grid-cols-[7rem_minmax(0,1fr)_auto]"}`}>
+            <div className={`flex justify-center lg:block ${profileHeaderLayout === "compact" ? "lg:order-2 lg:self-center lg:justify-self-end" : profileHeaderLayout === "spotlight" ? "lg:order-1 lg:justify-self-center" : ""}`}>
               <div className={`${profileHeaderLayout === "compact" ? "size-20 lg:size-22" : profileHeaderLayout === "spotlight" ? "size-28 lg:size-36" : "size-24 lg:size-28"} rounded-full p-1`} style={avatarFrameStyle(profile.avatarAccent, profile.avatarAccentEnd, profile.avatarAccentDirection)}><div className="size-full overflow-hidden rounded-full bg-gray-300">
                 {profile.avatar ? (
                   <Image
@@ -132,9 +132,9 @@ export default async function ProfileByUsernamePage({
               </div></div>
             </div>
 
-              <div className={`min-w-0 ${profileHeaderLayout === "compact" || profileHeaderLayout === "spotlight" ? "lg:order-1" : ""}`}>
+              <div className={`min-w-0 ${profileHeaderLayout === "compact" ? "lg:order-1" : profileHeaderLayout === "spotlight" ? "lg:order-2 lg:text-center" : ""}`}>
                 <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-                  <span className="inline-flex items-center justify-center gap-2 lg:justify-start">{profile.name || "Unknown"}<AdminBadge isAdmin={profile.isAdmin} /><VibeTeamBadge isSystem={profile.isSystem} /></span>
+                  <span className={`inline-flex items-center justify-center gap-2 ${profileHeaderLayout === "spotlight" ? "lg:justify-center" : "lg:justify-start"}`}>{profile.name || "Unknown"}<AdminBadge isAdmin={profile.isAdmin} /><VibeTeamBadge isSystem={profile.isSystem} /></span>
                 </h1>
 
                 <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -146,13 +146,13 @@ export default async function ProfileByUsernamePage({
                 )}
 
                 {profile.bio && (
-                  <p className="mx-auto mt-2 max-w-md whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-200 lg:mx-0"><MentionText text={profile.bio} /></p>
+                  <p className={`mx-auto mt-2 max-w-md whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-200 ${profileHeaderLayout === "spotlight" ? "lg:mx-auto" : "lg:mx-0"}`}><MentionText text={profile.bio} /></p>
                 )}
 
                 {profile.profileLinks.length > 0 && (
-                  <ProfileLinks links={profile.profileLinks} language={de ? "de" : "en"} centered="mobile" accent={profile.profileAccent} />
+                  <ProfileLinks links={profile.profileLinks} language={de ? "de" : "en"} centered={profileHeaderLayout === "spotlight" ? true : "mobile"} accent={profile.profileAccent} />
                 )}
-                {profile.shoutouts.length > 0 && <ProfileShoutouts shoutouts={profile.shoutouts} language={de ? "de" : "en"} centered="mobile" />}
+                {profile.shoutouts.length > 0 && <ProfileShoutouts shoutouts={profile.shoutouts} language={de ? "de" : "en"} centered={profileHeaderLayout === "spotlight" ? true : "mobile"} />}
 
                 {isOwnProfile && profile.isAdmin && <Link href="/admin" className="mx-auto mt-4 inline-flex w-fit rounded-xl border border-orange-400/60 px-3 py-2 text-sm font-semibold text-orange-600 hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-500/10 lg:mx-0">{de ? "Adminbereich" : "Admin area"}</Link>}
 
@@ -176,7 +176,7 @@ export default async function ProfileByUsernamePage({
                 )}
               </div>
 
-            <div className={`grid w-full grid-cols-3 gap-3 border-t border-slate-200 pt-5 text-center text-sm dark:border-slate-700 lg:w-auto lg:self-start lg:border-0 lg:pt-2 ${profileHeaderLayout === "compact" || profileHeaderLayout === "spotlight" ? "lg:col-span-2 lg:mt-1 lg:w-full lg:border-t lg:pt-4" : ""}`}>
+            <div className={`grid w-full grid-cols-3 gap-3 border-t border-slate-200 pt-5 text-center text-sm dark:border-slate-700 lg:w-auto lg:self-start lg:border-0 lg:pt-2 ${profileHeaderLayout === "compact" ? "lg:col-span-2 lg:mt-1 lg:w-full lg:border-t lg:pt-4" : profileHeaderLayout === "spotlight" ? "lg:order-3 lg:mt-1 lg:w-full lg:max-w-lg lg:justify-self-center lg:border-t lg:pt-4" : ""}`}>
               <div className="min-w-12">
                 <p className="font-semibold text-slate-900 dark:text-white">
                   {postsCount}
