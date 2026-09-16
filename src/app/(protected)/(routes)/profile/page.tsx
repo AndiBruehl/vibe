@@ -17,7 +17,7 @@ import ArchivedPosts from "@/app/components/ArchivedPosts";
 import AdminBadge from "@/app/components/AdminBadge";
 import { isVibeAdminEmail } from "@/admin";
 import ProfileShoutouts from "@/app/components/ProfileShoutouts";
-import { avatarFrameStyle } from "@/profile-personalization";
+import { avatarFrameStyle, normalizeProfileAccent } from "@/profile-personalization";
 
 type ProfilePageProps = {
   searchParams: Promise<{
@@ -77,6 +77,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
     prisma.profileShoutout.findMany({ where: { profileId: profile.id }, include: { targetProfile: { select: { username: true, name: true, avatar: true } } }, orderBy: { position: "asc" } }),
   ]);
   const de = profile.language === "de";
+  const profileAccent = normalizeProfileAccent(profile.profileAccent);
 
   return (
     <main className="mx-auto w-full max-w-5xl">
@@ -154,9 +155,10 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
             {de ? "Adminbereich" : "Admin area"}
           </Link></div> : null}
         {profileLinks.length > 0 && (
-          <div className="mt-4"><ProfileLinks links={profileLinks} language={de ? "de" : "en"} centered /></div>
+          <div className="mt-4"><ProfileLinks links={profileLinks} language={de ? "de" : "en"} centered accent={profileAccent} /></div>
         )}
-        {shoutouts.length > 0 && <ProfileShoutouts shoutouts={shoutouts} language={de ? "de" : "en"} centered />}
+        {(profileLinks.length > 0 || shoutouts.length > 0) && <div className="mx-auto mt-4 h-px w-16 opacity-55" style={{ backgroundColor: profileAccent }} />}
+        {shoutouts.length > 0 && <ProfileShoutouts shoutouts={shoutouts} language={de ? "de" : "en"} centered accent={profileAccent} />}
       </section>
 
       <section className="mt-5 flex justify-center gap-10 text-center text-sm">
@@ -189,6 +191,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
                 : "font-medium text-slate-700 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
             }
             href="/profile?tab=posts"
+            style={activeTab === "posts" ? { color: profileAccent, textDecorationColor: profileAccent } : undefined}
           >
             {de ? "Beiträge" : "Posts"}
           </Link>
@@ -200,6 +203,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
                 : "font-medium text-slate-700 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
             }
             href="/profile?tab=highlights"
+            style={activeTab === "highlights" ? { color: profileAccent, textDecorationColor: profileAccent } : undefined}
           >
             Highlights
           </Link>
@@ -211,6 +215,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
                 : "font-medium text-slate-700 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
             }
             href="/profile?tab=bookmarks"
+            style={activeTab === "bookmarks" ? { color: profileAccent, textDecorationColor: profileAccent } : undefined}
           >
             {de ? "Gespeichert" : "Bookmarks"}
           </Link>
@@ -222,6 +227,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
                 : "font-medium text-slate-700 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
             }
             href="/profile?tab=topics"
+            style={activeTab === "topics" ? { color: profileAccent, textDecorationColor: profileAccent } : undefined}
           >
             {de ? "Themen" : "Topics"}
           </Link>
@@ -229,6 +235,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
           <Link
             className={activeTab === "archive" ? "font-bold underline text-(--ig-red)" : "font-medium text-slate-700 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"}
             href="/profile?tab=archive"
+            style={activeTab === "archive" ? { color: profileAccent, textDecorationColor: profileAccent } : undefined}
           >
             {de ? "Archiv" : "Archive"}
           </Link>
