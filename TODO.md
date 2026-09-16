@@ -45,6 +45,12 @@
 - Let members export a saved profile look as a shareable link or file and import a compatible look into their own saved looks.
 - Define the sharing and validation model first so imported data contains only safe appearance fields and never profile identity, roles, links, or private data.
 
+## BETA 0.1.69.15 — Pinned profile posts
+
+- Let members choose and order up to three of their own posts as pinned profile posts.
+- Render the pins above the regular profile feed: three equal tiles on desktop; on mobile, two tiles in the first row and the third tile at full width below them.
+- Keep pin management private to the profile owner and preserve a clear responsive layout for every profile header style.
+
 ## VIBE 2.0.0.0.0 — Vollversion 2.0
 
 - Add post sharing only after public post URLs or an explicit sharing/visibility model exists; protected-only posts should not be shared externally.
