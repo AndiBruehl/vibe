@@ -2,10 +2,12 @@
 
 import { MoveLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+import useVibeLanguage, { type VibeLanguage } from "@/app/components/useVibeLanguage";
 
-export default function BackNavigationLink({ language = "en", fallbackHref = "/home", label }: { language?: "en" | "de"; fallbackHref?: string; label?: string }) {
+export default function BackNavigationLink({ language, fallbackHref = "/home", label }: { language?: VibeLanguage; fallbackHref?: string; label?: string }) {
   const router = useRouter();
-  const resolvedLabel = label ?? (language === "de" ? "Zurück" : "Back");
+  const activeLanguage = useVibeLanguage(language);
+  const resolvedLabel = label ?? (activeLanguage === "de" ? "Zurück" : "Back");
 
   return (
     <button
