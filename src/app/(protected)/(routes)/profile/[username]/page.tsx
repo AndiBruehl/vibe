@@ -142,7 +142,7 @@ export default async function ProfileByUsernamePage({
                 </p>
 
                 {profile.subtitle && (
-                  <p className={`mt-2 ${profileHeaderLayout === "compact" ? "text-sm lg:text-base" : "text-sm"} text-slate-600 dark:text-slate-300"><MentionText text={profile.subtitle} /></p>
+                  <p className={`mt-2 ${profileHeaderLayout === "compact" ? "text-sm lg:text-base" : "text-sm"} text-slate-600 dark:text-slate-300`}><MentionText text={profile.subtitle} /></p>
                 )}
 
                 {profile.bio && (
