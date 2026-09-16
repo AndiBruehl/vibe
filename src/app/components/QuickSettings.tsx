@@ -104,7 +104,7 @@ export default function QuickSettings({ initialLanguage, initialTheme }: { initi
   // Browse has a right-aligned Profiles action in its header. Put the orb to
   // its left at every width so it cannot cover the action or the sort controls.
   const position = pathname === "/browse"
-    ? "right-24 top-3.5 md:right-24 md:top-3.5"
+    ? "right-28 top-3.5 md:right-28 md:top-3.5"
     : "right-4 top-3.5 md:right-6 md:top-3.5";
 
   return (
