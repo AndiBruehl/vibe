@@ -58,6 +58,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
   const [language, setLanguage] = useState<"en" | "de">("en");
   const [activeTab, setActiveTab] = useState<"profile" | "preferences" | "account">("profile");
   const [activeAppearanceSection, setActiveAppearanceSection] = useState<"general" | "profile">("general");
+  const [activePersonalizationSection, setActivePersonalizationSection] = useState<"layout" | "background" | "avatar">("layout");
   const [profileLinks, setProfileLinks] = useState<EditableProfileLink[]>(
     profile?.profileLinks?.map((link) => ({ id: link.id, label: link.label, url: link.url })) ?? [],
   );
@@ -409,7 +410,9 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
       </div>
       <div className={activeAppearanceSection === "profile" ? "space-y-3" : "hidden"}>
       <section className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 dark:border-slate-700 dark:bg-slate-800/60">
-        <div className="mb-3 flex items-center gap-3"><span className="grid size-9 place-items-center rounded-xl bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200"><Pipette size={17} /></span><div><p className="font-semibold text-slate-900 dark:text-white">{copy("Profile personalization", "Profil-Personalisierung")}</p><p className="text-xs text-slate-500 dark:text-slate-400">{copy("Avatar frame and link accent", "Avatar-Rahmen und Link-Akzent")}</p></div></div>
+        <div className="mb-3 flex items-center gap-3"><span className="grid size-9 place-items-center rounded-xl bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200"><Pipette size={17} /></span><div><p className="font-semibold text-slate-900 dark:text-white">{copy("Profile personalization", "Profil-Personalisierung")}</p><p className="text-xs text-slate-500 dark:text-slate-400">{copy("Avatar frame and link accent", "Avatar-Rahmen und Link-Akzent")}</p></div>
+        <div className="grid grid-cols-3 gap-2" role="tablist" aria-label={copy("Profile personalization sections", "Bereiche der Profil-Personalisierung")}>{([{ value: "layout", label: copy("Layout", "Layout") }, { value: "background", label: copy("Background", "Hintergrund") }, { value: "avatar", label: copy("Avatar & accents", "Avatar & Akzente") }] as const).map(({ value, label }) => <button key={value} type="button" role="tab" aria-selected={activePersonalizationSection === value} onClick={() => setActivePersonalizationSection(value)} className={`min-h-16 rounded-xl border px-2 py-2 text-xs font-bold transition ${activePersonalizationSection === value ? "border-orange-400 bg-orange-50 text-orange-700 shadow-sm dark:border-orange-400/70 dark:bg-orange-500/15 dark:text-orange-200" : "border-slate-200 bg-white/60 text-slate-500 hover:border-slate-300 dark:border-slate-700 dark:bg-slate-900/20 dark:text-slate-400"}`}>{label}</button>)}</div>
+</div>
         <details className="group rounded-xl border border-slate-200 bg-white/60 px-3 py-2 dark:border-slate-700/80 dark:bg-slate-900/20">
           <summary className="flex cursor-pointer list-none items-center justify-between py-1 text-sm font-bold text-slate-800 marker:content-none dark:text-white"><span>{copy("Profile header layout", "Profilkopf-Layout")}</span><span aria-hidden="true" className="text-slate-400 transition group-open:rotate-180">⌄</span></summary>
           <div className="pt-3">
