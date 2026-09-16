@@ -1,6 +1,6 @@
 "use client";
 
-import { ImageUp, Link as LinkIcon, Lock, MonitorSmartphone, Moon, Plus, ShieldCheck, SlidersHorizontal, Sun, Trash2, UserRound } from "lucide-react";
+import { ImageUp, Link as LinkIcon, LoaderCircle, Lock, MonitorSmartphone, Moon, Plus, ShieldCheck, SlidersHorizontal, Sun, Trash2, UserRound } from "lucide-react";
 import { Switch } from "@radix-ui/themes";
 import type { Profile } from "@prisma/client";
 import { upsertProfile } from "@/actions";
@@ -32,6 +32,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
   );
   const [avatarUrl, setAvatarUrl] = useState<string>(profile?.avatar ?? "");
   const [avatarAccent, setAvatarAccent] = useState(() => normalizeAvatarAccent(profile?.avatarAccent));
+  const [isSavingAccent, setIsSavingAccent] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -121,8 +122,32 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
     window.setTimeout(() => setSaveFeedback(null), 2500);
   }
 
+  async function updateAvatarAccent(next: string) {
+    if (next === avatarAccent || isSavingAccent) return;
+    const previous = avatarAccent;
+    setAvatarAccent(normalizeAvatarAccent(next));
+    setIsSavingAccent(true);
+    setSaveFeedback(null);
+    try {
+      const response = await fetch("/api/profile/avatar-accent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ avatarAccent: next }),
+      });
+      if (!response.ok) throw new Error("Avatar frame could not be saved");
+      setSaveFeedback("saved");
+      startTransition(() => router.refresh());
+      window.setTimeout(() => setSaveFeedback(null), 2500);
+    } catch {
+      setAvatarAccent(previous);
+      setSaveFeedback("failed");
+    } finally {
+      setIsSavingAccent(false);
+    }
+  }
+
   return (
-    <form action={saveProfile} onChange={() => setIsDirty(true)} className="space-y-5">
+    <form action={saveProfile} onChange={(event) => { if (event.target instanceof HTMLInputElement && event.target.type === "color") return; setIsDirty(true); }} className="space-y-5">
       <nav className="flex gap-2 rounded-xl bg-slate-100 p-1 dark:bg-slate-800" aria-label={copy("Settings sections", "Einstellungsbereiche")}>
         <button type="button" onClick={() => setActiveTab("profile")} className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ${activeTab === "profile" ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100"}`}><UserRound size={16} />{copy("Profile", "Profil")}</button>
         <button type="button" onClick={() => setActiveTab("preferences")} className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ${activeTab === "preferences" ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100"}`}><SlidersHorizontal size={16} />{copy("Appearance & privacy", "Darstellung & Privatsphäre")}</button>
@@ -165,13 +190,13 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
         <div className="w-full border-t border-slate-200 pt-3 dark:border-slate-700/80 lg:border-0 lg:pt-1">
           <p className="text-center text-xs font-semibold text-slate-700 dark:text-slate-200">{copy("Avatar frame", "Avatar-Rahmen")}</p>
           <div className="mt-2 flex flex-wrap justify-center gap-2">
-            {AVATAR_ACCENT_PRESETS.map((color) => <button key={color} type="button" onClick={() => { setAvatarAccent(color); setIsDirty(true); }} aria-label={`${copy("Use frame color", "Rahmenfarbe verwenden")}: ${color}`} className={`grid size-7 place-items-center rounded-full transition hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 ${avatarAccent === color ? "ring-2 ring-slate-700 ring-offset-2 dark:ring-slate-200 dark:ring-offset-slate-900" : ""}`} style={{ backgroundColor: color }}><span className="sr-only">{color}</span></button>)}
-            {AVATAR_FRAME_GRADIENTS.map((gradient) => <button key={gradient} type="button" onClick={() => { setAvatarAccent(gradient); setIsDirty(true); }} aria-label={gradient === "gradient-orange-yellow" ? copy("Orange to yellow gradient frame", "Orange-zu-Gelb-Verlaufsrahmen") : copy("Yellow to orange gradient frame", "Gelb-zu-Orange-Verlaufsrahmen")} className={`grid size-7 place-items-center rounded-full transition hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 ${avatarAccent === gradient ? "ring-2 ring-slate-700 ring-offset-2 dark:ring-slate-200 dark:ring-offset-slate-900" : ""}`} style={avatarFrameStyle(gradient)}><span className="sr-only">{gradient}</span></button>)}
+            {AVATAR_ACCENT_PRESETS.map((color) => <button key={color} type="button" onClick={() => void updateAvatarAccent(color)} disabled={isSavingAccent} aria-label={`${copy("Use frame color", "Rahmenfarbe verwenden")}: ${color}`} className={`grid size-7 place-items-center rounded-full transition hover:scale-110 disabled:cursor-wait disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 ${avatarAccent === color ? "ring-2 ring-slate-700 ring-offset-2 dark:ring-slate-200 dark:ring-offset-slate-900" : ""}`} style={{ backgroundColor: color }}><span className="sr-only">{color}</span></button>)}
+            {AVATAR_FRAME_GRADIENTS.map((gradient) => <button key={gradient} type="button" onClick={() => void updateAvatarAccent(gradient)} disabled={isSavingAccent} aria-label={gradient === "gradient-orange-yellow" ? copy("Orange to yellow gradient frame", "Orange-zu-Gelb-Verlaufsrahmen") : copy("Yellow to orange gradient frame", "Gelb-zu-Orange-Verlaufsrahmen")} className={`grid size-7 place-items-center rounded-full transition hover:scale-110 disabled:cursor-wait disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 ${avatarAccent === gradient ? "ring-2 ring-slate-700 ring-offset-2 dark:ring-slate-200 dark:ring-offset-slate-900" : ""}`} style={avatarFrameStyle(gradient)}><span className="sr-only">{gradient}</span></button>)}
             <label className="relative grid size-7 cursor-pointer place-items-center overflow-hidden rounded-full border border-slate-300 bg-conic from-red-500 via-yellow-400 via-emerald-400 via-cyan-400 via-violet-500 to-red-500 transition hover:scale-110 dark:border-slate-600" title={copy("Custom color", "Eigene Farbe")}>
-              <input type="color" value={avatarAccent.startsWith("gradient-") ? DEFAULT_AVATAR_ACCENT : avatarAccent} onChange={(event) => { setAvatarAccent(normalizeAvatarAccent(event.target.value)); setIsDirty(true); }} className="absolute inset-0 size-full cursor-pointer opacity-0" aria-label={copy("Choose a custom frame color", "Eigene Rahmenfarbe wählen")} />
+              <input type="color" value={avatarAccent.startsWith("gradient-") ? DEFAULT_AVATAR_ACCENT : avatarAccent} onChange={(event) => void updateAvatarAccent(event.target.value)} className="absolute inset-0 size-full cursor-pointer opacity-0" aria-label={copy("Choose a custom frame color", "Eigene Rahmenfarbe wählen")} />
             </label>
           </div>
-          {avatarAccent !== DEFAULT_AVATAR_ACCENT && <button type="button" onClick={() => { setAvatarAccent(DEFAULT_AVATAR_ACCENT); setIsDirty(true); }} className="mt-2 w-full text-xs font-semibold text-slate-500 transition hover:text-orange-600 dark:text-slate-400 dark:hover:text-orange-300">{copy("Reset frame", "Rahmen zurücksetzen")}</button>}
+          {avatarAccent !== DEFAULT_AVATAR_ACCENT && <button type="button" onClick={() => void updateAvatarAccent(DEFAULT_AVATAR_ACCENT)} disabled={isSavingAccent} className="mt-2 w-full text-xs font-semibold text-slate-500 transition hover:text-orange-600 disabled:opacity-60 dark:text-slate-400 dark:hover:text-orange-300">{copy("Reset frame", "Rahmen zurücksetzen")}</button>}
         </div>
       </section>
 
@@ -304,10 +329,11 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
         {saveFeedback && <p role="status" className={`text-sm font-semibold ${saveFeedback === "saved" ? "text-emerald-600 dark:text-emerald-300" : "text-red-600 dark:text-red-300"}`}>{saveFeedback === "saved" ? copy("Settings saved", "Einstellungen gespeichert") : copy("Could not save settings", "Einstellungen konnten nicht gespeichert werden")}</p>}
         <button
           type="submit"
+          data-no-auto-spinner="true"
           disabled={isUploading || isSaving || !isDirty}
-          className="rounded-xl bg-linear-to-r from-orange-500 to-pink-500 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-orange-500/25 transition hover:scale-[1.02] hover:shadow-xl disabled:cursor-wait disabled:opacity-60"
+          className="inline-flex items-center gap-2 rounded-xl bg-linear-to-r from-orange-500 to-pink-500 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-orange-500/25 transition hover:scale-[1.02] hover:shadow-xl disabled:cursor-wait disabled:opacity-60"
         >
-          {isSaving ? copy("Saving...", "Wird gespeichert...") : copy("Save Settings", "Einstellungen speichern")}
+          {isSaving ? <><LoaderCircle size={16} className="animate-spin" aria-hidden="true" />{copy("Saving...", "Wird gespeichert...")}</> : copy("Save Settings", "Einstellungen speichern")}
         </button>
       </div>
     </form>
