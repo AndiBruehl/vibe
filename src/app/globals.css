@@ -409,13 +409,6 @@ html, body { cursor: default; }
   }
 }
 
-@keyframes vibe-secret-edge-sparkle {
-  0%, 100% { opacity: 0; transform: scale(.35) rotate(0deg); }
-  28% { opacity: 1; transform: scale(1.5) rotate(28deg); }
-  56% { opacity: .4; transform: scale(.72) rotate(-18deg); }
-  78% { opacity: 1; transform: scale(1.2) rotate(8deg); }
-}
-
 @keyframes vibe-secret-inner-sparkle {
   0%, 100% { opacity: .2; transform: translateY(0) scale(.8) rotate(0deg); }
   50% { opacity: 1; transform: translateY(-5px) scale(1.3) rotate(18deg); }
@@ -431,7 +424,6 @@ html, body { cursor: default; }
   to { transform: rotate(360deg); }
 }
 
-.vibe-secret-edge-sparkle { animation: vibe-secret-edge-sparkle 3.2s ease-in-out infinite; }
 .vibe-secret-inner-sparkle { animation: vibe-secret-inner-sparkle 2.1s ease-in-out infinite; }
 .vibe-secret-inner-sparkle-delayed { animation-delay: .7s; }
 .vibe-secret-gem { animation: vibe-secret-gem 1.8s ease-in-out infinite; }
