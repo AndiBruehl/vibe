@@ -17,7 +17,7 @@ import ArchivedPosts from "@/app/components/ArchivedPosts";
 import AdminBadge from "@/app/components/AdminBadge";
 import { isVibeAdminEmail } from "@/admin";
 import ProfileShoutouts from "@/app/components/ProfileShoutouts";
-import { normalizeAvatarAccent } from "@/profile-personalization";
+import { avatarFrameStyle } from "@/profile-personalization";
 
 type ProfilePageProps = {
   searchParams: Promise<{
@@ -77,7 +77,6 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
     prisma.profileShoutout.findMany({ where: { profileId: profile.id }, include: { targetProfile: { select: { username: true, name: true, avatar: true } } }, orderBy: { position: "asc" } }),
   ]);
   const de = profile.language === "de";
-  const avatarAccent = normalizeAvatarAccent(profile.avatarAccent);
 
   return (
     <main className="mx-auto w-full max-w-5xl">
@@ -113,7 +112,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
       </section>
 
       <section className="mt-6 flex justify-center">
-        <div className="flex size-32 items-center justify-center rounded-full" style={{ backgroundColor: avatarAccent }}>
+        <div className="flex size-32 items-center justify-center rounded-full" style={avatarFrameStyle(profile.avatarAccent)}>
           <div className="flex size-[7.5rem] items-center justify-center rounded-full bg-white dark:bg-slate-900">
             <div className="relative size-[7rem] aspect-square overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
               <Image
