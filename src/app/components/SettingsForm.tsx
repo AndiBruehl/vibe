@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDownLeft, ArrowDownRight, ArrowUpLeft, ArrowUpRight, BookmarkPlus, ImageUp, Link as LinkIcon, LoaderCircle, Lock, MonitorSmartphone, Moon, Pipette, Plus, ShieldCheck, SlidersHorizontal, Sun, Trash2, UserRound, X } from "lucide-react";
+import { ArrowDownLeft, ArrowDownRight, ArrowUpLeft, ArrowUpRight, BookmarkPlus, ImageUp, Link as LinkIcon, LoaderCircle, Lock, MonitorSmartphone, Moon, Pipette, Plus, Search, ShieldCheck, SlidersHorizontal, Sun, Trash2, UserRound, X } from "lucide-react";
 import { Switch } from "@radix-ui/themes";
 import type { Profile } from "@prisma/client";
 import { upsertProfile } from "@/actions";
@@ -59,11 +59,27 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
   const [activeTab, setActiveTab] = useState<"profile" | "preferences" | "account">("profile");
   const [activeAppearanceSection, setActiveAppearanceSection] = useState<"general" | "profile">("general");
   const [activePersonalizationSection, setActivePersonalizationSection] = useState<"layout" | "background" | "avatar">("background");
+  const [settingsSearch, setSettingsSearch] = useState("");
   const [profileLinks, setProfileLinks] = useState<EditableProfileLink[]>(
     profile?.profileLinks?.map((link) => ({ id: link.id, label: link.label, url: link.url })) ?? [],
   );
   const de = language === "de";
   const copy = (english: string, german: string) => de ? german : english;
+  const settingsSearchItems = [
+    { id: "background", label: copy("Header background", "Header-Hintergrund"), hint: copy("Image, color and gradient", "Bild, Farbe und Verlauf"), tab: "preferences" as const, appearance: "profile" as const, personalization: "background" as const, terms: "background header image color gradient text hintergrund bild farbe verlauf text" },
+    { id: "layout", label: copy("Profile header layout", "Profilkopf-Layout"), hint: copy("Standard, compact or spotlight", "Standard, kompakt oder Fokus"), tab: "preferences" as const, appearance: "profile" as const, personalization: "layout" as const, terms: "layout compact spotlight fokus profilkopf" },
+    { id: "frame", label: copy("Profile image frame & accents", "Profilbildrahmen & Akzente"), hint: copy("Frame, gradients and link color", "Rahmen, Verläufe und Linkfarbe"), tab: "preferences" as const, appearance: "profile" as const, personalization: "avatar" as const, terms: "frame accent gradients rahmen akzent linkfarbe verlauf" },
+    { id: "theme", label: copy("Theme", "Thema"), hint: copy("Light, dark or system", "Hell, dunkel oder System"), tab: "preferences" as const, appearance: "general" as const, terms: "theme light dark system thema hell dunkel" },
+    { id: "language", label: copy("Language", "Sprache"), hint: copy("English or German", "Englisch oder Deutsch"), tab: "preferences" as const, appearance: "general" as const, terms: "language sprache english deutsch german" },
+    { id: "blocked", label: copy("Blocked users", "Blockierte Nutzer"), hint: copy("Safety and blocked profiles", "Sicherheit und blockierte Profile"), tab: "account" as const, terms: "blocked block safety sicherheit blockiert" },
+  ];
+  const normalizedSettingsSearch = settingsSearch.trim().toLowerCase();
+  const matchingSettings = normalizedSettingsSearch ? settingsSearchItems.filter((item) => `${item.label} ${item.hint} ${item.terms}`.toLowerCase().includes(normalizedSettingsSearch)).slice(0, 5) : [];
+  function openSetting(item: typeof settingsSearchItems[number]) {
+    setActiveTab(item.tab);
+    if (item.tab === "preferences" && item.appearance && item.personalization) { setActiveAppearanceSection(item.appearance); setActivePersonalizationSection(item.personalization); }
+    setSettingsSearch("");
+  }
 
   useEffect(() => {
     setLanguage(localStorage.getItem("vibe-language") === "de" ? "de" : "en");
@@ -250,6 +266,11 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
 
   return (
     <form action={saveProfile} onChange={(event) => { if (event.target instanceof HTMLInputElement && event.target.type === "color") return; setIsDirty(true); }} className="space-y-5">
+      <div className="relative">
+        <Search size={17} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+        <input value={settingsSearch} onChange={(event) => setSettingsSearch(event.target.value)} placeholder={copy("Search settings", "Einstellungen durchsuchen")} className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-orange-400 focus:ring-4 focus:ring-orange-100 dark:border-slate-700 dark:bg-slate-900/30 dark:text-white dark:placeholder:text-slate-500" />
+        {normalizedSettingsSearch && <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-slate-700 dark:bg-slate-900">{matchingSettings.length ? matchingSettings.map((item) => <button key={item.id} type="button" onClick={() => openSetting(item)} className="block w-full rounded-lg px-3 py-2.5 text-left transition hover:bg-orange-50 dark:hover:bg-orange-500/10"><span className="block text-sm font-bold text-slate-800 dark:text-white">{item.label}</span><span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">{item.hint}</span></button>) : <p className="px-3 py-3 text-sm text-slate-500 dark:text-slate-400">{copy("No settings found.", "Keine Einstellungen gefunden.")}</p>}</div>}
+      </div>
       <nav className="flex gap-2 rounded-xl bg-slate-100 p-1 dark:bg-slate-800" aria-label={copy("Settings sections", "Einstellungsbereiche")}>
         <button type="button" onClick={() => setActiveTab("profile")} className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ${activeTab === "profile" ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100"}`}><UserRound size={16} />{copy("Profile", "Profil")}</button>
         <button type="button" onClick={() => setActiveTab("preferences")} className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ${activeTab === "preferences" ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100"}`}><SlidersHorizontal size={16} />{copy("Appearance & privacy", "Darstellung & Privatsphäre")}</button>
