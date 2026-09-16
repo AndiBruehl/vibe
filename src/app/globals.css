@@ -279,12 +279,21 @@ html:not(.dark) :is(input, textarea)::placeholder { color: #607b97; opacity: 1; 
 }
 
 .vibe-loader-orbit {
+  position: relative;
+}
+
+.vibe-loader-orbit::before {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
   background: conic-gradient(from 210deg, var(--ig-orange), var(--ig-red), transparent 55%, var(--ig-orange));
+  content: "";
   animation: vibe-loader-orbit 1.25s linear infinite;
-  padding: 0.22rem;
 }
 
 .vibe-loader-core {
+  position: relative;
+  z-index: 1;
   background: url("/logo.svg") center / 72% no-repeat, var(--ig-page-bg);
 }
 
