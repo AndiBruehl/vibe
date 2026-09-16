@@ -5,13 +5,10 @@ import { motion, useReducedMotion } from "framer-motion";
 import useVibeLanguage from "@/app/components/useVibeLanguage";
 
 const edgeSparkles = [
-  { className: "-left-3 top-4", size: 21, delay: 0 },
-  { className: "-right-3 top-8", size: 28, delay: 0.18 },
-  { className: "-left-2 bottom-7", size: 17, delay: 0.36 },
-  { className: "right-1 -bottom-3", size: 25, delay: 0.52 },
-  { className: "left-[24%] -top-3", size: 16, delay: 0.72 },
-  { className: "right-[26%] -top-4", size: 20, delay: 0.9 },
-  { className: "left-[38%] -bottom-3", size: 14, delay: 0.66 },
+  { className: "-left-3 top-6", size: 22, delay: 0 },
+  { className: "-right-3 top-10", size: 26, delay: 0.8 },
+  { className: "left-[22%] -top-3", size: 17, delay: 1.35 },
+  { className: "right-[20%] -bottom-3", size: 20, delay: 2 },
 ];
 
 export default function SecretFoundMap() {
@@ -31,7 +28,7 @@ export default function SecretFoundMap() {
           key={sparkle.className}
           aria-hidden="true"
           style={{ animationDelay: `${sparkle.delay}s` }}
-          className={`vibe-secret-edge-sparkle pointer-events-none absolute z-20 text-amber-200 drop-shadow-[0_0_9px_rgba(255,220,120,0.95)] ${sparkle.className}`}
+          className={`vibe-secret-edge-sparkle pointer-events-none absolute z-20 text-white drop-shadow-[0_0_10px_rgba(255,255,255,1)] ${sparkle.className}`}
         >
           <Sparkles size={sparkle.size} fill="currentColor" />
         </span>
