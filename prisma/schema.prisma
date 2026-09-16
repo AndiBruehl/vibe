@@ -47,6 +47,7 @@ model Profile {
   shoutouts           ProfileShoutout[] @relation("ProfileShoutouts")
   shoutoutOf          ProfileShoutout[] @relation("ShoutoutTarget")
   restrictions        Restriction[]
+  framePresets        ProfileFramePreset[]
 
   followers              Follow[]        @relation("ProfileFollowers")
   following              Follow[]        @relation("ProfileFollowing")
@@ -55,6 +56,20 @@ model Profile {
   topicFollows           TopicFollow[]
   blocksSent             Block[]         @relation("BlocksSent")
   blocksReceived         Block[]         @relation("BlocksReceived")
+}
+
+model ProfileFramePreset {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  profileId   String   @db.ObjectId
+  profile     Profile  @relation(fields: [profileId], references: [id])
+  startColor  String
+  endColor    String
+  direction   String   @default("to-bottom-right")
+  position    Int
+  createdAt   DateTime @default(now())
+
+  @@unique([profileId, position])
+  @@index([profileId])
 }
 
 model Restriction {
