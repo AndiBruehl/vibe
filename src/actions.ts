@@ -1992,6 +1992,13 @@ Thank you for being part of VIBE and helping shape this community. We are so hap
         await notifyAdmins(actorEmail, `profile-verification`, `Verified @${target.username || target.name || target.email}`);
       } catch (error) {
         console.error("Could not deliver verification notice", error);
+        try {
+          await new Promise((resolve) => setTimeout(resolve, 1_000));
+          await deliverVibeTeamMessage(target.email, message);
+          await notifyAdmins(actorEmail, "profile-verification", `Verified @${target.username || target.name || target.email} after retry`);
+        } catch (retryError) {
+          console.error("Could not deliver verification notice after retry", retryError);
+        }
       }
     });
   } else {
