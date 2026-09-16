@@ -44,7 +44,7 @@ The product supports German and English. Client language state is maintained by 
 
 ### Activity notification preferences
 
-Profiles store individual activity-notification preferences for likes, comments and replies, mentions, follow requests, and admin updates. The Activity counter and in-app activity notification polling use these preferences before calculating their totals and latest activity timestamp. Opening the Activity page marks the current activity inbox as read and immediately clears its navigation badge.
+Profiles store individual activity-notification preferences for likes, comments and replies, mentions, follow requests, and admin updates. The Activity counter and in-app activity notification polling use these preferences before calculating their totals and latest activity timestamp. For existing MongoDB profiles that predate these fields, a missing value is treated as enabled until the member changes it. Opening the Activity page marks the current activity inbox as read and immediately clears its navigation badge.
 
 ### Social features
 
