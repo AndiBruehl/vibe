@@ -6,6 +6,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Bell, Heart, MessageCircle, MoveLeft, UserPlus } from "lucide-react";
 import ActivityReadControl from "@/app/components/ActivityReadControl";
+import ActivityReadOnOpen from "@/app/components/ActivityReadOnOpen";
 import img1 from "../profile/default.jpg";
 
 type ActivityItem = {
@@ -444,6 +445,7 @@ export default async function ActivityPage() {
 
   return (
     <main className="mx-auto w-full max-w-3xl pb-24 md:pb-8">
+      <ActivityReadOnOpen />
       <section className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
         <div className="justify-self-start">
           <Link

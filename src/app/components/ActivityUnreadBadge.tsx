@@ -14,6 +14,10 @@ export default function ActivityUnreadBadge({
   const [count, setCount] = useState(initialCount);
 
   useEffect(() => {
+    setCount(initialCount);
+  }, [initialCount]);
+
+  useEffect(() => {
     const handleStatus = (event: Event) => {
       setCount((event as CustomEvent<{ count: number }>).detail.count);
     };
