@@ -57,6 +57,12 @@
 - Add a compact Settings preview that shows the resulting public profile structure before saving.
 - Keep all existing underlying data intact when a section is hidden so it can be re-enabled later.
 
+## BETA 0.1.69.17 — Profile badges and achievements
+
+- Add an optional, curated profile-badge area for community and achievement badges.
+- Keep Admin and Verified as protected system statuses while allowing future badges to be independently awarded, time-limited, or opt-in.
+- Give members clear visibility controls for optional badges without allowing custom CSS or arbitrary user-supplied badge markup.
+
 ## VIBE 2.0.0.0.0 — Vollversion 2.0
 
 - Add post sharing only after public post URLs or an explicit sharing/visibility model exists; protected-only posts should not be shared externally.
