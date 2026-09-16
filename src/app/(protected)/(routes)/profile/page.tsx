@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import { Check, CircleHelp, MoveLeft, Settings, Shield } from "lucide-react";
+import { Check, MoveLeft, Settings, Shield } from "lucide-react";
 import Link from "next/link";
 import img1 from "./default.jpg";
 import { prisma } from "@/db";
@@ -98,10 +98,6 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         </div>
 
         <div className="ml-auto flex items-center gap-1 sm:gap-3">
-          <Link href="/support" className="inline-flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-semibold text-cyan-700 no-underline transition hover:bg-cyan-50 dark:text-cyan-300 dark:hover:bg-cyan-500/10">
-            <CircleHelp size={18} aria-hidden="true" />
-            <span className="hidden sm:inline">{de ? "Support" : "Support"}</span>
-          </Link>
           <Link
             href="/settings"
             className="group flex items-center gap-2 text-slate-800 no-underline visited:text-slate-800 hover:text-slate-600 dark:text-slate-200 dark:visited:text-slate-400 dark:hover:text-slate-500"

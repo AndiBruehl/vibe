@@ -1,6 +1,6 @@
 "use client";
 
-import { Languages, MonitorSmartphone, Moon, Settings2, Sun } from "lucide-react";
+import { CircleHelp, Languages, MonitorSmartphone, Moon, Settings2, Sun } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { startTransition, useEffect, useRef, useState } from "react";
@@ -126,7 +126,10 @@ export default function QuickSettings({ initialLanguage, initialTheme }: { initi
           </div>
         </div>
         {feedback && <p role="status" className={`mt-3 text-center text-xs font-semibold ${feedbackLeaving ? "vibe-quick-settings-feedback-exit" : ""} ${feedback === "failed" ? "text-red-600 dark:text-red-300" : `vibe-quick-settings-feedback vibe-quick-settings-feedback-${feedback} mx-auto flex items-center justify-center shadow-sm`}`}>{feedback === "saved" ? (de ? "Gespeichert" : "Saved") : feedback === "working" ? (de ? "WIRD UMGESTELLT" : "WORKING") : (de ? "Speichern fehlgeschlagen" : "Could not save")}</p>}
-        <Link href="/settings" className="mt-3 block border-t border-slate-200 pt-3 text-center text-xs font-bold text-orange-600 hover:underline dark:border-slate-700 dark:text-orange-300">{de ? "Alle Einstellungen" : "Open settings"}</Link>
+        <div className="mt-3 grid grid-cols-2 gap-2 border-t border-slate-200 pt-3 dark:border-slate-700">
+          <Link href="/support" className="inline-flex items-center justify-center gap-1 rounded-lg px-2 py-2 text-xs font-bold text-cyan-700 transition hover:bg-cyan-50 dark:text-cyan-300 dark:hover:bg-cyan-500/10"><CircleHelp size={14} />{de ? "Hilfe" : "Help"}</Link>
+          <Link href="/settings" className="inline-flex items-center justify-center rounded-lg px-2 py-2 text-xs font-bold text-orange-600 transition hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-500/10">{de ? "Einstellungen" : "Settings"}</Link>
+        </div>
       </section>}
     </div>
   );
