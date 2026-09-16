@@ -55,6 +55,7 @@ model Profile {
   shoutoutOf          ProfileShoutout[] @relation("ShoutoutTarget")
   restrictions        Restriction[]
   framePresets        ProfileFramePreset[]
+  pollVotes           PollVote[]
 
   followers              Follow[]        @relation("ProfileFollowers")
   following              Follow[]        @relation("ProfileFollowing")
@@ -479,6 +480,48 @@ model AdminActivity {
   createdAt  DateTime @default(now())
 
   @@index([createdAt])
+}
+
+model Poll {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  question       String
+  isActive       Boolean      @default(false)
+  createdByEmail String
+  startsAt       DateTime?
+  expiresAt      DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  options        PollOption[]
+  votes          PollVote[]
+
+  @@index([isActive, expiresAt])
+  @@index([createdAt])
+}
+
+model PollOption {
+  id       String     @id @default(auto()) @map("_id") @db.ObjectId
+  pollId   String     @db.ObjectId
+  poll     Poll       @relation(fields: [pollId], references: [id])
+  label    String
+  position Int
+  votes    PollVote[]
+
+  @@unique([pollId, position])
+  @@index([pollId])
+}
+
+model PollVote {
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  pollId    String     @db.ObjectId
+  poll      Poll       @relation(fields: [pollId], references: [id])
+  optionId  String     @db.ObjectId
+  option    PollOption @relation(fields: [optionId], references: [id])
+  profileId String     @db.ObjectId
+  profile   Profile    @relation(fields: [profileId], references: [id])
+  createdAt DateTime   @default(now())
+
+  @@unique([pollId, profileId])
+  @@index([optionId, createdAt])
 }
 
 // Topics / Hashtags

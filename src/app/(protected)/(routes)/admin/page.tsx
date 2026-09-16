@@ -9,6 +9,7 @@ import ReportContentPreview from "@/app/components/ReportContentPreview";
 import ReportModerationControls from "@/app/components/ReportModerationControls";
 import VibeTeamMessageComposer from "@/app/components/VibeTeamMessageComposer";
 import SupportTicketManagement from "@/app/components/SupportTicketManagement";
+import AdminPollManager from "@/app/components/AdminPollManager";
 import { prisma } from "@/db";
 import { ensureVibeSystemProfiles } from "@/system-profile";
 import { Flag, History, MessageSquareText, ThumbsUp } from "lucide-react";
@@ -51,7 +52,7 @@ function adminActivityLabel(kind: string, de: boolean) {
 
 export default async function AdminPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   const { tab: requestedTab } = await searchParams;
-  const activeTab = ["moderation", "support", "team", "management", "log", "notes"].includes(requestedTab || "") ? requestedTab! : "moderation";
+  const activeTab = ["moderation", "support", "team", "management", "log", "notes", "polls"].includes(requestedTab || "") ? requestedTab! : "moderation";
   const session = await auth();
   const email = session?.user?.email ?? null;
   if (!email) redirect("/");
@@ -60,12 +61,13 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   if (!(await isVibeAdmin(email))) return <AdminAccessDenied language={de ? "de" : "en"} />;
   await ensureVibeSystemProfiles();
 
-  const [reports, notes, profiles, auditEntries, supportTickets] = await Promise.all([
+  const [reports, notes, profiles, auditEntries, supportTickets, polls] = await Promise.all([
     prisma.report.findMany({ orderBy: [{ status: "asc" }, { createdAt: "desc" }], take: 100 }),
     prisma.adminNote.findMany({ include: { comments: { orderBy: { createdAt: "asc" } }, votes: { select: { voterEmail: true } } }, orderBy: { updatedAt: "desc" }, take: 100 }),
     prisma.profile.findMany({ select: { id: true, email: true, name: true, username: true, isAdmin: true, isSystem: true, restrictedUntil: true, restrictionMessages: true, restrictionComments: true, restrictionPosts: true }, orderBy: { name: "asc" } }),
     prisma.adminActivity.findMany({ orderBy: { createdAt: "desc" }, take: 100 }),
     prisma.supportTicket.findMany({ include: { messages: { orderBy: { createdAt: "asc" } } }, orderBy: { updatedAt: "desc" }, take: 100 }),
+    prisma.poll.findMany({ include: { options: { orderBy: { position: "asc" }, include: { votes: { include: { profile: { select: { name: true, username: true, avatar: true } } } } } } }, orderBy: { createdAt: "desc" }, take: 50 }),
   ]);
   const date = new Intl.DateTimeFormat(de ? "de-DE" : "en-US", { dateStyle: "medium", timeStyle: "short" });
   const canDeleteUsers = isSuperAdmin(email);
@@ -81,6 +83,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         ["team", "VibeTeam"],
         ["management", de ? "Benutzer" : "Users"],
         ["notes", de ? "Notizen" : "Notes"],
+        ["polls", "Polls"],
         ["log", de ? "Protokoll" : "Log"],
       ].map(([tab, label]) => <Link key={tab} href={`/admin?tab=${tab}`} className={`shrink-0 rounded-lg px-3 py-2 text-sm font-bold transition ${activeTab === tab ? "bg-white text-orange-600 shadow-sm dark:bg-slate-800 dark:text-orange-300" : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"}`}>{label}</Link>)}</nav>
       <div className="space-y-8 p-5 sm:p-7">
@@ -92,6 +95,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         </>}
         {activeTab === "support" && <SupportTicketManagement tickets={supportTickets} actorEmail={email} de={de} />}
         {activeTab === "team" && <VibeTeamMessageComposer recipients={manageableProfiles.map((item) => ({ id: item.id, username: item.username, name: item.name }))} de={de} />}
+        {activeTab === "polls" && <AdminPollManager de={de} referenceTime={new Date().toISOString()} polls={polls.map((poll) => ({ ...poll, createdAt: poll.createdAt.toISOString(), startsAt: poll.startsAt?.toISOString() ?? null, expiresAt: poll.expiresAt?.toISOString() ?? null }))} />}
         {activeTab === "management" && <AdminUserManagement users={manageableProfiles.map((item) => ({ ...item, isProtected: isProtectedAdmin(item.email) }))} de={de} canDeleteUsers={canDeleteUsers} />}
         {activeTab === "log" && <>
         <section className="border-t border-slate-200 pt-8 dark:border-slate-700"><div className="flex items-center gap-2"><History size={19} className="text-orange-500"/><h2 className="font-black text-slate-900 dark:text-white">{de ? "Admin-Protokoll" : "Admin log"}</h2></div><p className="mt-1 text-sm text-slate-500">{de ? "Nachvollziehbare Übersicht aller Moderations- und Adminaktionen." : "Traceable overview of moderation and admin actions."}</p>{auditEntries.length === 0 ? <p className="mt-4 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600 dark:bg-slate-800 dark:text-slate-300">{de ? "Noch keine Adminaktionen." : "No admin actions yet."}</p> : <div className="mt-4 max-h-96 divide-y divide-slate-200 overflow-y-auto rounded-2xl border border-slate-200 dark:divide-slate-700 dark:border-slate-700">{auditEntries.map((entry) => { const actor = profiles.find((item) => item.email === entry.actorEmail); return <article key={entry.id} className="flex items-start justify-between gap-4 px-4 py-3"><div className="min-w-0"><p className="font-semibold text-slate-900 dark:text-white">{adminActivityLabel(entry.kind, de)}</p><p className="mt-1 truncate text-sm text-slate-600 dark:text-slate-300">{entry.detail}</p><p className="mt-1 truncate text-xs text-slate-500">{actor?.name || actor?.username || entry.actorEmail}</p></div><time className="shrink-0 text-right text-xs text-slate-500">{date.format(entry.createdAt)}</time></article>; })}</div>}</section>

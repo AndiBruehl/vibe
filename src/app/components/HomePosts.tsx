@@ -19,6 +19,7 @@ import FeedModeSwitch from "./FeedModeSwitch";
 import SharePostButton from "./SharePostButton";
 import AdminBadge from "./AdminBadge";
 import ProfileAvatar from "./ProfileAvatar";
+import HomePoll from "./HomePoll";
 
 type Follow = {
   followingId: string;
@@ -62,6 +63,17 @@ export default async function HomePosts({
     where: {
       email: sessionEmail,
     },
+  });
+
+  const activePoll = await prisma.poll.findFirst({
+    where: { isActive: true, expiresAt: { gt: new Date() } },
+    include: {
+      options: {
+        orderBy: { position: "asc" },
+        include: { votes: { include: { profile: { select: { id: true, name: true, username: true, avatar: true } } } } },
+      },
+    },
+    orderBy: { startsAt: "desc" },
   });
 
   const blockRows = currentUserProfile
@@ -228,6 +240,7 @@ export default async function HomePosts({
       <section className="mx-auto flex min-h-[70vh] w-full max-w-2xl items-center justify-center">
         <div className="flex w-full max-w-2xl flex-col gap-6">
           <FeedModeSwitch feedMode={feedMode} />
+          {activePoll && currentUserProfile ? <HomePoll de={de} viewerProfileId={currentUserProfile.id} poll={{ id: activePoll.id, question: activePoll.question, expiresAt: activePoll.expiresAt!.toISOString(), options: activePoll.options }} /> : null}
           <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-xl backdrop-blur-xl dark:border-white/10 dark:bg-white/5">
             <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-500">
               {de ? "Noch nichts hier" : "Nothing here yet"}
@@ -334,6 +347,7 @@ export default async function HomePosts({
 
   return (
     <section className="mx-auto w-full max-w-5xl">
+      {activePoll && currentUserProfile ? <div className="mb-6"><HomePoll de={de} viewerProfileId={currentUserProfile.id} poll={{ id: activePoll.id, question: activePoll.question, expiresAt: activePoll.expiresAt!.toISOString(), options: activePoll.options }} /></div> : null}
       <SortablePosts
         posts={posts.map((post) => ({
           id: post.id,

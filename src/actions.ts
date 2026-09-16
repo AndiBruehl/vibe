@@ -1402,6 +1402,94 @@ async function notifyAdmins(actorEmail: string, kind: string, detail: string) {
   await prisma.adminActivity.create({ data: { actorEmail, kind, detail: detail.slice(0, 300) } });
 }
 
+async function requirePollAdmin() {
+  const session = await auth();
+  const email = session?.user?.email;
+  if (!email || !(await isVibeAdmin(email))) throw new Error("Administrator access is required.");
+  return email;
+}
+
+export async function createPoll(formData: FormData) {
+  const actorEmail = await requirePollAdmin();
+  const question = typeof formData.get("question") === "string" ? String(formData.get("question")).trim().slice(0, 240) : "";
+  const options = [...new Set(formData.getAll("option").map((value) => typeof value === "string" ? value.trim().slice(0, 120) : "").filter(Boolean))];
+  if (!question || options.length < 2 || options.length > 6) throw new Error("A poll needs a question and between two and six unique answers.");
+
+  await prisma.poll.create({
+    data: {
+      question,
+      createdByEmail: actorEmail,
+      options: { create: options.map((label, position) => ({ label, position })) },
+    },
+  });
+  await notifyAdmins(actorEmail, "poll-create", `Created poll: ${question}`);
+  revalidatePath("/admin");
+}
+
+export async function togglePollLive(formData: FormData) {
+  const actorEmail = await requirePollAdmin();
+  const pollId = formData.get("pollId");
+  if (typeof pollId !== "string" || !isObjectId(pollId)) throw new Error("Invalid poll.");
+  const poll = await prisma.poll.findUnique({ where: { id: pollId }, select: { id: true, question: true, isActive: true, expiresAt: true } });
+  if (!poll) throw new Error("Poll not found.");
+
+  const now = new Date();
+  const isLive = poll.isActive && Boolean(poll.expiresAt && poll.expiresAt > now);
+  if (isLive) {
+    await prisma.poll.update({ where: { id: poll.id }, data: { isActive: false } });
+    await notifyAdmins(actorEmail, "poll-offline", `Took poll offline: ${poll.question}`);
+  } else {
+    const expiresAt = new Date(now.getTime() + 72 * 60 * 60 * 1000);
+    await prisma.$transaction([
+      prisma.poll.updateMany({ where: { isActive: true }, data: { isActive: false } }),
+      prisma.poll.update({ where: { id: poll.id }, data: { isActive: true, startsAt: now, expiresAt } }),
+    ]);
+    await notifyAdmins(actorEmail, "poll-live", `Started 72-hour poll: ${poll.question}`);
+  }
+  revalidatePath("/admin");
+  revalidatePath("/home");
+  revalidatePath("/");
+}
+
+export async function deletePoll(formData: FormData) {
+  const actorEmail = await requirePollAdmin();
+  const pollId = formData.get("pollId");
+  if (typeof pollId !== "string" || !isObjectId(pollId)) throw new Error("Invalid poll.");
+  const poll = await prisma.poll.findUnique({ where: { id: pollId }, select: { question: true } });
+  if (!poll) return;
+  await prisma.$transaction([
+    prisma.pollVote.deleteMany({ where: { pollId } }),
+    prisma.pollOption.deleteMany({ where: { pollId } }),
+    prisma.poll.delete({ where: { id: pollId } }),
+  ]);
+  await notifyAdmins(actorEmail, "poll-delete", `Deleted poll: ${poll.question}`);
+  revalidatePath("/admin");
+  revalidatePath("/home");
+  revalidatePath("/");
+}
+
+export async function votePoll(formData: FormData) {
+  const session = await auth();
+  const email = session?.user?.email;
+  const pollId = formData.get("pollId");
+  const optionId = formData.get("optionId");
+  if (!email) redirect("/");
+  if (typeof pollId !== "string" || typeof optionId !== "string" || !isObjectId(pollId) || !isObjectId(optionId)) throw new Error("Invalid poll vote.");
+  const [profile, option] = await Promise.all([
+    prisma.profile.findUnique({ where: { email }, select: { id: true } }),
+    prisma.pollOption.findFirst({ where: { id: optionId, pollId, poll: { isActive: true, expiresAt: { gt: new Date() } } }, select: { id: true } }),
+  ]);
+  if (!profile || !option) throw new Error("This poll is no longer available.");
+  await prisma.pollVote.upsert({
+    where: { pollId_profileId: { pollId, profileId: profile.id } },
+    update: { optionId },
+    create: { pollId, optionId, profileId: profile.id },
+  });
+  revalidatePath("/home");
+  revalidatePath("/");
+  revalidatePath("/admin");
+}
+
 export async function createReport(formData: FormData): Promise<void> {
   const session = await auth();
   const reporterEmail = session?.user?.email;
