@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/db";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { parsePostImages } from "@/post-images";
 import { isProtectedAdmin, isSuperAdmin, isVibeAdmin } from "@/admin";
 import { ensureVibeSupportProfile, ensureVibeTeamProfile, isVibeSupportEmail } from "@/system-profile";
@@ -1968,7 +1969,7 @@ export async function setProfileVerified(formData: FormData): Promise<void> {
 
   await prisma.profile.update({ where: { id: profileId }, data: { isVerified } });
   if (isVerified && !target.isVerified) {
-    await deliverVibeTeamMessage(target.email, `🎉 Herzlichen Glückwunsch! 🎉
+    const message = `🎉 Herzlichen Glückwunsch! 🎉
 
 Dein VIBE-Profil wurde offiziell verifiziert. Ab jetzt erscheint neben deinem Namen ein Verifiziert-Badge – als sichtbares Zeichen für dein bestätigtes Profil. 💙✨
 
@@ -1984,9 +1985,18 @@ Your VIBE profile has officially been verified. From now on, a Verified badge ap
 
 Thank you for being part of VIBE and helping shape this community. We are so happy to have you here! 🥳
 
-— VibeTeam`);
+— VibeTeam`;
+    after(async () => {
+      try {
+        await deliverVibeTeamMessage(target.email, message);
+        await notifyAdmins(actorEmail, `profile-verification`, `Verified @${target.username || target.name || target.email}`);
+      } catch (error) {
+        console.error("Could not deliver verification notice", error);
+      }
+    });
+  } else {
+    await notifyAdmins(actorEmail, `profile-verification`, `Removed verification from @${target.username || target.name || target.email}`);
   }
-  await notifyAdmins(actorEmail, "profile-verification", `${isVerified ? "Verified" : "Removed verification from"} @${target.username || target.name || target.email}`);
   revalidatePath("/admin");
   revalidatePath("/profiles");
   revalidatePath("/profile");
