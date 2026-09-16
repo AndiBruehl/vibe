@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
+import DraftStatus from "./DraftStatus";
 
 type SupportComposerProps = {
   action: (formData: FormData) => void | Promise<void>;
@@ -13,17 +14,25 @@ export default function SupportComposer({ action, ticketId, de, continuing }: Su
   const draftKey = `vibe.supportDraft.${ticketId ?? "new"}`;
   const [body, setBody] = useState("");
   const [ready, setReady] = useState(false);
+  const [draftStatus, setDraftStatus] = useState<"restored" | "saved" | null>(null);
 
   useEffect(() => {
-    setBody(localStorage.getItem(draftKey) ?? "");
+    const draft = localStorage.getItem(draftKey) ?? "";
+    setBody(draft);
+    setDraftStatus(draft ? "restored" : null);
     setReady(true);
   }, [draftKey]);
 
   useEffect(() => {
     if (!ready) return;
     const timeout = window.setTimeout(() => {
-      if (body.trim()) localStorage.setItem(draftKey, body);
-      else localStorage.removeItem(draftKey);
+      if (body.trim()) {
+        localStorage.setItem(draftKey, body);
+        setDraftStatus("saved");
+      } else {
+        localStorage.removeItem(draftKey);
+        setDraftStatus(null);
+      }
     }, 500);
     return () => window.clearTimeout(timeout);
   }, [body, draftKey, ready]);
@@ -33,6 +42,7 @@ export default function SupportComposer({ action, ticketId, de, continuing }: Su
     await action(new FormData(event.currentTarget));
     setBody("");
     localStorage.removeItem(draftKey);
+    setDraftStatus(null);
   }
 
   return (
@@ -52,7 +62,7 @@ export default function SupportComposer({ action, ticketId, de, continuing }: Su
         placeholder={de ? "Beschreibe dein Anliegen so genau wie möglich…" : "Describe your issue in as much detail as possible…"}
       />
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-        {ready && body.trim() && <p className="text-xs text-slate-500 dark:text-slate-400">{de ? "Entwurf wird automatisch gespeichert" : "Draft saves automatically"}</p>}
+        {ready && body.trim() && <DraftStatus state={draftStatus} de={de} onDiscard={() => { setBody(""); localStorage.removeItem(draftKey); setDraftStatus(null); }} />}
         <button className="ml-auto rounded-xl bg-linear-to-r from-(--ig-orange) to-(--ig-red) px-4 py-2.5 text-sm font-bold text-white">
           {de ? "An Support@Vibe senden" : "Send to Support@Vibe"}
         </button>

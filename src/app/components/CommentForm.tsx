@@ -6,6 +6,7 @@ import MentionTextarea from "./MentionTextarea";
 import useVibeLanguage from "./useVibeLanguage";
 import EmojiPicker from "./EmojiPicker";
 import useEmojiTextarea from "./useEmojiTextarea";
+import DraftStatus from "./DraftStatus";
 
 type CommentFormProps = {
   postId: string;
@@ -18,19 +19,28 @@ export default function CommentForm({ postId, compact = false }: CommentFormProp
   const { textareaRef, insertEmoji } = useEmojiTextarea();
   const [text, setText] = useState("");
   const [draftReady, setDraftReady] = useState(false);
+  const [draftStatus, setDraftStatus] = useState<"restored" | "saved" | null>(null);
   const draftKey = `vibe.commentDraft.${postId}`;
 
   useEffect(() => {
     const draft = localStorage.getItem(draftKey);
-    if (draft) setText(draft);
+    if (draft) {
+      setText(draft);
+      setDraftStatus("restored");
+    }
     setDraftReady(true);
   }, [draftKey]);
 
   useEffect(() => {
     if (!draftReady) return;
     const timer = window.setTimeout(() => {
-      if (text.trim()) localStorage.setItem(draftKey, text);
-      else localStorage.removeItem(draftKey);
+      if (text.trim()) {
+        localStorage.setItem(draftKey, text);
+        setDraftStatus("saved");
+      } else {
+        localStorage.removeItem(draftKey);
+        setDraftStatus(null);
+      }
     }, 500);
     return () => window.clearTimeout(timer);
   }, [draftKey, draftReady, text]);
@@ -40,13 +50,14 @@ export default function CommentForm({ postId, compact = false }: CommentFormProp
     formRef.current?.reset();
     setText("");
     localStorage.removeItem(draftKey);
+    setDraftStatus(null);
   }
 
   if (compact) {
     return (
-      <form ref={formRef} action={action} className="mt-4 grid grid-cols-[minmax(0,1fr)_2.75rem_auto] items-center gap-2 border-t border-slate-200 pt-4 dark:border-white/10">
+      <form ref={formRef} action={action} className="mt-4 border-t border-slate-200 pt-4 dark:border-white/10">
         <input type="hidden" name="postId" value={postId} />
-        <MentionTextarea
+        <div className="grid grid-cols-[minmax(0,1fr)_2.75rem_auto] items-center gap-2"><MentionTextarea
           ref={textareaRef}
           data-emoji-builtin="true"
           name="text"
@@ -58,7 +69,8 @@ export default function CommentForm({ postId, compact = false }: CommentFormProp
           required
         />
         <EmojiPicker onSelect={insertEmoji} />
-        <button type="submit" className="vibe-composer-submit shrink-0 rounded-xl bg-linear-to-r from-orange-500 to-pink-500 px-3 text-sm font-bold text-white transition hover:brightness-110">{de ? "Senden" : "Post"}</button>
+        <button type="submit" className="vibe-composer-submit shrink-0 rounded-xl bg-linear-to-r from-orange-500 to-pink-500 px-3 text-sm font-bold text-white transition hover:brightness-110">{de ? "Senden" : "Post"}</button></div>
+        {draftReady && text.trim() && <div className="mt-2"><DraftStatus state={draftStatus} de={de} onDiscard={() => { setText(""); localStorage.removeItem(draftKey); setDraftStatus(null); textareaRef.current?.focus(); }} /></div>}
       </form>
     );
   }
@@ -88,6 +100,7 @@ export default function CommentForm({ postId, compact = false }: CommentFormProp
           {de ? "Kommentieren" : "Comment"}
         </button>
       </div>
+      {draftReady && text.trim() && <DraftStatus state={draftStatus} de={de} onDiscard={() => { setText(""); localStorage.removeItem(draftKey); setDraftStatus(null); textareaRef.current?.focus(); }} />}
     </form>
   );
 }

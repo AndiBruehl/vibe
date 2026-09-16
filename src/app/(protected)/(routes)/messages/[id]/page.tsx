@@ -263,12 +263,18 @@ export default async function ConversationPage({
         ) : (
           conversation.messages.map((message: any) => {
             const isOwnMessage = message.senderId === currentUserProfile.id;
+            const wasSeen = Boolean(
+              isOwnMessage &&
+              !isGroup &&
+              otherParticipant?.lastReadAt &&
+              new Date(otherParticipant.lastReadAt).getTime() >= new Date(message.createdAt).getTime(),
+            );
 
             return (
               <article
                 key={message.id}
-                className={`flex ${
-                  isOwnMessage ? "justify-end" : "justify-start"
+                className={`flex flex-col ${
+                  isOwnMessage ? "items-end" : "items-start"
                 }`}
               >
                 <div
@@ -330,6 +336,11 @@ export default async function ConversationPage({
                     />
                   </p>
                 </div>
+                {isOwnMessage && !isGroup && (
+                  <p className={`mt-1 pr-1 text-right text-[11px] font-semibold ${wasSeen ? "text-slate-400 dark:text-slate-500" : "text-slate-400/80 dark:text-slate-500"}`}>
+                    {wasSeen ? (de ? "Gesehen" : "Read") : (de ? "Ungelesen" : "Unread")}
+                  </p>
+                )}
               </article>
             );
           })

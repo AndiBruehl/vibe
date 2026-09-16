@@ -269,6 +269,19 @@ html:not(.dark) :is(input, textarea)::placeholder { color: #607b97; opacity: 1; 
   to { transform: rotate(360deg); }
 }
 
+@keyframes vibe-draft-status-in {
+  from { opacity: 0; transform: translateY(-3px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.vibe-draft-status {
+  animation: vibe-draft-status-in 180ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vibe-draft-status { animation: none; }
+}
+
 @keyframes vibe-loading-line {
   from { transform: translateX(-105%); }
   to { transform: translateX(260%); }

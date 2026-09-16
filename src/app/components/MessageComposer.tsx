@@ -7,6 +7,7 @@ import { sendMessage } from "@/actions";
 import EmojiPicker from "@/app/components/EmojiPicker";
 import MentionTextarea from "@/app/components/MentionTextarea";
 import useVibeLanguage from "@/app/components/useVibeLanguage";
+import DraftStatus from "@/app/components/DraftStatus";
 
 type MessageComposerProps = {
   conversationId: string;
@@ -28,19 +29,28 @@ export default function MessageComposer({ conversationId, blocked = false, block
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState("");
   const [draftReady, setDraftReady] = useState(false);
+  const [draftStatus, setDraftStatus] = useState<"restored" | "saved" | null>(null);
   const draftKey = `vibe.messageDraft.${conversationId}`;
 
   useEffect(() => {
     const draft = localStorage.getItem(draftKey);
-    if (draft) setBody(draft);
+    if (draft) {
+      setBody(draft);
+      setDraftStatus("restored");
+    }
     setDraftReady(true);
   }, [draftKey]);
 
   useEffect(() => {
     if (!draftReady) return;
     const timer = window.setTimeout(() => {
-      if (body.trim()) localStorage.setItem(draftKey, body);
-      else localStorage.removeItem(draftKey);
+      if (body.trim()) {
+        localStorage.setItem(draftKey, body);
+        setDraftStatus("saved");
+      } else {
+        localStorage.removeItem(draftKey);
+        setDraftStatus(null);
+      }
     }, 500);
     return () => window.clearTimeout(timer);
   }, [body, draftKey, draftReady]);
@@ -94,6 +104,7 @@ export default function MessageComposer({ conversationId, blocked = false, block
       formRef.current?.reset();
       setBody("");
       localStorage.removeItem(draftKey);
+      setDraftStatus(null);
       setImageUrl("");
       setPreviewUrl("");
       router.refresh();
@@ -133,7 +144,7 @@ export default function MessageComposer({ conversationId, blocked = false, block
         <button type="submit" disabled={isSending || isUploading || (!body.trim() && !imageUrl)} className="flex size-11 shrink-0 items-center justify-center rounded-full bg-linear-to-tr from-(--ig-orange) to-(--ig-red) text-white transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50" aria-label={de ? "Nachricht senden" : "Send message"}>{isSending ? <LoaderCircle className="animate-spin" size={18} /> : <Send size={18} />}</button>
       </div>
       {error && <p className="mt-2 text-xs text-red-600 dark:text-red-300">{error}</p>}
-      {!error && draftReady && body.trim() && <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">{de ? "Entwurf wird automatisch gespeichert" : "Draft saves automatically"}</p>}
+      {!error && draftReady && body.trim() && <div className="mt-2"><DraftStatus state={draftStatus} de={de} onDiscard={() => { setBody(""); localStorage.removeItem(draftKey); setDraftStatus(null); textareaRef.current?.focus(); }} /></div>}
       </>}
     </form>
   );
