@@ -48,7 +48,7 @@ export default async function ProfilesPage({ searchParams }: {
         const content = <>
           <ProfileAvatar {...profile} sizeClass="size-16" className="text-xl" />
           <div className="min-w-0">
-            <h2 className="flex flex-wrap items-center gap-2 break-words font-semibold text-slate-900 dark:text-white">{profile.name || profile.username || (de ? "Unbenanntes Profil" : "Unnamed profile")}<AdminBadge isAdmin={profile.isAdmin} /></h2>
+            <h2 className="flex flex-wrap items-center gap-2 break-words font-semibold text-slate-900 dark:text-white">{profile.name || profile.username || (de ? "Unbenanntes Profil" : "Unnamed profile")}<AdminBadge isAdmin={profile.isAdmin} isVerified={profile.isVerified} /></h2>
             {profile.username && <p className="break-words text-sm text-slate-600 dark:text-slate-400">@{profile.username}</p>}
             {profile.subtitle && <p className="mt-2 line-clamp-3 text-sm text-slate-700 dark:text-slate-300">{profile.subtitle}</p>}
           </div>
@@ -60,3 +60,5 @@ export default async function ProfilesPage({ searchParams }: {
     </div>}
   </main>;
 }
+
+

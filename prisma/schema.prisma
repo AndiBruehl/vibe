@@ -29,6 +29,7 @@ model Profile {
   theme               String    @default("system")
   isPrivate           Boolean   @default(false)
   isAdmin             Boolean   @default(false)
+  isVerified          Boolean   @default(false)
   isSystem            Boolean   @default(false)
   systemKind          String?
   welcomeSentAt       DateTime?

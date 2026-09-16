@@ -1957,6 +1957,42 @@ export async function setProfileAdmin(formData: FormData): Promise<void> {
   revalidatePath("/profiles");
 }
 
+export async function setProfileVerified(formData: FormData): Promise<void> {
+  const actorEmail = await requireAdminSession();
+  const profileId = formData.get("profileId");
+  const isVerified = formData.get("isVerified") === "true";
+  if (typeof profileId !== "string" || !isObjectId(profileId)) throw new Error("Invalid profile.");
+
+  const target = await prisma.profile.findUnique({ where: { id: profileId }, select: { email: true, username: true, name: true, language: true, isSystem: true, isVerified: true } });
+  if (!target || target.isSystem) throw new Error("This profile cannot be verified.");
+
+  await prisma.profile.update({ where: { id: profileId }, data: { isVerified } });
+  if (isVerified && !target.isVerified) {
+    const de = target.language === "de";
+    await deliverVibeTeamMessage(target.email, de
+      ? `🎉 Herzlichen Glückwunsch! 🎉
+
+Dein VIBE-Profil wurde offiziell verifiziert. Ab jetzt erscheint neben deinem Namen ein Verifiziert-Badge – als sichtbares Zeichen für dein bestätigtes Profil. 💙✨
+
+Danke, dass du Teil von VIBE bist und diese Community mitgestaltest. Wir freuen uns sehr, dich hier zu haben! 🥳
+
+— VibeTeam`
+      : `🎉 Congratulations! 🎉
+
+Your VIBE profile has officially been verified. From now on, a Verified badge appears next to your name as a visible sign of your confirmed profile. 💙✨
+
+Thank you for being part of VIBE and helping shape this community. We are so happy to have you here! 🥳
+
+— VibeTeam`);
+  }
+  await notifyAdmins(actorEmail, "profile-verification", `${isVerified ? "Verified" : "Removed verification from"} @${target.username || target.name || target.email}`);
+  revalidatePath("/", "layout");
+  revalidatePath("/admin");
+  revalidatePath("/profiles");
+  revalidatePath("/profile");
+  if (target.username) revalidatePath(`/profile/${encodeURIComponent(target.username)}`);
+}
+
 export async function deleteProfileAsSuperAdmin(formData: FormData): Promise<void> {
   const session = await auth();
   const actorEmail = session?.user?.email;

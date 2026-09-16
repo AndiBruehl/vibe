@@ -10,6 +10,7 @@ export type PublicProfile = {
   avatar: string | null; subtitle: string | null; bio: string | null;
   avatarAccent: string | null; avatarAccentEnd: string | null; avatarAccentDirection: string;
   isAdmin: boolean;
+  isVerified: boolean;
 };
 
 export function sortProfiles<T extends Pick<PublicProfile, "id" | "name" | "username">>(profiles: T[], sort: string) {

@@ -262,7 +262,7 @@ export default async function SinglePostPage({
 
                   <div>
                     <p className="font-semibold text-slate-900 dark:text-white">
-                      <span className="inline-flex items-center gap-2">{author?.name || "Unknown"}<AdminBadge isAdmin={author?.isAdmin} /></span>
+                      <span className="inline-flex items-center gap-2">{author?.name || "Unknown"}<AdminBadge isAdmin={author?.isAdmin} isVerified={author?.isVerified} /></span>
                     </p>
                     <p className="text-sm text-slate-500 dark:text-slate-400">
                       @{author?.username || "user"}
@@ -293,3 +293,5 @@ export default async function SinglePostPage({
     </>
   );
 }
+
+

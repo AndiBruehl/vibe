@@ -323,7 +323,7 @@ export default async function HomePosts({
 
                       <div className="min-w-0">
                         <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
-                          <span className="inline-flex items-center gap-1">{user.name || user.username || (de ? "Unbekanntes Profil" : "Unknown user")}<AdminBadge isAdmin={user.isAdmin} /></span>
+                          <span className="inline-flex items-center gap-1">{user.name || user.username || (de ? "Unbekanntes Profil" : "Unknown user")}<AdminBadge isAdmin={user.isAdmin} isVerified={user.isVerified} /></span>
                         </p>
 
                         <p className="truncate text-xs text-slate-500 dark:text-slate-400">
@@ -387,7 +387,7 @@ export default async function HomePosts({
                           : "#"
                       }
                     >
-                      <span className="inline-flex items-center gap-1">{profile?.name || profile?.username || (de ? "Unbekanntes Profil" : "Unknown user")}<AdminBadge isAdmin={profile?.isAdmin} /></span>
+                      <span className="inline-flex items-center gap-1">{profile?.name || profile?.username || (de ? "Unbekanntes Profil" : "Unknown user")}<AdminBadge isAdmin={profile?.isAdmin} isVerified={profile?.isVerified} /></span>
                     </Link>
 
                     {profile?.username && (
@@ -559,3 +559,5 @@ export default async function HomePosts({
     </section>
   );
 }
+
+

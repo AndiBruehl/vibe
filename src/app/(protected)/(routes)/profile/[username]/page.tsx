@@ -136,7 +136,7 @@ export default async function ProfileByUsernamePage({
 
               <div className={`min-w-0 ${profileHeaderLayout === "compact" ? "order-1 lg:order-1" : profileHeaderLayout === "spotlight" ? "order-3 text-center lg:order-2 lg:text-center" : ""}`}>
                 <h1 className={`${profileHeaderLayout === "spotlight" ? "text-3xl" : profileHeaderLayout === "compact" ? "text-2xl lg:text-3xl" : "text-2xl"} font-bold text-slate-900 dark:text-white`}>
-                  <span className={`inline-flex items-center justify-center gap-2 ${profileHeaderLayout === "compact" ? "justify-start" : profileHeaderLayout === "spotlight" ? "lg:justify-center" : "lg:justify-start"}`}>{profile.name || "Unknown"}<AdminBadge isAdmin={profile.isAdmin} /><VibeTeamBadge isSystem={profile.isSystem} /></span>
+                  <span className={`inline-flex items-center justify-center gap-2 ${profileHeaderLayout === "compact" ? "justify-start" : profileHeaderLayout === "spotlight" ? "lg:justify-center" : "lg:justify-start"}`}>{profile.name || "Unknown"}<AdminBadge isAdmin={profile.isAdmin} isVerified={profile.isVerified} /><VibeTeamBadge isSystem={profile.isSystem} /></span>
                 </h1>
 
                 <p className={`${profileHeaderLayout === "compact" ? "text-sm lg:text-base" : "text-sm"} text-slate-500 dark:text-slate-400`}>
@@ -254,3 +254,5 @@ export default async function ProfileByUsernamePage({
     </>
   );
 }
+
+
