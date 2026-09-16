@@ -6,28 +6,33 @@ import { useEffect, useState } from "react";
 import useVibeLanguage from "@/app/components/useVibeLanguage";
 
 const edgeSparkles = [
-  { size: 22, delay: 0 },
-  { size: 26, delay: 0.8 },
-  { size: 17, delay: 1.35 },
-  { size: 20, delay: 2 },
+  { size: 24, delay: 0, duration: "3.4s" },
+  { size: 19, delay: 1.15, duration: "4.1s" },
 ];
 
-const edgePositions = ["-left-3 top-6", "-right-3 top-10", "left-[22%] -top-3", "right-[20%] -bottom-3", "-left-3 bottom-8", "-right-3 bottom-6", "left-[45%] -top-4", "left-[46%] -bottom-4", "-left-2 top-1/2", "-right-2 top-1/2"];
+type EdgePosition = { left: number; top: number };
 
-function shuffledEdgePositions() {
-  return [...edgePositions].sort(() => Math.random() - 0.5).slice(0, edgeSparkles.length);
-}
+const edgePositions: EdgePosition[] = [{ left: -7, top: 22 }, { left: 104, top: 25 }, { left: 21, top: -10 }, { left: 73, top: 104 }, { left: -6, top: 72 }, { left: 104, top: 66 }, { left: 49, top: -11 }, { left: 48, top: 105 }];
+
+const randomEdgePosition = () => edgePositions[Math.floor(Math.random() * edgePositions.length)];
 
 export default function SecretFoundMap() {
   const language = useVibeLanguage();
   const reduceMotion = useReducedMotion();
   const de = language === "de";
-  const [sparklePositions, setSparklePositions] = useState(() => edgePositions.slice(0, edgeSparkles.length));
+  const [sparklePositions, setSparklePositions] = useState<EdgePosition[]>(() => [edgePositions[0], edgePositions[3]]);
 
   useEffect(() => {
     if (reduceMotion) return;
-    const interval = window.setInterval(() => setSparklePositions(shuffledEdgePositions()), 3600);
-    return () => window.clearInterval(interval);
+    const timeouts: number[] = [];
+    const moveStar = (index: number) => {
+      timeouts[index] = window.setTimeout(() => {
+        setSparklePositions((current) => current.map((position, currentIndex) => currentIndex === index ? randomEdgePosition() : position));
+        moveStar(index);
+      }, 3400 + Math.random() * 3000);
+    };
+    edgeSparkles.forEach((_, index) => moveStar(index));
+    return () => timeouts.forEach((timeout) => window.clearTimeout(timeout));
   }, [reduceMotion]);
 
   return (
@@ -41,8 +46,14 @@ export default function SecretFoundMap() {
         <span
           key={index}
           aria-hidden="true"
-          style={{ animationDelay: `${sparkle.delay}s` }}
-          className={`vibe-secret-edge-sparkle pointer-events-none absolute z-20 text-white drop-shadow-[0_0_10px_rgba(255,255,255,1)] transition-all duration-700 ease-in-out ${sparklePositions[index]}`}
+          style={{
+            animationDelay: `${sparkle.delay}s`,
+            animationDuration: sparkle.duration,
+            left: `${sparklePositions[index].left}%`,
+            top: `${sparklePositions[index].top}%`,
+            transition: "left 1.8s cubic-bezier(.22,1,.36,1), top 1.8s cubic-bezier(.22,1,.36,1)",
+          }}
+          className="vibe-secret-edge-sparkle pointer-events-none absolute z-20 text-white drop-shadow-[0_0_10px_rgba(255,255,255,1)]"
         >
           <Sparkles size={sparkle.size} fill="currentColor" />
         </span>
