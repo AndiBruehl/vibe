@@ -13,13 +13,13 @@ const edgeSparkles = [
 type EdgePosition = { left: number; top: number };
 
 function randomEdgePosition(): EdgePosition {
-  const offset = 6 + Math.random() * 88;
-  const outside = 5 + Math.random() * 7;
+  const offset = 8 + Math.random() * 84;
+  const edge = -2 + Math.random() * 4;
   switch (Math.floor(Math.random() * 4)) {
-    case 0: return { left: offset, top: -outside };
-    case 1: return { left: 100 + outside, top: offset };
-    case 2: return { left: offset, top: 100 + outside };
-    default: return { left: -outside, top: offset };
+    case 0: return { left: offset, top: edge };
+    case 1: return { left: 100 + edge, top: offset };
+    case 2: return { left: offset, top: 100 + edge };
+    default: return { left: edge, top: offset };
   }
 }
 
@@ -27,7 +27,7 @@ export default function SecretFoundMap() {
   const language = useVibeLanguage();
   const reduceMotion = useReducedMotion();
   const de = language === "de";
-  const [sparklePositions, setSparklePositions] = useState<EdgePosition[]>(() => [{ left: -8, top: 24 }, { left: 105, top: 68 }]);
+  const [sparklePositions, setSparklePositions] = useState<EdgePosition[]>(() => [{ left: 0, top: 24 }, { left: 100, top: 68 }]);
   const [visibleStars, setVisibleStars] = useState([true, true]);
 
   useEffect(() => {
@@ -40,8 +40,8 @@ export default function SecretFoundMap() {
           setSparklePositions((current) => current.map((position, currentIndex) => currentIndex === index ? randomEdgePosition() : position));
           setVisibleStars((current) => current.map((visible, currentIndex) => currentIndex === index ? true : visible));
           moveStar(index);
-        }, 260);
-      }, 2200 + Math.random() * 2600);
+        }, 760);
+      }, 2800 + Math.random() * 2600);
     };
     edgeSparkles.forEach((_, index) => moveStar(index));
     return () => {
@@ -64,7 +64,7 @@ export default function SecretFoundMap() {
             left: `${sparklePositions[index].left}%`,
             top: `${sparklePositions[index].top}%`,
           }}
-          className={`vibe-secret-edge-sparkle pointer-events-none absolute z-20 text-white drop-shadow-[0_0_10px_rgba(255,255,255,1)] transition-opacity duration-200 ${visibleStars[index] ? "opacity-100" : "opacity-0"}`}
+          className={`vibe-secret-edge-sparkle pointer-events-none absolute z-20 text-white drop-shadow-[0_0_10px_rgba(255,255,255,1)] transition-opacity duration-700 ease-in-out ${visibleStars[index] ? "opacity-100" : "opacity-0"}`}
         >
           <Sparkles size={sparkle.size} fill="currentColor" />
         </span>
