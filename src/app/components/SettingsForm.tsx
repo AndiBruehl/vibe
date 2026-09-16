@@ -36,6 +36,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
   const [avatarAccentEnd, setAvatarAccentEnd] = useState<string | null>(initialFrame.end);
   const [avatarAccentDirection, setAvatarAccentDirection] = useState(initialFrame.direction);
   const [profileAccent, setProfileAccent] = useState(profile?.profileAccent ?? DEFAULT_PROFILE_ACCENT);
+  const [isSavingProfileAccent, setIsSavingProfileAccent] = useState(false);
   const [isSavingAccent, setIsSavingAccent] = useState(false);
   const [framePresets, setFramePresets] = useState(profile?.framePresets ?? []);
   const [isUploading, setIsUploading] = useState(false);
@@ -155,6 +156,26 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
     }
   }
 
+  async function updateProfileAccent(next: string) {
+    const accent = normalizeProfileAccent(next);
+    if (accent === profileAccent || isSavingProfileAccent) return;
+    const previous = profileAccent;
+    setProfileAccent(accent);
+    setIsSavingProfileAccent(true);
+    setSaveFeedback(null);
+    try {
+      const response = await fetch("/api/profile/accent", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ profileAccent: accent }) });
+      if (!response.ok) throw new Error("Profile accent could not be saved");
+      setSaveFeedback("saved");
+      window.setTimeout(() => setSaveFeedback(null), 2500);
+    } catch {
+      setProfileAccent(previous);
+      setSaveFeedback("failed");
+    } finally {
+      setIsSavingProfileAccent(false);
+    }
+  }
+
   async function saveFramePreset() {
     if (!avatarAccentEnd || framePresets.length >= 3) return;
     const response = await fetch("/api/profile/avatar-frame-presets", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ startColor: avatarAccent, endColor: avatarAccentEnd, direction: avatarAccentDirection }) });
@@ -231,9 +252,10 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
           <div className="mt-4 border-t border-slate-200 pt-3 dark:border-slate-700/80">
             <p className="text-center text-xs font-semibold text-slate-700 dark:text-slate-200">{copy("Profile accent", "Profil-Akzent")}</p>
             <label className="mx-auto mt-2 flex w-fit items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
-              <span className="relative grid size-8 cursor-pointer place-items-center overflow-hidden rounded-full border border-white/70 text-white shadow-sm dark:border-slate-500" style={{ backgroundColor: profileAccent }}><Pipette size={15} aria-hidden="true" /><input type="color" value={profileAccent} onChange={(event) => { setProfileAccent(normalizeProfileAccent(event.target.value)); setIsDirty(true); }} className="absolute inset-0 size-full cursor-pointer opacity-0" aria-label={copy("Choose profile accent", "Profil-Akzent wählen")} /></span>
+              <span className="relative grid size-8 cursor-pointer place-items-center overflow-hidden rounded-full border border-white/70 text-white shadow-sm dark:border-slate-500" style={{ backgroundColor: profileAccent }}><Pipette size={15} aria-hidden="true" /><input type="color" value={profileAccent} onChange={(event) => void updateProfileAccent(event.target.value)} disabled={isSavingProfileAccent} className="absolute inset-0 size-full cursor-pointer opacity-0 disabled:cursor-wait" aria-label={copy("Choose profile accent", "Profil-Akzent wählen")} /></span>
               {copy("Links & shoutouts", "Links & Shoutouts")}
             </label>
+            {profileAccent !== DEFAULT_PROFILE_ACCENT && <button type="button" onClick={() => void updateProfileAccent(DEFAULT_PROFILE_ACCENT)} disabled={isSavingProfileAccent} className="mt-2 w-full text-xs font-semibold text-slate-500 transition hover:text-orange-600 disabled:cursor-wait disabled:opacity-60 dark:text-slate-400 dark:hover:text-orange-300">{copy("Reset accent", "Akzent zurücksetzen")}</button>}
           </div>
         </div>
       </section>
