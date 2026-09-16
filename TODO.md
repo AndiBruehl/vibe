@@ -30,6 +30,11 @@
 - Video-Upload ermöglichen.
 - Nativen Video-Player für die Wiedergabe integrieren.
 
+## Später — VIBE Games
+
+- Einen versteckten, ausschließlich auf Desktop verfügbaren Einstieg zu `/games` ergänzen: ohne sichtbaren Button, Hover-Effekt oder Umrandung; nur der Cursor wechselt über der Fläche zu einem X.
+- Auf `/games` eine kleine Sammlung von JavaScript-Minispielen als Zeitvertreib einbauen. Die konkreten Spiele werden später festgelegt.
+
 ## VIBE 1.0 — Release
 
 - Plan and implement an **Impressum**: decide its placement and provide a consistent entry point in the web, Android, and desktop apps.
