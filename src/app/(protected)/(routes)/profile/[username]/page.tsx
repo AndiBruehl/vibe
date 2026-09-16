@@ -118,7 +118,7 @@ export default async function ProfileByUsernamePage({
         <section className={`overflow-hidden rounded-2xl bg-white shadow-lg shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900 ${profileHeaderLayout === "spotlight" ? "ring-1 ring-slate-300/80 dark:ring-slate-600" : ""}`}>
           <div className={`grid gap-5 p-5 text-center sm:p-6 lg:items-start lg:p-8 lg:text-left ${profileHeaderLayout === "compact" ? "lg:grid-cols-[minmax(0,1fr)_5.5rem]" : profileHeaderLayout === "spotlight" ? "lg:grid-cols-1 lg:text-center" : "lg:grid-cols-[7rem_minmax(0,1fr)_auto]"}`}>
             <div className={`flex justify-center lg:block ${profileHeaderLayout === "compact" ? "lg:order-2 lg:self-center lg:justify-self-end" : profileHeaderLayout === "spotlight" ? "lg:order-1 lg:justify-self-center" : ""}`}>
-              <div className={`${profileHeaderLayout === "compact" ? "size-20 lg:size-22" : profileHeaderLayout === "spotlight" ? "size-28 lg:size-36" : "size-24 lg:size-28"} rounded-full p-1`} style={avatarFrameStyle(profile.avatarAccent, profile.avatarAccentEnd, profile.avatarAccentDirection)}><div className="size-full overflow-hidden rounded-full bg-gray-300">
+              <div className={`${profileHeaderLayout === "compact" ? "size-24 lg:size-28" : profileHeaderLayout === "spotlight" ? "size-28 lg:size-36" : "size-24 lg:size-28"} rounded-full p-1`} style={avatarFrameStyle(profile.avatarAccent, profile.avatarAccentEnd, profile.avatarAccentDirection)}><div className="size-full overflow-hidden rounded-full bg-gray-300">
                 {profile.avatar ? (
                   <Image
                     src={profile.avatar}

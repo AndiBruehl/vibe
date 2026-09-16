@@ -79,9 +79,9 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   const de = profile.language === "de";
   const profileAccent = normalizeProfileAccent(profile.profileAccent);
   const profileHeaderLayout = normalizeProfileHeaderLayout(profile.profileHeaderLayout);
-  const avatarSize = profileHeaderLayout === "compact" ? "6rem" : profileHeaderLayout === "spotlight" ? "9rem" : "8rem";
-  const avatarInnerSize = profileHeaderLayout === "compact" ? "5.5rem" : profileHeaderLayout === "spotlight" ? "8.5rem" : "7.5rem";
-  const avatarImageSize = profileHeaderLayout === "compact" ? "5rem" : profileHeaderLayout === "spotlight" ? "8rem" : "7rem";
+  const avatarSize = profileHeaderLayout === "compact" ? "7.25rem" : profileHeaderLayout === "spotlight" ? "9rem" : "8rem";
+  const avatarInnerSize = profileHeaderLayout === "compact" ? "6.75rem" : profileHeaderLayout === "spotlight" ? "8.5rem" : "7.5rem";
+  const avatarImageSize = profileHeaderLayout === "compact" ? "6.25rem" : profileHeaderLayout === "spotlight" ? "8rem" : "7rem";
 
   return (
     <main className={`mx-auto w-full max-w-5xl ${profileHeaderLayout === "spotlight" ? "rounded-3xl border border-slate-200 bg-slate-50/60 px-4 py-5 shadow-sm dark:border-slate-700/80 dark:bg-slate-800/25 sm:px-7" : ""}`}>
