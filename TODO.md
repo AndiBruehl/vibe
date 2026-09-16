@@ -51,6 +51,12 @@
 - Render the pins above the regular profile feed: three equal tiles on desktop; on mobile, two tiles in the first row and the third tile at full width below them.
 - Keep pin management private to the profile owner and preserve a clear responsive layout for every profile header style.
 
+## BETA 0.1.69.16 — Profile sections and visibility
+
+- Let members choose which optional profile areas are visible: links, shoutouts, topics, highlights, archive, and pinned posts.
+- Add a compact Settings preview that shows the resulting public profile structure before saving.
+- Keep all existing underlying data intact when a section is hidden so it can be re-enabled later.
+
 ## VIBE 2.0.0.0.0 — Vollversion 2.0
 
 - Add post sharing only after public post URLs or an explicit sharing/visibility model exists; protected-only posts should not be shared externally.
