@@ -98,7 +98,7 @@ export default function QuickSettings({ initialLanguage, initialTheme }: { initi
   if (
     pathname === "/settings" ||
     pathname.startsWith("/settings/") ||
-    pathname.startsWith("/profile/")
+    pathname === "/profile"
   ) return null;
 
   // Browse has its own right-aligned Profiles action in the header. Keep the
