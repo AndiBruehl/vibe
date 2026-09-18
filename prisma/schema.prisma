@@ -245,6 +245,7 @@ model StorySlide {
   storyId      String  @db.ObjectId
   story        Story   @relation(fields: [storyId], references: [id])
   imageUrl     String
+  mediaType    String  @default("image")
   sharedPostId String? @db.ObjectId
   position     Int
 

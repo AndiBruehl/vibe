@@ -61,6 +61,7 @@ export default async function TopicPage({ params }: Props) {
       description: true,
       image: true,
       images: true,
+      mediaTypes: true,
       createdAt: true,
       likesCount: true,
       author: {

@@ -67,7 +67,7 @@ export default async function UserHome({ session, feedMode }: UserHomeProps) {
     authorAvatarAccent: string;
     authorAvatarAccentEnd: string | null;
     authorAvatarAccentDirection: string;
-    slides: { id: string; storyId: string; imageUrl: string; expiresAt: string; sharedPostId: string | null }[];
+    slides: { id: string; storyId: string; imageUrl: string; mediaType: string; expiresAt: string; sharedPostId: string | null }[];
     storyIds: string[];
   }>();
   // Multiple uploads by the same person belong to one visible story ring.
@@ -83,11 +83,11 @@ export default async function UserHome({ session, feedMode }: UserHomeProps) {
       authorAvatarAccent: author.avatarAccent,
       authorAvatarAccentEnd: author.avatarAccentEnd,
       authorAvatarAccentDirection: author.avatarAccentDirection,
-      slides: [] as { id: string; storyId: string; imageUrl: string; expiresAt: string; sharedPostId: string | null }[],
+      slides: [] as { id: string; storyId: string; imageUrl: string; mediaType: string; expiresAt: string; sharedPostId: string | null }[],
       storyIds: [] as string[],
     };
     group.storyIds.push(story.id);
-    group.slides.push(...story.slides.map((slide) => ({ id: slide.id, storyId: story.id, imageUrl: slide.imageUrl, expiresAt: story.expiresAt.toISOString(), sharedPostId: slide.sharedPostId })));
+    group.slides.push(...story.slides.map((slide) => ({ id: slide.id, storyId: story.id, imageUrl: slide.imageUrl, mediaType: slide.mediaType, expiresAt: story.expiresAt.toISOString(), sharedPostId: slide.sharedPostId })));
     groupedStories.set(story.authorEmail, group);
   }
   const stories = [...groupedStories.values()].map((story) => ({

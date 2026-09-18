@@ -48,7 +48,7 @@ Profiles store individual activity-notification preferences for likes, comments 
 
 ### Social features
 
-Members can create posts with images and videos, edit or archive their own posts, add comments and replies, react with likes, bookmark posts into collections, mention profiles, follow profiles, manage follow requests for private accounts, block accounts, and use topic feeds. Video playback uses the browser's native, accessible player. Stories expire automatically and record viewers.
+Members can create posts with images and videos, edit or archive their own posts, add comments and replies, react with likes, bookmark posts into collections, mention profiles, follow profiles, manage follow requests for private accounts, block accounts, and use topic feeds. Video playback uses the browser's native, accessible player. Stories expire automatically and record viewers. Video posts shared into stories retain their media type, autoplay muted, provide a mute/unmute control, and pause while the pointer is held. Topic feeds use the same media-type metadata and native player, so video posts remain playable there as well.
 
 Messaging supports direct and group conversations, reactions, unread status, media and shared-post messages. VIBE Team is represented by a system profile for product-originated messages such as welcome and verification notices.
 

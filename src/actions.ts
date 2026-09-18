@@ -562,9 +562,9 @@ export async function sharePostToStory(formData: FormData): Promise<void> {
   const postId = formData.get("postId");
   if (typeof postId !== "string" || !isObjectId(postId)) throw new Error("Invalid post.");
   await assertCanInteractWithPost(postId, session.user.email);
-  const post = await prisma.post.findUnique({ where: { id: postId }, select: { image: true } });
+  const post = await prisma.post.findUnique({ where: { id: postId }, select: { image: true, mediaTypes: true } });
   if (!post) throw new Error("Post not found.");
-  await prisma.story.create({ data: { authorEmail: session.user.email, expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), slides: { create: [{ imageUrl: post.image, sharedPostId: postId, position: 0 }] } } });
+  await prisma.story.create({ data: { authorEmail: session.user.email, expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), slides: { create: [{ imageUrl: post.image, mediaType: post.mediaTypes?.[0] === "video" ? "video" : "image", sharedPostId: postId, position: 0 }] } } });
   revalidatePath("/home");
 }
 
