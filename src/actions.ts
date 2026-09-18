@@ -5,7 +5,7 @@ import { prisma } from "@/db";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
-import { parsePostImages } from "@/post-images";
+import { parsePostImages, parsePostMediaTypes } from "@/post-images";
 import { isProtectedAdmin, isSuperAdmin, isVibeAdmin } from "@/admin";
 import { ensureVibeSupportProfile, ensureVibeTeamProfile, isVibeSupportEmail } from "@/system-profile";
 import { assertNotRestricted } from "@/restrictions";
@@ -215,6 +215,7 @@ export async function postEntry(formData: FormData) {
   await assertNotRestricted(session.user.email, "posts");
 
   const images = parsePostImages(formData.has("imagesSet") ? formData.getAll("images") : [formData.get("image")]);
+  const mediaTypes = parsePostMediaTypes(formData.has("imagesSet") ? formData.getAll("mediaType") : ["image"], images.length);
   const description = formData.get("description");
   const topicsValue = formData.get("topics");
   const profileTags = formData.getAll("profileTags");
@@ -224,6 +225,7 @@ export async function postEntry(formData: FormData) {
       authorEmail: session.user.email,
       image: images[0],
       images,
+      mediaTypes,
       description: typeof description === "string" ? description.trim() : "",
     },
   });
@@ -252,6 +254,7 @@ export async function editPost(formData: FormData): Promise<void> {
   const postIdValue = formData.get("postId");
   const imageValue = formData.get("image");
   const gallery = formData.has("imagesSet") ? parsePostImages(formData.getAll("images")) : undefined;
+  const galleryMediaTypes = gallery ? parsePostMediaTypes(formData.getAll("mediaType"), gallery.length) : undefined;
   const descriptionValue = formData.get("description");
 
   if (typeof postIdValue !== "string" || !postIdValue) {
@@ -295,7 +298,7 @@ export async function editPost(formData: FormData): Promise<void> {
   await prisma.post.update({
     where: { id: postIdValue },
     data: {
-      ...(gallery ? { image: gallery[0], images: gallery } : cleanedImage !== undefined ? { image: cleanedImage, images: parsePostImages([cleanedImage]) } : {}),
+      ...(gallery ? { image: gallery[0], images: gallery, mediaTypes: galleryMediaTypes } : cleanedImage !== undefined ? { image: cleanedImage, images: parsePostImages([cleanedImage]), mediaTypes: ["image"] } : {}),
       ...(cleanedDescription !== undefined
         ? { description: cleanedDescription }
         : {}),

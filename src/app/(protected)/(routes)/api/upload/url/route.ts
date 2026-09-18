@@ -2,13 +2,16 @@ import { auth } from "@/auth";
 import { pinata } from "@/pinata_config";
 import { NextResponse } from "next/server";
 
-const MAX_IMAGE_SIZE_BYTES = 25 * 1024 * 1024;
-const ALLOWED_IMAGE_TYPES = [
+const MAX_MEDIA_SIZE_BYTES = 100 * 1024 * 1024;
+const ALLOWED_MEDIA_TYPES = [
   "image/jpeg",
   "image/png",
   "image/webp",
   "image/gif",
   "image/avif",
+  "video/mp4",
+  "video/webm",
+  "video/quicktime",
 ];
 
 function getErrorMessage(error: unknown) {
@@ -29,8 +32,8 @@ export async function GET() {
   try {
     const url = await pinata.upload.public.createSignedURL({
       expires: 60,
-      maxFileSize: MAX_IMAGE_SIZE_BYTES,
-      mimeTypes: ALLOWED_IMAGE_TYPES,
+      maxFileSize: MAX_MEDIA_SIZE_BYTES,
+      mimeTypes: ALLOWED_MEDIA_TYPES,
     });
 
     return NextResponse.json({ url }, { status: 200 });

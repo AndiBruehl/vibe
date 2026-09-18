@@ -3,6 +3,8 @@ import SortablePosts from "./SortablePosts";
 import { prisma } from "@/db";
 import Link from "next/link"; // Re-enable topic chips
 import ProgressiveImage from "./ProgressiveImage";
+import PostThumbnail from "./PostThumbnail";
+import { getPostMediaTypes } from "@/post-images";
 
 export default async function ProfilePosts({ email }: { email: string }) {
   const posts = await prisma.post.findMany({
@@ -31,10 +33,10 @@ export default async function ProfilePosts({ email }: { email: string }) {
           key={post.id}
           className="group overflow-hidden rounded-2xl bg-white shadow-md shadow-gray-200 transition hover:-translate-y-1 hover:shadow-lg dark:bg-gray-800 dark:shadow-gray-900"
         >
-          <Link href={`/posts/${post.id}`} className="block">
+          <div>
             <div className="relative aspect-square w-full overflow-hidden">
               <PostImageCount images={post.images}/>
-              <ProgressiveImage src={post.image} alt={post.description || "Post image"} lockAspectRatio="1 / 1" containerClassName="size-full" className="object-cover transition duration-300 group-hover:scale-[1.03]" />
+              <PostThumbnail href={`/posts/${post.id}`} src={post.image} mediaType={getPostMediaTypes(post)[0]} alt={post.description || "Post media"} />
             </div>
 
             <div className="space-y-2 p-3">
@@ -42,7 +44,7 @@ export default async function ProfilePosts({ email }: { email: string }) {
                 {post.description || "No description"}
               </p>
             </div>
-          </Link>
+          </div>
 
           <div className="space-y-2 px-3 pb-3">
             {post.topics?.length > 0 && (

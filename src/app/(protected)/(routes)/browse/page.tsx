@@ -6,6 +6,7 @@ import { MoveLeft } from "lucide-react";
 import LocalizedText from "@/app/components/LocalizedText";
 import ProgressiveImage from "@/app/components/ProgressiveImage";
 import ProfileAvatar from "@/app/components/ProfileAvatar";
+import { getPostMediaTypes, VIDEO_MEDIA_TYPE } from "@/post-images";
 
 export default async function BrowsePage() {
   const posts = await prisma.post.findMany({
@@ -65,7 +66,7 @@ export default async function BrowsePage() {
               >
                 <div className="relative aspect-square w-full overflow-hidden bg-slate-200 dark:bg-slate-700">
                   <PostImageCount images={post.images}/>
-              <ProgressiveImage src={post.image} alt={post.description || "Post image"} lockAspectRatio="1 / 1" containerClassName="size-full" className="object-cover transition duration-300 group-hover:scale-[1.02]" />
+              {getPostMediaTypes(post)[0] === VIDEO_MEDIA_TYPE ? <video src={post.image} muted playsInline preload="metadata" className="size-full bg-slate-950 object-cover" aria-label={post.description || "Post video"} /> : <ProgressiveImage src={post.image} alt={post.description || "Post image"} lockAspectRatio="1 / 1" containerClassName="size-full" className="object-cover transition duration-300 group-hover:scale-[1.02]" />}
                 </div>
 
                 <div className="space-y-2 p-3">

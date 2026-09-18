@@ -1,7 +1,7 @@
 import SortablePosts from "./SortablePosts";
 import PostCarousel from "./PostCarousel";
 import CommentForm from "./CommentForm";
-import { getPostImages } from "@/post-images";
+import { getPostImages, getPostMediaTypes } from "@/post-images";
 import MentionText from "./MentionText";
 import { auth } from "@/auth";
 import BookmarkButton from "./../components/BookmarkButton";
@@ -404,6 +404,7 @@ export default async function HomePosts({
                 <div className="border-b border-slate-200 dark:border-white/10 xl:border-r xl:border-b-0">
                   <PostCarousel
                     images={getPostImages(post)}
+                    mediaTypes={getPostMediaTypes(post)}
                     alt={post.description || "Post image"}
                     href={`/posts/${post.id}`}
                     postId={post.id}

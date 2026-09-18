@@ -27,6 +27,12 @@ function getErrorMessage(error: unknown) {
   return "Unknown storage error.";
 }
 
+function safeUploadFileName(name: string, type: string) {
+  const extension = name.includes(".") ? name.slice(name.lastIndexOf(".")).toLowerCase().replace(/[^a-z0-9.]/g, "").slice(0, 8) : (type === "image/jpeg" ? ".jpg" : type === "image/png" ? ".png" : type === "image/webp" ? ".webp" : type === "image/gif" ? ".gif" : type === "image/avif" ? ".avif" : "");
+  const base = name.replace(/\.[^.]*$/, "").normalize("NFKD").replace(/[^a-zA-Z0-9_-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "vibe-upload";
+  return `${base}-${Date.now().toString(36)}${extension}`.slice(0, 50);
+}
+
 export async function POST(request: NextRequest) {
   let fileInfo:
     | {
@@ -100,7 +106,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const upload = await pinata.upload.public.file(file);
+    const normalizedFile = new File([await file.arrayBuffer()], safeUploadFileName(file.name, file.type), { type: file.type });
+    const upload = await pinata.upload.public.file(normalizedFile);
     const url = await pinata.gateways.public.convert(upload.cid);
 
     if (!url) {
@@ -121,9 +128,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       {
-        error:
-          "Storage upload failed. Please try a smaller JPG, PNG, WebP, GIF, or AVIF image.",
-        details,
+        error: details.toLowerCase().includes("name") || details.toLowerCase().includes("filename")
+          ? "The file name could not be accepted by storage. We shortened it automatically; please try uploading the file again."
+          : "The image could not be uploaded. Check the file type and size, then try again. If it still fails, please contact support.",
+        details: process.env.NODE_ENV === "development" ? details : undefined,
       },
       { status: 502 },
     );

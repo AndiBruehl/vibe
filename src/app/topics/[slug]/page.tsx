@@ -1,6 +1,6 @@
 import SortablePosts from "@/app/components/SortablePosts";
 import PostCarousel from "@/app/components/PostCarousel";
-import { getPostImages } from "@/post-images";
+import { getPostImages, getPostMediaTypes } from "@/post-images";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import DesktopNav from "@/app/components/DesktopNav";
@@ -155,7 +155,7 @@ export default async function TopicPage({ params }: Props) {
                           <p className="text-slate-800">{p.description}</p>
 
                         </Link>
-                        <PostCarousel images={getPostImages(p)} alt={p.description || "Post image"} href={`/posts/${p.id}`} postId={p.id}/>
+                        <PostCarousel images={getPostImages(p)} mediaTypes={getPostMediaTypes(p)} alt={p.description || "Post image"} href={`/posts/${p.id}`} postId={p.id}/>
                       </div>
                     </div>
                   </div>

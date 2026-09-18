@@ -25,10 +25,9 @@
 
 - Add private profiles with follow requests.
 
-## BETA 0.1.70
+## BETA 0.1.69.15
 
-- Video-Upload ermöglichen.
-- Nativen Video-Player für die Wiedergabe integrieren.
+  - Enable video uploads and render uploaded videos with the browser's native player. ✅
 
 ## BETA 0.1.69.13.1 — VIBE Games
 

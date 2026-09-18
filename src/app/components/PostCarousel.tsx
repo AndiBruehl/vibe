@@ -5,15 +5,18 @@ import { ChevronLeft, ChevronRight, Heart } from "lucide-react";
 import ExpandablePostImage from "./ExpandablePostImage";
 import ProgressiveImage from "./ProgressiveImage";
 import { likePost } from "@/actions";
+import { VIDEO_MEDIA_TYPE } from "@/post-images";
 
 export default function PostCarousel({
   images,
+  mediaTypes = [],
   alt,
   href,
   initialIndex = 0,
   postId,
 }: {
   images: string[];
+  mediaTypes?: string[];
   alt: string;
   href?: string;
   initialIndex?: number;
@@ -79,7 +82,7 @@ export default function PostCarousel({
   }
   return (
     <section
-      aria-label="Post images"
+      aria-label="Post media"
       aria-roledescription="carousel"
       className="group relative min-w-0 w-full"
     >
@@ -102,15 +105,19 @@ export default function PostCarousel({
         }}
         onPointerUp={handlePointerUp}
       >
-        {images.map((src, i) => (
+        {images.map((src, i) => {
+          const isVideo = mediaTypes[i] === VIDEO_MEDIA_TYPE;
+          return (
           <div
             key={`${src}-${i}`}
             role="group"
-            aria-label={`Image ${i + 1} of ${images.length}`}
+            aria-label={`${isVideo ? "Video" : "Image"} ${i + 1} of ${images.length}`}
             inert={i !== index}
             className="w-full shrink-0 snap-center bg-slate-100 dark:bg-slate-900"
           >
-            {href ? (
+            {isVideo ? (
+              <video src={src} controls playsInline preload={i ? "none" : "metadata"} className="max-h-[80vh] w-full bg-black object-contain" aria-label={`${alt} (${i + 1}/${images.length})`} />
+            ) : href ? (
               <Link
                 href={`${href}${href.includes("?") ? "&" : "?"}image=${i + 1}`}
                 onClick={(event) => handleLinkedImageClick(event, `${href}${href.includes("?") ? "&" : "?"}image=${i + 1}`)}
@@ -132,7 +139,8 @@ export default function PostCarousel({
               />
             )}
           </div>
-        ))}
+          );
+        })}
       </div>
       {showHeart && <Heart aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 z-30 size-20 -translate-x-1/2 -translate-y-1/2 fill-white text-white drop-shadow-lg motion-safe:animate-ping" />}
       {images.length > 1 && (

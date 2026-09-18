@@ -60,6 +60,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
   const [renamingAppearancePresetId, setRenamingAppearancePresetId] = useState<string | null>(null);
   const [renamingAppearancePresetName, setRenamingAppearancePresetName] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveFeedback, setSaveFeedback] = useState<"saved" | "failed" | null>(null);
@@ -111,6 +112,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
 
     const localPreviewUrl = URL.createObjectURL(file);
     setPreviewUrl(localPreviewUrl);
+    setUploadError(null);
 
     const data = new FormData();
     data.set("file", file);
@@ -123,15 +125,14 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
         body: data,
       });
 
-      if (!res.ok) {
-        throw new Error("Upload failed");
-      }
-
-      const result = await res.json();
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(typeof result.error === "string" ? result.error : copy("Upload failed. Check the file type and size.", "Upload fehlgeschlagen. Prüfe Dateityp und Dateigröße."));
       setAvatarUrl(result.url);
       setIsDirty(true);
     } catch (error) {
       console.error(error);
+      setSaveFeedback("failed");
+      setUploadError(error instanceof Error ? error.message : copy("The image could not be uploaded. Please try again.", "Das Bild konnte nicht hochgeladen werden. Bitte versuche es erneut."));
     } finally {
       setIsUploading(false);
     }
@@ -436,7 +437,8 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
             <ImageUp size={17} />
             {isUploading ? copy("Uploading...", "Wird hochgeladen...") : copy("Change avatar", "Avatar ändern")}
           </button>
-          <p className="mt-2 text-center text-xs text-slate-500 dark:text-slate-400">{copy("JPG, PNG or WEBP", "JPG, PNG oder WEBP")}</p>
+          {uploadError && <p role="alert" className="mt-2 max-w-xs text-xs font-semibold text-red-600 dark:text-red-300">{uploadError}</p>}
+          <p className="mt-2 text-center text-xs text-slate-500 dark:text-slate-400">{copy("JPG, PNG, WEBP, GIF or AVIF · max. 25 MB", "JPG, PNG, WEBP, GIF oder AVIF · max. 25 MB")}</p>
         </div>
       </section>
 

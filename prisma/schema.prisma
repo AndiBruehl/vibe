@@ -198,6 +198,7 @@ model Post {
 
   image       String
   images      String[] @default([])
+  mediaTypes  String[] @default([])
   description String
   likesCount  Int      @default(0)
   isArchived  Boolean  @default(false)

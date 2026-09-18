@@ -10,7 +10,7 @@ import CommentForm from "@/app/components/CommentForm";
 import PostComments from "@/app/components/PostComments";
 import PostCarousel from "@/app/components/PostCarousel";
 import PostComposer from "@/app/components/PostComposer";
-import { getPostImages } from "@/post-images";
+import { getPostImages, getPostMediaTypes } from "@/post-images";
 import { deletePost, editPost, togglePostArchive } from "@/actions";
 import LocalizedText from "@/app/components/LocalizedText";
 import MentionText from "@/app/components/MentionText";
@@ -151,6 +151,7 @@ export default async function SinglePostPage({
               <div className="w-full">
                 <PostCarousel
                   images={getPostImages(post)}
+                  mediaTypes={getPostMediaTypes(post)}
                   alt={post.description || "Post image"}
                   initialIndex={initialImage}
                   postId={post.id}
@@ -235,7 +236,7 @@ export default async function SinglePostPage({
                       </button>
                     </form>
 
-                    <PostComposer key={post.updatedAt.toISOString()} action={editPost} postId={post.id} initialImages={getPostImages(post)} description={post.description} topics={topics.map((t) => t.name)} taggedProfiles={taggedProfiles}/>
+                    <PostComposer key={post.updatedAt.toISOString()} action={editPost} postId={post.id} initialImages={getPostImages(post)} initialMediaTypes={getPostMediaTypes(post)} description={post.description} topics={topics.map((t) => t.name)} taggedProfiles={taggedProfiles}/>
 
                   </section>
                 ) : isAdmin ? (

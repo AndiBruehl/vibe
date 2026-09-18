@@ -7,10 +7,10 @@ import { PinataSDK } from "pinata";
 import TopicPicker from "./TopicPicker";
 import ProfileTagPicker, { type TaggedProfile } from "./ProfileTagPicker";
 import MentionTextarea from "./MentionTextarea";
-import { MAX_POST_IMAGES } from "@/post-images";
+import { IMAGE_MEDIA_TYPE, MAX_POST_IMAGES, VIDEO_MEDIA_TYPE } from "@/post-images";
 import useVibeLanguage from "./useVibeLanguage";
 
-const MAX_IMAGE_SIZE_BYTES = 25 * 1024 * 1024;
+const MAX_MEDIA_SIZE_BYTES = 100 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set([
   "image/jpeg",
   "image/png",
@@ -18,6 +18,7 @@ const ALLOWED_IMAGE_TYPES = new Set([
   "image/gif",
   "image/avif",
 ]);
+const ALLOWED_VIDEO_TYPES = new Set(["video/mp4", "video/webm", "video/quicktime"]);
 const DRAFT_KEY = "vibe.postDraft.v1";
 
 function getUploadErrorMessage(result: { error?: unknown; details?: unknown }) {
@@ -39,6 +40,12 @@ function getGatewayUrl(cid: string) {
     : `https://${gateway}`;
 
   return `${normalizedGateway.replace(/\/$/, "")}/ipfs/${cid}`;
+}
+
+function safeUploadFile(file: File) {
+  const extension = file.name.includes(".") ? file.name.slice(file.name.lastIndexOf(".")).toLowerCase().replace(/[^a-z0-9.]/g, "").slice(0, 8) : "";
+  const base = file.name.replace(/\.[^.]*$/, "").normalize("NFKD").replace(/[^a-zA-Z0-9_-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "").slice(0, 38) || "vibe-media";
+  return new File([file], `${base}-${Date.now().toString(36)}${extension}`.slice(0, 50), { type: file.type, lastModified: file.lastModified });
 }
 
 async function getSignedUploadUrl() {
@@ -81,6 +88,7 @@ export default function PostComposer({
   action,
   postId,
   initialImages = [],
+  initialMediaTypes = [],
   description = "",
   topics = [],
   taggedProfiles = [],
@@ -88,6 +96,7 @@ export default function PostComposer({
   action: (data: FormData) => Promise<void>;
   postId?: string;
   initialImages?: string[];
+  initialMediaTypes?: string[];
   description?: string;
   topics?: string[];
   taggedProfiles?: TaggedProfile[];
@@ -95,6 +104,7 @@ export default function PostComposer({
   const de = useVibeLanguage() === "de";
   const isDraftable = !postId;
   const [images, setImages] = useState(initialImages);
+  const [mediaTypes, setMediaTypes] = useState<(typeof IMAGE_MEDIA_TYPE | typeof VIDEO_MEDIA_TYPE)[]>(() => initialImages.map((_, index) => initialMediaTypes[index] === VIDEO_MEDIA_TYPE ? VIDEO_MEDIA_TYPE : IMAGE_MEDIA_TYPE));
   const [draftDescription, setDraftDescription] = useState(description);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -110,8 +120,9 @@ export default function PostComposer({
     try {
       const value = localStorage.getItem(DRAFT_KEY);
       if (!value) return;
-      const draft = JSON.parse(value) as { images?: unknown; description?: unknown };
+      const draft = JSON.parse(value) as { images?: unknown; mediaTypes?: unknown; description?: unknown };
       if (Array.isArray(draft.images) && draft.images.every((image) => typeof image === "string")) setImages(draft.images.slice(0, MAX_POST_IMAGES));
+      if (Array.isArray(draft.mediaTypes)) setMediaTypes(draft.mediaTypes.slice(0, MAX_POST_IMAGES).map((type) => type === VIDEO_MEDIA_TYPE ? VIDEO_MEDIA_TYPE : IMAGE_MEDIA_TYPE));
       if (typeof draft.description === "string") setDraftDescription(draft.description);
     } catch { localStorage.removeItem(DRAFT_KEY); }
     finally { setDraftReady(true); }
@@ -125,15 +136,16 @@ export default function PostComposer({
         setDraftStatus("");
         return;
       }
-      localStorage.setItem(DRAFT_KEY, JSON.stringify({ images, description: draftDescription, savedAt: Date.now() }));
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({ images, mediaTypes, description: draftDescription, savedAt: Date.now() }));
       setDraftStatus(de ? "Entwurf automatisch gespeichert" : "Draft saved automatically");
     }, 700);
     return () => window.clearTimeout(timer);
-  }, [draftDescription, draftReady, de, images, isDraftable]);
+  }, [draftDescription, draftReady, de, images, isDraftable, mediaTypes]);
 
   function discardDraft() {
     localStorage.removeItem(DRAFT_KEY);
     setImages([]);
+    setMediaTypes([]);
     setDraftDescription("");
     setDraftStatus(de ? "Entwurf verworfen" : "Draft discarded");
   }
@@ -141,15 +153,15 @@ export default function PostComposer({
     if (!files.length || uploading.current) return;
     setError("");
     if (images.length + files.length > MAX_POST_IMAGES) {
-      setError(de ? "Ein Beitrag kann höchstens 4 Bilder enthalten." : "A post can contain at most 4 images.");
+      setError(de ? "Ein Beitrag kann höchstens 4 Medien enthalten." : "A post can contain at most 4 media items.");
       return;
     }
     for (const file of files) {
       if (
-        !ALLOWED_IMAGE_TYPES.has(file.type) ||
-        file.size > MAX_IMAGE_SIZE_BYTES
+        (!ALLOWED_IMAGE_TYPES.has(file.type) && !ALLOWED_VIDEO_TYPES.has(file.type)) ||
+        file.size > MAX_MEDIA_SIZE_BYTES
       ) {
-        setError(de ? "Nutze JPG-, PNG-, WebP-, GIF- oder AVIF-Dateien bis 25 MB pro Bild." : "Use JPG, PNG, WebP, GIF or AVIF files up to 25 MB each.");
+        setError(de ? "Nutze Bilder oder MP4, WebM und MOV-Videos bis 100 MB pro Datei." : "Use images or MP4, WebM and MOV videos up to 100 MB each.");
         return;
       }
     }
@@ -159,8 +171,9 @@ export default function PostComposer({
       for (let i = 0; i < files.length; i++) {
         setProgress(de ? `Wird hochgeladen ${i + 1}/${files.length}…` : `Uploading ${i + 1}/${files.length}…`);
         const url = await getSignedUploadUrl();
-        const upload = await pinata.upload.public.file(files[i]).url(url);
+        const upload = await pinata.upload.public.file(safeUploadFile(files[i])).url(url);
         setImages((current) => [...current, getGatewayUrl(upload.cid)]);
+        setMediaTypes((current) => [...current, ALLOWED_VIDEO_TYPES.has(files[i].type) ? VIDEO_MEDIA_TYPE : IMAGE_MEDIA_TYPE]);
       }
     } catch (failure) {
       setError(
@@ -201,9 +214,10 @@ export default function PostComposer({
       {images.map((url, i) => (
         <input key={i} type="hidden" name="images" value={url} />
       ))}
+      {mediaTypes.map((type, i) => <input key={`type-${i}`} type="hidden" name="mediaType" value={type} />)}
       <fieldset disabled={busy} className="space-y-3">
         <legend className="mb-2 font-semibold text-slate-900 dark:text-slate-100">
-          {de ? "Bilder" : "Images"} · {images.length}/4
+          {de ? "Medien" : "Media"} · {images.length}/4
         </legend>
         <div className="grid grid-cols-2 gap-3">
           {images.map((url, i) => (
@@ -211,13 +225,9 @@ export default function PostComposer({
               key={`${url}-${i}`}
               className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700"
             >
-              <img
-                src={url}
-                alt={`${de ? "Ausgewähltes Bild" : "Selected image"} ${i + 1}`}
-                className="aspect-square w-full bg-slate-100 object-contain dark:bg-slate-900"
-              />
+              {mediaTypes[i] === VIDEO_MEDIA_TYPE ? <video src={url} controls preload="metadata" className="aspect-square w-full bg-slate-950 object-contain" /> : <img src={url} alt={`${de ? "Ausgewähltes Bild" : "Selected image"} ${i + 1}`} className="aspect-square w-full bg-slate-100 object-contain dark:bg-slate-900" />}
               <div className="flex items-center justify-between gap-1 p-2 text-xs">
-                <span>{i === 0 ? (de ? "Titelbild" : "Cover") : `${de ? "Bild" : "Image"} ${i + 1}`}</span>
+                    <span>{i === 0 ? (de ? "Titelmedium" : "Cover media") : `${mediaTypes[i] === VIDEO_MEDIA_TYPE ? (de ? "Video" : "Video") : (de ? "Bild" : "Image")} ${i + 1}`}</span>
                 {i > 0 && (
                   <button
                     type="button"
@@ -226,6 +236,7 @@ export default function PostComposer({
                       setImages((current) => {
                         const next = [...current];
                         [next[i - 1], next[i]] = [next[i], next[i - 1]];
+                        setMediaTypes((currentTypes) => { const nextTypes = [...currentTypes]; [nextTypes[i - 1], nextTypes[i]] = [nextTypes[i], nextTypes[i - 1]]; return nextTypes; });
                         return next;
                       })
                     }
@@ -237,11 +248,10 @@ export default function PostComposer({
                 <button
                   type="button"
                   aria-label={`${de ? "Bild entfernen" : "Remove image"} ${i + 1}`}
-                  onClick={() =>
-                    setImages((current) =>
-                      current.filter((_, index) => index !== i),
-                    )
-                  }
+                  onClick={() => {
+                    setImages((current) => current.filter((_, index) => index !== i));
+                    setMediaTypes((current) => current.filter((_, index) => index !== i));
+                  }}
                   className="rounded p-2 text-red-600 dark:text-red-400"
                 >
                   {de ? "Entfernen" : "Remove"}
@@ -259,18 +269,18 @@ export default function PostComposer({
               className="flex min-h-48 w-full flex-col items-center justify-center gap-3 p-6 from-(--ig-orange) to-(--ig-red) enabled:hover:bg-linear-to-tr focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
             >
               <span className="rounded-xl bg-white/95 px-5 py-3 font-semibold text-slate-900">
-                {isDragging ? (de ? "Bilder zum Hochladen ablegen" : "Drop images to upload") : (de ? "Bilder hochladen" : "Upload images")}
+                {isDragging ? (de ? "Medien zum Hochladen ablegen" : "Drop media to upload") : (de ? "Medien hochladen" : "Upload media")}
               </span>
               <span className="rounded-full bg-slate-900/70 px-3 py-1 text-xs text-white">
-                {de ? "Bilder hierher ziehen oder Dateien auswählen · Bis zu 4 Bilder · je 25 MB" : "Drag & drop or choose files · Up to 4 images · 25 MB each"}
+                {de ? "Bilder oder Videos hierher ziehen · Bis zu 4 Medien · Bilder bis 25 MB, Videos bis 100 MB" : "Drag & drop images or videos · Up to 4 items · images 25 MB, videos 100 MB"}
               </span>
             </button>
             <input
               ref={fileInput}
-              aria-label={de ? "Bilder auswählen" : "Choose images"}
+              aria-label={de ? "Medien auswählen" : "Choose media"}
               type="file"
               multiple
-              accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
+              accept="image/jpeg,image/png,image/webp,image/gif,image/avif,video/mp4,video/webm,video/quicktime"
               className="hidden"
               onChange={(event) => {
                 const files = Array.from(event.target.files || []);

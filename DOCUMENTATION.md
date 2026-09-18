@@ -2,7 +2,7 @@
 
 ## Overview
 
-VIBE is a multilingual social network built around profiles, image posts, stories, direct messages, topics, and community moderation. The web application is the primary product. It also exposes mobile API routes for the Android client and is wrapped by an Electron desktop application.
+VIBE is a multilingual social network built around profiles, media posts, stories, direct messages, topics, and community moderation. The web application is the primary product. It also exposes mobile API routes for the Android client and is wrapped by an Electron desktop application.
 
 The web application uses Next.js App Router, React, TypeScript, Prisma, and MongoDB. Authentication is handled by NextAuth with Google sign-in and a credentials provider for the native mobile session flow.
 
@@ -48,13 +48,13 @@ Profiles store individual activity-notification preferences for likes, comments 
 
 ### Social features
 
-Members can create image posts, edit or archive their own posts, add comments and replies, react with likes, bookmark posts into collections, mention profiles, follow profiles, manage follow requests for private accounts, block accounts, and use topic feeds. Stories expire automatically and record viewers.
+Members can create posts with images and videos, edit or archive their own posts, add comments and replies, react with likes, bookmark posts into collections, mention profiles, follow profiles, manage follow requests for private accounts, block accounts, and use topic feeds. Video playback uses the browser's native, accessible player. Stories expire automatically and record viewers.
 
 Messaging supports direct and group conversations, reactions, unread status, media and shared-post messages. VIBE Team is represented by a system profile for product-originated messages such as welcome and verification notices.
 
 ### Uploads
 
-Upload route handlers create signed upload URLs through the configured Pinata integration. Client-facing routes must validate the signed-in user before accepting profile or post media changes.
+Upload route handlers create signed upload URLs through the configured Pinata integration. Profile and post uploads normalise filenames to a safe maximum length before storage. Post uploads accept JPG, PNG, WebP, GIF, AVIF, MP4, WebM, and MOV files, with a maximum of four media items per post. Images are capped at 25 MB and videos at 100 MB. Client-facing routes must validate the signed-in user before accepting profile or post media changes.
 
 ## Administration and moderation
 
@@ -82,7 +82,7 @@ Home queries the active, unexpired poll and renders it directly above the feed. 
 Prisma targets MongoDB. The core models are:
 
 - `Profile` and `ProfileAppearancePreset`: identity, public profile data, language/theme, current appearance settings, saved complete profile looks, privacy, roles, verification, restrictions, and social relations.
-- `Post`, `Comment`, `PostLike`, `CommentLike`, and `PostBookmark`: published content and interactions.
+- `Post`, `Comment`, `PostLike`, `CommentLike`, and `PostBookmark`: published content and interactions. A Post stores parallel `images` and `mediaTypes` arrays so each uploaded URL is rendered as an image or video without relying on its URL extension.
 - `Story`, `StorySlide`, and `StoryView`: temporary story content and viewer tracking.
 - `Conversation`, `ConversationParticipant`, `Message`, and `MessageReaction`: direct and group messaging.
 - `Follow`, `FollowRequest`, and `Block`: relationship state and privacy controls.
