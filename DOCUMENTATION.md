@@ -76,6 +76,7 @@ Verification is presentation status only; it does not provide admin capabilities
 `Poll`, `PollOption`, and `PollVote` are Prisma models. An administrator creates a draft poll with one question and two to six unique options. Activating a poll deactivates any other live poll and starts a 72-hour window. A member has one vote per poll and may change it while the poll remains live.
 
 Home queries the active, unexpired poll and renders it directly above the feed. When there is no active poll, nothing is rendered in that location. Expired and offline polls remain visible in the Admin area for results and auditability.
+Poll selection uses optimistic client feedback so the selected answer and percentages update immediately while the authenticated server action persists the vote; failed requests restore the previous state.
 
 ## Data model
 
