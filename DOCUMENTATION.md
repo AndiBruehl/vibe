@@ -54,7 +54,7 @@ Messaging supports direct and group conversations, reactions, unread status, med
 
 ### Uploads
 
-Upload route handlers create signed upload URLs through the configured Pinata integration. Profile and post uploads normalise filenames to a safe maximum length before storage. Post uploads accept JPG, PNG, WebP, GIF, AVIF, MP4, WebM, and MOV files, with a maximum of four media items per post. Images are capped at 25 MB and videos at 100 MB. Client-facing routes must validate the signed-in user before accepting profile or post media changes.
+Upload route handlers create signed upload URLs through the configured Pinata integration. Profile and post uploads normalise filenames to a safe maximum length before storage. Profile settings support drag-and-drop, click, and keyboard avatar selection. Post uploads accept JPG, PNG, WebP, GIF, AVIF, MP4, WebM, and MOV files, with a maximum of four media items per post. Images are capped at 25 MB and videos at 100 MB. Client-facing routes must validate the signed-in user before accepting profile or post media changes.
 
 ## Administration and moderation
 

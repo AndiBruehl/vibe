@@ -29,6 +29,10 @@
 
   - Enable video uploads and render uploaded videos with the browser's native player. ✅
 
+## BETA 0.1.70
+
+- Publish coordinated Web, Electron, and Android release builds for the video upload and playback work.
+
 ## BETA 0.1.69.13.1 — VIBE Games
 
 - Die `/games`-Startseite für eine spätere Sammlung von JavaScript-Minispielen bereitstellen. ✅

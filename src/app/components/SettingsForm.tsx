@@ -60,6 +60,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
   const [renamingAppearancePresetId, setRenamingAppearancePresetId] = useState<string | null>(null);
   const [renamingAppearancePresetName, setRenamingAppearancePresetName] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const [isAvatarDragging, setIsAvatarDragging] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -106,8 +107,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
     setThemePreference(preference);
   }, []);
 
-  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const uploadAvatar = async (file: File | undefined) => {
     if (!file) return;
 
     const localPreviewUrl = URL.createObjectURL(file);
@@ -136,6 +136,11 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
     } finally {
       setIsUploading(false);
     }
+  };
+
+  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    await uploadAvatar(e.target.files?.[0]);
+    e.target.value = "";
   };
 
   const avatarSrc = previewUrl || profile?.avatar || defaultImg.src;
@@ -428,15 +433,21 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
           <input type="hidden" name="profileHeaderBackgroundEnd" value={profileHeaderBackgroundEnd ?? ""} />
           <input type="hidden" name="profileHeaderTextColor" value={profileHeaderTextColor} />
 
-          <button
-            type="button"
+          <div
+            role="button"
+            tabIndex={isUploading ? -1 : 0}
             onClick={() => fileInRef.current?.click()}
-            disabled={isUploading}
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-orange-300 hover:text-orange-600 disabled:cursor-wait disabled:opacity-60 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-orange-400 dark:hover:text-orange-300"
+            onKeyDown={(event) => { if ((event.key === "Enter" || event.key === " ") && !isUploading) { event.preventDefault(); fileInRef.current?.click(); } }}
+            onDragEnter={(event) => { event.preventDefault(); if (!isUploading) setIsAvatarDragging(true); }}
+            onDragOver={(event) => event.preventDefault()}
+            onDragLeave={(event) => { if (event.currentTarget === event.target) setIsAvatarDragging(false); }}
+            onDrop={(event) => { event.preventDefault(); setIsAvatarDragging(false); void uploadAvatar(event.dataTransfer.files?.[0]); }}
+            className={`flex min-h-24 w-full cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed px-3 py-3 text-center transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 ${isAvatarDragging ? "border-orange-500 bg-orange-100/70 dark:bg-orange-500/20" : "border-slate-300 bg-white hover:border-orange-300 hover:bg-orange-50/70 dark:border-slate-600 dark:bg-slate-800 dark:hover:border-orange-400 dark:hover:bg-orange-500/10"} ${isUploading ? "cursor-wait opacity-60" : ""}`}
           >
-            <ImageUp size={17} />
-            {isUploading ? copy("Uploading...", "Wird hochgeladen...") : copy("Change avatar", "Avatar ändern")}
-          </button>
+            <ImageUp size={19} className="text-orange-500" />
+            <span className="text-sm font-semibold text-slate-700 dark:text-slate-100">{isUploading ? copy("Uploading...", "Wird hochgeladen...") : isAvatarDragging ? copy("Drop avatar here", "Profilbild hier ablegen") : copy("Change avatar", "Avatar ändern")}</span>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">{copy("Drag & drop or click · JPG, PNG, WebP, GIF or AVIF", "Ziehen & ablegen oder klicken · JPG, PNG, WebP, GIF oder AVIF")}</span>
+          </div>
           {uploadError && <p role="alert" className="mt-2 max-w-xs text-xs font-semibold text-red-600 dark:text-red-300">{uploadError}</p>}
           <p className="mt-2 text-center text-xs text-slate-500 dark:text-slate-400">{copy("JPG, PNG, WEBP, GIF or AVIF · max. 25 MB", "JPG, PNG, WEBP, GIF oder AVIF · max. 25 MB")}</p>
         </div>
