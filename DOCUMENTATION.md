@@ -99,6 +99,8 @@ Google OAuth creates a profile on first sign-in and ensures older profiles recei
 
 The API includes mobile data endpoints, conversation operations, profile customization updates, topics, stories, release metadata, uploads, unread-message status, and scheduled story cleanup. Keep route authorization close to each handler; server actions should never trust a client-supplied email or role.
 
+The shared version display keeps release flair scoped to the Web version. Desktop and Android version labels remain neutral so platform versions are easy to scan.
+
 ## Native applications
 
 ### Desktop

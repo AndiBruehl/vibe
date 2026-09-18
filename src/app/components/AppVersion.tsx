@@ -27,8 +27,8 @@ export default function AppVersion() {
   return (
     <div className="mt-3 text-center text-xs text-slate-500 dark:text-slate-400">
       <p>{language === "de" ? "Webversion" : "Web version"} BETA {WEB_VERSION}{BETA_FLAIR}</p>
-      {desktopVersion && <p>{language === "de" ? "Desktop-App-Version" : "Desktop app version"} BETA {desktopVersion}{BETA_FLAIR}</p>}
-      {androidVersion && <p>{language === "de" ? "Android-App-Version" : "Android app version"} BETA {androidVersion}{BETA_FLAIR}</p>}
+      {desktopVersion && <p>{language === "de" ? "Desktop-App-Version" : "Desktop app version"} BETA {desktopVersion}</p>}
+      {androidVersion && <p>{language === "de" ? "Android-App-Version" : "Android app version"} BETA {androidVersion}</p>}
     </div>
   );
 }
