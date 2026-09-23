@@ -2,7 +2,7 @@
 
 ## Overview
 
-### Pinned profile posts (0.1.72)
+### Pinned profile posts (0.1.73)
 
 Profile owners pin or unpin up to three active posts directly on their post tiles or in the post detail view. Pins are stored in `ProfilePinnedPost`, which joins the profile and post IDs with an explicit display position. Pins render before the ordinary profile grid for users permitted to view that profile. Desktop uses three equal tiles; mobile keeps the first two side-by-side and gives a third tile the full row.
 

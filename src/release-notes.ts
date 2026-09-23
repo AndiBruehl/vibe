@@ -7,6 +7,15 @@ export type ReleaseNote = {
 // Keep newest releases first. This is the single source for the Home changelog.
 export const webReleaseNotes: ReleaseNote[] = [
   {
+    version: "0.1.73",
+    date: "2026-09-23",
+    changes: [
+      "Added the Home changelog between Stories and the feed controls.",
+      "Moved profile pin controls directly onto posts and pinned tiles.",
+      "Improved the local development fallback for temporary Prisma connection failures.",
+    ],
+  },
+  {
     version: "0.1.72",
     date: "2026-09-23",
     changes: [
