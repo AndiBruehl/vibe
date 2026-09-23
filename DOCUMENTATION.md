@@ -12,6 +12,10 @@ Native update checks read `public/releases/latest.json`. Every native release mu
 
 The protected layout treats transient Prisma connection failures as recoverable. Message and activity navigation counters fall back to zero, and a failure while loading or creating the signed-in profile renders a VIBE recovery screen. This avoids exposing an internal connector error while Atlas/DNS connectivity returns.
 
+### Home changelog
+
+The Home page places a collapsed, English-language Changelog between stories and the feed controls. `src/release-notes.ts` is its single source of truth. New web releases must be added at the top with version, `YYYY-MM-DD` date, and concise English change bullets so the newest changes always appear first.
+
 ### Account post drafts (0.1.71)
 
 The Create page provides New post and Drafts tabs in English and German. Drafts are stored in MongoDB's PostDraft collection, scoped to the authenticated account email. They preserve up to four media URLs and their types, description, five topics, and ten tagged profile IDs. Incomplete drafts can be saved without media. The list shows a cover preview and modification time; users can reopen, update, or delete their drafts across devices. Publishing creates the post and removes its draft in the same transaction. Failed saves keep editor contents. Switching tabs keeps the editor mounted.

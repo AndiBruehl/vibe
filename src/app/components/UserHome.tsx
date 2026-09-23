@@ -1,5 +1,6 @@
 import HomePosts from "./../components/HomePosts";
 import StoriesBar from "./StoriesBar";
+import HomeChangelog from "./HomeChangelog";
 import { prisma } from "@/db";
 import { Session } from "next-auth";
 
@@ -98,6 +99,7 @@ export default async function UserHome({ session, feedMode }: UserHomeProps) {
   return (
     <div className="flex flex-col gap-8">
       <StoriesBar stories={stories} viewerEmail={viewerEmail} />
+      <HomeChangelog />
       <HomePosts follows={follows} profiles={profiles} feedMode={feedMode} language={viewerProfile.language === "de" ? "de" : "en"} />
     </div>
   );
