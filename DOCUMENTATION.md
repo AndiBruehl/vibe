@@ -14,6 +14,8 @@ VIBE is a multilingual social network built around profiles, media posts, storie
 
 The web application uses Next.js App Router, React, TypeScript, Prisma, and MongoDB. Authentication is handled by NextAuth with Google sign-in and a credentials provider for the native mobile session flow.
 
+The Web version label includes its release date in `YYYY-MM-DD` format. Desktop and Android version labels remain version-only so installed builds retain their native release identity.
+
 ## Repository layout
 
 | Path | Purpose |
