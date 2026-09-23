@@ -3,7 +3,6 @@ import { prisma } from "@/db";
 import { getPostMediaTypes } from "@/post-images";
 import PostImageCount from "./PostImageCount";
 import PostThumbnail from "./PostThumbnail";
-import PinnedPostsManager from "./PinnedPostsManager";
 
 type Props = { email: string; language: "de" | "en"; canManage?: boolean };
 
@@ -36,6 +35,5 @@ export default async function PinnedProfilePosts({ email, language, canManage = 
         </article>)}
       </div>
     </section>}
-    {canManage && <PinnedPostsManager posts={pinnedPosts.map((post) => ({ id: post.id, description: post.description, createdAt: post.createdAt }))} language={language} unavailable={unavailable} />}
   </>;
 }
