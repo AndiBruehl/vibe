@@ -1454,6 +1454,36 @@ export async function toggleProfilePostPin(postId: string): Promise<{ ok: boolea
   }
 }
 
+/** Moves one existing profile pin without exposing or loading the full post history. */
+export async function moveProfilePostPin(postId: string, direction: -1 | 1): Promise<{ ok: boolean; error?: "session" | "invalid" | "unavailable" | "save" }> {
+  const session = await auth();
+  if (!session?.user?.email) return { ok: false, error: "session" };
+  if (!isObjectId(postId) || (direction !== -1 && direction !== 1)) return { ok: false, error: "invalid" };
+
+  try {
+    const profile = await prisma.profile.findUnique({ where: { email: session.user.email }, select: { id: true, username: true } });
+    if (!profile) return { ok: false, error: "unavailable" };
+    const current = await prisma.profilePinnedPost.findUnique({ where: { profileId_postId: { profileId: profile.id, postId } }, select: { id: true, position: true } });
+    if (!current) return { ok: false, error: "unavailable" };
+    const nextPosition = current.position + direction;
+    if (nextPosition < 0) return { ok: true };
+    const adjacent = await prisma.profilePinnedPost.findUnique({ where: { profileId_position: { profileId: profile.id, position: nextPosition } }, select: { id: true } });
+    if (!adjacent) return { ok: true };
+
+    // The temporary position avoids violating the unique profile/position index while swapping.
+    await prisma.$transaction([
+      prisma.profilePinnedPost.update({ where: { id: current.id }, data: { position: -1 } }),
+      prisma.profilePinnedPost.update({ where: { id: adjacent.id }, data: { position: current.position } }),
+      prisma.profilePinnedPost.update({ where: { id: current.id }, data: { position: nextPosition } }),
+    ]);
+    revalidatePath("/profile");
+    revalidatePath(`/profile/${encodeURIComponent(profile.username)}`);
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "save" };
+  }
+}
+
 async function requirePollAdmin() {
   const session = await auth();
   const email = session?.user?.email;
