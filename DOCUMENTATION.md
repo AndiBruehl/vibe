@@ -4,9 +4,9 @@
 
 ### Pinned profile posts (0.1.72)
 
-Profile owners can select, order, and save up to three active posts as profile pins. Pins are stored in `ProfilePinnedPost`, which joins the profile and post IDs with an explicit display position. Pins render before the ordinary profile grid for users permitted to view that profile. Desktop uses three equal tiles; mobile keeps the first two side-by-side and gives a third tile the full row.
+Profile owners pin or unpin up to three active posts directly on their post tiles or in the post detail view. Pins are stored in `ProfilePinnedPost`, which joins the profile and post IDs with an explicit display position. Pins render before the ordinary profile grid for users permitted to view that profile. Desktop uses three equal tiles; mobile keeps the first two side-by-side and gives a third tile the full row.
 
-Only the owner sees the management panel. Server validation confirms an authenticated account, valid unique IDs, the three-item limit, active non-archived posts, and ownership before replacing the complete pin order transactionally. Missing or stale posts are excluded at render time, and deleting a post removes its pin records. Pin data failures are isolated from the regular feed so a temporary database issue does not turn the full profile into an error page.
+Only the owner sees pin controls and the compact management panel, which only changes the order of existing pins. Server validation confirms an authenticated account, valid unique IDs, the three-item limit, active non-archived posts, and ownership before replacing the complete pin order transactionally. Direct pin/unpin operations validate the same conditions and close position gaps after removal. Missing or stale posts are excluded at render time, and deleting a post removes its pin records. Pin data failures are isolated from the regular feed so a temporary database issue does not turn the full profile into an error page.
 
 Native update checks read `public/releases/latest.json`. Every native release must include the versioned APK and Windows installer in their tracked `android-app/dist/` and `electron-app/dist/` paths, then point this manifest at exactly those artifacts. This keeps the Web download cards and installed Android/Desktop update checks in agreement.
 

@@ -1466,6 +1466,43 @@ export async function setProfilePinnedPosts(formData: FormData): Promise<{ ok: b
   }
 }
 
+/** Pins or unpins one of the signed-in member's posts directly from that post. */
+export async function toggleProfilePostPin(postId: string): Promise<{ ok: boolean; pinned?: boolean; error?: "session" | "invalid" | "unavailable" | "limit" | "save" }> {
+  const session = await auth();
+  if (!session?.user?.email) return { ok: false, error: "session" };
+  if (!isObjectId(postId)) return { ok: false, error: "invalid" };
+
+  try {
+    const [profile, post] = await Promise.all([
+      prisma.profile.findUnique({ where: { email: session.user.email }, select: { id: true, username: true } }),
+      prisma.post.findFirst({ where: { id: postId, authorEmail: session.user.email, isArchived: false }, select: { id: true } }),
+    ]);
+    if (!profile || !post) return { ok: false, error: "unavailable" };
+
+    const existing = await prisma.profilePinnedPost.findUnique({ where: { profileId_postId: { profileId: profile.id, postId } }, select: { id: true, position: true } });
+    if (existing) {
+      await prisma.$transaction([
+        prisma.profilePinnedPost.delete({ where: { id: existing.id } }),
+        prisma.profilePinnedPost.updateMany({ where: { profileId: profile.id, position: { gt: existing.position } }, data: { position: { decrement: 1 } } }),
+      ]);
+      revalidatePath("/profile");
+      revalidatePath(`/profile/${encodeURIComponent(profile.username)}`);
+      revalidatePath(`/posts/${postId}`);
+      return { ok: true, pinned: false };
+    }
+
+    const count = await prisma.profilePinnedPost.count({ where: { profileId: profile.id } });
+    if (count >= 3) return { ok: false, error: "limit" };
+    await prisma.profilePinnedPost.create({ data: { profileId: profile.id, postId, position: count } });
+    revalidatePath("/profile");
+    revalidatePath(`/profile/${encodeURIComponent(profile.username)}`);
+    revalidatePath(`/posts/${postId}`);
+    return { ok: true, pinned: true };
+  } catch {
+    return { ok: false, error: "save" };
+  }
+}
+
 async function requirePollAdmin() {
   const session = await auth();
   const email = session?.user?.email;

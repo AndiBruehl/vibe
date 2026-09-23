@@ -18,6 +18,7 @@ import ReportButton from "@/app/components/ReportButton";
 import SharePostButton from "@/app/components/SharePostButton";
 import AdminBadge from "@/app/components/AdminBadge";
 import ProfileAvatar from "@/app/components/ProfileAvatar";
+import ProfilePostPinButton from "@/app/components/ProfilePostPinButton";
 
 
 export default async function SinglePostPage({
@@ -129,6 +130,9 @@ export default async function SinglePostPage({
 
   const isOwner = viewerEmail === post.authorEmail;
   const isAdmin = viewer?.isAdmin === true && isSuperAdmin(viewerEmail);
+  const existingPin = isOwner && viewer
+    ? await prisma.profilePinnedPost.findUnique({ where: { profileId_postId: { profileId: viewer.id, postId: post.id } }, select: { id: true } })
+    : null;
 
   return (
     <>
@@ -167,6 +171,8 @@ export default async function SinglePostPage({
                 />
 
                 <SharePostButton postId={post.id} de={de} />
+
+                {isOwner && <ProfilePostPinButton postId={post.id} initialPinned={Boolean(existingPin)} language={de ? "de" : "en"} />}
 
                 <BookmarkButton
                   postId={post.id}

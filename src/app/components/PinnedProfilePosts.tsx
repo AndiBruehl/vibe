@@ -10,21 +10,16 @@ type Props = { email: string; language: "de" | "en"; canManage?: boolean };
 export default async function PinnedProfilePosts({ email, language, canManage = false }: Props) {
   const de = language === "de";
   let pinnedPosts: Array<{ id: string; image: string; images: string[]; mediaTypes: string[]; description: string; createdAt: Date }> = [];
-  let availablePosts: Array<{ id: string; description: string; createdAt: Date }> = [];
   let unavailable = false;
 
   try {
     const profile = await prisma.profile.findUnique({ where: { email }, select: { id: true } });
     if (!profile) return null;
     const pinRows = await prisma.profilePinnedPost.findMany({ where: { profileId: profile.id }, orderBy: { position: "asc" }, select: { postId: true } });
-    const [posts, choices] = await Promise.all([
-      pinRows.length ? prisma.post.findMany({ where: { id: { in: pinRows.map((pin) => pin.postId) }, authorEmail: email, isArchived: false }, select: { id: true, image: true, images: true, mediaTypes: true, description: true, createdAt: true } }) : Promise.resolve([]),
-      canManage ? prisma.post.findMany({ where: { authorEmail: email, isArchived: false }, orderBy: { createdAt: "desc" }, select: { id: true, description: true, createdAt: true }, take: 100 }) : Promise.resolve([]),
-    ]);
+    const posts = pinRows.length ? await prisma.post.findMany({ where: { id: { in: pinRows.map((pin) => pin.postId) }, authorEmail: email, isArchived: false }, select: { id: true, image: true, images: true, mediaTypes: true, description: true, createdAt: true } }) : [];
     const postById = new Map(posts.map((post) => [post.id, post]));
     // Stale pin records (for example from an older deployment) are ignored safely.
     pinnedPosts = pinRows.map((pin) => postById.get(pin.postId)).filter((post): post is NonNullable<typeof post> => Boolean(post));
-    availablePosts = choices;
   } catch {
     unavailable = true;
   }
@@ -41,6 +36,6 @@ export default async function PinnedProfilePosts({ email, language, canManage = 
         </article>)}
       </div>
     </section>}
-    {canManage && <PinnedPostsManager posts={availablePosts} initialIds={pinnedPosts.map((post) => post.id)} language={language} unavailable={unavailable} />}
+    {canManage && <PinnedPostsManager posts={pinnedPosts.map((post) => ({ id: post.id, description: post.description, createdAt: post.createdAt }))} language={language} unavailable={unavailable} />}
   </>;
 }

@@ -6,6 +6,7 @@ import ProgressiveImage from "./ProgressiveImage";
 import PostThumbnail from "./PostThumbnail";
 import { getPostMediaTypes } from "@/post-images";
 import PinnedProfilePosts from "./PinnedProfilePosts";
+import ProfilePostPinButton from "./ProfilePostPinButton";
 
 export default async function ProfilePosts({ email, language = "en", canManagePins = false }: { email: string; language?: "de" | "en"; canManagePins?: boolean }) {
   let posts: Awaited<ReturnType<typeof prisma.post.findMany>> = [];
@@ -20,6 +21,19 @@ export default async function ProfilePosts({ email, language = "en", canManagePi
     // The pin section and normal feed fail independently, so one transient query
     // failure does not hide otherwise available profile content.
     postLoadFailed = true;
+  }
+
+  let pinnedPostIds = new Set<string>();
+  if (canManagePins) {
+    try {
+      const profile = await prisma.profile.findUnique({ where: { email }, select: { id: true } });
+      if (profile) {
+        const pins = await prisma.profilePinnedPost.findMany({ where: { profileId: profile.id }, select: { postId: true } });
+        pinnedPostIds = new Set(pins.map((pin) => pin.postId));
+      }
+    } catch {
+      // Pin buttons stay usable after the next refresh; the feed itself remains available.
+    }
   }
 
   if (posts.length === 0 && !canManagePins && !postLoadFailed) {
@@ -43,6 +57,7 @@ export default async function ProfilePosts({ email, language = "en", canManagePi
             <div className="relative aspect-square w-full overflow-hidden">
               <PostImageCount images={post.images}/>
               <PostThumbnail href={`/posts/${post.id}`} src={post.image} mediaType={getPostMediaTypes(post)[0]} alt={post.description || "Post media"} />
+              {canManagePins && <ProfilePostPinButton postId={post.id} initialPinned={pinnedPostIds.has(post.id)} language={language} className="absolute right-2 top-2 z-10" />}
             </div>
 
             <div className="space-y-2 p-3">
