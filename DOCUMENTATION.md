@@ -24,6 +24,8 @@ Curated badges are defined in `src/profile-badges.ts`, not created by members. T
 
 `AdminBadge` renders the protected Admin and Verified statuses together with every assigned, non-hidden curated badge. The same component is used in profile headers, directory results, posts, comments, and feed cards. Badge changes are audited as `profile-badge` activity. A member may hide a badge but cannot create, alter, or award one.
 
+Badge readers treat missing or malformed legacy arrays as empty. The Settings visibility control restores the prior local state and shows a localized retry message if its server action fails.
+
 ### Home changelog
 
 The Home page places a collapsed, English-language Changelog between stories and the feed controls. `src/release-notes.ts` is its single source of truth. New web releases must be added at the top with version, `YYYY-MM-DD` date, and concise English change bullets so the newest changes always appear first.

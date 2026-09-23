@@ -13,6 +13,7 @@ export const webReleaseNotes: ReleaseNote[] = [
       "Added curated profile badges that administrators can award or remove.",
       "Added member controls to show or hide each awarded badge publicly.",
       "Added badge display alongside existing Admin and Verified statuses across profile, post, comment, and directory views.",
+      "Added safe fallbacks for older profile data and unsuccessful badge updates.",
     ],
   },
   {
