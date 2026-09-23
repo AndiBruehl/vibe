@@ -32,6 +32,20 @@ Milestones are stored on each `Profile` in `milestoneBadges`, with optional memb
 
 Both the signed-in profile route and the public username route refresh milestone progress. Public-profile refreshes are guarded so a temporary Prisma or MongoDB failure cannot make the profile page fail; the last stored milestone snapshot remains usable. Missing or malformed legacy arrays are treated as empty by the display component. The `ProfileMilestones` component receives the profile layout and aligns its heading and badges consistently: Compact is left aligned, Spotlight is centered, and Standard follows the header's text alignment.
 
+### Profile look JSON interchange (0.1.77)
+
+Saved profile looks can be exported as an open JSON document using `format: "vibe-profile-look"` and `version: 1`. Each document contains only a preset name and appearance fields: avatar-frame colors and direction, profile accent, header layout, header background settings, and header text color. The Settings import control accepts `.json` files up to 100 KB, validates the envelope locally, and creates the imported preset through the existing authenticated appearance-preset endpoint.
+
+The server remains the authority for every imported field. It normalizes colors, layouts, frame directions, background modes, and image URLs and ignores arbitrary extra keys. The preset limit, ownership, and duplicate-name handling are the same as when a member creates a look normally. Exports never include profile identity, contact links, biography text, roles, badges, or other private account data.
+
+The import UI reports the actual recoverable cause in the member's language: malformed JSON, incompatible VIBE file envelope, empty or oversized file, saved-look limit, or a temporary import failure. This avoids presenting an import problem as a generic settings-save error.
+
+### Persistent Settings routes (0.1.78)
+
+Settings state is represented by query parameters rather than temporary client-only tabs. `/settings?tab=profile`, `/settings?tab=account`, `/settings?tab=appearance&section=general`, `/settings?tab=appearance&section=background`, `/settings?tab=appearance&section=layout`, and `/settings?tab=appearance&section=avatar` open their corresponding areas after a refresh or direct navigation. Tab changes use the browser History API, so the address changes without triggering a route navigation or full Settings reload.
+
+Appearance apply, reset, and restore actions retain their local state after successful server updates rather than refreshing the full Settings route. This prevents users from being returned to the default Profile tab after an action while preserving the server as the source of truth.
+
 ### Home changelog
 
 The Home page places a collapsed, English-language Changelog between stories and the feed controls. `src/release-notes.ts` is its single source of truth. New web releases must be added at the top with version, `YYYY-MM-DD` date, and concise English change bullets so the newest changes always appear first.

@@ -1,5 +1,10 @@
 # VIBE TODO
 
+## BETA 0.1.78 — Persistent Settings routes
+
+- Keep the active Settings tab and profile-look section in the URL so refreshes and bookmarks restore the same location. ✅
+- Avoid resetting Settings navigation after profile-look actions. ✅
+
 ## BETA 0.1.65
 
 - Add reports for profiles, posts, and comments, plus a moderation inbox on the admin page.
@@ -43,7 +48,7 @@
 
 - Plan and implement an **Impressum**: decide its placement and provide a consistent entry point in the web, Android, and desktop apps.
 
-## BETA 0.1.69.14.5 — Profile look export and import
+## BETA 0.1.77 — Profile look export and import
 
 - Let members export a saved profile look as a shareable link or file and import a compatible look into their own saved looks.
 - Define the sharing and validation model first so imported data contains only safe appearance fields and never profile identity, roles, links, or private data.

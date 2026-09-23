@@ -1,10 +1,10 @@
 "use client";
 
-import { ArrowDownLeft, ArrowDownRight, ArrowUpLeft, ArrowUpRight, BookmarkPlus, ImageUp, Link as LinkIcon, LoaderCircle, Lock, MonitorSmartphone, Moon, Pipette, Plus, Search, ShieldCheck, SlidersHorizontal, Sun, Trash2, UserRound, X } from "lucide-react";
+import { ArrowDownLeft, ArrowDownRight, ArrowUpLeft, ArrowUpRight, BookmarkPlus, Download, ImageUp, Link as LinkIcon, LoaderCircle, Lock, MonitorSmartphone, Moon, Pipette, Plus, Search, ShieldCheck, SlidersHorizontal, Sun, Trash2, Upload, UserRound, X } from "lucide-react";
 import { Switch } from "@radix-ui/themes";
 import type { Profile } from "@prisma/client";
 import { upsertProfile } from "@/actions";
-import { startTransition, useEffect, useRef, useState, type ChangeEvent, type DragEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type DragEvent } from "react";
 import LanguageSwitcher from "@/app/components/LanguageSwitcher";
 import MentionTextarea from "@/app/components/MentionTextarea";
 import ShoutoutEditor from "@/app/components/ShoutoutEditor";
@@ -14,7 +14,7 @@ import ProfileVisibilitySettings from "@/app/components/ProfileVisibilitySetting
 import ProfileBadgeVisibility from "@/app/components/ProfileBadgeVisibility";
 import { applyTheme, type ThemePreference } from "@/app/components/ProfileThemeRuntime";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { AVATAR_ACCENT_PRESETS, AVATAR_FRAME_DIRECTIONS, AVATAR_FRAME_GRADIENTS, DEFAULT_AVATAR_ACCENT, DEFAULT_PROFILE_ACCENT, DEFAULT_PROFILE_HEADER_BACKGROUND_COLOR, avatarFrameConfig, avatarFrameStyle, normalizeAvatarAccent, normalizeProfileAccent, normalizeProfileHeaderBackgroundMode, normalizeProfileHeaderLayout, normalizeProfileHeaderTextColor, profileHeaderBackgroundStyle, type ProfileHeaderBackgroundMode, type ProfileHeaderLayout } from "@/profile-personalization";
 
 import defaultImg from "./default.jpg";
@@ -27,10 +27,33 @@ type SettingsFormProps = {
 
 type EditableProfileLink = { id: string; label: string; url: string };
 
+type SettingsTab = "profile" | "preferences" | "account";
+type AppearanceSection = "general" | "profile";
+type PersonalizationSection = "layout" | "background" | "avatar";
+
+function settingsRoute(params: { get(name: string): string | null }) {
+  const tab = params.get("tab");
+  const section = params.get("section");
+  if (tab === "account") return { tab: "account" as SettingsTab, appearance: "general" as AppearanceSection, personalization: "background" as PersonalizationSection };
+  if (tab === "appearance") {
+    if (section === "layout" || section === "background" || section === "avatar") return { tab: "preferences" as SettingsTab, appearance: "profile" as AppearanceSection, personalization: section as PersonalizationSection };
+    return { tab: "preferences" as SettingsTab, appearance: "general" as AppearanceSection, personalization: "background" as PersonalizationSection };
+  }
+  return { tab: "profile" as SettingsTab, appearance: "general" as AppearanceSection, personalization: "background" as PersonalizationSection };
+}
+
+function settingsPath(tab: SettingsTab, appearance: AppearanceSection = "general", personalization: PersonalizationSection = "background") {
+  if (tab === "account") return "/settings?tab=account";
+  if (tab === "preferences") return appearance === "profile" ? `/settings?tab=appearance&section=${personalization}` : "/settings?tab=appearance&section=general";
+  return "/settings?tab=profile";
+}
+
 export default function SettingsForm({ profile }: SettingsFormProps) {
-  const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialRoute = settingsRoute(searchParams);
   const fileInRef = useRef<HTMLInputElement>(null);
   const headerBackgroundFileRef = useRef<HTMLInputElement>(null);
+  const appearanceImportRef = useRef<HTMLInputElement>(null);
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(
     profile?.avatar ?? null,
@@ -56,6 +79,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
   const [appearancePresets, setAppearancePresets] = useState<AppearancePreset[]>(profile?.appearancePresets ?? []);
   const [appearancePresetName, setAppearancePresetName] = useState("");
   const [isSavingAppearancePreset, setIsSavingAppearancePreset] = useState(false);
+  const [appearanceImportError, setAppearanceImportError] = useState<"invalid-json" | "unsupported" | "too-large" | "limit" | "unavailable" | null>(null);
   const [isApplyingAppearancePreset, setIsApplyingAppearancePreset] = useState(false);
   const [previewAppearancePreset, setPreviewAppearancePreset] = useState<AppearancePreset | null>(null);
   const [lastAppliedAppearance, setLastAppliedAppearance] = useState<{ appearance: Omit<AppearancePreset, "id" | "name" | "isDefault">; presetName: string } | null>(null);
@@ -66,7 +90,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [saveFeedback, setSaveFeedback] = useState<"saved" | "failed" | null>(null);
+  const [saveFeedback, setSaveFeedback] = useState<"saved" | "failed" | "import-failed" | null>(null);
   const [themePreference, setThemePreference] = useState<ThemePreference>(profile?.theme === "light" || profile?.theme === "dark" ? profile.theme : "system");
   const [isPrivate, setIsPrivate] = useState(profile?.isPrivate ?? false);
   const [notificationPreferences, setNotificationPreferences] = useState({
@@ -78,15 +102,24 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
   });
   const [isSavingNotificationPreferences, setIsSavingNotificationPreferences] = useState(false);
   const [language, setLanguage] = useState<"en" | "de">("en");
-  const [activeTab, setActiveTab] = useState<"profile" | "preferences" | "account">("profile");
-  const [activeAppearanceSection, setActiveAppearanceSection] = useState<"general" | "profile">("general");
-  const [activePersonalizationSection, setActivePersonalizationSection] = useState<"layout" | "background" | "avatar">("background");
+  const [activeTab, setActiveTab] = useState<SettingsTab>(initialRoute.tab);
+  const [activeAppearanceSection, setActiveAppearanceSection] = useState<AppearanceSection>(initialRoute.appearance);
+  const [activePersonalizationSection, setActivePersonalizationSection] = useState<PersonalizationSection>(initialRoute.personalization);
   const [settingsSearch, setSettingsSearch] = useState("");
   const [profileLinks, setProfileLinks] = useState<EditableProfileLink[]>(
     profile?.profileLinks?.map((link) => ({ id: link.id, label: link.label, url: link.url })) ?? [],
   );
   const de = language === "de";
   const copy = (english: string, german: string) => de ? german : english;
+  const appearanceImportErrorText = appearanceImportError === "invalid-json"
+    ? copy("This JSON file is damaged or contains formatting errors.", "Diese JSON-Datei ist beschädigt oder enthält Formatierungsfehler.")
+    : appearanceImportError === "unsupported"
+      ? copy("This is not a compatible VIBE profile-look file.", "Das ist keine kompatible VIBE-Profil-Look-Datei.")
+      : appearanceImportError === "too-large"
+        ? copy("This JSON file is empty or too large. The limit is 100 KB.", "Diese JSON-Datei ist leer oder zu groß. Das Limit beträgt 100 KB.")
+        : appearanceImportError === "limit"
+          ? copy("You already have six saved profile looks. Remove one before importing.", "Du hast bereits sechs gespeicherte Profil-Looks. Entferne einen, bevor du importierst.")
+          : copy("The look could not be imported right now. Please try again.", "Der Look konnte gerade nicht importiert werden. Bitte versuche es erneut.");
   const settingsSearchItems = [
     { id: "background", label: copy("Header background", "Header-Hintergrund"), hint: copy("Image, color and gradient", "Bild, Farbe und Verlauf"), tab: "preferences" as const, appearance: "profile" as const, personalization: "background" as const, terms: "background header image color gradient text hintergrund bild farbe verlauf text" },
     { id: "layout", label: copy("Profile header layout", "Profilkopf-Layout"), hint: copy("Standard, compact or spotlight", "Standard, kompakt oder Fokus"), tab: "preferences" as const, appearance: "profile" as const, personalization: "layout" as const, terms: "layout compact spotlight fokus profilkopf" },
@@ -100,8 +133,19 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
   function openSetting(item: typeof settingsSearchItems[number]) {
     setActiveTab(item.tab);
     if (item.tab === "preferences" && item.appearance && item.personalization) { setActiveAppearanceSection(item.appearance); setActivePersonalizationSection(item.personalization); }
+    window.history.pushState(null, "", settingsPath(item.tab, item.appearance ?? "general", item.personalization ?? "background"));
     setSettingsSearch("");
   }
+
+  function openSettingsSection(tab: SettingsTab, appearance: AppearanceSection = "general", personalization: PersonalizationSection = "background") {
+    setActiveTab(tab); setActiveAppearanceSection(appearance); setActivePersonalizationSection(personalization);
+    window.history.pushState(null, "", settingsPath(tab, appearance, personalization));
+  }
+
+  useEffect(() => {
+    const route = settingsRoute(searchParams);
+    setActiveTab(route.tab); setActiveAppearanceSection(route.appearance); setActivePersonalizationSection(route.personalization);
+  }, [searchParams]);
 
   useEffect(() => {
     setLanguage(localStorage.getItem("vibe-language") === "de" ? "de" : "en");
@@ -154,7 +198,6 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
       await upsertProfile(formData);
       setIsDirty(false);
       setSaveFeedback("saved");
-      startTransition(() => router.refresh());
       window.setTimeout(() => setSaveFeedback(null), 2500);
     } catch {
       setSaveFeedback("failed");
@@ -339,7 +382,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
     try {
       const response = await fetch("/api/profile/appearance-presets", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ presetId: preset.id }) });
       if (!response.ok) throw new Error("Could not apply profile look");
-      setLastAppliedAppearance({ appearance: previous, presetName: preset.name }); setSaveFeedback("saved"); startTransition(() => router.refresh());
+      setLastAppliedAppearance({ appearance: previous, presetName: preset.name }); setSaveFeedback("saved");
     } catch { applyAppearanceToState(previous); setSaveFeedback("failed"); } finally { setIsApplyingAppearancePreset(false); }
   }
 
@@ -349,7 +392,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
     try {
       const response = await fetch("/api/profile/appearance-presets", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "reset" }) });
       if (!response.ok) throw new Error("Could not reset profile look");
-      const { appearance } = await response.json(); applyAppearanceToState(appearance); setSaveFeedback("saved"); startTransition(() => router.refresh());
+      const { appearance } = await response.json(); applyAppearanceToState(appearance); setSaveFeedback("saved");
     } catch { applyAppearanceToState(previous); setSaveFeedback("failed"); } finally { setIsApplyingAppearancePreset(false); }
   }
 
@@ -365,7 +408,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
     try {
       const response = await fetch("/api/profile/appearance-presets", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "restore", ...restoring.appearance }) });
       if (!response.ok) throw new Error("Could not restore profile look");
-      applyAppearanceToState(restoring.appearance); setLastAppliedAppearance(null); setSaveFeedback("saved"); startTransition(() => router.refresh());
+      applyAppearanceToState(restoring.appearance); setLastAppliedAppearance(null); setSaveFeedback("saved");
     } catch { setSaveFeedback("failed"); } finally { setIsApplyingAppearancePreset(false); }
   }
 
@@ -391,6 +434,61 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
     } catch { setSaveFeedback("failed"); } finally { setIsApplyingAppearancePreset(false); }
   }
 
+  function exportAppearancePreset(preset: AppearancePreset) {
+    const payload = {
+      format: "vibe-profile-look",
+      version: 1,
+      name: preset.name,
+      appearance: {
+        avatarAccent: preset.avatarAccent,
+        avatarAccentEnd: preset.avatarAccentEnd,
+        avatarAccentDirection: preset.avatarAccentDirection,
+        profileAccent: preset.profileAccent,
+        profileHeaderLayout: preset.profileHeaderLayout,
+        profileHeaderBackgroundMode: preset.profileHeaderBackgroundMode,
+        profileHeaderBackgroundImage: preset.profileHeaderBackgroundImage,
+        profileHeaderBackgroundColor: preset.profileHeaderBackgroundColor,
+        profileHeaderBackgroundEnd: preset.profileHeaderBackgroundEnd,
+        profileHeaderTextColor: preset.profileHeaderTextColor,
+      },
+    };
+    const fileName = `${preset.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "profile-look"}.vibe-look.json`;
+    const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
+    const link = document.createElement("a");
+    link.href = url; link.download = fileName; link.click(); URL.revokeObjectURL(url);
+  }
+
+  async function importAppearancePreset(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || isSavingAppearancePreset) return;
+    setIsSavingAppearancePreset(true); setSaveFeedback(null); setAppearanceImportError(null);
+    try {
+      if (!file.name.toLowerCase().endsWith(".json")) throw new Error("unsupported");
+      if (!file.size || file.size > 100_000) throw new Error("too-large");
+      let data: unknown;
+      try { data = JSON.parse(await file.text()); } catch { throw new Error("invalid-json"); }
+      if (!data || typeof data !== "object") throw new Error("invalid-json");
+      const imported = data as { format?: unknown; version?: unknown; name?: unknown; appearance?: unknown };
+      if (imported.format !== "vibe-profile-look" || imported.version !== 1 || typeof imported.name !== "string" || !imported.appearance || typeof imported.appearance !== "object") throw new Error("unsupported");
+      const name = imported.name.trim().replace(/\s+/g, " ").slice(0, 32);
+      if (!name) throw new Error("invalid-json");
+      const response = await fetch("/api/profile/appearance-presets", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, ...(imported.appearance as Record<string, unknown>) }) });
+      if (!response.ok) {
+        const result = await response.json().catch(() => null) as { error?: unknown } | null;
+        if (typeof result?.error === "string" && result.error.includes("up to")) throw new Error("limit");
+        throw new Error("unavailable");
+      }
+      const { preset } = await response.json() as { preset: AppearancePreset };
+      setAppearancePresets((current) => [preset, ...current.filter((item) => item.id !== preset.id)]);
+      setSaveFeedback("saved");
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "unavailable";
+      setAppearanceImportError(reason === "invalid-json" || reason === "unsupported" || reason === "too-large" || reason === "limit" ? reason : "unavailable");
+      setSaveFeedback("import-failed");
+    } finally { setIsSavingAppearancePreset(false); }
+  }
+
   return (
     <form action={saveProfile} onChange={(event) => { if (event.target instanceof HTMLInputElement && event.target.type === "color") return; setIsDirty(true); }} className="space-y-5">
       <div className="relative">
@@ -399,9 +497,9 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
         {normalizedSettingsSearch && <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-slate-700 dark:bg-slate-900">{matchingSettings.length ? matchingSettings.map((item) => <button key={item.id} type="button" onClick={() => openSetting(item)} className="block w-full rounded-lg px-3 py-2.5 text-left transition hover:bg-orange-50 dark:hover:bg-orange-500/10"><span className="block text-sm font-bold text-slate-800 dark:text-white">{item.label}</span><span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">{item.hint}</span></button>) : <p className="px-3 py-3 text-sm text-slate-500 dark:text-slate-400">{copy("No settings found.", "Keine Einstellungen gefunden.")}</p>}</div>}
       </div>
       <nav className="flex gap-2 rounded-xl bg-slate-100 p-1 dark:bg-slate-800" aria-label={copy("Settings sections", "Einstellungsbereiche")}>
-        <button type="button" onClick={() => setActiveTab("profile")} className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ${activeTab === "profile" ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100"}`}><UserRound size={16} />{copy("Profile", "Profil")}</button>
-        <button type="button" onClick={() => setActiveTab("preferences")} className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ${activeTab === "preferences" ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100"}`}><SlidersHorizontal size={16} />{copy("Appearance & privacy", "Darstellung & Privatsphäre")}</button>
-        <button type="button" onClick={() => setActiveTab("account")} className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ${activeTab === "account" ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100"}`}><ShieldCheck size={16} />{copy("Account & app", "Konto & App")}</button>
+        <button type="button" onClick={() => openSettingsSection("profile")} className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ${activeTab === "profile" ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100"}`}><UserRound size={16} />{copy("Profile", "Profil")}</button>
+        <button type="button" onClick={() => openSettingsSection("preferences")} className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ${activeTab === "preferences" ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100"}`}><SlidersHorizontal size={16} />{copy("Appearance & privacy", "Darstellung & Privatsphäre")}</button>
+        <button type="button" onClick={() => openSettingsSection("account")} className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ${activeTab === "account" ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100"}`}><ShieldCheck size={16} />{copy("Account & app", "Konto & App")}</button>
       </nav>
       {activeTab === "profile" && <Link href="/milestones" className="mt-4 flex items-center justify-between rounded-2xl border border-violet-400/60 bg-linear-to-r from-violet-600 to-fuchsia-600 px-5 py-4 text-white no-underline shadow-lg shadow-violet-500/20 transition hover:-translate-y-0.5 hover:brightness-110"><span><span className="block text-xs font-black tracking-[.16em] text-white/75">VIBE MILESTONES</span><span className="mt-1 block text-base font-black">{copy("Your milestones", "Deine Meilensteine")}</span><span className="mt-0.5 block text-xs font-medium text-white/85">{copy("See goals, progress and badge visibility", "Ziele, Fortschritt und Badge-Sichtbarkeit ansehen")}</span></span><span className="text-2xl" aria-hidden="true">→</span></Link>}
       <div className={activeTab === "profile" ? "flex flex-col gap-5 lg:flex-row lg:items-start" : "hidden"}>
@@ -544,7 +642,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
       </div>
 
       <div className={activeTab === "preferences" ? "space-y-3" : "hidden"}>
-      <div className="grid grid-cols-2 rounded-xl bg-slate-100 p-1 text-xs font-bold dark:bg-slate-800"><button type="button" onClick={() => setActiveAppearanceSection("general")} className={`rounded-lg px-3 py-2 transition ${activeAppearanceSection === "general" ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 dark:text-slate-400"}`}>{copy("General", "Allgemein")}</button><button type="button" onClick={() => setActiveAppearanceSection("profile")} className={`rounded-lg px-3 py-2 transition ${activeAppearanceSection === "profile" ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 dark:text-slate-400"}`}>{copy("Profile look", "Profil-Look")}</button></div>
+      <div className="grid grid-cols-2 rounded-xl bg-slate-100 p-1 text-xs font-bold dark:bg-slate-800"><button type="button" onClick={() => openSettingsSection("preferences", "general")} className={`rounded-lg px-3 py-2 transition ${activeAppearanceSection === "general" ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 dark:text-slate-400"}`}>{copy("General", "Allgemein")}</button><button type="button" onClick={() => openSettingsSection("preferences", "profile", "background")} className={`rounded-lg px-3 py-2 transition ${activeAppearanceSection === "profile" ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 dark:text-slate-400"}`}>{copy("Profile look", "Profil-Look")}</button></div>
       <div className={activeAppearanceSection === "general" ? "space-y-3" : "hidden"}>
       <section className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 dark:border-slate-700 dark:bg-slate-800/60">
         <div className="flex items-center gap-3">
@@ -570,7 +668,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
       <div className={activeAppearanceSection === "profile" ? "space-y-3" : "hidden"}>
       <section className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 dark:border-slate-700 dark:bg-slate-800/60">
         <div className="mb-3 flex items-center gap-3"><span className="grid size-9 place-items-center rounded-xl bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200"><Pipette size={17} /></span><div><p className="font-semibold text-slate-900 dark:text-white">{copy("Profile personalization", "Profil-Personalisierung")}</p><p className="text-xs text-slate-500 dark:text-slate-400">{copy("Profile image frame and link accent", "Profilbildrahmen und Link-Akzent")}</p></div>
-        <div className="grid grid-cols-3 rounded-xl bg-slate-100 p-1 text-xs font-bold dark:bg-slate-800" role="tablist" aria-label={copy("Profile personalization sections", "Bereiche der Profil-Personalisierung")}>{([{ value: "background", label: copy("Background", "Hintergrund") }, { value: "layout", label: copy("Layout", "Layout") }, { value: "avatar", label: copy("Profile frame & accents", "Profilbildrahmen & Akzente") }] as const).map(({ value, label }) => <button key={value} type="button" role="tab" aria-selected={activePersonalizationSection === value} onClick={() => setActivePersonalizationSection(value)} className={`rounded-lg px-2 py-2.5 text-xs font-bold transition ${activePersonalizationSection === value ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"}`}>{label}</button>)}</div>
+        <div className="grid grid-cols-3 rounded-xl bg-slate-100 p-1 text-xs font-bold dark:bg-slate-800" role="tablist" aria-label={copy("Profile personalization sections", "Bereiche der Profil-Personalisierung")}>{([{ value: "background", label: copy("Background", "Hintergrund") }, { value: "layout", label: copy("Layout", "Layout") }, { value: "avatar", label: copy("Profile frame & accents", "Profilbildrahmen & Akzente") }] as const).map(({ value, label }) => <button key={value} type="button" role="tab" aria-selected={activePersonalizationSection === value} onClick={() => openSettingsSection("preferences", "profile", value)} className={`rounded-lg px-2 py-2.5 text-xs font-bold transition ${activePersonalizationSection === value ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"}`}>{label}</button>)}</div>
 </div>
         <details open className={activePersonalizationSection === "layout" ? "group rounded-xl border border-slate-200 bg-white/60 px-3 py-2 dark:border-slate-700/80 dark:bg-slate-900/20" : "hidden"}>
           <summary className="flex cursor-pointer list-none items-center justify-between py-1 text-sm font-bold text-slate-800 marker:content-none dark:text-white"><span>{copy("Profile header layout", "Profilkopf-Layout")}</span><span aria-hidden="true" className="text-slate-400 transition group-open:rotate-180">⌄</span></summary>
@@ -618,9 +716,9 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
           <div className="mt-3 overflow-hidden rounded-xl border border-slate-200 bg-slate-950 p-3 text-white dark:border-slate-700" style={profileHeaderBackgroundStyle(profileHeaderBackgroundMode, profileHeaderBackgroundImage, profileHeaderBackgroundColor, profileHeaderBackgroundEnd)}>
             <div className="rounded-lg bg-slate-950/40 p-3 backdrop-blur-sm" style={{ color: profileHeaderTextColor }}><div className={`flex gap-3 ${profileHeaderLayout === "spotlight" ? "flex-col items-center text-center" : profileHeaderLayout === "compact" ? "flex-row-reverse items-start text-left" : "items-center text-left"}`}><span className="size-12 shrink-0 rounded-full p-0.5" style={avatarFrameStyle(avatarAccent, avatarAccentEnd, avatarAccentDirection)}><span className="block size-full rounded-full bg-slate-200" /></span><span className="min-w-0"><span className="block truncate text-sm font-bold">{profile?.name || copy("Your profile", "Dein Profil")}</span><span className="mt-1 block text-xs opacity-85">{copy("A compact public preview", "Kompakte öffentliche Vorschau")}</span></span></div></div>
           </div>
-          <div className="mt-3 flex flex-col gap-2 sm:flex-row"><input value={appearancePresetName} maxLength={32} onChange={(event) => setAppearancePresetName(event.target.value)} placeholder={copy("Name this look", "Diesen Look benennen")} className="min-h-10 min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-orange-400 focus:ring-4 focus:ring-orange-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500" /><button type="button" onClick={() => void saveAppearancePreset()} disabled={!appearancePresetName.trim() || isSavingAppearancePreset} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-orange-400/60 bg-orange-50 px-3 py-2 text-sm font-bold text-orange-700 transition hover:bg-orange-100 disabled:opacity-50 dark:bg-orange-500/10 dark:text-orange-300 dark:hover:bg-orange-500/20"><BookmarkPlus size={15} />{isSavingAppearancePreset ? copy("Saving...", "Wird gespeichert...") : copy("Save look", "Look speichern")}</button></div>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row"><input value={appearancePresetName} maxLength={32} onChange={(event) => setAppearancePresetName(event.target.value)} placeholder={copy("Name this look", "Diesen Look benennen")} className="min-h-10 min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-orange-400 focus:ring-4 focus:ring-orange-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500" /><button type="button" onClick={() => void saveAppearancePreset()} disabled={!appearancePresetName.trim() || isSavingAppearancePreset} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-orange-400/60 bg-orange-50 px-3 py-2 text-sm font-bold text-orange-700 transition hover:bg-orange-100 disabled:opacity-50 dark:bg-orange-500/10 dark:text-orange-300 dark:hover:bg-orange-500/20"><BookmarkPlus size={15} />{isSavingAppearancePreset ? copy("Saving...", "Wird gespeichert...") : copy("Save look", "Look speichern")}</button><input ref={appearanceImportRef} type="file" accept="application/json,.json" onChange={(event) => void importAppearancePreset(event)} className="sr-only" /><button type="button" onClick={() => appearanceImportRef.current?.click()} disabled={isSavingAppearancePreset || appearancePresets.length >= 6} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-100 disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"><Upload size={15} />{copy("Import JSON", "JSON importieren")}</button></div>
           {lastAppliedAppearance && <div className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800 dark:border-emerald-400/40 dark:bg-emerald-500/10 dark:text-emerald-200"><span>{copy(`Applied ${lastAppliedAppearance.presetName}.`, `${lastAppliedAppearance.presetName} angewendet.`)}</span><button type="button" onClick={() => void undoAppearancePreset()} disabled={isApplyingAppearancePreset} className="rounded-md bg-emerald-700 px-2 py-1 font-bold text-white transition hover:bg-emerald-800 disabled:opacity-60">{copy("Undo", "Rückgängig")}</button></div>}
-          {appearancePresets.length > 0 ? <div className="mt-3 grid gap-2 sm:grid-cols-2">{appearancePresets.map((preset) => <div key={preset.id} className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800/50"><div className="h-12 bg-cover bg-center" style={profileHeaderBackgroundStyle(preset.profileHeaderBackgroundMode, preset.profileHeaderBackgroundImage, preset.profileHeaderBackgroundColor, preset.profileHeaderBackgroundEnd)} /><div className="p-2"><div className="flex items-center gap-2"><span className="size-8 shrink-0 rounded-full p-0.5" style={avatarFrameStyle(preset.avatarAccent, preset.avatarAccentEnd, preset.avatarAccentDirection)}><span className="block size-full rounded-full bg-slate-300 dark:bg-slate-600" /></span>{renamingAppearancePresetId === preset.id ? <form onSubmit={(event) => { event.preventDefault(); void renameAppearancePreset(preset); }} className="flex min-w-0 flex-1 gap-1"><input autoFocus value={renamingAppearancePresetName} maxLength={32} onChange={(event) => setRenamingAppearancePresetName(event.target.value)} className="min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-2 py-1 text-xs text-slate-900 dark:border-slate-600 dark:bg-slate-900 dark:text-white" /><button className="rounded-md bg-slate-800 px-2 text-xs font-bold text-white dark:bg-slate-100 dark:text-slate-900">{copy("Save", "Speichern")}</button></form> : <p className="min-w-0 flex-1 truncate text-sm font-bold text-slate-800 dark:text-white">{preset.name}{preset.isDefault && <span className="ml-1.5 rounded-full bg-orange-100 px-1.5 py-0.5 text-[10px] text-orange-700 dark:bg-orange-500/20 dark:text-orange-300">{copy("Default", "Standard")}</span>}</p>}<button type="button" onClick={() => { setRenamingAppearancePresetId(preset.id); setRenamingAppearancePresetName(preset.name); }} className="text-xs font-bold text-slate-500 hover:text-orange-600 dark:text-slate-400 dark:hover:text-orange-300">{copy("Rename", "Umbenennen")}</button></div><div className="mt-2 flex flex-wrap gap-1.5"><button type="button" onClick={() => setPreviewAppearancePreset(preset)} className="rounded-md border border-slate-300 px-2 py-1 text-xs font-bold text-slate-600 transition hover:bg-white dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700">{copy("Preview", "Vorschau")}</button><button type="button" onClick={() => void applyAppearancePreset(preset)} disabled={isApplyingAppearancePreset} className="rounded-md bg-slate-800 px-2 py-1 text-xs font-bold text-white transition hover:bg-slate-700 disabled:opacity-60 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white">{copy("Apply", "Anwenden")}</button><button type="button" onClick={() => void setDefaultAppearancePreset(preset)} disabled={isApplyingAppearancePreset || preset.isDefault} className="rounded-md border border-orange-400/60 px-2 py-1 text-xs font-bold text-orange-700 transition hover:bg-orange-50 disabled:opacity-50 dark:text-orange-300 dark:hover:bg-orange-500/10">{copy("Set default", "Als Standard")}</button><button type="button" onClick={() => void deleteAppearancePreset(preset.id)} className="grid size-7 place-items-center rounded-md text-red-600 transition hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-500/10" aria-label={copy("Delete saved look", "Gespeicherten Look löschen")}><Trash2 size={14} /></button></div></div></div>)}</div> : <p className="mt-3 rounded-lg bg-slate-100 px-3 py-2 text-xs text-slate-500 dark:bg-slate-800 dark:text-slate-400">{copy("Your saved profile looks will appear here.", "Deine gespeicherten Profil-Looks erscheinen hier.")}</p>}
+          {appearancePresets.length > 0 ? <div className="mt-3 grid gap-2 sm:grid-cols-2">{appearancePresets.map((preset) => <div key={preset.id} className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800/50"><div className="h-12 bg-cover bg-center" style={profileHeaderBackgroundStyle(preset.profileHeaderBackgroundMode, preset.profileHeaderBackgroundImage, preset.profileHeaderBackgroundColor, preset.profileHeaderBackgroundEnd)} /><div className="p-2"><div className="flex items-center gap-2"><span className="size-8 shrink-0 rounded-full p-0.5" style={avatarFrameStyle(preset.avatarAccent, preset.avatarAccentEnd, preset.avatarAccentDirection)}><span className="block size-full rounded-full bg-slate-300 dark:bg-slate-600" /></span>{renamingAppearancePresetId === preset.id ? <form onSubmit={(event) => { event.preventDefault(); void renameAppearancePreset(preset); }} className="flex min-w-0 flex-1 gap-1"><input autoFocus value={renamingAppearancePresetName} maxLength={32} onChange={(event) => setRenamingAppearancePresetName(event.target.value)} className="min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-2 py-1 text-xs text-slate-900 dark:border-slate-600 dark:bg-slate-900 dark:text-white" /><button className="rounded-md bg-slate-800 px-2 text-xs font-bold text-white dark:bg-slate-100 dark:text-slate-900">{copy("Save", "Speichern")}</button></form> : <p className="min-w-0 flex-1 truncate text-sm font-bold text-slate-800 dark:text-white">{preset.name}{preset.isDefault && <span className="ml-1.5 rounded-full bg-orange-100 px-1.5 py-0.5 text-[10px] text-orange-700 dark:bg-orange-500/20 dark:text-orange-300">{copy("Default", "Standard")}</span>}</p>}<button type="button" onClick={() => { setRenamingAppearancePresetId(preset.id); setRenamingAppearancePresetName(preset.name); }} className="text-xs font-bold text-slate-500 hover:text-orange-600 dark:text-slate-400 dark:hover:text-orange-300">{copy("Rename", "Umbenennen")}</button></div><div className="mt-2 flex flex-wrap gap-1.5"><button type="button" onClick={() => setPreviewAppearancePreset(preset)} className="rounded-md border border-slate-300 px-2 py-1 text-xs font-bold text-slate-600 transition hover:bg-white dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700">{copy("Preview", "Vorschau")}</button><button type="button" onClick={() => void applyAppearancePreset(preset)} disabled={isApplyingAppearancePreset} className="rounded-md bg-slate-800 px-2 py-1 text-xs font-bold text-white transition hover:bg-slate-700 disabled:opacity-60 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white">{copy("Apply", "Anwenden")}</button><button type="button" onClick={() => void setDefaultAppearancePreset(preset)} disabled={isApplyingAppearancePreset || preset.isDefault} className="rounded-md border border-orange-400/60 px-2 py-1 text-xs font-bold text-orange-700 transition hover:bg-orange-50 disabled:opacity-50 dark:text-orange-300 dark:hover:bg-orange-500/10">{copy("Set default", "Als Standard")}</button><button type="button" onClick={() => exportAppearancePreset(preset)} className="inline-flex items-center gap-1 rounded-md border border-cyan-400/60 px-2 py-1 text-xs font-bold text-cyan-700 transition hover:bg-cyan-50 dark:text-cyan-300 dark:hover:bg-cyan-500/10"><Download size={13} />{copy("Export", "Exportieren")}</button><button type="button" onClick={() => void deleteAppearancePreset(preset.id)} className="grid size-7 place-items-center rounded-md text-red-600 transition hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-500/10" aria-label={copy("Delete saved look", "Gespeicherten Look löschen")}><Trash2 size={14} /></button></div></div></div>)}</div> : <p className="mt-3 rounded-lg bg-slate-100 px-3 py-2 text-xs text-slate-500 dark:bg-slate-800 dark:text-slate-400">{copy("Your saved profile looks will appear here.", "Deine gespeicherten Profil-Looks erscheinen hier.")}</p>}
           {previewAppearancePreset && <div className="mt-3 overflow-hidden rounded-xl border border-slate-200 bg-slate-950 p-5 text-white shadow-lg dark:border-slate-700" style={profileHeaderBackgroundStyle(previewAppearancePreset.profileHeaderBackgroundMode, previewAppearancePreset.profileHeaderBackgroundImage, previewAppearancePreset.profileHeaderBackgroundColor, previewAppearancePreset.profileHeaderBackgroundEnd)}><div className={`rounded-xl bg-slate-950/45 p-5 backdrop-blur-sm ${previewAppearancePreset.profileHeaderLayout === "spotlight" ? "mx-auto max-w-lg text-center" : previewAppearancePreset.profileHeaderLayout === "compact" ? "text-left" : "max-w-xl text-left"}`} style={{ color: previewAppearancePreset.profileHeaderTextColor }}><div className={`flex gap-4 ${previewAppearancePreset.profileHeaderLayout === "spotlight" ? "flex-col items-center" : previewAppearancePreset.profileHeaderLayout === "compact" ? "flex-row-reverse items-start" : "items-center"}`}><span className="size-20 shrink-0 rounded-full p-1" style={avatarFrameStyle(previewAppearancePreset.avatarAccent, previewAppearancePreset.avatarAccentEnd, previewAppearancePreset.avatarAccentDirection)}><span className="block size-full rounded-full bg-slate-200" /></span><div><p className="text-lg font-bold">{profile?.name || copy("Your profile", "Dein Profil")}</p><p className="mt-1 text-sm opacity-90">{copy("Public profile preview", "Öffentliche Profilvorschau")}</p><p className="mt-3 text-xs opacity-80">{previewAppearancePreset.name} · {previewAppearancePreset.profileHeaderLayout}</p></div></div></div><button type="button" onClick={() => setPreviewAppearancePreset(null)} className="mt-3 rounded-lg bg-white/15 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-white/25">{copy("Close preview", "Vorschau schließen")}</button></div>}
           <button type="button" onClick={() => void resetAppearance()} disabled={isApplyingAppearancePreset} className="mt-3 flex min-h-10 w-full items-center justify-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-600 transition hover:bg-slate-100 disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">{copy("Reset full profile look", "Kompletten Profil-Look zurücksetzen")}</button>
         </section>
@@ -659,7 +757,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
         <AppVersion />
       </div>
       <div className="flex items-center justify-end gap-3 border-t border-slate-200 pt-5 dark:border-slate-700/80">
-        {saveFeedback && <p role="status" className={`text-sm font-semibold ${saveFeedback === "saved" ? "text-emerald-600 dark:text-emerald-300" : "text-red-600 dark:text-red-300"}`}>{saveFeedback === "saved" ? copy("Settings saved", "Einstellungen gespeichert") : copy("Could not save settings", "Einstellungen konnten nicht gespeichert werden")}</p>}
+        {saveFeedback && <p role="status" className={`text-sm font-semibold ${saveFeedback === "saved" ? "text-emerald-600 dark:text-emerald-300" : "text-red-600 dark:text-red-300"}`}>{saveFeedback === "saved" ? copy("Settings saved", "Einstellungen gespeichert") : saveFeedback === "import-failed" ? appearanceImportErrorText : copy("Could not save settings", "Einstellungen konnten nicht gespeichert werden")}</p>}
         <button
           type="submit"
           data-no-auto-spinner="true"
