@@ -68,9 +68,9 @@
 
 ## BETA 0.1.69.17 — Profile badges and achievements
 
-- Add an optional, curated profile-badge area for community and achievement badges.
-- Keep Admin and Verified as protected system statuses while allowing future badges to be independently awarded, time-limited, or opt-in.
-- Give members clear visibility controls for optional badges without allowing custom CSS or arbitrary user-supplied badge markup.
+- Add an optional, curated profile-badge area for community and achievement badges. ✅
+- Keep Admin and Verified as protected system statuses while allowing future badges to be independently awarded, time-limited, or opt-in. ✅
+- Give members clear visibility controls for optional badges without allowing custom CSS or arbitrary user-supplied badge markup. ✅
 
 ## BETA 0.1.69.18 — Profile milestones
 

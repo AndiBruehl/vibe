@@ -10,7 +10,7 @@ export async function getProfileDirectory(query = "", sort = "newest", adminsOnl
       { subtitle: { contains: q, mode: "insensitive" } },
     ] } : {}) },
     // Only public profile fields are sent to directory clients.
-    select: { id: true, name: true, username: true, avatar: true, avatarAccent: true, avatarAccentEnd: true, avatarAccentDirection: true, subtitle: true, bio: true, isAdmin: true, isVerified: true },
+    select: { id: true, name: true, username: true, avatar: true, avatarAccent: true, avatarAccentEnd: true, avatarAccentDirection: true, subtitle: true, bio: true, isAdmin: true, isVerified: true, profileBadges: true, hiddenProfileBadges: true },
   });
   return sortProfiles(profiles, sort);
 }

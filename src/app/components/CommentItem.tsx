@@ -19,6 +19,8 @@ type Author = {
   email?: string | null;
   isAdmin?: boolean;
   isVerified?: boolean;
+  profileBadges?: string[];
+  hiddenProfileBadges?: string[];
 };
 
 type Mention = { username: string | null; name: string | null };
@@ -117,11 +119,11 @@ export default function CommentItem({
                   href={profileHref}
                   className="font-semibold text-slate-900 transition hover:text-slate-700 dark:text-white dark:hover:text-slate-300"
                 >
-                  <span className="inline-flex items-center gap-2">{comment.author.name || "Unknown"}<AdminBadge isAdmin={comment.author.isAdmin} isVerified={comment.author.isVerified} /></span>
+                  <span className="inline-flex items-center gap-2">{comment.author.name || "Unknown"}<AdminBadge isAdmin={comment.author.isAdmin} isVerified={comment.author.isVerified} badges={comment.author.profileBadges} hiddenBadges={comment.author.hiddenProfileBadges} /></span>
                 </Link>
               ) : (
                 <p className="font-semibold text-slate-900 dark:text-white">
-                  <span className="inline-flex items-center gap-2">{comment.author.name || "Unknown"}<AdminBadge isAdmin={comment.author.isAdmin} isVerified={comment.author.isVerified} /></span>
+                  <span className="inline-flex items-center gap-2">{comment.author.name || "Unknown"}<AdminBadge isAdmin={comment.author.isAdmin} isVerified={comment.author.isVerified} badges={comment.author.profileBadges} hiddenBadges={comment.author.hiddenProfileBadges} /></span>
                 </p>
               )}
 

@@ -11,6 +11,8 @@ export type PublicProfile = {
   avatarAccent: string | null; avatarAccentEnd: string | null; avatarAccentDirection: string;
   isAdmin: boolean;
   isVerified: boolean;
+  profileBadges: string[];
+  hiddenProfileBadges: string[];
 };
 
 export function sortProfiles<T extends Pick<PublicProfile, "id" | "name" | "username">>(profiles: T[], sort: string) {

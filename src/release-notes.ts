@@ -7,6 +7,15 @@ export type ReleaseNote = {
 // Keep newest releases first. This is the single source for the Home changelog.
 export const webReleaseNotes: ReleaseNote[] = [
   {
+    version: "0.1.75",
+    date: "2026-09-23",
+    changes: [
+      "Added curated profile badges that administrators can award or remove.",
+      "Added member controls to show or hide each awarded badge publicly.",
+      "Added badge display alongside existing Admin and Verified statuses across profile, post, comment, and directory views.",
+    ],
+  },
+  {
     version: "0.1.74",
     date: "2026-09-23",
     changes: [

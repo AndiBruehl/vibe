@@ -13,6 +13,7 @@ import { appendSupportTicketMessage, sendSupportAcknowledgement } from "@/suppor
 import { supportTemplateText, type SupportTemplateKey } from "@/support-templates";
 
 import { isObjectId } from "@/object-id";
+import { isCuratedProfileBadge } from "@/profile-badges";
 import { normalizeAvatarAccent, normalizeAvatarFrameDirection, normalizeProfileAccent, normalizeProfileHeaderBackgroundImage, normalizeProfileHeaderBackgroundMode, normalizeProfileHeaderLayout, normalizeProfileHeaderTextColor } from "@/profile-personalization";
 const MAX_STORY_SLIDES = 4;
 
@@ -2116,6 +2117,33 @@ Thank you for being part of VIBE and helping shape this community. We are so hap
   revalidatePath("/profiles");
   revalidatePath("/profile");
   revalidatePath("/profile/[username]", "page");
+}
+
+export async function setProfileCuratedBadge(formData: FormData): Promise<void> {
+  const actorEmail = await requireAdminSession();
+  const profileId = formData.get("profileId");
+  const badge = formData.get("badge");
+  const enabled = formData.get("enabled") === "true";
+  if (typeof profileId !== "string" || !isObjectId(profileId) || !isCuratedProfileBadge(badge)) throw new Error("Invalid badge request.");
+  const target = await prisma.profile.findUnique({ where: { id: profileId }, select: { email: true, username: true, isSystem: true, profileBadges: true } });
+  if (!target || target.isSystem) throw new Error("This profile cannot receive a badge.");
+  const profileBadges = enabled ? [...new Set([...target.profileBadges, badge])] : target.profileBadges.filter((item) => item !== badge);
+  await prisma.profile.update({ where: { id: profileId }, data: { profileBadges, hiddenProfileBadges: enabled ? target.profileBadges.filter((item) => item !== badge) : undefined } });
+  await notifyAdmins(actorEmail, "profile-badge", `${enabled ? "Granted" : "Removed"} ${badge} for @${target.username || target.email}`);
+  revalidatePath("/", "layout"); revalidatePath("/admin"); revalidatePath("/profiles"); revalidatePath("/profile"); revalidatePath("/profile/[username]", "page");
+}
+
+export async function updateProfileBadgeVisibility(formData: FormData): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.email) redirect("/");
+  let requested: unknown = [];
+  try { requested = JSON.parse(String(formData.get("hiddenBadges") || "[]")); } catch { throw new Error("Invalid badge visibility."); }
+  if (!Array.isArray(requested) || !requested.every(isCuratedProfileBadge)) throw new Error("Invalid badge visibility.");
+  const profile = await prisma.profile.findUnique({ where: { email: session.user.email }, select: { profileBadges: true, username: true } });
+  if (!profile) throw new Error("Profile not found.");
+  const hiddenProfileBadges = [...new Set(requested)].filter((badge) => profile.profileBadges.includes(badge));
+  await prisma.profile.update({ where: { email: session.user.email }, data: { hiddenProfileBadges } });
+  revalidatePath("/settings"); revalidatePath("/profile"); if (profile.username) revalidatePath(`/profile/${encodeURIComponent(profile.username)}`);
 }
 
 export async function deleteProfileAsSuperAdmin(formData: FormData): Promise<void> {

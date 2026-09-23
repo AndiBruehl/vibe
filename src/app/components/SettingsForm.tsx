@@ -11,6 +11,7 @@ import ShoutoutEditor from "@/app/components/ShoutoutEditor";
 import ReleaseDownloads from "@/app/components/ReleaseDownloads";
 import AppVersion from "@/app/components/AppVersion";
 import ProfileVisibilitySettings from "@/app/components/ProfileVisibilitySettings";
+import ProfileBadgeVisibility from "@/app/components/ProfileBadgeVisibility";
 import { applyTheme, type ThemePreference } from "@/app/components/ProfileThemeRuntime";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -562,6 +563,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
       </section>
 
       <ProfileVisibilitySettings profile={profile ?? {}} language={language} />
+      <ProfileBadgeVisibility badges={profile?.profileBadges ?? []} hiddenBadges={profile?.hiddenProfileBadges ?? []} language={language} />
 
       </div>
       <div className={activeAppearanceSection === "profile" ? "space-y-3" : "hidden"}>

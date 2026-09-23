@@ -18,6 +18,12 @@ Members control links, shoutouts, pinned posts, highlights, topics, and archive 
 
 The setting only affects rendering. It never deletes links, shoutouts, pins, posts, or archive data. An omitted field on a legacy MongoDB document is interpreted as visible, so shipping the feature does not unexpectedly hide profile content. The public username route enforces links, shoutouts, and pins; the owner's profile route also applies the optional profile tabs.
 
+### Curated profile badges (0.1.75)
+
+Curated badges are defined in `src/profile-badges.ts`, not created by members. The initial catalog is Early Member, Community Star, and Creator. Admins assign or remove them in User management. A profile stores all awards in `profileBadges` and personal public-display choices in `hiddenProfileBadges`.
+
+`AdminBadge` renders the protected Admin and Verified statuses together with every assigned, non-hidden curated badge. The same component is used in profile headers, directory results, posts, comments, and feed cards. Badge changes are audited as `profile-badge` activity. A member may hide a badge but cannot create, alter, or award one.
+
 ### Home changelog
 
 The Home page places a collapsed, English-language Changelog between stories and the feed controls. `src/release-notes.ts` is its single source of truth. New web releases must be added at the top with version, `YYYY-MM-DD` date, and concise English change bullets so the newest changes always appear first.
