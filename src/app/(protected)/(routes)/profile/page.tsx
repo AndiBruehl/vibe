@@ -257,7 +257,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
       <section className="mt-4">
         <Suspense fallback={de ? "Beiträge werden geladen..." : "Loading posts..."}>
           {activeTab === "posts" ? (
-            <ProfilePosts email={session.user.email} />
+            <ProfilePosts email={session.user.email} language={de ? "de" : "en"} canManagePins />
           ) : activeTab === "bookmarks" ? (
             <BookmarkPosts email={session.user.email} collectionId={collection} language={de ? "de" : "en"} />
           ) : activeTab === "highlights" ? (

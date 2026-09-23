@@ -6,18 +6,18 @@ export type UnreadMessageStatus = {
   latestUnreadAt: string | null;
 };
 
+const emptyUnreadMessageStatus = (): UnreadMessageStatus => ({ count: 0, latestUnreadAt: null });
+
 export async function getUnreadMessageStatus(
   email?: string,
 ): Promise<UnreadMessageStatus> {
   const sessionEmail = email ?? (await auth())?.user?.email;
 
   if (!sessionEmail) {
-    return {
-      count: 0,
-      latestUnreadAt: null,
-    };
+    return emptyUnreadMessageStatus();
   }
 
+  try {
   const currentUserProfile = await prisma.profile.findUnique({
     where: {
       email: sessionEmail,
@@ -34,10 +34,7 @@ export async function getUnreadMessageStatus(
   });
 
   if (!currentUserProfile) {
-    return {
-      count: 0,
-      latestUnreadAt: null,
-    };
+    return emptyUnreadMessageStatus();
   }
 
   const unreadConversationStatus = await Promise.all(
@@ -79,6 +76,11 @@ export async function getUnreadMessageStatus(
     count: unreadConversations.length,
     latestUnreadAt: latestUnreadAt?.toISOString() ?? null,
   };
+  } catch {
+    // A temporary Atlas/DNS outage must not make every protected page fail.
+    // The next client status refresh will recover the badge when the database returns.
+    return emptyUnreadMessageStatus();
+  }
 }
 
 export async function getUnreadConversationCount(email?: string) {

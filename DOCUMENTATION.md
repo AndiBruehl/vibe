@@ -2,6 +2,16 @@
 
 ## Overview
 
+### Pinned profile posts (0.1.72)
+
+Profile owners can select, order, and save up to three active posts as profile pins. Pins are stored in `ProfilePinnedPost`, which joins the profile and post IDs with an explicit display position. Pins render before the ordinary profile grid for users permitted to view that profile. Desktop uses three equal tiles; mobile keeps the first two side-by-side and gives a third tile the full row.
+
+Only the owner sees the management panel. Server validation confirms an authenticated account, valid unique IDs, the three-item limit, active non-archived posts, and ownership before replacing the complete pin order transactionally. Missing or stale posts are excluded at render time, and deleting a post removes its pin records. Pin data failures are isolated from the regular feed so a temporary database issue does not turn the full profile into an error page.
+
+Native update checks read `public/releases/latest.json`. Every native release must include the versioned APK and Windows installer in their tracked `android-app/dist/` and `electron-app/dist/` paths, then point this manifest at exactly those artifacts. This keeps the Web download cards and installed Android/Desktop update checks in agreement.
+
+The protected layout treats transient Prisma connection failures as recoverable. Message and activity navigation counters fall back to zero, and a failure while loading or creating the signed-in profile renders a VIBE recovery screen. This avoids exposing an internal connector error while Atlas/DNS connectivity returns.
+
 ### Account post drafts (0.1.71)
 
 The Create page provides New post and Drafts tabs in English and German. Drafts are stored in MongoDB's PostDraft collection, scoped to the authenticated account email. They preserve up to four media URLs and their types, description, five topics, and ten tagged profile IDs. Incomplete drafts can be saved without media. The list shows a cover preview and modification time; users can reopen, update, or delete their drafts across devices. Publishing creates the post and removes its draft in the same transaction. Failed saves keep editor contents. Switching tabs keeps the editor mounted.
@@ -92,7 +102,7 @@ Poll selection uses optimistic client feedback so the selected answer and percen
 
 Prisma targets MongoDB. The core models are:
 
-- `Profile` and `ProfileAppearancePreset`: identity, public profile data, language/theme, current appearance settings, saved complete profile looks, privacy, roles, verification, restrictions, and social relations.
+- `Profile`, `ProfileAppearancePreset`, and `ProfilePinnedPost`: identity, public profile data, language/theme, current appearance settings, saved complete profile looks, ordered profile pins, privacy, roles, verification, restrictions, and social relations.
 - `Post`, `Comment`, `PostLike`, `CommentLike`, and `PostBookmark`: published content and interactions. A Post stores parallel `images` and `mediaTypes` arrays so each uploaded URL is rendered as an image or video without relying on its URL extension.
 - `Story`, `StorySlide`, and `StoryView`: temporary story content and viewer tracking.
 - `Conversation`, `ConversationParticipant`, `Message`, and `MessageReaction`: direct and group messaging.

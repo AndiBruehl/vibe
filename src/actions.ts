@@ -379,6 +379,7 @@ export async function deletePost(formData: FormData): Promise<void> {
     prisma.postBookmark.deleteMany({ where: { postId: postIdValue } }),
     prisma.bookmarkCollectionPost.deleteMany({ where: { postId: postIdValue } }),
     prisma.postProfileTag.deleteMany({ where: { postId: postIdValue } }),
+    prisma.profilePinnedPost.deleteMany({ where: { postId: postIdValue } }),
     prisma.post.delete({ where: { id: postIdValue } }),
   ]);
 
@@ -1414,6 +1415,55 @@ async function requireAdminSession() {
 
 async function notifyAdmins(actorEmail: string, kind: string, detail: string) {
   await prisma.adminActivity.create({ data: { actorEmail, kind, detail: detail.slice(0, 300) } });
+}
+
+/** Saves the current user's profile pins. Pins are deliberately replaced as one
+ * transaction so a failed request never leaves duplicate or partially ordered pins. */
+export async function setProfilePinnedPosts(formData: FormData): Promise<{ ok: boolean; error?: "session" | "invalid" | "profile" | "unavailable" | "save" }> {
+  const session = await auth();
+  if (!session?.user?.email) return { ok: false, error: "session" };
+
+  const submitted = formData.getAll("postId");
+  if (
+    submitted.length > 3 ||
+    submitted.some((value) => typeof value !== "string" || !isObjectId(value))
+  ) return { ok: false, error: "invalid" };
+
+  const postIds = [...new Set(submitted as string[])];
+  if (postIds.length !== submitted.length) return { ok: false, error: "invalid" };
+
+  try {
+    const profile = await prisma.profile.findUnique({
+      where: { email: session.user.email },
+      select: { id: true, username: true },
+    });
+    if (!profile) return { ok: false, error: "profile" };
+
+    const ownedPosts = postIds.length
+      ? await prisma.post.findMany({
+          where: { id: { in: postIds }, authorEmail: session.user.email, isArchived: false },
+          select: { id: true },
+        })
+      : [];
+    if (ownedPosts.length !== postIds.length) return { ok: false, error: "unavailable" };
+
+    await prisma.$transaction([
+      prisma.profilePinnedPost.deleteMany({ where: { profileId: profile.id } }),
+      ...(postIds.length
+        ? [
+            prisma.profilePinnedPost.createMany({
+              data: postIds.map((postId, position) => ({ profileId: profile.id, postId, position })),
+            }),
+          ]
+        : []),
+    ]);
+
+    revalidatePath("/profile");
+    revalidatePath(`/profile/${encodeURIComponent(profile.username)}`);
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "save" };
+  }
 }
 
 async function requirePollAdmin() {

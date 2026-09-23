@@ -56,6 +56,7 @@ model Profile {
   messageReactions    MessageReaction[]
   stories             Story[]
   postTags            PostProfileTag[]
+  pinnedPosts         ProfilePinnedPost[]
   profileLinks        ProfileLink[]
   shoutouts           ProfileShoutout[] @relation("ProfileShoutouts")
   shoutoutOf          ProfileShoutout[] @relation("ShoutoutTarget")
@@ -212,6 +213,21 @@ model Post {
   topics                  PostTopic[]
   profileTags             PostProfileTag[]
   sharedInMessages        Message[]                @relation("SharedPost")
+  pinnedOnProfiles        ProfilePinnedPost[]
+}
+
+model ProfilePinnedPost {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  profileId String   @db.ObjectId
+  profile   Profile  @relation(fields: [profileId], references: [id])
+  postId    String   @db.ObjectId
+  post      Post     @relation(fields: [postId], references: [id])
+  position  Int
+  createdAt DateTime @default(now())
+
+  @@unique([profileId, postId])
+  @@unique([profileId, position])
+  @@index([postId])
 }
 
 model PostProfileTag {

@@ -5,29 +5,35 @@ import Link from "next/link"; // Re-enable topic chips
 import ProgressiveImage from "./ProgressiveImage";
 import PostThumbnail from "./PostThumbnail";
 import { getPostMediaTypes } from "@/post-images";
+import PinnedProfilePosts from "./PinnedProfilePosts";
 
-export default async function ProfilePosts({ email }: { email: string }) {
-  const posts = await prisma.post.findMany({
-    where: {
-      authorEmail: email,
-      isArchived: false,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-    include: { topics: { include: { topic: true } } },
-  });
+export default async function ProfilePosts({ email, language = "en", canManagePins = false }: { email: string; language?: "de" | "en"; canManagePins?: boolean }) {
+  let posts: Awaited<ReturnType<typeof prisma.post.findMany>> = [];
+  let postLoadFailed = false;
+  try {
+    posts = await prisma.post.findMany({
+      where: { authorEmail: email, isArchived: false },
+      orderBy: { createdAt: "desc" },
+      include: { topics: { include: { topic: true } } },
+    });
+  } catch {
+    // The pin section and normal feed fail independently, so one transient query
+    // failure does not hide otherwise available profile content.
+    postLoadFailed = true;
+  }
 
-  if (posts.length === 0) {
+  if (posts.length === 0 && !canManagePins && !postLoadFailed) {
     return (
       <div className="rounded-2xl bg-white p-8 text-center shadow-md shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
-        <p className="text-slate-600 dark:text-slate-300">No posts yet.</p>
+        <p className="text-slate-600 dark:text-slate-300">{language === "de" ? "Noch keine Beiträge." : "No posts yet."}</p>
       </div>
     );
   }
 
   return (
-    <SortablePosts posts={posts.map((post) => ({ id: post.id, description: post.description, createdAt: post.createdAt }))} className="grid grid-cols-2 gap-4 md:grid-cols-3">
+    <>
+    <PinnedProfilePosts email={email} language={language} canManage={canManagePins} />
+    {postLoadFailed ? <div role="status" className="rounded-2xl bg-white p-6 text-center text-sm text-slate-600 shadow-md shadow-gray-200 dark:bg-gray-800 dark:text-slate-300 dark:shadow-gray-900">{language === "de" ? "Beiträge konnten gerade nicht geladen werden. Bitte versuche es erneut." : "Posts could not be loaded right now. Please try again."}</div> : posts.length === 0 ? <div className="rounded-2xl bg-white p-8 text-center shadow-md shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900"><p className="text-slate-600 dark:text-slate-300">{language === "de" ? "Noch keine Beiträge." : "No posts yet."}</p></div> : <SortablePosts posts={posts.map((post) => ({ id: post.id, description: post.description, createdAt: post.createdAt }))} className="grid grid-cols-2 gap-4 md:grid-cols-3">
       {posts.map((post) => (
         <article
           key={post.id}
@@ -70,6 +76,7 @@ export default async function ProfilePosts({ email }: { email: string }) {
           </div>
         </article>
       ))}
-    </SortablePosts>
+    </SortablePosts>}
+    </>
   );
 }

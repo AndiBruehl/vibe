@@ -247,7 +247,7 @@ export default async function ProfileByUsernamePage({
           ) : activeTab === "bookmarks" && isOwnProfile ? (
             <BookmarkPosts email={profile.email} collectionId={collection} language={de ? "de" : "en"} />
           ) : (
-            <ProfilePosts email={profile.email} />
+            <ProfilePosts email={profile.email} language={de ? "de" : "en"} canManagePins={isOwnProfile} />
           )}
         </section>
       </main>
