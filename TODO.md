@@ -5,6 +5,10 @@
 - Keep the active Settings tab and profile-look section in the URL so refreshes and bookmarks restore the same location. ✅
 - Avoid resetting Settings navigation after profile-look actions. ✅
 
+## BETA 0.1.78.1 — Settings and Home polish
+
+- Polish the Blocked users back control and Home changelog width and motion. ✅
+
 ## BETA 0.1.65
 
 - Add reports for profiles, posts, and comments, plus a moderation inbox on the admin page.

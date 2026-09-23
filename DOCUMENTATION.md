@@ -46,6 +46,12 @@ Settings state is represented by query parameters rather than temporary client-o
 
 Appearance apply, reset, and restore actions retain their local state after successful server updates rather than refreshing the full Settings route. This prevents users from being returned to the default Profile tab after an action while preserving the server as the source of truth.
 
+The Blocked users screen keeps its back control at the left page edge and uses the shared minimal back-arrow treatment without a hover background or border. On Home, the changelog uses the same maximum width as the post feed and expands through a client-side height and opacity transition.
+
+### Settings and Home polish (0.1.78.1)
+
+The shared `BackNavigationLink` intentionally has no hover surface or outline; only its text color and label opacity respond to interaction. The Blocked users page separates this left-edge navigation control from its centered content column. `HomeChangelog` is a client component so its expanded state can animate smoothly while staying limited to the same `max-w-5xl` width as `HomePosts`.
+
 ### Home changelog
 
 The Home page places a collapsed, English-language Changelog between stories and the feed controls. `src/release-notes.ts` is its single source of truth. New web releases must be added at the top with version, `YYYY-MM-DD` date, and concise English change bullets so the newest changes always appear first.
