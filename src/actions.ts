@@ -2125,10 +2125,12 @@ export async function setProfileCuratedBadge(formData: FormData): Promise<void> 
   const badge = formData.get("badge");
   const enabled = formData.get("enabled") === "true";
   if (typeof profileId !== "string" || !isObjectId(profileId) || !isCuratedProfileBadge(badge)) throw new Error("Invalid badge request.");
-  const target = await prisma.profile.findUnique({ where: { id: profileId }, select: { email: true, username: true, isSystem: true, profileBadges: true } });
+  const target = await prisma.profile.findUnique({ where: { id: profileId }, select: { email: true, username: true, isSystem: true, profileBadges: true, hiddenProfileBadges: true } });
   if (!target || target.isSystem) throw new Error("This profile cannot receive a badge.");
-  const profileBadges = enabled ? [...new Set([...target.profileBadges, badge])] : target.profileBadges.filter((item) => item !== badge);
-  await prisma.profile.update({ where: { id: profileId }, data: { profileBadges, hiddenProfileBadges: enabled ? target.profileBadges.filter((item) => item !== badge) : undefined } });
+  const currentBadges = Array.isArray(target.profileBadges) ? target.profileBadges.filter(isCuratedProfileBadge) : [];
+  const profileBadges = enabled ? [...new Set([...currentBadges, badge])] : currentBadges.filter((item) => item !== badge);
+  const currentHidden = Array.isArray(target.hiddenProfileBadges) ? target.hiddenProfileBadges.filter(isCuratedProfileBadge) : [];
+  await prisma.profile.update({ where: { id: profileId }, data: { profileBadges, hiddenProfileBadges: currentHidden.filter((item) => item !== badge) } });
   await notifyAdmins(actorEmail, "profile-badge", `${enabled ? "Granted" : "Removed"} ${badge} for @${target.username || target.email}`);
   revalidatePath("/", "layout"); revalidatePath("/admin"); revalidatePath("/profiles"); revalidatePath("/profile"); revalidatePath("/profile/[username]", "page");
 }
@@ -2141,7 +2143,8 @@ export async function updateProfileBadgeVisibility(formData: FormData): Promise<
   if (!Array.isArray(requested) || !requested.every(isCuratedProfileBadge)) throw new Error("Invalid badge visibility.");
   const profile = await prisma.profile.findUnique({ where: { email: session.user.email }, select: { profileBadges: true, username: true } });
   if (!profile) throw new Error("Profile not found.");
-  const hiddenProfileBadges = [...new Set(requested)].filter((badge) => profile.profileBadges.includes(badge));
+  const assigned = Array.isArray(profile.profileBadges) ? profile.profileBadges.filter(isCuratedProfileBadge) : [];
+  const hiddenProfileBadges = [...new Set(requested)].filter((badge) => assigned.includes(badge));
   await prisma.profile.update({ where: { email: session.user.email }, data: { hiddenProfileBadges } });
   revalidatePath("/settings"); revalidatePath("/profile"); if (profile.username) revalidatePath(`/profile/${encodeURIComponent(profile.username)}`);
 }

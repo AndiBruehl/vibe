@@ -64,7 +64,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const [reports, notes, profiles, auditEntries, supportTickets, polls] = await Promise.all([
     prisma.report.findMany({ orderBy: [{ status: "asc" }, { createdAt: "desc" }], take: 100 }),
     prisma.adminNote.findMany({ include: { comments: { orderBy: { createdAt: "asc" } }, votes: { select: { voterEmail: true } } }, orderBy: { updatedAt: "desc" }, take: 100 }),
-    prisma.profile.findMany({ select: { id: true, email: true, name: true, username: true, isAdmin: true, isVerified: true, profileBadges: true, isSystem: true, restrictedUntil: true, restrictionMessages: true, restrictionComments: true, restrictionPosts: true }, orderBy: { name: "asc" } }),
+    prisma.profile.findMany({ select: { id: true, email: true, name: true, username: true, isAdmin: true, isVerified: true, profileBadges: true, isSystem: true, restrictedUntil: true, restrictionMessages: true, restrictionComments: true, restrictionPosts: true }, orderBy: { name: "asc" } }).then((items) => items.map((item) => ({ ...item, profileBadges: Array.isArray(item.profileBadges) ? item.profileBadges : [] }))),
     prisma.adminActivity.findMany({ orderBy: { createdAt: "desc" }, take: 100 }),
     prisma.supportTicket.findMany({ include: { messages: { orderBy: { createdAt: "asc" } } }, orderBy: { updatedAt: "desc" }, take: 100 }),
     prisma.poll.findMany({ include: { options: { orderBy: { position: "asc" }, include: { votes: { include: { profile: { select: { name: true, username: true, avatar: true } } } } } } }, orderBy: { createdAt: "desc" }, take: 50 }),

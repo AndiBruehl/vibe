@@ -2,7 +2,11 @@ import { Award, BadgeCheck, Shield, Sparkles, Star } from "lucide-react";
 import { CURATED_PROFILE_BADGES } from "@/profile-badges";
 
 export default function AdminBadge({ isAdmin, isVerified, badges = [], hiddenBadges = [] }: { isAdmin?: boolean | null; isVerified?: boolean | null; badges?: string[] | null; hiddenBadges?: string[] | null }) {
-  const visibleBadges = CURATED_PROFILE_BADGES.filter((badge) => badges?.includes(badge.key) && !hiddenBadges?.includes(badge.key));
+  // MongoDB documents created before 0.1.75 may not have either array yet.
+  // Invalid legacy values are treated as empty instead of breaking a name row.
+  const assigned = Array.isArray(badges) ? badges : [];
+  const hidden = Array.isArray(hiddenBadges) ? hiddenBadges : [];
+  const visibleBadges = CURATED_PROFILE_BADGES.filter((badge) => assigned.includes(badge.key) && !hidden.includes(badge.key));
   if (!isAdmin && !isVerified && !visibleBadges.length) return null;
   const icon = (key: string) => key === "early-member" ? <Sparkles size={11} /> : key === "community-star" ? <Star size={11} /> : <Award size={11} />;
   return <span className="inline-flex shrink-0 flex-wrap items-center gap-1" aria-label={[isAdmin && "Administrator", isVerified && "Verified", ...visibleBadges.map((badge) => badge.label)].filter(Boolean).join(", ")}>
