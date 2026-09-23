@@ -77,6 +77,12 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
     prisma.profileShoutout.findMany({ where: { profileId: profile.id }, include: { targetProfile: { select: { username: true, name: true, avatar: true } } }, orderBy: { position: "asc" } }),
   ]);
   const de = profile.language === "de";
+  const showLinks = profile.showProfileLinks !== false;
+  const showShoutouts = profile.showProfileShoutouts !== false;
+  const showTopics = profile.showProfileTopics !== false;
+  const showHighlights = profile.showProfileHighlights !== false;
+  const showArchive = profile.showProfileArchive !== false;
+  const showPinnedPosts = profile.showPinnedPosts !== false;
   const profileAccent = normalizeProfileAccent(profile.profileAccent);
   const profileHeaderLayout = normalizeProfileHeaderLayout(profile.profileHeaderLayout);
   const headerBackgroundStyle = profileHeaderBackgroundStyle(profile.profileHeaderBackgroundMode, profile.profileHeaderBackgroundImage, profile.profileHeaderBackgroundColor, profile.profileHeaderBackgroundEnd);
@@ -161,10 +167,8 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
             <Shield size={16} />
             {de ? "Adminbereich" : "Admin area"}
           </Link></div> : null}
-        {profileLinks.length > 0 && (
-          <div className="mt-4"><ProfileLinks links={profileLinks} language={de ? "de" : "en"} centered={profileHeaderLayout !== "compact" && !(profileHeaderLayout === "standard" && headerBackgroundStyle)} accent={profileAccent} /></div>
-        )}
-        {shoutouts.length > 0 && <ProfileShoutouts shoutouts={shoutouts} language={de ? "de" : "en"} centered={profileHeaderLayout !== "compact" && !(profileHeaderLayout === "standard" && headerBackgroundStyle)} />}
+        {showLinks && profileLinks.length > 0 && <div className="mt-4"><ProfileLinks links={profileLinks} language={de ? "de" : "en"} centered={profileHeaderLayout !== "compact" && !(profileHeaderLayout === "standard" && headerBackgroundStyle)} accent={profileAccent} /></div>}
+        {showShoutouts && shoutouts.length > 0 && <ProfileShoutouts shoutouts={shoutouts} language={de ? "de" : "en"} centered={profileHeaderLayout !== "compact" && !(profileHeaderLayout === "standard" && headerBackgroundStyle)} />}
       </section>
       </div>
 
@@ -203,7 +207,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
             {de ? "Beiträge" : "Posts"}
           </Link>
 
-          <Link
+          {showHighlights && <Link
             className={
               activeTab === "highlights"
                 ? "font-bold underline text-(--ig-red)"
@@ -213,7 +217,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
             style={activeTab === "highlights" ? { color: profileAccent, textDecorationColor: profileAccent } : undefined}
           >
             Highlights
-          </Link>
+          </Link>}
 
           <Link
             className={
@@ -227,7 +231,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
             {de ? "Gespeichert" : "Bookmarks"}
           </Link>
 
-          <Link
+          {showTopics && <Link
             className={
               activeTab === "topics"
                 ? "font-bold underline text-(--ig-red)"
@@ -237,15 +241,15 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
             style={activeTab === "topics" ? { color: profileAccent, textDecorationColor: profileAccent } : undefined}
           >
             {de ? "Themen" : "Topics"}
-          </Link>
+          </Link>}
 
-          <Link
+          {showArchive && <Link
             className={activeTab === "archive" ? "font-bold underline text-(--ig-red)" : "font-medium text-slate-700 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"}
             href="/profile?tab=archive"
             style={activeTab === "archive" ? { color: profileAccent, textDecorationColor: profileAccent } : undefined}
           >
             {de ? "Archiv" : "Archive"}
-          </Link>
+          </Link>}
         </div>
       </section>
 
@@ -257,16 +261,16 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
       <section className="mt-4">
         <Suspense fallback={de ? "Beiträge werden geladen..." : "Loading posts..."}>
           {activeTab === "posts" ? (
-            <ProfilePosts email={session.user.email} language={de ? "de" : "en"} canManagePins />
+            <ProfilePosts email={session.user.email} language={de ? "de" : "en"} canManagePins showPinnedPosts={showPinnedPosts} />
           ) : activeTab === "bookmarks" ? (
             <BookmarkPosts email={session.user.email} collectionId={collection} language={de ? "de" : "en"} />
-          ) : activeTab === "highlights" ? (
+          ) : activeTab === "highlights" && showHighlights ? (
             <HighlightsPosts />
-          ) : activeTab === "archive" ? (
+          ) : activeTab === "archive" && showArchive ? (
             <ArchivedPosts email={session.user.email} language={de ? "de" : "en"} />
-          ) : (
+          ) : showTopics ? (
             <ProfileTopics email={session.user.email} />
-          )}
+          ) : <ProfilePosts email={session.user.email} language={de ? "de" : "en"} canManagePins showPinnedPosts={showPinnedPosts} />}
         </Suspense>
       </section>
     </main>

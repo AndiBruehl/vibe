@@ -62,9 +62,9 @@
 
 ## BETA 0.1.69.16 — Profile sections and visibility
 
-- Let members choose which optional profile areas are visible: links, shoutouts, topics, highlights, archive, and pinned posts.
-- Add a compact Settings preview that shows the resulting public profile structure before saving.
-- Keep all existing underlying data intact when a section is hidden so it can be re-enabled later.
+- Let members choose which optional profile areas are visible: links, shoutouts, topics, highlights, archive, and pinned posts. ✅
+- Add a compact Settings preview that shows the resulting public profile structure before saving. ✅
+- Keep all existing underlying data intact when a section is hidden so it can be re-enabled later. ✅
 
 ## BETA 0.1.69.17 — Profile badges and achievements
 

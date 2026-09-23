@@ -25,6 +25,12 @@ model Profile {
   profileHeaderBackgroundColor String @default("#4f46e5")
   profileHeaderBackgroundEnd String?
   profileHeaderTextColor String @default("#ffffff")
+  showProfileLinks     Boolean   @default(true)
+  showProfileShoutouts Boolean   @default(true)
+  showProfileTopics    Boolean   @default(true)
+  showProfileHighlights Boolean  @default(true)
+  showProfileArchive   Boolean   @default(true)
+  showPinnedPosts      Boolean   @default(true)
   language            String    @default("en")
   theme               String    @default("system")
   isPrivate           Boolean   @default(false)

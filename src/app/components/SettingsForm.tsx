@@ -10,6 +10,7 @@ import MentionTextarea from "@/app/components/MentionTextarea";
 import ShoutoutEditor from "@/app/components/ShoutoutEditor";
 import ReleaseDownloads from "@/app/components/ReleaseDownloads";
 import AppVersion from "@/app/components/AppVersion";
+import ProfileVisibilitySettings from "@/app/components/ProfileVisibilitySettings";
 import { applyTheme, type ThemePreference } from "@/app/components/ProfileThemeRuntime";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -559,6 +560,8 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
           ]).map(({ value, label, Icon }) => <button key={value} type="button" onClick={() => void updateTheme(value)} className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-bold transition ${themePreference === value ? "bg-white text-orange-600 shadow-sm dark:bg-slate-700 dark:text-orange-300" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"}`}><Icon size={14} />{label}</button>)}
         </div>
       </section>
+
+      <ProfileVisibilitySettings profile={profile ?? {}} language={language} />
 
       </div>
       <div className={activeAppearanceSection === "profile" ? "space-y-3" : "hidden"}>

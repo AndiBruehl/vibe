@@ -12,6 +12,12 @@ Native update checks read `public/releases/latest.json`. Every native release mu
 
 The protected layout treats transient Prisma connection failures as recoverable. Message and activity navigation counters fall back to zero, and a failure while loading or creating the signed-in profile renders a VIBE recovery screen. This avoids exposing an internal connector error while Atlas/DNS connectivity returns.
 
+### Profile section visibility (0.1.74)
+
+Members control links, shoutouts, pinned posts, highlights, topics, and archive navigation from the Profile visibility card in Settings. Each switch saves immediately and the visitor preview updates at once. These fields live on `Profile` as `showProfileLinks`, `showProfileShoutouts`, `showPinnedPosts`, `showProfileHighlights`, `showProfileTopics`, and `showProfileArchive`.
+
+The setting only affects rendering. It never deletes links, shoutouts, pins, posts, or archive data. An omitted field on a legacy MongoDB document is interpreted as visible, so shipping the feature does not unexpectedly hide profile content. The public username route enforces links, shoutouts, and pins; the owner's profile route also applies the optional profile tabs.
+
 ### Home changelog
 
 The Home page places a collapsed, English-language Changelog between stories and the feed controls. `src/release-notes.ts` is its single source of truth. New web releases must be added at the top with version, `YYYY-MM-DD` date, and concise English change bullets so the newest changes always appear first.

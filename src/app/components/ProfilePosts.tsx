@@ -8,7 +8,7 @@ import { getPostMediaTypes } from "@/post-images";
 import PinnedProfilePosts from "./PinnedProfilePosts";
 import ProfilePostPinButton from "./ProfilePostPinButton";
 
-export default async function ProfilePosts({ email, language = "en", canManagePins = false }: { email: string; language?: "de" | "en"; canManagePins?: boolean }) {
+export default async function ProfilePosts({ email, language = "en", canManagePins = false, showPinnedPosts = true }: { email: string; language?: "de" | "en"; canManagePins?: boolean; showPinnedPosts?: boolean }) {
   let posts: Awaited<ReturnType<typeof prisma.post.findMany>> = [];
   let postLoadFailed = false;
   try {
@@ -46,7 +46,7 @@ export default async function ProfilePosts({ email, language = "en", canManagePi
 
   return (
     <>
-    <PinnedProfilePosts email={email} language={language} canManage={canManagePins} />
+    {showPinnedPosts && <PinnedProfilePosts email={email} language={language} canManage={canManagePins} />}
     {postLoadFailed ? <div role="status" className="rounded-2xl bg-white p-6 text-center text-sm text-slate-600 shadow-md shadow-gray-200 dark:bg-gray-800 dark:text-slate-300 dark:shadow-gray-900">{language === "de" ? "Beiträge konnten gerade nicht geladen werden. Bitte versuche es erneut." : "Posts could not be loaded right now. Please try again."}</div> : posts.length === 0 ? <div className="rounded-2xl bg-white p-8 text-center shadow-md shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900"><p className="text-slate-600 dark:text-slate-300">{language === "de" ? "Noch keine Beiträge." : "No posts yet."}</p></div> : <SortablePosts posts={posts.map((post) => ({ id: post.id, description: post.description, createdAt: post.createdAt }))} className="grid grid-cols-2 gap-4 md:grid-cols-3">
       {posts.map((post) => (
         <article

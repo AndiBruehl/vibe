@@ -1417,6 +1417,33 @@ async function notifyAdmins(actorEmail: string, kind: string, detail: string) {
   await prisma.adminActivity.create({ data: { actorEmail, kind, detail: detail.slice(0, 300) } });
 }
 
+export async function updateProfileSectionVisibility(formData: FormData): Promise<{ ok: true }> {
+  const session = await auth();
+  if (!session?.user?.email) redirect("/");
+
+  const value = (key: string) => formData.get(key) === "true";
+  const data = {
+    showProfileLinks: value("showProfileLinks"),
+    showProfileShoutouts: value("showProfileShoutouts"),
+    showProfileTopics: value("showProfileTopics"),
+    showProfileHighlights: value("showProfileHighlights"),
+    showProfileArchive: value("showProfileArchive"),
+    showPinnedPosts: value("showPinnedPosts"),
+  };
+
+  const profile = await prisma.profile.upsert({
+    where: { email: session.user.email },
+    update: data,
+    create: { email: session.user.email, ...data },
+    select: { username: true },
+  });
+
+  revalidatePath("/settings");
+  revalidatePath("/profile");
+  if (profile.username) revalidatePath(`/profile/${encodeURIComponent(profile.username)}`);
+  return { ok: true };
+}
+
 /** Pins or unpins one of the signed-in member's posts directly from that post. */
 export async function toggleProfilePostPin(postId: string): Promise<{ ok: boolean; pinned?: boolean; error?: "session" | "invalid" | "unavailable" | "limit" | "save" }> {
   const session = await auth();

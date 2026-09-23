@@ -73,6 +73,11 @@ export default async function ProfileByUsernamePage({
   const isOwnProfile = viewerEmail === profile.email;
   const isSystemProfile = profile.isSystem;
   const isSupportProfile = profile.systemKind === "support";
+  // Older MongoDB profile documents do not contain the new fields yet. Only an
+  // explicit false hides a section, keeping every existing profile visible.
+  const showLinks = profile.showProfileLinks !== false;
+  const showShoutouts = profile.showProfileShoutouts !== false;
+  const showPinnedPosts = profile.showPinnedPosts !== false;
   const canDeleteProfile = !isOwnProfile && !isSystemProfile && isSuperAdmin(viewerEmail) && !isProtectedAdmin(profile.email);
   const activeTab = isOwnProfile && tab === "bookmarks" ? "bookmarks" : "posts";
 
@@ -151,10 +156,10 @@ export default async function ProfileByUsernamePage({
                   <p className={`mx-auto mt-2 max-w-md whitespace-pre-wrap ${profileHeaderLayout === "compact" ? "mx-0 text-sm lg:text-base" : "text-sm"} text-slate-700 dark:text-slate-200 ${profileHeaderLayout === "spotlight" ? "lg:mx-auto" : "lg:mx-0"}`}><MentionText text={profile.bio} /></p>
                 )}
 
-                {profile.profileLinks.length > 0 && (
+                {showLinks && profile.profileLinks.length > 0 && (
                   <ProfileLinks links={profile.profileLinks} language={de ? "de" : "en"} centered={profileHeaderLayout === "compact" ? false : profileHeaderLayout === "spotlight" ? true : "mobile"} accent={profile.profileAccent} />
                 )}
-                {profile.shoutouts.length > 0 && <ProfileShoutouts shoutouts={profile.shoutouts} language={de ? "de" : "en"} centered={profileHeaderLayout === "compact" ? false : profileHeaderLayout === "spotlight" ? true : "mobile"} />}
+                {showShoutouts && profile.shoutouts.length > 0 && <ProfileShoutouts shoutouts={profile.shoutouts} language={de ? "de" : "en"} centered={profileHeaderLayout === "compact" ? false : profileHeaderLayout === "spotlight" ? true : "mobile"} />}
 
                 {isOwnProfile && profile.isAdmin && <Link href="/admin" className={`${profileHeaderLayout === "compact" ? "mt-4" : profileHeaderLayout === "spotlight" ? "mx-auto mt-4" : "mx-auto mt-4 lg:mx-0"} flex w-fit rounded-xl border border-orange-400/60 px-3 py-2 text-sm font-semibold text-orange-600 hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-500/10`}>{de ? "Adminbereich" : "Admin area"}</Link>}
 
@@ -247,7 +252,7 @@ export default async function ProfileByUsernamePage({
           ) : activeTab === "bookmarks" && isOwnProfile ? (
             <BookmarkPosts email={profile.email} collectionId={collection} language={de ? "de" : "en"} />
           ) : (
-            <ProfilePosts email={profile.email} language={de ? "de" : "en"} canManagePins={isOwnProfile} />
+            <ProfilePosts email={profile.email} language={de ? "de" : "en"} canManagePins={isOwnProfile} showPinnedPosts={isOwnProfile || showPinnedPosts} />
           )}
         </section>
       </main>

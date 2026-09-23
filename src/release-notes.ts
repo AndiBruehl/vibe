@@ -7,6 +7,15 @@ export type ReleaseNote = {
 // Keep newest releases first. This is the single source for the Home changelog.
 export const webReleaseNotes: ReleaseNote[] = [
   {
+    version: "0.1.74",
+    date: "2026-09-23",
+    changes: [
+      "Added profile section visibility controls with an instant visitor preview.",
+      "Added safe fallbacks so existing profiles keep every section visible until a member changes it.",
+      "Applied visibility choices to links, shoutouts, pinned posts, highlights, topics, and archive navigation.",
+    ],
+  },
+  {
     version: "0.1.73",
     date: "2026-09-23",
     changes: [
