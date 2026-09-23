@@ -9,6 +9,7 @@ import ProfileTagPicker, { type TaggedProfile } from "./ProfileTagPicker";
 import MentionTextarea from "./MentionTextarea";
 import { IMAGE_MEDIA_TYPE, MAX_POST_IMAGES, VIDEO_MEDIA_TYPE } from "@/post-images";
 import useVibeLanguage from "./useVibeLanguage";
+import { savePostDraft } from "@/draft-actions";
 
 const MAX_MEDIA_SIZE_BYTES = 100 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set([
@@ -71,6 +72,12 @@ const pinata = new PinataSDK({
   pinataGateway: process.env.NEXT_PUBLIC_GATEWAY_URL,
 });
 
+function SaveDraftButton({ disabled }: { disabled: boolean }) {
+  const { pending } = useFormStatus();
+  const de = useVibeLanguage() === "de";
+  return <button type="submit" name="intent" value="draft" disabled={disabled || pending} className="min-h-12 rounded-xl border border-orange-400 bg-orange-500/10 px-4 py-3 font-bold text-orange-700 disabled:opacity-50 dark:text-orange-200">{pending ? (de ? "Wird gespeichert…" : "Saving…") : (de ? "Als Entwurf speichern" : "Save draft")}</button>;
+}
+
 function Submit({ disabled, editing }: { disabled: boolean; editing: boolean }) {
   const { pending } = useFormStatus();
   const de = useVibeLanguage() === "de";
@@ -92,6 +99,9 @@ export default function PostComposer({
   description = "",
   topics = [],
   taggedProfiles = [],
+  accountDrafts = false,
+  draftId,
+  onDraftSaved,
 }: {
   action: (data: FormData) => Promise<void>;
   postId?: string;
@@ -100,9 +110,12 @@ export default function PostComposer({
   description?: string;
   topics?: string[];
   taggedProfiles?: TaggedProfile[];
+  accountDrafts?: boolean;
+  draftId?: string;
+  onDraftSaved?: (id: string) => void;
 }) {
   const de = useVibeLanguage() === "de";
-  const isDraftable = !postId;
+  const isDraftable = !postId && !accountDrafts;
   const [images, setImages] = useState(initialImages);
   const [mediaTypes, setMediaTypes] = useState<(typeof IMAGE_MEDIA_TYPE | typeof VIDEO_MEDIA_TYPE)[]>(() => initialImages.map((_, index) => initialMediaTypes[index] === VIDEO_MEDIA_TYPE ? VIDEO_MEDIA_TYPE : IMAGE_MEDIA_TYPE));
   const [draftDescription, setDraftDescription] = useState(description);
@@ -193,7 +206,23 @@ export default function PostComposer({
   return (
     <form
       action={async (data) => {
-        if (uploading.current || !images.length) return;
+        if (uploading.current || busy) return;
+        if (accountDrafts && data.get("intent") === "draft") {
+          setBusy(true);
+          setError("");
+          try {
+            const result = await savePostDraft(data);
+            if (result.id) onDraftSaved?.(result.id);
+            else setError(result.error === "empty" ? (de ? "Füge zuerst Text, Medien oder Tags hinzu." : "Add text, media or tags first.") : (de ? "Entwurf konnte nicht gespeichert werden. Bitte versuche es erneut." : "Could not save draft. Please try again."));
+          } catch {
+            setError(de ? "Verbindung unterbrochen. Dein Entwurf bleibt im Editor. Bitte erneut versuchen." : "Connection interrupted. Your draft remains in the editor. Please try again.");
+          } finally { setBusy(false); }
+          return;
+        }
+        if (!images.length) {
+          setError(de ? "Füge mindestens ein Bild oder Video zum Veröffentlichen hinzu." : "Add at least one image or video before publishing.");
+          return;
+        }
         setError("");
         try {
           if (isDraftable) localStorage.removeItem(DRAFT_KEY);
@@ -210,6 +239,7 @@ export default function PostComposer({
       className="space-y-4"
     >
       {postId && <input type="hidden" name="postId" value={postId} />}
+      {draftId && <input type="hidden" name="draftId" value={draftId} />}
       <input type="hidden" name="imagesSet" value="1" />
       {images.map((url, i) => (
         <input key={i} type="hidden" name="images" value={url} />
@@ -313,7 +343,8 @@ export default function PostComposer({
           {error}
         </p>
       )}
-      <div className={`grid gap-3 ${isDraftable ? "sm:grid-cols-2" : ""}`}>
+      <div className={`grid gap-3 ${isDraftable || accountDrafts ? "sm:grid-cols-2" : ""}`}>
+        {accountDrafts && <SaveDraftButton disabled={busy} />}
         {isDraftable && <button type="button" onClick={discardDraft} className="min-h-12 rounded-xl border-2 border-slate-300 bg-slate-50 px-4 py-3 text-base font-bold text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">{de ? "Entwurf verwerfen" : "Discard draft"}</button>}
         <Submit disabled={busy || !images.length} editing={!!postId} />
       </div>

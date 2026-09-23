@@ -220,15 +220,25 @@ export async function postEntry(formData: FormData) {
   const topicsValue = formData.get("topics");
   const profileTags = formData.getAll("profileTags");
 
-  const postDoc = await prisma.post.create({
-    data: {
-      authorEmail: session.user.email,
-      image: images[0],
-      images,
-      mediaTypes,
-      description: typeof description === "string" ? description.trim() : "",
-    },
+  const draftId = String(formData.get("draftId") || "");
+  const authorEmail = session.user.email;
+  const postDoc = await prisma.$transaction(async (tx) => {
+    if (draftId && (!isObjectId(draftId) || !await tx.postDraft.findFirst({ where: { id: draftId, authorEmail } }))) {
+      throw new Error("Draft is no longer available.");
+    }
+    const created = await tx.post.create({
+      data: {
+        authorEmail,
+        image: images[0],
+        images,
+        mediaTypes,
+        description: typeof description === "string" ? description.trim() : "",
+      },
+    });
+    if (draftId) await tx.postDraft.delete({ where: { id: draftId } });
+    return created;
   });
+  revalidatePath("/create");
   // handle topics (upsert + link)
   try {
     await linkTopicsForPost(postDoc.id, topicsValue);

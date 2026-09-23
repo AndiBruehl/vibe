@@ -2,7 +2,7 @@
   "expo": {
     "name": "Vibe",
     "slug": "vibe-android",
-    "version": "0.1.70.1",
+    "version": "0.1.71",
     "orientation": "portrait",
     "scheme": "vibe",
     "userInterfaceStyle": "dark",

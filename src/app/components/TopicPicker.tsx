@@ -5,8 +5,10 @@ import useVibeLanguage from "./useVibeLanguage";
 
 type Topic = { id: string; name: string; slug: string };
 const MAX_TOPICS = 5;
-const TOPIC_LIMIT_MESSAGE =
-  "Du kannst bis zu 5 Topics pro Beitrag verwenden. Entferne erst eines, wenn du ein anderes hinzufügen möchtest.";
+const topicLimitMessage = (de: boolean) =>
+  de
+    ? "Du kannst bis zu 5 Topics pro Beitrag verwenden. Entferne erst eines, wenn du ein anderes hinzufügen möchtest."
+    : "You can use up to 5 topics per post. Remove one before adding another.";
 
 export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
   const de = useVibeLanguage() === "de";
@@ -80,7 +82,7 @@ export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
     if (!normalized) return;
     if (selected.includes(normalized)) return;
     if (selected.length >= MAX_TOPICS) {
-      setLimitMessage(TOPIC_LIMIT_MESSAGE);
+      setLimitMessage(topicLimitMessage(de));
       return;
     }
 
@@ -198,7 +200,7 @@ export default function TopicPicker({ initial = [] }: { initial?: string[] }) {
               nextQuery.trim() &&
               !selected.includes(nextQuery.trim())
             ) {
-              setLimitMessage(TOPIC_LIMIT_MESSAGE);
+              setLimitMessage(topicLimitMessage(de));
             } else {
               setLimitMessage("");
             }

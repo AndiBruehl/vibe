@@ -2,6 +2,14 @@
 
 ## Overview
 
+### Account post drafts (0.1.71)
+
+The Create page provides New post and Drafts tabs in English and German. Drafts are stored in MongoDB's PostDraft collection, scoped to the authenticated account email. They preserve up to four media URLs and their types, description, five topics, and ten tagged profile IDs. Incomplete drafts can be saved without media. The list shows a cover preview and modification time; users can reopen, update, or delete their drafts across devices. Publishing creates the post and removes its draft in the same transaction. Failed saves keep editor contents. Switching tabs keeps the editor mounted.
+
+Explicit account draft saving replaces local browser autosaving on the Create page. Unsaved editor changes must be saved before leaving or opening another draft. Generate the Prisma client after changing the schema; no existing documents need migration.
+
+If the draft collection or tagged-profile lookup is temporarily unavailable, Create remains usable and shows a localized retry notice instead of failing the full page. Draft deletion verifies that the requested account-owned record was actually removed. Invalid legacy arrays and dates fall back to empty media/topic data and an unknown modification time.
+
 VIBE is a multilingual social network built around profiles, media posts, stories, direct messages, topics, and community moderation. The web application is the primary product. It also exposes mobile API routes for the Android client and is wrapped by an Electron desktop application.
 
 The web application uses Next.js App Router, React, TypeScript, Prisma, and MongoDB. Authentication is handled by NextAuth with Google sign-in and a credentials provider for the native mobile session flow.
