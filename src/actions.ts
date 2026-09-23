@@ -14,6 +14,8 @@ import { supportTemplateText, type SupportTemplateKey } from "@/support-template
 
 import { isObjectId } from "@/object-id";
 import { isCuratedProfileBadge } from "@/profile-badges";
+import { syncProfileMilestones } from "@/profile-milestones";
+import { isProfileMilestone } from "@/profile-milestone-data";
 import { normalizeAvatarAccent, normalizeAvatarFrameDirection, normalizeProfileAccent, normalizeProfileHeaderBackgroundImage, normalizeProfileHeaderBackgroundMode, normalizeProfileHeaderLayout, normalizeProfileHeaderTextColor } from "@/profile-personalization";
 const MAX_STORY_SLIDES = 4;
 
@@ -240,6 +242,7 @@ export async function postEntry(formData: FormData) {
     return created;
   });
   revalidatePath("/create");
+  await syncProfileMilestones(authorEmail);
   // handle topics (upsert + link)
   try {
     await linkTopicsForPost(postDoc.id, topicsValue);
@@ -407,6 +410,7 @@ export async function togglePostLike(formData: FormData): Promise<{ liked: boole
 
   await assertCanInteractWithPost(postIdValue, session.user.email);
 
+  const postOwner = await prisma.post.findUnique({ where: { id: postIdValue }, select: { authorEmail: true } });
   const existingLike = await prisma.postLike.findUnique({
     where: {
       postId_authorEmail: {
@@ -453,6 +457,8 @@ export async function togglePostLike(formData: FormData): Promise<{ liked: boole
       }),
     ]);
   }
+
+  if (postOwner?.authorEmail) await syncProfileMilestones(postOwner.authorEmail);
 
   revalidatePath("/");
   revalidatePath("/profile");
@@ -564,6 +570,8 @@ export async function createStory(formData: FormData): Promise<void> {
     },
   });
 
+  await syncProfileMilestones(session.user.email);
+
   revalidatePath("/home");
 }
 
@@ -577,6 +585,7 @@ export async function sharePostToStory(formData: FormData): Promise<void> {
   const post = await prisma.post.findUnique({ where: { id: postId }, select: { image: true, mediaTypes: true } });
   if (!post) throw new Error("Post not found.");
   await prisma.story.create({ data: { authorEmail: session.user.email, expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), slides: { create: [{ imageUrl: post.image, mediaType: post.mediaTypes?.[0] === "video" ? "video" : "image", sharedPostId: postId, position: 0 }] } } });
+  await syncProfileMilestones(session.user.email);
   revalidatePath("/home");
 }
 
@@ -1561,6 +1570,7 @@ export async function togglePollLive(formData: FormData) {
     ]);
     await notifyAdmins(actorEmail, "poll-live", `Started 72-hour poll: ${poll.question}`);
   }
+
   revalidatePath("/admin");
   revalidatePath("/home");
   revalidatePath("/");
@@ -2147,6 +2157,17 @@ export async function updateProfileBadgeVisibility(formData: FormData): Promise<
   const hiddenProfileBadges = [...new Set(requested)].filter((badge) => assigned.includes(badge));
   await prisma.profile.update({ where: { email: session.user.email }, data: { hiddenProfileBadges } });
   revalidatePath("/settings"); revalidatePath("/profile"); if (profile.username) revalidatePath(`/profile/${encodeURIComponent(profile.username)}`);
+}
+
+export async function updateMilestoneVisibility(formData: FormData): Promise<void> {
+  const session = await auth(); if (!session?.user?.email) redirect("/");
+  let requested: unknown; try { requested = JSON.parse(String(formData.get("hidden") || "[]")); } catch { throw new Error("Invalid milestone visibility."); }
+  if (!Array.isArray(requested) || !requested.every(isProfileMilestone)) throw new Error("Invalid milestone visibility.");
+  const profile = await prisma.profile.findUnique({ where: { email: session.user.email }, select: { milestoneBadges: true } });
+  if (!profile) throw new Error("Profile not found.");
+  const earned = Array.isArray(profile.milestoneBadges) ? profile.milestoneBadges : [];
+  await prisma.profile.update({ where: { email: session.user.email }, data: { hiddenMilestoneBadges: [...new Set(requested)].filter((item) => earned.includes(item)) } });
+  revalidatePath("/milestones"); revalidatePath("/profile"); revalidatePath("/", "layout");
 }
 
 export async function deleteProfileAsSuperAdmin(formData: FormData): Promise<void> {

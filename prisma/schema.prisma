@@ -38,6 +38,8 @@ model Profile {
   isVerified          Boolean   @default(false)
   profileBadges       String[]  @default([])
   hiddenProfileBadges String[]  @default([])
+  milestoneBadges     String[]  @default([])
+  hiddenMilestoneBadges String[] @default([])
   isSystem            Boolean   @default(false)
   systemKind          String?
   welcomeSentAt       DateTime?

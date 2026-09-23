@@ -17,6 +17,8 @@ import ArchivedPosts from "@/app/components/ArchivedPosts";
 import AdminBadge from "@/app/components/AdminBadge";
 import { isVibeAdminEmail } from "@/admin";
 import ProfileShoutouts from "@/app/components/ProfileShoutouts";
+import ProfileMilestones from "@/app/components/ProfileMilestones";
+import { syncProfileMilestones } from "@/profile-milestones";
 import { avatarFrameStyle, normalizeProfileAccent, normalizeProfileHeaderLayout, normalizeProfileHeaderTextColor, profileHeaderBackgroundStyle } from "@/profile-personalization";
 
 type ProfilePageProps = {
@@ -54,7 +56,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
 
   const generatedUsername = `${emailBase}-${randomUUID().slice(0, 8)}`;
 
-  const profile = await prisma.profile.upsert({
+  let profile = await prisma.profile.upsert({
     where: {
       email: session.user.email,
     },
@@ -66,6 +68,12 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
       isAdmin: isVibeAdminEmail(session.user.email),
     },
   });
+  try {
+    await syncProfileMilestones(session.user.email);
+    profile = await prisma.profile.findUnique({ where: { email: session.user.email } }) ?? profile;
+  } catch {
+    // Keep the last profile snapshot when milestone maintenance is unavailable.
+  }
 
   const [postsCount, followersCount, followingCount] = await Promise.all([
     prisma.post.count({ where: { authorEmail: session.user.email, isArchived: false } }),
@@ -169,6 +177,12 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
           </Link></div> : null}
         {showLinks && profileLinks.length > 0 && <div className="mt-4"><ProfileLinks links={profileLinks} language={de ? "de" : "en"} centered={profileHeaderLayout !== "compact" && !(profileHeaderLayout === "standard" && headerBackgroundStyle)} accent={profileAccent} /></div>}
         {showShoutouts && shoutouts.length > 0 && <ProfileShoutouts shoutouts={shoutouts} language={de ? "de" : "en"} centered={profileHeaderLayout !== "compact" && !(profileHeaderLayout === "standard" && headerBackgroundStyle)} />}
+        <ProfileMilestones
+          milestones={profile.milestoneBadges}
+          hiddenMilestones={profile.hiddenMilestoneBadges}
+          language={de ? "de" : "en"}
+          centered={profileHeaderLayout !== "compact" && !(profileHeaderLayout === "standard" && headerBackgroundStyle)}
+        />
       </section>
       </div>
 

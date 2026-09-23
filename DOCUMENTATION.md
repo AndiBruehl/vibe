@@ -26,6 +26,12 @@ Curated badges are defined in `src/profile-badges.ts`, not created by members. T
 
 Badge readers treat missing or malformed legacy arrays as empty. The Settings visibility control restores the prior local state and shows a localized retry message if its server action fails.
 
+### Profile milestones (0.1.76)
+
+Milestones are stored on each `Profile` in `milestoneBadges`, with optional member visibility choices in `hiddenMilestoneBadges`. The earned catalog currently includes First post, First story, 100 likes, and One year on VIBE. `src/profile-milestones.ts` derives progress from posts, stories, likes, and the profile age, and merges achievements without removing previously earned milestones.
+
+Both the signed-in profile route and the public username route refresh milestone progress. Public-profile refreshes are guarded so a temporary Prisma or MongoDB failure cannot make the profile page fail; the last stored milestone snapshot remains usable. Missing or malformed legacy arrays are treated as empty by the display component. The `ProfileMilestones` component receives the profile layout and aligns its heading and badges consistently: Compact is left aligned, Spotlight is centered, and Standard follows the header's text alignment.
+
 ### Home changelog
 
 The Home page places a collapsed, English-language Changelog between stories and the feed controls. `src/release-notes.ts` is its single source of truth. New web releases must be added at the top with version, `YYYY-MM-DD` date, and concise English change bullets so the newest changes always appear first.

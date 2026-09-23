@@ -15,6 +15,8 @@ import VibeTeamBadge from "@/app/components/VibeTeamBadge";
 import { isProtectedAdmin, isSuperAdmin } from "@/admin";
 import DeleteProfileButton from "@/app/components/DeleteProfileButton";
 import ProfileShoutouts from "@/app/components/ProfileShoutouts";
+import ProfileMilestones from "@/app/components/ProfileMilestones";
+import { syncProfileMilestones } from "@/profile-milestones";
 import { avatarFrameStyle, normalizeProfileHeaderLayout, normalizeProfileHeaderTextColor, profileHeaderBackgroundStyle } from "@/profile-personalization";
 
 type ProfileByUsernamePageProps = {
@@ -67,6 +69,15 @@ export default async function ProfileByUsernamePage({
         </main>
       </>
     );
+  }
+
+  // Keep the displayed milestones accurate for every profile, including profiles
+  // that have not been opened by their owner recently. Existing data remains
+  // available if the database is temporarily unavailable.
+  try {
+    profile.milestoneBadges = await syncProfileMilestones(profile.email);
+  } catch {
+    // Rendering the profile must not fail because milestone maintenance is unavailable.
   }
 
   const de = viewerProfile?.language === "de";
@@ -160,6 +171,12 @@ export default async function ProfileByUsernamePage({
                   <ProfileLinks links={profile.profileLinks} language={de ? "de" : "en"} centered={profileHeaderLayout === "compact" ? false : profileHeaderLayout === "spotlight" ? true : "mobile"} accent={profile.profileAccent} />
                 )}
                 {showShoutouts && profile.shoutouts.length > 0 && <ProfileShoutouts shoutouts={profile.shoutouts} language={de ? "de" : "en"} centered={profileHeaderLayout === "compact" ? false : profileHeaderLayout === "spotlight" ? true : "mobile"} />}
+                <ProfileMilestones
+                  milestones={profile.milestoneBadges}
+                  hiddenMilestones={profile.hiddenMilestoneBadges}
+                  language={de ? "de" : "en"}
+                  centered={profileHeaderLayout !== "compact" && !(profileHeaderLayout === "standard" && headerBackgroundStyle)}
+                />
 
                 {isOwnProfile && profile.isAdmin && <Link href="/admin" className={`${profileHeaderLayout === "compact" ? "mt-4" : profileHeaderLayout === "spotlight" ? "mx-auto mt-4" : "mx-auto mt-4 lg:mx-0"} flex w-fit rounded-xl border border-orange-400/60 px-3 py-2 text-sm font-semibold text-orange-600 hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-500/10`}>{de ? "Adminbereich" : "Admin area"}</Link>}
 
