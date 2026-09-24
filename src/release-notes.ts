@@ -7,6 +7,14 @@ export type ReleaseNote = {
 // Keep newest releases first. This is the single source for the Home changelog.
 export const webReleaseNotes: ReleaseNote[] = [
   {
+    version: "0.1.78.2",
+    date: "2026-09-24",
+    changes: [
+      "Aligned profile actions, links, shoutouts, and milestones with Standard, Compact, and Spotlight layouts.",
+      "Fixed Spotlight actions so they remain centered on desktop screens.",
+    ],
+  },
+  {
     version: "0.1.78.1",
     date: "2026-09-24",
     changes: [

@@ -9,6 +9,10 @@
 
 - Polish the Blocked users back control and Home changelog width and motion. ✅
 
+## BETA 0.1.78.2 — Profile layout alignment
+
+- Align profile actions and optional profile sections with each header layout on desktop and mobile. ✅
+
 ## BETA 0.1.65
 
 - Add reports for profiles, posts, and comments, plus a moderation inbox on the admin page.

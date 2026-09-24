@@ -127,6 +127,7 @@ export default async function ProfileByUsernamePage({
   const profileHeaderLayout = normalizeProfileHeaderLayout(profile.profileHeaderLayout);
   const headerBackgroundStyle = profileHeaderBackgroundStyle(profile.profileHeaderBackgroundMode, profile.profileHeaderBackgroundImage, profile.profileHeaderBackgroundColor, profile.profileHeaderBackgroundEnd);
   const headerTextColor = normalizeProfileHeaderTextColor(profile.profileHeaderTextColor);
+  const hasLeftAlignedHeaderContent = profileHeaderLayout === "compact" || (profileHeaderLayout === "standard" && Boolean(headerBackgroundStyle));
 
   return (
     <>
@@ -168,25 +169,25 @@ export default async function ProfileByUsernamePage({
                 )}
 
                 {showLinks && profile.profileLinks.length > 0 && (
-                  <ProfileLinks links={profile.profileLinks} language={de ? "de" : "en"} centered={profileHeaderLayout === "compact" ? false : profileHeaderLayout === "spotlight" ? true : "mobile"} accent={profile.profileAccent} />
+                  <ProfileLinks links={profile.profileLinks} language={de ? "de" : "en"} centered={hasLeftAlignedHeaderContent ? false : profileHeaderLayout === "spotlight" ? true : "mobile"} accent={profile.profileAccent} />
                 )}
-                {showShoutouts && profile.shoutouts.length > 0 && <ProfileShoutouts shoutouts={profile.shoutouts} language={de ? "de" : "en"} centered={profileHeaderLayout === "compact" ? false : profileHeaderLayout === "spotlight" ? true : "mobile"} />}
+                {showShoutouts && profile.shoutouts.length > 0 && <ProfileShoutouts shoutouts={profile.shoutouts} language={de ? "de" : "en"} centered={hasLeftAlignedHeaderContent ? false : profileHeaderLayout === "spotlight" ? true : "mobile"} />}
                 <ProfileMilestones
                   milestones={profile.milestoneBadges}
                   hiddenMilestones={profile.hiddenMilestoneBadges}
                   language={de ? "de" : "en"}
-                  centered={profileHeaderLayout !== "compact" && !(profileHeaderLayout === "standard" && headerBackgroundStyle)}
+                  centered={hasLeftAlignedHeaderContent ? false : profileHeaderLayout === "spotlight" ? true : "mobile"}
                 />
 
-                {isOwnProfile && profile.isAdmin && <Link href="/admin" className={`${profileHeaderLayout === "compact" ? "mt-4" : profileHeaderLayout === "spotlight" ? "mx-auto mt-4" : "mx-auto mt-4 lg:mx-0"} flex w-fit rounded-xl border border-orange-400/60 px-3 py-2 text-sm font-semibold text-orange-600 hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-500/10`}>{de ? "Adminbereich" : "Admin area"}</Link>}
+                {isOwnProfile && profile.isAdmin && <Link href="/admin" className={`${hasLeftAlignedHeaderContent ? "mt-4" : profileHeaderLayout === "spotlight" ? "mx-auto mt-4" : "mx-auto mt-4 lg:mx-0"} flex w-fit rounded-xl border border-orange-400/60 px-3 py-2 text-sm font-semibold text-orange-600 hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-500/10`}>{de ? "Adminbereich" : "Admin area"}</Link>}
 
-                {isSystemProfile && <p className="mt-3 text-sm font-semibold text-slate-500 dark:text-slate-400">{isSupportProfile ? (de ? "Offizieller VIBE-Support · Deine Anfrage wird als Ticket an das Admin-Team weitergeleitet." : "Official VIBE support · Your request is forwarded to the admin team as a ticket.") : (de ? "Offizieller VIBE-Systemaccount · Nachrichten können nicht beantwortet werden." : "Official VIBE system account · Messages cannot be replied to.")}</p>}{isSupportProfile && <Link href="/support" className="mx-auto mt-4 inline-flex rounded-xl bg-linear-to-r from-cyan-600 to-violet-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm shadow-cyan-500/20 transition hover:brightness-110 lg:mx-0">{de ? "Support kontaktieren" : "Contact support"}</Link>}{!isOwnProfile && !isBlocked && !isSystemProfile && <div className="mt-3 flex justify-center lg:block"><ReportButton targetType="profile" targetId={profile.id} targetUrl={`/profile/${encodeURIComponent(profile.username ?? "")}`} /></div>}
+                {isSystemProfile && <p className="mt-3 text-sm font-semibold text-slate-500 dark:text-slate-400">{isSupportProfile ? (de ? "Offizieller VIBE-Support · Deine Anfrage wird als Ticket an das Admin-Team weitergeleitet." : "Official VIBE support · Your request is forwarded to the admin team as a ticket.") : (de ? "Offizieller VIBE-Systemaccount · Nachrichten können nicht beantwortet werden." : "Official VIBE system account · Messages cannot be replied to.")}</p>}{isSupportProfile && <Link href="/support" className={`${hasLeftAlignedHeaderContent ? "mx-0" : profileHeaderLayout === "spotlight" ? "mx-auto" : "mx-auto lg:mx-0"} mt-4 inline-flex rounded-xl bg-linear-to-r from-cyan-600 to-violet-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm shadow-cyan-500/20 transition hover:brightness-110`}>{de ? "Support kontaktieren" : "Contact support"}</Link>}{!isOwnProfile && !isBlocked && !isSystemProfile && <div className={`mt-3 flex ${profileHeaderLayout === "spotlight" ? "justify-center" : hasLeftAlignedHeaderContent ? "justify-start" : "justify-center lg:block"}`}><ReportButton targetType="profile" targetId={profile.id} targetUrl={`/profile/${encodeURIComponent(profile.username ?? "")}`} /></div>}
 
-                {canDeleteProfile && <div className="mt-3 flex justify-center lg:block"><DeleteProfileButton profileId={profile.id} de={de} /></div>}
+                {canDeleteProfile && <div className={`mt-3 flex ${profileHeaderLayout === "spotlight" ? "justify-center" : hasLeftAlignedHeaderContent ? "justify-start" : "justify-center lg:block"}`}><DeleteProfileButton profileId={profile.id} de={de} /></div>}
 
                 {/* 🔥 FOLLOW BUTTON HIER */}
                 {!isOwnProfile && !isSystemProfile && (
-                  <div className={`mt-5 flex flex-wrap gap-2 ${profileHeaderLayout === "compact" ? "justify-start" : "justify-center lg:justify-start"}`}>
+                  <div className={`mt-5 flex flex-wrap gap-2 ${profileHeaderLayout === "spotlight" ? "justify-center" : hasLeftAlignedHeaderContent ? "justify-start" : "justify-center lg:justify-start"}`}>
                     <ProfileActionControls
                       targetProfileId={profile.id}
                       targetUsername={profile.username || ""}

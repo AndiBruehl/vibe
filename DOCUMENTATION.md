@@ -48,6 +48,10 @@ Appearance apply, reset, and restore actions retain their local state after succ
 
 The Blocked users screen keeps its back control at the left page edge and uses the shared minimal back-arrow treatment without a hover background or border. On Home, the changelog uses the same maximum width as the post feed and expands through a client-side height and opacity transition.
 
+### Profile layout alignment (0.1.78.2)
+
+Profile header actions and optional sections follow one layout contract on both the owner and public-profile routes. Compact is left aligned. Spotlight centers actions, support and admin controls, links, shoutouts, and milestones at every breakpoint. Standard public profiles use centered mobile content and left-aligned desktop content; when Standard uses a header background, content stays left aligned at every breakpoint. The milestone component supports this same responsive alignment behavior.
+
 ### Settings and Home polish (0.1.78.1)
 
 The shared `BackNavigationLink` intentionally has no hover surface or outline; only its text color and label opacity respond to interaction. The Blocked users page separates this left-edge navigation control from its centered content column. `HomeChangelog` is a client component so its expanded state can animate smoothly while staying limited to the same `max-w-5xl` width as `HomePosts`.
