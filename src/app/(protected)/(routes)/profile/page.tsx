@@ -153,7 +153,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">
           <span>{profile.name || (de ? "Nutzer" : "User")}</span>
         </h1>
-        <div className={`mt-1 flex flex-wrap items-center gap-1.5 ${profileHeaderLayout === "spotlight" ? "justify-center" : "justify-start"}`}><AdminBadge isAdmin={profile.isAdmin} isVerified={profile.isVerified} badges={profile.profileBadges} hiddenBadges={profile.hiddenProfileBadges} showCurated /></div>
+        <div className={`mt-1 flex flex-wrap items-center gap-1.5 ${profileHeaderLayout === "spotlight" ? "justify-center" : "justify-start"}`}><AdminBadge isAdmin={profile.isAdmin} isVerified={profile.isVerified} badges={profile.profileBadges} hiddenBadges={profile.hiddenProfileBadges} showCurated centered={profileHeaderLayout === "spotlight"} /></div>
 
         <p className="my-1 text-slate-600 dark:text-slate-300">
           {profile.subtitle || ""}

@@ -1,5 +1,11 @@
 # VIBE TODO
 
+## BETA 0.1.81 — Admin user management cards
+
+- Keep User management permanently visible. ✅
+- Show every member as a single-column expandable card on mobile and desktop. ✅
+- Add localized editing guidance and safe empty search states. ✅
+
 ## BETA 0.1.80.3 — Custom badge label tooltip
 
 - Show a custom badge label when its symbol is clicked, matching system badges. ✅

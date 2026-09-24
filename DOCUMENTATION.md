@@ -38,6 +38,10 @@ Custom badge symbols use a dedicated fixed-square control style, so the app-wide
 
 Custom badge symbols also use the same click-to-reveal label tooltip as curated system badges, with independent state per badge.
 
+### Admin user management cards (0.1.81)
+
+User management is permanently visible in the Admin area. Members are rendered in one single-column list at every viewport width; each member is a native expandable card, so the identity and protected statuses remain visible while moderation and badge controls stay out of the way until that card is opened. The guidance and empty-search state are localized, and existing dark/light theme classes continue to apply to every card surface and control.
+
 ### Profile milestones (0.1.76)
 
 Milestones are stored on each `Profile` in `milestoneBadges`, with optional member visibility choices in `hiddenMilestoneBadges`. The earned catalog currently includes First post, First story, 100 likes, and One year on VIBE. `src/profile-milestones.ts` derives progress from posts, stories, likes, and the profile age, and merges achievements without removing previously earned milestones.

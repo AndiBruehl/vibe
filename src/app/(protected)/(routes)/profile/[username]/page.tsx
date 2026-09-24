@@ -155,7 +155,7 @@ export default async function ProfileByUsernamePage({
                 <h1 className={`${profileHeaderLayout === "spotlight" ? "text-3xl" : profileHeaderLayout === "compact" ? "text-2xl lg:text-3xl" : "text-2xl"} font-bold text-slate-900 dark:text-white`}>
                   <span>{profile.name || "Unknown"}</span>
                 </h1>
-                <div className={`mt-1 flex flex-wrap items-center gap-1.5 ${profileHeaderLayout === "compact" ? "justify-start" : profileHeaderLayout === "spotlight" ? "justify-center" : "lg:justify-start"}`}><AdminBadge isAdmin={profile.isAdmin} isVerified={profile.isVerified} badges={profile.profileBadges} hiddenBadges={profile.hiddenProfileBadges} showCurated /><VibeTeamBadge isSystem={profile.isSystem} /></div>
+                <div className={`mt-1 flex flex-wrap items-center gap-1.5 ${profileHeaderLayout === "compact" ? "justify-start" : profileHeaderLayout === "spotlight" ? "justify-center" : "lg:justify-start"}`}><AdminBadge isAdmin={profile.isAdmin} isVerified={profile.isVerified} badges={profile.profileBadges} hiddenBadges={profile.hiddenProfileBadges} showCurated centered={profileHeaderLayout === "spotlight"} /><VibeTeamBadge isSystem={profile.isSystem} /></div>
 
                 <p className={`${profileHeaderLayout === "compact" ? "text-sm lg:text-base" : "text-sm"} text-slate-500 dark:text-slate-400`}>
                   @{profile.username}

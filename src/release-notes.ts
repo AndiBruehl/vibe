@@ -6,6 +6,7 @@ export type ReleaseNote = {
 
 // Keep newest releases first. This is the single source for the Home changelog.
 export const webReleaseNotes: ReleaseNote[] = [
+  { version: "0.1.81", date: "2026-09-24", changes: ["Reworked Admin user management into permanently visible, single-column expandable member cards.", "Added localized guidance for opening a member card and safe empty states for user searches."] },
   { version: "0.1.80.3", date: "2026-09-24", changes: ["Fixed custom badge clicks so they show the same label tooltip as system badges."] },
   { version: "0.1.80.2", date: "2026-09-24", changes: ["Fixed custom profile badge symbols so they remain perfectly circular despite global button sizing."] },
   { version: "0.1.80.1", date: "2026-09-24", changes: ["Fixed custom badges in Admin user management, including safe duplicate prevention and removal controls.", "Replaced the long global comment spinner with a compact local sending state."] },

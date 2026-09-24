@@ -538,10 +538,9 @@ html:lang(de) video + div.space-y-2 {
   padding-bottom: 7rem;
 }
 
-@media (max-width: 900px) {
-  details .sm\:grid-cols-2 {
-    grid-template-columns: minmax(0, 1fr) !important;
-  }
+/* User management stays a single readable card column at every viewport width. */
+.vibe-admin-user-grid {
+  grid-template-columns: minmax(0, 1fr) !important;
 }
 
 
