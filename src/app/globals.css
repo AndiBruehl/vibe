@@ -401,6 +401,17 @@ button.rounded-full.border-violet-400\/60 {
   padding: 0;
 }
 
+/* Custom profile badges are symbols, not standard-height action buttons. */
+.vibe-custom-profile-badge {
+  width: 1.75rem;
+  min-width: 1.75rem;
+  max-width: 1.75rem;
+  height: 1.75rem;
+  min-height: 1.75rem;
+  max-height: 1.75rem;
+  padding: 0;
+}
+
 :where(input, textarea, [contenteditable="true"]) { cursor: text; }
 
 :where(a[href], button, summary, select, input[type="checkbox"], input[type="radio"], input[type="range"], label[for]) { cursor: pointer; }

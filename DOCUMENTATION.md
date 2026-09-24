@@ -34,6 +34,8 @@ Recipients receive a VibeTeam direct message in their profile language. It names
 
 Custom badge management also lists each assigned custom badge in the corresponding Admin → User management card and allows protected administrators to remove it. Awarding rejects duplicate emoji-and-label pairs for the same member, imposes a safe profile badge limit, and preserves custom entries when a curated badge is changed. Malformed legacy badge values are ignored instead of interrupting badge management.
 
+Custom badge symbols use a dedicated fixed-square control style, so the app-wide minimum button height cannot stretch them into pills on any profile layout.
+
 ### Profile milestones (0.1.76)
 
 Milestones are stored on each `Profile` in `milestoneBadges`, with optional member visibility choices in `hiddenMilestoneBadges`. The earned catalog currently includes First post, First story, 100 likes, and One year on VIBE. `src/profile-milestones.ts` derives progress from posts, stories, likes, and the profile age, and merges achievements without removing previously earned milestones.

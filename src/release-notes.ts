@@ -6,6 +6,7 @@ export type ReleaseNote = {
 
 // Keep newest releases first. This is the single source for the Home changelog.
 export const webReleaseNotes: ReleaseNote[] = [
+  { version: "0.1.80.2", date: "2026-09-24", changes: ["Fixed custom profile badge symbols so they remain perfectly circular despite global button sizing."] },
   { version: "0.1.80.1", date: "2026-09-24", changes: ["Fixed custom badges in Admin user management, including safe duplicate prevention and removal controls.", "Replaced the long global comment spinner with a compact local sending state."] },
   { version: "0.1.80", date: "2026-09-24", changes: ["Added admin-awarded custom profile badges with an emoji picker and a free badge label.", "Recipients receive a localized VibeTeam message naming the awarding admin and their new badge.", "Custom badge requests can be sent directly to Support@Vibe."] },
   { version: "0.1.79.5", date: "2026-09-24", changes: ["Fixed Custom frame guidance so it follows the active VIBE language.", "Placed profile badges below the member name so they wrap cleanly on narrow screens."] },

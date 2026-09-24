@@ -1,5 +1,9 @@
 # VIBE TODO
 
+## BETA 0.1.80.2 — Circular custom badge fix
+
+- Keep custom badge symbols perfectly circular on every profile layout. ✅
+
 ## BETA 0.1.80.1 — Custom badge and comment feedback fixes
 
 - Keep custom badges visible and manageable in Admin → User management. ✅
