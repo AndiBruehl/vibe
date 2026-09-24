@@ -151,8 +151,9 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
 
       <section className={`${profileHeaderLayout === "spotlight" ? "mx-auto mt-1 max-w-xl rounded-2xl bg-slate-950/25 p-4 text-center shadow-lg backdrop-blur-sm" : profileHeaderLayout === "standard" && headerBackgroundStyle ? "mx-0 mt-4 max-w-xl rounded-2xl bg-slate-950/25 p-4 text-left shadow-lg backdrop-blur-sm" : "mx-0 text-left"} ${profileHeaderLayout === "compact" ? "mt-0 max-w-2xl" : profileHeaderLayout === "spotlight" || headerBackgroundStyle ? "" : "mt-5 max-w-3xl"}`}>
         <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">
-          <span className={`inline-flex items-center gap-2 ${profileHeaderLayout === "spotlight" ? "justify-center" : "justify-start"}`}>{profile.name || (de ? "Nutzer" : "User")}<AdminBadge isAdmin={profile.isAdmin} isVerified={profile.isVerified} badges={profile.profileBadges} hiddenBadges={profile.hiddenProfileBadges} showCurated /></span>
+          <span>{profile.name || (de ? "Nutzer" : "User")}</span>
         </h1>
+        <div className={`mt-1 flex flex-wrap items-center gap-1.5 ${profileHeaderLayout === "spotlight" ? "justify-center" : "justify-start"}`}><AdminBadge isAdmin={profile.isAdmin} isVerified={profile.isVerified} badges={profile.profileBadges} hiddenBadges={profile.hiddenProfileBadges} showCurated /></div>
 
         <p className="my-1 text-slate-600 dark:text-slate-300">
           {profile.subtitle || ""}
