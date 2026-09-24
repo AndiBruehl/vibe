@@ -156,6 +156,7 @@ export default async function SinglePostPage({
                 <PostCarousel
                   images={getPostImages(post)}
                   mediaTypes={getPostMediaTypes(post)}
+                  videoPosters={post.videoPosters}
                   alt={post.description || "Post image"}
                   initialIndex={initialImage}
                   postId={post.id}
@@ -242,7 +243,7 @@ export default async function SinglePostPage({
                       </button>
                     </form>
 
-                    <PostComposer key={post.updatedAt.toISOString()} action={editPost} postId={post.id} initialImages={getPostImages(post)} initialMediaTypes={getPostMediaTypes(post)} description={post.description} topics={topics.map((t) => t.name)} taggedProfiles={taggedProfiles}/>
+                    <PostComposer key={post.updatedAt.toISOString()} action={editPost} postId={post.id} initialImages={getPostImages(post)} initialMediaTypes={getPostMediaTypes(post)} initialVideoPosters={post.videoPosters} description={post.description} topics={topics.map((t) => t.name)} taggedProfiles={taggedProfiles}/>
 
                   </section>
                 ) : isAdmin ? (

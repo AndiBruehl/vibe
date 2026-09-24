@@ -405,6 +405,7 @@ export default async function HomePosts({
                   <PostCarousel
                     images={getPostImages(post)}
                     mediaTypes={getPostMediaTypes(post)}
+                    videoPosters={post.videoPosters}
                     alt={post.description || "Post image"}
                     href={`/posts/${post.id}`}
                     postId={post.id}

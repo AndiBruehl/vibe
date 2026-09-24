@@ -1,5 +1,10 @@
 # VIBE TODO
 
+## BETA 0.1.79 — Video posters
+
+- Add optional custom video posters and a three-second automatic preview frame fallback. ✅
+- Mark video previews with a clear play icon across VIBE. ✅
+
 ## BETA 0.1.78 — Persistent Settings routes
 
 - Keep the active Settings tab and profile-look section in the URL so refreshes and bookmarks restore the same location. ✅

@@ -52,6 +52,16 @@ The Blocked users screen keeps its back control at the left page edge and uses t
 
 Profile header actions and optional sections follow one layout contract on both the owner and public-profile routes. Compact is left aligned. Spotlight centers actions, support and admin controls, links, shoutouts, and milestones at every breakpoint. Standard public profiles use centered mobile content and left-aligned desktop content; when Standard uses a header background, content stays left aligned at every breakpoint. The milestone component supports this same responsive alignment behavior.
 
+### Video posters (0.1.79)
+
+Posts store an optional `videoPosters` array aligned with `images` and `mediaTypes`. The composer lets members upload an image poster or select a frame with a time slider for each video, validates it with the existing image rules, and keeps poster values aligned when media are moved or removed. Frame export creates a JPEG from the loaded video and uses the normal authenticated upload path. If browser or source restrictions prevent exporting a frame, the composer preserves the video and directs the member to choose a custom poster image instead. The post action validates every optional poster URL server-side, while legacy posts receive empty poster entries without breaking rendering.
+
+Paused video previews use a small play marker in their upper-left corner. Admin user management keeps Admin and Verified status beside the member name; curated profile badges have their own Award/Remove control list and are shown only on the member's profile.
+
+`VideoMedia` is the shared preview renderer. It prefers an uploaded poster. Without one, it seeks to second three after metadata loads for videos at least five seconds long, or the midpoint of a shorter video. Playback begins from the start when the viewer presses play. Feed, detail, topic, browse, search, carousel, and shared-message video previews use this component and show a play marker while paused.
+
+Curated badges are profile-only. `AdminBadge` renders them only when an actual profile header explicitly requests `showCurated`; comments, posts, search, directories, and admin user rows continue to show only protected Admin and Verified statuses.
+
 ### Settings and Home polish (0.1.78.1)
 
 The shared `BackNavigationLink` intentionally has no hover surface or outline; only its text color and label opacity respond to interaction. The Blocked users page separates this left-edge navigation control from its centered content column. `HomeChangelog` is a client component so its expanded state can animate smoothly while staying limited to the same `max-w-5xl` width as `HomePosts`.

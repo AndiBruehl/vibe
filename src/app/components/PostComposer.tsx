@@ -96,6 +96,7 @@ export default function PostComposer({
   postId,
   initialImages = [],
   initialMediaTypes = [],
+  initialVideoPosters = [],
   description = "",
   topics = [],
   taggedProfiles = [],
@@ -107,6 +108,7 @@ export default function PostComposer({
   postId?: string;
   initialImages?: string[];
   initialMediaTypes?: string[];
+  initialVideoPosters?: string[];
   description?: string;
   topics?: string[];
   taggedProfiles?: TaggedProfile[];
@@ -118,6 +120,9 @@ export default function PostComposer({
   const isDraftable = !postId && !accountDrafts;
   const [images, setImages] = useState(initialImages);
   const [mediaTypes, setMediaTypes] = useState<(typeof IMAGE_MEDIA_TYPE | typeof VIDEO_MEDIA_TYPE)[]>(() => initialImages.map((_, index) => initialMediaTypes[index] === VIDEO_MEDIA_TYPE ? VIDEO_MEDIA_TYPE : IMAGE_MEDIA_TYPE));
+  const [videoPosters, setVideoPosters] = useState(() => initialImages.map((_, index) => initialVideoPosters[index] || ""));
+  const [videoDurations, setVideoDurations] = useState<Record<number, number>>({});
+  const [posterFrameTimes, setPosterFrameTimes] = useState<Record<number, number>>({});
   const [draftDescription, setDraftDescription] = useState(description);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -127,6 +132,9 @@ export default function PostComposer({
   const [draftStatus, setDraftStatus] = useState("");
   const uploading = useRef(false);
   const fileInput = useRef<HTMLInputElement>(null);
+  const posterInput = useRef<HTMLInputElement>(null);
+  const posterTarget = useRef<number | null>(null);
+  const videoRefs = useRef<Record<number, HTMLVideoElement | null>>({});
 
   useEffect(() => {
     if (!isDraftable) return;
@@ -187,6 +195,7 @@ export default function PostComposer({
         const upload = await pinata.upload.public.file(safeUploadFile(files[i])).url(url);
         setImages((current) => [...current, getGatewayUrl(upload.cid)]);
         setMediaTypes((current) => [...current, ALLOWED_VIDEO_TYPES.has(files[i].type) ? VIDEO_MEDIA_TYPE : IMAGE_MEDIA_TYPE]);
+        setVideoPosters((current) => [...current, ""]);
       }
     } catch (failure) {
       setError(
@@ -197,6 +206,39 @@ export default function PostComposer({
       setBusy(false);
       setProgress("");
     }
+  }
+  async function uploadPoster(file: File | undefined) {
+    const index = posterTarget.current;
+    posterTarget.current = null;
+    if (index === null || !file) return;
+    if (!ALLOWED_IMAGE_TYPES.has(file.type) || file.size > 25 * 1024 * 1024) { setError(de ? "Das Vorschaubild muss ein Bild unter 25 MB sein." : "The poster must be an image under 25 MB."); return; }
+    setBusy(true); setError("");
+    try {
+      const url = await getSignedUploadUrl();
+      const upload = await pinata.upload.public.file(safeUploadFile(file)).url(url);
+      setVideoPosters((current) => current.map((value, currentIndex) => currentIndex === index ? getGatewayUrl(upload.cid) : value));
+    } catch { setError(de ? "Das Vorschaubild konnte nicht hochgeladen werden. Bitte erneut versuchen." : "The poster could not be uploaded. Please try again."); }
+    finally { setBusy(false); }
+  }
+  async function saveVideoFrameAsPoster(index: number) {
+    const video = videoRefs.current[index];
+    if (!video || !video.videoWidth || !video.videoHeight) { setError(de ? "Der Videoframe ist noch nicht bereit. Bitte warte kurz und versuche es erneut." : "The video frame is not ready yet. Please wait a moment and try again."); return; }
+    setBusy(true); setError("");
+    try {
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("canvas");
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.9));
+      if (!blob) throw new Error("frame");
+      if (blob.size > 25 * 1024 * 1024) throw new Error("frame-too-large");
+      const url = await getSignedUploadUrl();
+      const upload = await pinata.upload.public.file(safeUploadFile(new File([blob], `video-frame-${index + 1}.jpg`, { type: "image/jpeg" }))).url(url);
+      setVideoPosters((current) => current.map((value, currentIndex) => currentIndex === index ? getGatewayUrl(upload.cid) : value));
+    } catch {
+      setError(de ? "Der gewählte Frame konnte nicht gespeichert werden. Wähle alternativ ein eigenes Vorschaubild." : "The selected frame could not be saved. You can choose a custom poster image instead.");
+    } finally { setBusy(false); }
   }
   function handleDrop(event: DragEvent<HTMLDivElement>) {
     event.preventDefault();
@@ -245,6 +287,7 @@ export default function PostComposer({
         <input key={i} type="hidden" name="images" value={url} />
       ))}
       {mediaTypes.map((type, i) => <input key={`type-${i}`} type="hidden" name="mediaType" value={type} />)}
+      {images.map((_, i) => <input key={`poster-${i}`} type="hidden" name="videoPoster" value={videoPosters[i] || ""} />)}
       <fieldset disabled={busy} className="space-y-3">
         <legend className="mb-2 font-semibold text-slate-900 dark:text-slate-100">
           {de ? "Medien" : "Media"} · {images.length}/4
@@ -255,7 +298,7 @@ export default function PostComposer({
               key={`${url}-${i}`}
               className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700"
             >
-              {mediaTypes[i] === VIDEO_MEDIA_TYPE ? <video src={url} controls preload="metadata" className="aspect-square w-full bg-slate-950 object-contain" /> : <img src={url} alt={`${de ? "Ausgewähltes Bild" : "Selected image"} ${i + 1}`} className="aspect-square w-full bg-slate-100 object-contain dark:bg-slate-900" />}
+              {mediaTypes[i] === VIDEO_MEDIA_TYPE ? <><video ref={(element) => { videoRefs.current[i] = element; }} src={url} poster={videoPosters[i] || undefined} controls crossOrigin="anonymous" preload="metadata" onLoadedMetadata={(event) => { const duration = event.currentTarget.duration; if (!Number.isFinite(duration) || duration <= 0) return; setVideoDurations((current) => ({ ...current, [i]: duration })); setPosterFrameTimes((current) => current[i] === undefined ? { ...current, [i]: duration >= 5 ? 3 : duration / 2 } : current); }} className="aspect-square w-full bg-slate-950 object-contain" /><div className="space-y-2 p-2"><div className="flex flex-wrap gap-2"><button type="button" onClick={() => { posterTarget.current = i; posterInput.current?.click(); }} className="rounded-lg border border-cyan-400/60 px-2 py-1 text-xs font-bold text-cyan-700 dark:text-cyan-300">{videoPosters[i] ? (de ? "Vorschaubild ändern" : "Change poster") : (de ? "Vorschaubild wählen" : "Choose poster")}</button>{videoDurations[i] ? <button type="button" disabled={busy} onClick={() => void saveVideoFrameAsPoster(i)} className="rounded-lg border border-violet-400/60 px-2 py-1 text-xs font-bold text-violet-700 disabled:opacity-50 dark:text-violet-300">{de ? "Diesen Frame verwenden" : "Use this frame"}</button> : null}</div>{videoDurations[i] ? <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300">{de ? `Frame bei ${posterFrameTimes[i]?.toFixed(1) ?? "0.0"} Sekunden` : `Frame at ${posterFrameTimes[i]?.toFixed(1) ?? "0.0"} seconds`}<input type="range" min="0" max={videoDurations[i]} step="0.1" value={posterFrameTimes[i] ?? 0} onChange={(event) => { const time = Number(event.target.value); setPosterFrameTimes((current) => ({ ...current, [i]: time })); const video = videoRefs.current[i]; if (video) video.currentTime = time; }} className="mt-1 w-full accent-violet-600" /></label> : <p className="text-xs text-slate-500 dark:text-slate-400">{de ? "Frame-Editor wird geladen…" : "Loading frame editor…"}</p>}</div></> : <img src={url} alt={`${de ? "Ausgewähltes Bild" : "Selected image"} ${i + 1}`} className="aspect-square w-full bg-slate-100 object-contain dark:bg-slate-900" />}
               <div className="flex items-center justify-between gap-1 p-2 text-xs">
                     <span>{i === 0 ? (de ? "Titelmedium" : "Cover media") : `${mediaTypes[i] === VIDEO_MEDIA_TYPE ? (de ? "Video" : "Video") : (de ? "Bild" : "Image")} ${i + 1}`}</span>
                 {i > 0 && (
@@ -267,6 +310,7 @@ export default function PostComposer({
                         const next = [...current];
                         [next[i - 1], next[i]] = [next[i], next[i - 1]];
                         setMediaTypes((currentTypes) => { const nextTypes = [...currentTypes]; [nextTypes[i - 1], nextTypes[i]] = [nextTypes[i], nextTypes[i - 1]]; return nextTypes; });
+                        setVideoPosters((currentPosters) => { const nextPosters = [...currentPosters]; [nextPosters[i - 1], nextPosters[i]] = [nextPosters[i], nextPosters[i - 1]]; return nextPosters; });
                         return next;
                       })
                     }
@@ -281,6 +325,7 @@ export default function PostComposer({
                   onClick={() => {
                     setImages((current) => current.filter((_, index) => index !== i));
                     setMediaTypes((current) => current.filter((_, index) => index !== i));
+                    setVideoPosters((current) => current.filter((_, index) => index !== i));
                   }}
                   className="rounded p-2 text-red-600 dark:text-red-400"
                 >
@@ -318,6 +363,7 @@ export default function PostComposer({
                 void upload(files);
               }}
             />
+            <input ref={posterInput} type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" className="hidden" onChange={(event) => { void uploadPoster(event.target.files?.[0]); event.target.value = ""; }} />
           </div>
         )}
       </fieldset>

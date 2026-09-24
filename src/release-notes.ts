@@ -7,6 +7,15 @@ export type ReleaseNote = {
 // Keep newest releases first. This is the single source for the Home changelog.
 export const webReleaseNotes: ReleaseNote[] = [
   {
+    version: "0.1.79",
+    date: "2026-09-24",
+    changes: [
+      "Added optional custom posters and a time-slider frame editor for uploaded videos.",
+      "Added a safe automatic preview frame at three seconds, with a short-video fallback.",
+      "Added a consistent play marker to video previews across feeds, topics, browse, search, post detail, and shared messages.",
+    ],
+  },
+  {
     version: "0.1.78.2",
     date: "2026-09-24",
     changes: [

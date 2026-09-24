@@ -6,10 +6,12 @@ import ExpandablePostImage from "./ExpandablePostImage";
 import ProgressiveImage from "./ProgressiveImage";
 import { likePost } from "@/actions";
 import { VIDEO_MEDIA_TYPE } from "@/post-images";
+import VideoMedia from "./VideoMedia";
 
 export default function PostCarousel({
   images,
   mediaTypes = [],
+  videoPosters = [],
   alt,
   href,
   initialIndex = 0,
@@ -17,6 +19,7 @@ export default function PostCarousel({
 }: {
   images: string[];
   mediaTypes?: string[];
+  videoPosters?: string[];
   alt: string;
   href?: string;
   initialIndex?: number;
@@ -42,10 +45,8 @@ export default function PostCarousel({
   }
   useEffect(() => {
     const next = Math.max(0, Math.min(initialIndex, images.length - 1));
-    setIndex(next);
-    requestAnimationFrame(() => go(next));
+    requestAnimationFrame(() => { setIndex(next); go(next); });
   // The image set defines the available range; go only changes scroll position.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialIndex, images.length]);
   async function likeFromGesture() {
     if (!postId) return;
@@ -116,7 +117,7 @@ export default function PostCarousel({
             className="w-full shrink-0 snap-center bg-slate-100 dark:bg-slate-900"
           >
             {isVideo ? (
-              <video src={src} controls playsInline preload={i ? "none" : "metadata"} className="max-h-[80vh] w-full bg-black object-contain" aria-label={`${alt} (${i + 1}/${images.length})`} />
+              <VideoMedia src={src} poster={videoPosters[i]} className="max-h-[80vh] w-full bg-black object-contain" alt={`${alt} (${i + 1}/${images.length})`} />
             ) : href ? (
               <Link
                 href={`${href}${href.includes("?") ? "&" : "?"}image=${i + 1}`}

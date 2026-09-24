@@ -62,6 +62,7 @@ export default async function TopicPage({ params }: Props) {
       image: true,
       images: true,
       mediaTypes: true,
+      videoPosters: true,
       createdAt: true,
       likesCount: true,
       author: {
@@ -156,7 +157,7 @@ export default async function TopicPage({ params }: Props) {
                           <p className="text-slate-800">{p.description}</p>
 
                         </Link>
-                        <PostCarousel images={getPostImages(p)} mediaTypes={getPostMediaTypes(p)} alt={p.description || "Post image"} href={`/posts/${p.id}`} postId={p.id}/>
+                        <PostCarousel images={getPostImages(p)} mediaTypes={getPostMediaTypes(p)} videoPosters={p.videoPosters} alt={p.description || "Post image"} href={`/posts/${p.id}`} postId={p.id}/>
                       </div>
                     </div>
                   </div>

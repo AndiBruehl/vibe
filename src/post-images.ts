@@ -32,3 +32,15 @@ export function parsePostMediaTypes(values: unknown[], mediaCount: number): stri
   if (values.length !== mediaCount) throw new Error("Every media item needs a type.");
   return values.map((value) => value === VIDEO_MEDIA_TYPE ? VIDEO_MEDIA_TYPE : value === IMAGE_MEDIA_TYPE ? IMAGE_MEDIA_TYPE : (() => { throw new Error("Invalid media type."); })());
 }
+
+export function parsePostVideoPosters(values: unknown[], mediaCount: number): string[] {
+  if (!values.length) return Array.from({ length: mediaCount }, () => "");
+  if (values.length !== mediaCount) throw new Error("Every media item needs a matching video poster value.");
+  return values.map((value) => {
+    if (value === null || value === undefined || value === "") return "";
+    if (typeof value !== "string") throw new Error("Invalid video poster URL.");
+    const url = new URL(value.trim());
+    if (url.protocol !== "https:" && url.protocol !== "http:") throw new Error("Invalid video poster URL.");
+    return url.toString();
+  });
+}
