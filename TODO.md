@@ -1,5 +1,11 @@
 # VIBE TODO
 
+## BETA 0.1.80.1 — Custom badge and comment feedback fixes
+
+- Keep custom badges visible and manageable in Admin → User management. ✅
+- Prevent duplicate custom badges and preserve them during curated-badge updates. ✅
+- Replace the long comment spinner with a compact local sending state. ✅
+
 ## BETA 0.1.80 — Admin custom badges
 
 - Let protected admins award a custom emoji badge and label to any member. ✅

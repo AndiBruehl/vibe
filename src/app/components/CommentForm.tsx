@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { postComment } from "@/actions";
 import MentionTextarea from "./MentionTextarea";
 import useVibeLanguage from "./useVibeLanguage";
@@ -20,15 +20,19 @@ export default function CommentForm({ postId, compact = false }: CommentFormProp
   const [text, setText] = useState("");
   const [draftReady, setDraftReady] = useState(false);
   const [draftStatus, setDraftStatus] = useState<"restored" | "saved" | null>(null);
+  const [isPending, startTransition] = useTransition();
   const draftKey = `vibe.commentDraft.${postId}`;
 
   useEffect(() => {
     const draft = localStorage.getItem(draftKey);
-    if (draft) {
-      setText(draft);
-      setDraftStatus("restored");
-    }
-    setDraftReady(true);
+    const timer = window.setTimeout(() => {
+      if (draft) {
+        setText(draft);
+        setDraftStatus("restored");
+      }
+      setDraftReady(true);
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [draftKey]);
 
   useEffect(() => {
@@ -46,11 +50,13 @@ export default function CommentForm({ postId, compact = false }: CommentFormProp
   }, [draftKey, draftReady, text]);
 
   async function action(formData: FormData) {
-    await postComment(formData);
-    formRef.current?.reset();
-    setText("");
-    localStorage.removeItem(draftKey);
-    setDraftStatus(null);
+    startTransition(async () => {
+      await postComment(formData);
+      formRef.current?.reset();
+      setText("");
+      localStorage.removeItem(draftKey);
+      setDraftStatus(null);
+    });
   }
 
   if (compact) {
@@ -69,7 +75,7 @@ export default function CommentForm({ postId, compact = false }: CommentFormProp
           required
         />
         <EmojiPicker onSelect={insertEmoji} />
-        <button type="submit" className="vibe-composer-submit shrink-0 rounded-xl bg-linear-to-r from-orange-500 to-pink-500 px-3 text-sm font-bold text-white transition hover:brightness-110">{de ? "Senden" : "Post"}</button></div>
+        <button type="submit" disabled={isPending} data-no-auto-spinner="" className="vibe-composer-submit shrink-0 rounded-xl bg-linear-to-r from-orange-500 to-pink-500 px-3 text-sm font-bold text-white transition hover:brightness-110 disabled:cursor-wait disabled:opacity-75">{isPending ? (de ? "Sende…" : "Sending…") : (de ? "Senden" : "Post")}</button></div>
         {draftReady && text.trim() && <div className="mt-2"><DraftStatus state={draftStatus} de={de} onDiscard={() => { setText(""); localStorage.removeItem(draftKey); setDraftStatus(null); textareaRef.current?.focus(); }} /></div>}
       </form>
     );
@@ -95,9 +101,11 @@ export default function CommentForm({ postId, compact = false }: CommentFormProp
         <EmojiPicker onSelect={insertEmoji} />
         <button
           type="submit"
-          className="vibe-composer-submit rounded-xl bg-black px-4 text-sm font-medium text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
+          disabled={isPending}
+          data-no-auto-spinner=""
+          className="vibe-composer-submit rounded-xl bg-black px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-wait disabled:opacity-75 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
         >
-          {de ? "Kommentieren" : "Comment"}
+          {isPending ? (de ? "Sende…" : "Sending…") : (de ? "Kommentieren" : "Comment")}
         </button>
       </div>
       {draftReady && text.trim() && <DraftStatus state={draftStatus} de={de} onDiscard={() => { setText(""); localStorage.removeItem(draftKey); setDraftStatus(null); textareaRef.current?.focus(); }} />}

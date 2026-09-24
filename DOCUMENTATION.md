@@ -32,6 +32,8 @@ Only the protected administrators Anna and Violett can award custom profile badg
 
 Recipients receive a VibeTeam direct message in their profile language. It names the awarding admin and includes the badge emoji and label. Delivery runs after the award is saved so the admin interface stays responsive; a failed first delivery is retried once and does not roll back the badge. Members can send a badge wish to Support@Vibe from the Support page, where the request enters the normal support-ticket workflow.
 
+Custom badge management also lists each assigned custom badge in the corresponding Admin → User management card and allows protected administrators to remove it. Awarding rejects duplicate emoji-and-label pairs for the same member, imposes a safe profile badge limit, and preserves custom entries when a curated badge is changed. Malformed legacy badge values are ignored instead of interrupting badge management.
+
 ### Profile milestones (0.1.76)
 
 Milestones are stored on each `Profile` in `milestoneBadges`, with optional member visibility choices in `hiddenMilestoneBadges`. The earned catalog currently includes First post, First story, 100 likes, and One year on VIBE. `src/profile-milestones.ts` derives progress from posts, stories, likes, and the profile age, and merges achievements without removing previously earned milestones.

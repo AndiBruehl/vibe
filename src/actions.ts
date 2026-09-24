@@ -13,7 +13,7 @@ import { appendSupportTicketMessage, sendSupportAcknowledgement } from "@/suppor
 import { supportTemplateText, type SupportTemplateKey } from "@/support-templates";
 
 import { isObjectId } from "@/object-id";
-import { isCuratedProfileBadge } from "@/profile-badges";
+import { isCuratedProfileBadge, parseCustomProfileBadge } from "@/profile-badges";
 import { syncProfileMilestones } from "@/profile-milestones";
 import { isProfileMilestone } from "@/profile-milestone-data";
 import { normalizeAvatarAccent, normalizeAvatarFrameDirection, normalizeProfileAccent, normalizeProfileHeaderBackgroundImage, normalizeProfileHeaderBackgroundMode, normalizeProfileHeaderLayout, normalizeProfileHeaderTextColor } from "@/profile-personalization";
@@ -2140,7 +2140,8 @@ export async function setProfileCuratedBadge(formData: FormData): Promise<void> 
   if (typeof profileId !== "string" || !isObjectId(profileId) || !isCuratedProfileBadge(badge)) throw new Error("Invalid badge request.");
   const target = await prisma.profile.findUnique({ where: { id: profileId }, select: { email: true, username: true, isSystem: true, profileBadges: true, hiddenProfileBadges: true } });
   if (!target || target.isSystem) throw new Error("This profile cannot receive a badge.");
-  const currentBadges = Array.isArray(target.profileBadges) ? target.profileBadges.filter(isCuratedProfileBadge) : [];
+  // Keep custom badge records intact when a curated badge is changed later.
+  const currentBadges = Array.isArray(target.profileBadges) ? target.profileBadges.filter((item): item is string => typeof item === "string") : [];
   const profileBadges = enabled ? [...new Set([...currentBadges, badge])] : currentBadges.filter((item) => item !== badge);
   const currentHidden = Array.isArray(target.hiddenProfileBadges) ? target.hiddenProfileBadges.filter(isCuratedProfileBadge) : [];
   await prisma.profile.update({ where: { id: profileId }, data: { profileBadges, hiddenProfileBadges: currentHidden.filter((item) => item !== badge) } });
@@ -2164,6 +2165,11 @@ export async function createOwnProfileBadge(formData: FormData): Promise<void> {
   ]);
   if (!profile || profile.isSystem) throw new Error("Profile not found.");
   const existingBadges = Array.isArray(profile.profileBadges) ? profile.profileBadges.filter((item): item is string => typeof item === "string").slice(0, 40) : [];
+  if (existingBadges.length >= 40) throw new Error("This profile has reached the badge limit.");
+  const duplicate = existingBadges
+    .map(parseCustomProfileBadge)
+    .some((existing) => existing?.icon === icon && existing.label.toLocaleLowerCase() === label.toLocaleLowerCase());
+  if (duplicate) throw new Error("This custom badge is already assigned to this profile.");
   await prisma.profile.update({ where: { id: profileId }, data: { profileBadges: [...existingBadges, badge] } });
   const adminName = actor?.name || actor?.username || actorEmail;
   const message = profile.language === "de"
@@ -2202,6 +2208,22 @@ Your VibeTeam`;
     }
   });
   revalidatePath("/admin"); revalidatePath("/messages"); revalidatePath("/profile"); revalidatePath("/profile/[username]", "page");
+}
+
+export async function removeCustomProfileBadge(formData: FormData): Promise<void> {
+  const actorEmail = (await auth())?.user?.email;
+  if (!actorEmail || !isProtectedAdmin(actorEmail)) throw new Error("Only Anna and Violett can remove custom badges.");
+  const profileId = String(formData.get("profileId") || "");
+  const badgeId = String(formData.get("badgeId") || "");
+  if (!isObjectId(profileId) || !/^[a-z0-9-]{4,32}$/i.test(badgeId)) throw new Error("Invalid custom badge.");
+  const profile = await prisma.profile.findUnique({ where: { id: profileId }, select: { email: true, username: true, name: true, isSystem: true, profileBadges: true } });
+  if (!profile || profile.isSystem) throw new Error("Profile not found.");
+  const currentBadges = Array.isArray(profile.profileBadges) ? profile.profileBadges.filter((item): item is string => typeof item === "string").slice(0, 40) : [];
+  const removedBadge = currentBadges.map(parseCustomProfileBadge).find((badge) => badge?.id === badgeId);
+  if (!removedBadge) throw new Error("Custom badge not found.");
+  await prisma.profile.update({ where: { id: profileId }, data: { profileBadges: currentBadges.filter((item) => parseCustomProfileBadge(item)?.id !== badgeId) } });
+  await notifyAdmins(actorEmail, "profile-badge", `Removed custom badge ${removedBadge.label} from @${profile.username || profile.name || profile.email}`);
+  revalidatePath("/admin"); revalidatePath("/profile"); revalidatePath("/profile/[username]", "page");
 }
 
 export async function updateProfileBadgeVisibility(formData: FormData): Promise<void> {

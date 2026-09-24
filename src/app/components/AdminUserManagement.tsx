@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import EmojiPicker from "@/app/components/EmojiPicker";
 import { BadgeCheck, ChevronDown, Search, ShieldAlert, UsersRound } from "lucide-react";
-import { applyProfileRestriction, createOwnProfileBadge, setProfileAdmin, setProfileCuratedBadge, setProfileVerified } from "@/actions";
-import { CURATED_PROFILE_BADGES } from "@/profile-badges";
+import { applyProfileRestriction, createOwnProfileBadge, removeCustomProfileBadge, setProfileAdmin, setProfileCuratedBadge, setProfileVerified } from "@/actions";
+import { CURATED_PROFILE_BADGES, parseCustomProfileBadge } from "@/profile-badges";
 import DeleteProfileButton from "@/app/components/DeleteProfileButton";
 import AdminBadge from "@/app/components/AdminBadge";
 
@@ -26,7 +26,21 @@ function CuratedBadges({ user, de, canCreateCustomBadges }: { user: AdminUser; d
 
 function CustomBadgeManager({ user, de }: { user: AdminUser; de: boolean }) {
   const [icon, setIcon] = useState("✨");
-  return <form action={createOwnProfileBadge} className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-fuchsia-400/40 bg-fuchsia-500/10 p-2"><input type="hidden" name="profileId" value={user.id}/><input type="hidden" name="icon" value={icon}/><span className="basis-full text-[11px] font-black uppercase tracking-wide text-fuchsia-800 dark:text-fuchsia-100">{de ? "Eigenes Badge vergeben" : "Award custom badge"}</span><EmojiPicker onSelect={setIcon} ariaLabel={de ? "Emoji auswählen" : "Choose emoji"} trigger={icon} buttonClassName="rounded-lg border border-fuchsia-300 bg-white text-xl hover:bg-fuchsia-50 dark:bg-slate-900 dark:hover:bg-slate-800"/><input name="label" required maxLength={32} placeholder={de ? "Badge-Text" : "Badge text"} className="min-w-0 flex-1 rounded-lg border border-fuchsia-300 bg-white px-2 py-1 text-xs dark:bg-slate-900"/><button className="rounded-lg bg-fuchsia-600 px-3 py-1.5 text-xs font-bold text-white">{de ? "Vergeben" : "Award"}</button></form>;
+  const [isPending, startTransition] = useTransition();
+  const [feedback, setFeedback] = useState<"saved" | "error" | null>(null);
+  const assignedCustomBadges = user.profileBadges.map(parseCustomProfileBadge).filter((badge): badge is NonNullable<typeof badge> => Boolean(badge));
+  function action(formData: FormData) {
+    setFeedback(null);
+    startTransition(async () => {
+      try {
+        await createOwnProfileBadge(formData);
+        setFeedback("saved");
+      } catch {
+        setFeedback("error");
+      }
+    });
+  }
+  return <div className="mt-3 rounded-xl border border-fuchsia-400/40 bg-fuchsia-500/10 p-2">{assignedCustomBadges.length > 0 ? <div className="mb-3 space-y-2"><p className="text-[11px] font-black uppercase tracking-wide text-fuchsia-800 dark:text-fuchsia-100">{de ? "Vergebene eigene Badges" : "Assigned custom badges"}</p>{assignedCustomBadges.map((badge) => <div key={badge.id} className="flex items-center justify-between gap-2 rounded-lg border border-fuchsia-300/50 bg-white/80 px-2 py-1.5 dark:bg-slate-950/35"><span className="flex min-w-0 items-center gap-2"><span className="grid size-8 shrink-0 place-items-center rounded-full border border-fuchsia-400/60 bg-fuchsia-50 text-base dark:bg-fuchsia-500/15">{badge.icon}</span><span className="truncate text-xs font-bold text-slate-900 dark:text-white">{badge.label}</span></span><form action={removeCustomProfileBadge}><input type="hidden" name="profileId" value={user.id}/><input type="hidden" name="badgeId" value={badge.id}/><button className="rounded-lg border border-fuchsia-400 px-2 py-1 text-[10px] font-bold text-fuchsia-700 dark:text-fuchsia-100">{de ? "Entfernen" : "Remove"}</button></form></div>)}</div> : null}<form action={action} className="flex flex-wrap items-center gap-2"><input type="hidden" name="profileId" value={user.id}/><input type="hidden" name="icon" value={icon}/><span className="basis-full text-[11px] font-black uppercase tracking-wide text-fuchsia-800 dark:text-fuchsia-100">{de ? "Eigenes Badge vergeben" : "Award custom badge"}</span><EmojiPicker onSelect={setIcon} ariaLabel={de ? "Emoji auswählen" : "Choose emoji"} trigger={icon} buttonClassName="rounded-lg border border-fuchsia-300 bg-white text-xl hover:bg-fuchsia-50 dark:bg-slate-900 dark:hover:bg-slate-800"/><input name="label" required maxLength={32} placeholder={de ? "Badge-Text" : "Badge text"} className="min-w-0 flex-1 rounded-lg border border-fuchsia-300 bg-white px-2 py-1 text-xs dark:bg-slate-900"/><button disabled={isPending} data-no-auto-spinner="" className="rounded-lg bg-fuchsia-600 px-3 py-1.5 text-xs font-bold text-white disabled:cursor-wait disabled:opacity-70">{isPending ? (de ? "Speichert…" : "Saving…") : (de ? "Vergeben" : "Award")}</button>{feedback === "saved" ? <p role="status" className="basis-full text-[11px] font-bold text-emerald-700 dark:text-emerald-200">{de ? "Badge wurde vergeben." : "Badge awarded."}</p> : null}{feedback === "error" ? <p role="alert" className="basis-full text-[11px] font-bold text-red-700 dark:text-red-200">{de ? "Badge konnte nicht gespeichert werden. Dieses Emoji mit diesem Text ist möglicherweise bereits vergeben." : "The badge could not be saved. This emoji and label may already be assigned."}</p> : null}</form></div>;
 }
 
 export default function AdminUserManagement({ users, de, canDeleteUsers, canCreateCustomBadges, referenceTime }: { users: AdminUser[]; de: boolean; canDeleteUsers: boolean; canCreateCustomBadges: boolean; referenceTime: string }) {
