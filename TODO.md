@@ -1,5 +1,9 @@
 # VIBE TODO
 
+## BETA 0.1.80.3 — Custom badge label tooltip
+
+- Show a custom badge label when its symbol is clicked, matching system badges. ✅
+
 ## BETA 0.1.80.2 — Circular custom badge fix
 
 - Keep custom badge symbols perfectly circular on every profile layout. ✅

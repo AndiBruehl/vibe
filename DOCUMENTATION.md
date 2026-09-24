@@ -36,6 +36,8 @@ Custom badge management also lists each assigned custom badge in the correspondi
 
 Custom badge symbols use a dedicated fixed-square control style, so the app-wide minimum button height cannot stretch them into pills on any profile layout.
 
+Custom badge symbols also use the same click-to-reveal label tooltip as curated system badges, with independent state per badge.
+
 ### Profile milestones (0.1.76)
 
 Milestones are stored on each `Profile` in `milestoneBadges`, with optional member visibility choices in `hiddenMilestoneBadges`. The earned catalog currently includes First post, First story, 100 likes, and One year on VIBE. `src/profile-milestones.ts` derives progress from posts, stories, likes, and the profile age, and merges achievements without removing previously earned milestones.
