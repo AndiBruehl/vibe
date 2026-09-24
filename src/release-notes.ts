@@ -6,6 +6,7 @@ export type ReleaseNote = {
 
 // Keep newest releases first. This is the single source for the Home changelog.
 export const webReleaseNotes: ReleaseNote[] = [
+  { version: "0.1.79.5", date: "2026-09-24", changes: ["Fixed Custom frame guidance so it follows the active VIBE language."] },
   {
     version: "0.1.79.4",
     date: "2026-09-24",

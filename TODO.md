@@ -1,5 +1,9 @@
 # VIBE TODO
 
+## BETA 0.1.79.5 — Multilingual custom frame fix
+
+- Keep Custom frame guidance and spacing consistent in German and English. ✅
+
 ## BETA 0.1.79.4 — Custom frame upload polish
 
 - Match the custom frame drop target to the standard media upload interaction. ✅

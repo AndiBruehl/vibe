@@ -499,6 +499,10 @@ video + div.space-y-2 > div:first-of-type > button::after {
   color: rgb(15 23 42);
 }
 
+html:lang(de) video + div.space-y-2 > div:first-of-type > button::after {
+  content: "Eigenen Frame auswählen oder hierher ziehen";
+}
+
 video + div.space-y-2 > p {
   font-size: 0;
 }
@@ -507,6 +511,14 @@ video + div.space-y-2 > p::after {
   content: "Choose a custom frame: drag in your own image above, or move the slider to a moment in the video and then select “Use this frame”.";
   font-size: 0.875rem;
   line-height: 1.5;
+}
+
+html:lang(de) video + div.space-y-2 > p::after {
+  content: "Wähle einen eigenen Frame: Ziehe oben ein Bild hinein oder bewege den Regler zu einem Moment im Video und klicke anschließend auf „Diesen Frame verwenden“.";
+}
+
+html:lang(de) video + div.space-y-2 {
+  padding-bottom: 7rem;
 }
 
 .dark video + div.space-y-2 > div:first-of-type {
