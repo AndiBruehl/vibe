@@ -66,6 +66,8 @@ Delete controls are intercepted by a shared client-side VIBE confirmation dialog
 
 Video preview images are described as custom frames in member-facing UI. The composer provides a large drag-and-drop target for a custom frame and keeps the source-frame action below the slider, including when all four post media slots are already in use.
 
+The custom-frame target follows the main media-upload interaction and keeps its hover and drag target full-width. VIBE uses an 18px global base type size while retaining component-relative text sizes.
+
 `VideoMedia` is the shared preview renderer. It prefers an uploaded poster. Without one, it seeks to second three after metadata loads for videos at least five seconds long, or the midpoint of a shorter video. Playback begins from the start when the viewer presses play. Feed, detail, topic, browse, search, carousel, and shared-message video previews use this component and show a play marker while paused.
 
 Curated badges are profile-only. `AdminBadge` renders them only when an actual profile header explicitly requests `showCurated`; comments, posts, search, directories, and admin user rows continue to show only protected Admin and Verified statuses.

@@ -7,6 +7,14 @@ export type ReleaseNote = {
 // Keep newest releases first. This is the single source for the Home changelog.
 export const webReleaseNotes: ReleaseNote[] = [
   {
+    version: "0.1.79.4",
+    date: "2026-09-24",
+    changes: [
+      "Refined custom video frame uploads with a full-area drag-and-drop target.",
+      "Made the selected-frame action more prominent and increased app-wide reading size.",
+    ],
+  },
+  {
     version: "0.1.79.3",
     date: "2026-09-24",
     changes: [

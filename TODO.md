@@ -1,5 +1,11 @@
 # VIBE TODO
 
+## BETA 0.1.79.4 — Custom frame upload polish
+
+- Match the custom frame drop target to the standard media upload interaction. ✅
+- Improve frame-selection guidance and action prominence. ✅
+- Increase the global reading size without changing component layout rules. ✅
+
 ## BETA 0.1.79.3 — Delete confirmation and video frame editor polish
 
 - Confirm destructive delete actions in a themed, multilingual VIBE dialog. ✅
