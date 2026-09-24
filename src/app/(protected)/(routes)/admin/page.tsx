@@ -71,6 +71,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   ]);
   const date = new Intl.DateTimeFormat(de ? "de-DE" : "en-US", { dateStyle: "medium", timeStyle: "short" });
   const canDeleteUsers = isSuperAdmin(email);
+  const canCreateCustomBadges = isProtectedAdmin(email);
   const manageableProfiles = profiles.filter((item) => !item.isSystem);
 
   return <main className="mx-auto w-full max-w-4xl pb-24 md:pb-8">
@@ -96,7 +97,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         {activeTab === "support" && <SupportTicketManagement tickets={supportTickets} actorEmail={email} de={de} />}
         {activeTab === "team" && <VibeTeamMessageComposer recipients={manageableProfiles.map((item) => ({ id: item.id, username: item.username, name: item.name }))} de={de} />}
         {activeTab === "polls" && <AdminPollManager de={de} referenceTime={new Date().toISOString()} polls={polls.map((poll) => ({ ...poll, createdAt: poll.createdAt.toISOString(), startsAt: poll.startsAt?.toISOString() ?? null, expiresAt: poll.expiresAt?.toISOString() ?? null }))} />}
-        {activeTab === "management" && <AdminUserManagement users={manageableProfiles.map((item) => ({ ...item, isProtected: isProtectedAdmin(item.email) }))} de={de} canDeleteUsers={canDeleteUsers} referenceTime={new Date().toISOString()} />}
+        {activeTab === "management" && <AdminUserManagement users={manageableProfiles.map((item) => ({ ...item, isProtected: isProtectedAdmin(item.email) }))} de={de} canDeleteUsers={canDeleteUsers} canCreateCustomBadges={canCreateCustomBadges} referenceTime={new Date().toISOString()} />}
         {activeTab === "log" && <>
         <section className="border-t border-slate-200 pt-8 dark:border-slate-700"><div className="flex items-center gap-2"><History size={19} className="text-orange-500"/><h2 className="font-black text-slate-900 dark:text-white">{de ? "Admin-Protokoll" : "Admin log"}</h2></div><p className="mt-1 text-sm text-slate-500">{de ? "Nachvollziehbare Übersicht aller Moderations- und Adminaktionen." : "Traceable overview of moderation and admin actions."}</p>{auditEntries.length === 0 ? <p className="mt-4 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600 dark:bg-slate-800 dark:text-slate-300">{de ? "Noch keine Adminaktionen." : "No admin actions yet."}</p> : <div className="mt-4 max-h-96 divide-y divide-slate-200 overflow-y-auto rounded-2xl border border-slate-200 dark:divide-slate-700 dark:border-slate-700">{auditEntries.map((entry) => { const actor = profiles.find((item) => item.email === entry.actorEmail); return <article key={entry.id} className="flex items-start justify-between gap-4 px-4 py-3"><div className="min-w-0"><p className="font-semibold text-slate-900 dark:text-white">{adminActivityLabel(entry.kind, de)}</p><p className="mt-1 truncate text-sm text-slate-600 dark:text-slate-300">{entry.detail}</p><p className="mt-1 truncate text-xs text-slate-500">{actor?.name || actor?.username || entry.actorEmail}</p></div><time className="shrink-0 text-right text-xs text-slate-500">{date.format(entry.createdAt)}</time></article>; })}</div>}</section>
         </>}

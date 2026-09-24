@@ -2148,6 +2148,62 @@ export async function setProfileCuratedBadge(formData: FormData): Promise<void> 
   revalidatePath("/", "layout"); revalidatePath("/admin"); revalidatePath("/profiles"); revalidatePath("/profile"); revalidatePath("/profile/[username]", "page");
 }
 
+export async function createOwnProfileBadge(formData: FormData): Promise<void> {
+  const session = await auth();
+  const actorEmail = session?.user?.email;
+  if (!actorEmail || !isProtectedAdmin(actorEmail)) throw new Error("Only Anna and Violett can create badges.");
+  const profileId = String(formData.get("profileId") || "");
+  if (!isObjectId(profileId)) throw new Error("Invalid profile.");
+  const icon = String(formData.get("icon") || "").trim();
+  const label = String(formData.get("label") || "").replace(/\s+/g, " ").trim().slice(0, 32);
+  if (!icon || Array.from(icon).length > 8 || !/\p{Extended_Pictographic}/u.test(icon) || !label) throw new Error("Choose an emoji and a badge name.");
+  const badge = `custom:${crypto.randomUUID().slice(0, 12)}:${icon}:${label}`;
+  const [profile, actor] = await Promise.all([
+    prisma.profile.findUnique({ where: { id: profileId }, select: { email: true, name: true, username: true, language: true, profileBadges: true, isSystem: true } }),
+    prisma.profile.findUnique({ where: { email: actorEmail }, select: { name: true, username: true } }),
+  ]);
+  if (!profile || profile.isSystem) throw new Error("Profile not found.");
+  const existingBadges = Array.isArray(profile.profileBadges) ? profile.profileBadges.filter((item): item is string => typeof item === "string").slice(0, 40) : [];
+  await prisma.profile.update({ where: { id: profileId }, data: { profileBadges: [...existingBadges, badge] } });
+  const adminName = actor?.name || actor?.username || actorEmail;
+  const message = profile.language === "de"
+    ? `Herzlichen Glückwunsch! 🎉
+
+${adminName} aus dem VIBE-Adminteam hat dir ein neues individuelles Badge verliehen:
+
+${icon} ${label}
+
+Du findest es ab sofort auf deinem Profil.
+
+Viele Grüße
+Dein VibeTeam`
+    : `Congratulations! 🎉
+
+${adminName} from the VIBE admin team has awarded you a new custom badge:
+
+${icon} ${label}
+
+It is now available on your profile.
+
+Best wishes,
+Your VibeTeam`;
+  after(async () => {
+    try {
+      await deliverVibeTeamMessage(profile.email, message);
+      await notifyAdmins(actorEmail, "profile-badge", `Awarded custom badge ${label} to @${profile.username || profile.name || profile.email}`);
+    } catch (error) {
+      console.error("Could not deliver custom badge notice", error);
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 1_000));
+        await deliverVibeTeamMessage(profile.email, message);
+      } catch (retryError) {
+        console.error("Could not deliver custom badge notice after retry", retryError);
+      }
+    }
+  });
+  revalidatePath("/admin"); revalidatePath("/messages"); revalidatePath("/profile"); revalidatePath("/profile/[username]", "page");
+}
+
 export async function updateProfileBadgeVisibility(formData: FormData): Promise<void> {
   const session = await auth();
   if (!session?.user?.email) redirect("/");

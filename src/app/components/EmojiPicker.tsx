@@ -2,7 +2,7 @@
 
 import Picker, { EmojiStyle, Theme, type EmojiClickData } from "emoji-picker-react";
 import { Smile } from "lucide-react";
-import { useRef, useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import useVibeLanguage from "./useVibeLanguage";
 
@@ -10,10 +10,12 @@ type EmojiPickerProps = {
   onSelect: (emoji: string) => void;
   ariaLabel?: string;
   className?: string;
+  buttonClassName?: string;
+  trigger?: ReactNode;
 };
 
 /** A full Unicode emoji picker with categories, search and its own scroll area. */
-export default function EmojiPicker({ onSelect, ariaLabel, className = "" }: EmojiPickerProps) {
+export default function EmojiPicker({ onSelect, ariaLabel, className = "", buttonClassName = "", trigger }: EmojiPickerProps) {
   const de = useVibeLanguage() === "de";
   const [isOpen, setIsOpen] = useState(false);
   const [position, setPosition] = useState({ left: 12, top: 12 });
@@ -45,11 +47,11 @@ export default function EmojiPicker({ onSelect, ariaLabel, className = "" }: Emo
         ref={buttonRef}
         type="button"
         onClick={togglePicker}
-        className="flex size-11 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
+        className={`flex size-11 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 ${buttonClassName}`}
         aria-label={ariaLabel || (de ? "Emoji hinzufügen" : "Add emoji")}
         aria-expanded={isOpen}
       >
-        <Smile size={21} />
+        {trigger ?? <Smile size={21} />}
       </button>
       {isOpen && typeof document !== "undefined" ? createPortal(
         <>

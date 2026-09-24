@@ -395,6 +395,12 @@ body.vibe-admin-preview [data-vibe-protected-main] {
 /* Plain text must never switch to the browser's I-beam cursor. */
 html, body { cursor: default; }
 
+button.rounded-full.border-violet-400\/60 {
+  min-width: 1.75rem;
+  min-height: 1.75rem;
+  padding: 0;
+}
+
 :where(input, textarea, [contenteditable="true"]) { cursor: text; }
 
 :where(a[href], button, summary, select, input[type="checkbox"], input[type="radio"], input[type="range"], label[for]) { cursor: pointer; }
@@ -520,6 +526,13 @@ html:lang(de) video + div.space-y-2 > p::after {
 html:lang(de) video + div.space-y-2 {
   padding-bottom: 7rem;
 }
+
+@media (max-width: 900px) {
+  details .sm\:grid-cols-2 {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
 
 .dark video + div.space-y-2 > div:first-of-type {
   background: rgb(51 65 85);

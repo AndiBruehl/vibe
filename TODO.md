@@ -1,5 +1,17 @@
 # VIBE TODO
 
+## BETA 0.1.80 — Admin custom badges
+
+- Let protected admins award a custom emoji badge and label to any member. ✅
+- Notify recipients through VibeTeam in their chosen language. ✅
+- Let members submit custom badge wishes to Support@Vibe. ✅
+
+## BETA 0.3 — Community forums in Messages
+
+- Let members create public forums from Messages.
+- Give each forum a topic, member list, and shared real-time conversation.
+- Add moderation, reporting, and ownership controls for forum creators and admins.
+
 ## BETA 0.1.79.5 — Multilingual custom frame fix
 
 - Keep Custom frame guidance and spacing consistent in German and English. ✅

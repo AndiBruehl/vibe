@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useTransition } from "react";
 import { postReply } from "@/actions";
 import MentionTextarea from "./MentionTextarea";
 import useVibeLanguage from "./useVibeLanguage";
@@ -15,11 +15,14 @@ type ReplyFormProps = {
 export default function ReplyForm({ postId, parentCommentId }: ReplyFormProps) {
   const de = useVibeLanguage() === "de";
   const formRef = useRef<HTMLFormElement>(null);
+  const [isPending, startTransition] = useTransition();
   const { textareaRef, insertEmoji } = useEmojiTextarea();
 
   async function action(formData: FormData) {
-    await postReply(formData);
-    formRef.current?.reset();
+    startTransition(async () => {
+      await postReply(formData);
+      formRef.current?.reset();
+    });
   }
 
   return (
@@ -41,9 +44,11 @@ export default function ReplyForm({ postId, parentCommentId }: ReplyFormProps) {
         <EmojiPicker onSelect={insertEmoji} />
         <button
           type="submit"
+          disabled={isPending}
+          data-no-auto-spinner=""
           className="vibe-composer-submit rounded-xl bg-slate-900 px-4 text-sm font-medium text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
         >
-          {de ? "Antworten" : "Reply"}
+          {isPending ? (de ? "Wird gesendet…" : "Sending…") : (de ? "Antworten" : "Reply")}
         </button>
       </div>
     </form>

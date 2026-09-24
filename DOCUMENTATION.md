@@ -26,6 +26,12 @@ Curated badges are defined in `src/profile-badges.ts`, not created by members. T
 
 Badge readers treat missing or malformed legacy arrays as empty. The Settings visibility control restores the prior local state and shows a localized retry message if its server action fails.
 
+### Admin custom badges (0.1.80)
+
+Only the protected administrators Anna and Violett can award custom profile badges in Admin → User management. The admin chooses an emoji with the shared VIBE emoji picker and supplies a short badge label. The server validates the actor, target, emoji, label, and legacy badge array before adding a uniquely identified custom badge without modifying curated awards.
+
+Recipients receive a VibeTeam direct message in their profile language. It names the awarding admin and includes the badge emoji and label. Delivery runs after the award is saved so the admin interface stays responsive; a failed first delivery is retried once and does not roll back the badge. Members can send a badge wish to Support@Vibe from the Support page, where the request enters the normal support-ticket workflow.
+
 ### Profile milestones (0.1.76)
 
 Milestones are stored on each `Profile` in `milestoneBadges`, with optional member visibility choices in `hiddenMilestoneBadges`. The earned catalog currently includes First post, First story, 100 likes, and One year on VIBE. `src/profile-milestones.ts` derives progress from posts, stories, likes, and the profile age, and merges achievements without removing previously earned milestones.
