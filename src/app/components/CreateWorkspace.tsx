@@ -58,7 +58,7 @@ export default function CreateWorkspace({ drafts, draftLoadFailed = false }: { d
           <div className="flex gap-2"><button className={button} onClick={() => {
             if (!window.confirm(de ? "Entwurf öffnen? Nicht gespeicherte Änderungen im Editor werden ersetzt." : "Open draft? Unsaved changes in the editor will be replaced.")) return;
             setEditing(draft); setRevision(value => value + 1); setTab("new"); setNotice("");
-          }}>{de ? "Weiterbearbeiten" : "Continue editing"}</button><button disabled={pending === draft.id} className={`${button} inline-flex items-center gap-2 text-red-500 disabled:opacity-50`} onClick={() => { if(window.confirm(de ? "Diesen Entwurf löschen?" : "Delete this draft?")) void remove(draft.id); }}><Trash2 size={16} />{de ? "Löschen" : "Delete"}</button></div>
+          }}>{de ? "Weiterbearbeiten" : "Continue editing"}</button><button disabled={pending === draft.id} className={`${button} inline-flex items-center gap-2 text-red-500 disabled:opacity-50`} onClick={() => window.dispatchEvent(new CustomEvent("vibe:delete-confirm", { detail: () => void remove(draft.id) }))}><Trash2 size={16} />{de ? "Löschen" : "Delete"}</button></div>
         </div>
       </article>)}
     </section>

@@ -137,7 +137,10 @@ export default function GroupSettings({
   };
 
   const deleteGroup = async () => {
-    if (!confirm("Delete this group? This cannot be undone.")) return;
+    const approved = await new Promise<boolean>((resolve) => {
+      window.dispatchEvent(new CustomEvent("vibe:delete-confirm", { detail: { onConfirm: () => resolve(true), onCancel: () => resolve(false) } }));
+    });
+    if (!approved) return;
     try {
       const res = await fetch(`/api/conversations/${conversationId}`, {
         method: "DELETE",

@@ -128,6 +128,7 @@ export default function PostComposer({
   const [error, setError] = useState("");
   const [progress, setProgress] = useState("");
   const [isDragging, setIsDragging] = useState(false);
+  const [posterDragging, setPosterDragging] = useState<number | null>(null);
   const [draftReady, setDraftReady] = useState(!isDraftable);
   const [draftStatus, setDraftStatus] = useState("");
   const uploading = useRef(false);
@@ -211,13 +212,13 @@ export default function PostComposer({
     const index = posterTarget.current;
     posterTarget.current = null;
     if (index === null || !file) return;
-    if (!ALLOWED_IMAGE_TYPES.has(file.type) || file.size > 25 * 1024 * 1024) { setError(de ? "Das Vorschaubild muss ein Bild unter 25 MB sein." : "The poster must be an image under 25 MB."); return; }
+    if (!ALLOWED_IMAGE_TYPES.has(file.type) || file.size > 25 * 1024 * 1024) { setError(de ? "Der eigene Frame muss ein Bild unter 25 MB sein." : "The custom frame must be an image under 25 MB."); return; }
     setBusy(true); setError("");
     try {
       const url = await getSignedUploadUrl();
       const upload = await pinata.upload.public.file(safeUploadFile(file)).url(url);
       setVideoPosters((current) => current.map((value, currentIndex) => currentIndex === index ? getGatewayUrl(upload.cid) : value));
-    } catch { setError(de ? "Das Vorschaubild konnte nicht hochgeladen werden. Bitte erneut versuchen." : "The poster could not be uploaded. Please try again."); }
+    } catch { setError(de ? "Der eigene Frame konnte nicht hochgeladen werden. Bitte erneut versuchen." : "The custom frame could not be uploaded. Please try again."); }
     finally { setBusy(false); }
   }
   async function saveVideoFrameAsPoster(index: number) {
@@ -292,13 +293,13 @@ export default function PostComposer({
         <legend className="mb-2 font-semibold text-slate-900 dark:text-slate-100">
           {de ? "Medien" : "Media"} · {images.length}/4
         </legend>
-        <div className="grid grid-cols-2 gap-3">
+        <div className={images.length === 1 ? "grid grid-cols-1 gap-3" : "grid grid-cols-2 gap-3"}>
           {images.map((url, i) => (
             <div
               key={`${url}-${i}`}
               className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700"
             >
-              {mediaTypes[i] === VIDEO_MEDIA_TYPE ? <><video ref={(element) => { videoRefs.current[i] = element; }} src={url} poster={videoPosters[i] || undefined} controls crossOrigin="anonymous" preload="metadata" onLoadedMetadata={(event) => { const duration = event.currentTarget.duration; if (!Number.isFinite(duration) || duration <= 0) return; setVideoDurations((current) => ({ ...current, [i]: duration })); setPosterFrameTimes((current) => current[i] === undefined ? { ...current, [i]: duration >= 5 ? 3 : duration / 2 } : current); }} className="aspect-square w-full bg-slate-950 object-contain" /><div className="space-y-2 p-2"><div className="flex flex-wrap gap-2"><button type="button" onClick={() => { posterTarget.current = i; posterInput.current?.click(); }} className="rounded-lg border border-cyan-400/60 px-2 py-1 text-xs font-bold text-cyan-700 dark:text-cyan-300">{videoPosters[i] ? (de ? "Vorschaubild ändern" : "Change poster") : (de ? "Vorschaubild wählen" : "Choose poster")}</button>{videoDurations[i] ? <button type="button" disabled={busy} onClick={() => void saveVideoFrameAsPoster(i)} className="rounded-lg border border-violet-400/60 px-2 py-1 text-xs font-bold text-violet-700 disabled:opacity-50 dark:text-violet-300">{de ? "Diesen Frame verwenden" : "Use this frame"}</button> : null}</div>{videoDurations[i] ? <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300">{de ? `Frame bei ${posterFrameTimes[i]?.toFixed(1) ?? "0.0"} Sekunden` : `Frame at ${posterFrameTimes[i]?.toFixed(1) ?? "0.0"} seconds`}<input type="range" min="0" max={videoDurations[i]} step="0.1" value={posterFrameTimes[i] ?? 0} onChange={(event) => { const time = Number(event.target.value); setPosterFrameTimes((current) => ({ ...current, [i]: time })); const video = videoRefs.current[i]; if (video) video.currentTime = time; }} className="mt-1 w-full accent-violet-600" /></label> : <p className="text-xs text-slate-500 dark:text-slate-400">{de ? "Frame-Editor wird geladen…" : "Loading frame editor…"}</p>}</div></> : <img src={url} alt={`${de ? "Ausgewähltes Bild" : "Selected image"} ${i + 1}`} className="aspect-square w-full bg-slate-100 object-contain dark:bg-slate-900" />}
+              {mediaTypes[i] === VIDEO_MEDIA_TYPE ? <><video ref={(element) => { videoRefs.current[i] = element; }} src={url} poster={videoPosters[i] || undefined} controls crossOrigin="anonymous" preload="metadata" onLoadedMetadata={(event) => { const duration = event.currentTarget.duration; if (!Number.isFinite(duration) || duration <= 0) return; setVideoDurations((current) => ({ ...current, [i]: duration })); setPosterFrameTimes((current) => current[i] === undefined ? { ...current, [i]: duration >= 5 ? 3 : duration / 2 } : current); }} className="aspect-square w-full bg-slate-950 object-contain" /><div className="space-y-2 p-2"><div onDragEnter={(event) => { event.preventDefault(); setPosterDragging(i); }} onDragOver={(event) => event.preventDefault()} onDragLeave={() => setPosterDragging(null)} onDrop={(event) => { event.preventDefault(); setPosterDragging(null); posterTarget.current = i; void uploadPoster(event.dataTransfer.files[0]); }} className={posterDragging === i ? "rounded-lg border border-dashed border-orange-400 bg-orange-50 p-2 ring-4 ring-orange-400 ring-offset-2 dark:bg-orange-500/10 dark:ring-offset-slate-950" : "rounded-lg border border-dashed border-orange-400/70 p-2"}><button type="button" onClick={() => { posterTarget.current = i; posterInput.current?.click(); }} className="w-full rounded-md px-2 py-1 text-left text-xs font-bold text-orange-700 transition hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-500/10">{posterDragging === i ? (de ? "Vorschaubild hier ablegen" : "Drop poster here") : (videoPosters[i] ? (de ? "Vorschaubild ändern oder hierher ziehen" : "Change or drag a poster here") : (de ? "Eigenes Vorschaubild wählen oder hierher ziehen" : "Choose or drag a custom poster here"))}</button></div>{videoDurations[i] ? <button type="button" disabled={busy} onClick={() => void saveVideoFrameAsPoster(i)} className="rounded-lg border border-violet-400/60 px-2 py-1 text-xs font-bold text-violet-700 disabled:opacity-50 dark:text-violet-300">{de ? "Diesen Frame verwenden" : "Use this frame"}</button> : null}{videoDurations[i] ? <><p className="rounded-lg bg-violet-50 px-2 py-1.5 text-xs leading-relaxed text-violet-900 dark:bg-violet-500/10 dark:text-violet-100">{de ? "Du hast zwei Möglichkeiten: Ziehe ein eigenes Bild hierher oder klicke oben, um es als Vorschaubild hochzuladen. Alternativ ziehe den Regler zu einem Bild aus dem Video und klicke auf „Diesen Frame verwenden“." : "You have two choices: drag an image here or use the button above to upload your own poster. Or move the slider to a frame from the video and select “Use this frame”."}</p><label className="block text-xs font-semibold text-slate-600 dark:text-slate-300">{de ? `Frame bei ${posterFrameTimes[i]?.toFixed(1) ?? "0.0"} Sekunden` : `Frame at ${posterFrameTimes[i]?.toFixed(1) ?? "0.0"} seconds`}<input type="range" min="0" max={videoDurations[i]} step="0.1" value={posterFrameTimes[i] ?? 0} onChange={(event) => { const time = Number(event.target.value); setPosterFrameTimes((current) => ({ ...current, [i]: time })); const video = videoRefs.current[i]; if (video) video.currentTime = time; }} className="mt-1 w-full accent-violet-600" /></label></> : <p className="text-xs text-slate-500 dark:text-slate-400">{de ? "Frame-Editor wird geladen…" : "Loading frame editor…"}</p>}</div></> : <img src={url} alt={`${de ? "Ausgewähltes Bild" : "Selected image"} ${i + 1}`} className="aspect-square w-full bg-slate-100 object-contain dark:bg-slate-900" />}
               <div className="flex items-center justify-between gap-1 p-2 text-xs">
                     <span>{i === 0 ? (de ? "Titelmedium" : "Cover media") : `${mediaTypes[i] === VIDEO_MEDIA_TYPE ? (de ? "Video" : "Video") : (de ? "Bild" : "Image")} ${i + 1}`}</span>
                 {i > 0 && (
@@ -363,9 +364,9 @@ export default function PostComposer({
                 void upload(files);
               }}
             />
-            <input ref={posterInput} type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" className="hidden" onChange={(event) => { void uploadPoster(event.target.files?.[0]); event.target.value = ""; }} />
           </div>
         )}
+        <input ref={posterInput} aria-label={de ? "Eigenen Frame auswählen" : "Choose custom frame"} type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" className="hidden" onChange={(event) => { void uploadPoster(event.target.files?.[0]); event.target.value = ""; }} />
       </fieldset>
       {(progress || draftStatus) && (
         <p role="status" className="text-sm">

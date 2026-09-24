@@ -7,6 +7,28 @@ export type ReleaseNote = {
 // Keep newest releases first. This is the single source for the Home changelog.
 export const webReleaseNotes: ReleaseNote[] = [
   {
+    version: "0.1.79.3",
+    date: "2026-09-24",
+    changes: [
+      "Added a VIBE-styled delete confirmation with Cancel and Delete controls.",
+    ],
+  },
+  {
+    version: "0.1.79.2",
+    date: "2026-09-24",
+    changes: [
+      "Let a single selected image or video use the full available composer width.",
+      "Keep media in a compact grid when a post has two to four items.",
+    ],
+  },
+  {
+    version: "0.1.79.1",
+    date: "2026-09-24",
+    changes: [
+      "Added a short step-by-step explanation beside the video preview-frame slider.",
+    ],
+  },
+  {
     version: "0.1.79",
     date: "2026-09-24",
     changes: [

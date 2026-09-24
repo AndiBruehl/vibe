@@ -437,3 +437,34 @@ html, body { cursor: default; }
     animation-iteration-count: 1 !important;
   }
 }
+/* Keep the video-frame save action attached to the slider it confirms. */
+video + div.space-y-2 > button.border-violet-400\/60 {
+  position: absolute;
+  right: 50%;
+  bottom: 1rem;
+  transform: translateX(50%);
+  min-width: 16rem;
+  min-height: 3.75rem;
+  padding: 1.05rem 2.5rem;
+  font-size: 1.0625rem;
+  text-align: center;
+}
+
+video + div.space-y-2 {
+  position: relative;
+  padding-bottom: 6rem;
+}
+
+/* Generous, centered custom-frame drop target in the video composer. */
+video + div.space-y-2 > div:first-of-type {
+  display: flex;
+  min-height: 7rem;
+  align-items: center;
+  justify-content: center;
+}
+
+video + div.space-y-2 > div:first-of-type > button {
+  font-size: 1rem;
+  line-height: 1.45;
+  text-align: center;
+}

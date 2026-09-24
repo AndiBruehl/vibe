@@ -1,9 +1,29 @@
 # VIBE TODO
 
+## BETA 0.1.79.3 — Delete confirmation and video frame editor polish
+
+- Confirm destructive delete actions in a themed, multilingual VIBE dialog. ✅
+- Improve the custom video frame upload and frame-selection controls. ✅
+
+## BETA 0.2 — Optional location sharing
+
+- Let members voluntarily share an approximate location with VIBE.
+- Add an internal map that shows members who have explicitly enabled visibility.
+- Provide privacy controls for visibility, precision, and turning location sharing off at any time.
+
 ## BETA 0.1.79 — Video posters
 
 - Add optional custom video posters and a three-second automatic preview frame fallback. ✅
 - Mark video previews with a clear play icon across VIBE. ✅
+
+## BETA 0.1.79.1 — Frame editor guidance
+
+- Explain the frame-selection workflow directly beside each video preview slider. ✅
+
+## BETA 0.1.79.2 — Composer media layout
+
+- Let one selected image or video use the complete available composer width. ✅
+- Keep the two-column layout when two to four media items are selected. ✅
 
 ## BETA 0.1.78 — Persistent Settings routes
 

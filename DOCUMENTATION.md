@@ -58,6 +58,14 @@ Posts store an optional `videoPosters` array aligned with `images` and `mediaTyp
 
 Paused video previews use a small play marker in their upper-left corner. Admin user management keeps Admin and Verified status beside the member name; curated profile badges have their own Award/Remove control list and are shown only on the member's profile.
 
+The video frame editor includes an inline, plain-language explanation: move the slider to choose what people see before playback, then save that exact frame with the confirmation button.
+
+The post composer uses its full media width for a single selected image or video. Two to four selected media items use the compact grid so their ordering controls remain practical.
+
+Delete controls are intercepted by a shared client-side VIBE confirmation dialog. The dialog follows the active language and theme and requires an explicit destructive confirmation before the original form submission or client-side deletion continues.
+
+Video preview images are described as custom frames in member-facing UI. The composer provides a large drag-and-drop target for a custom frame and keeps the source-frame action below the slider, including when all four post media slots are already in use.
+
 `VideoMedia` is the shared preview renderer. It prefers an uploaded poster. Without one, it seeks to second three after metadata loads for videos at least five seconds long, or the midpoint of a shorter video. Playback begins from the start when the viewer presses play. Feed, detail, topic, browse, search, carousel, and shared-message video previews use this component and show a play marker while paused.
 
 Curated badges are profile-only. `AdminBadge` renders them only when an actual profile header explicitly requests `showCurated`; comments, posts, search, directories, and admin user rows continue to show only protected Admin and Verified statuses.

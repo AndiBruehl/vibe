@@ -30,10 +30,11 @@ export default function PostActions({
             Edit
           </button>
           <button
-            onClick={async () => {
-              if (!confirm("Delete this post?")) return;
-              await fetch(`/api/mobile/posts/${postId}`, { method: "DELETE" });
-              window.location.href = "/profile";
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent("vibe:delete-confirm", { detail: async () => {
+                await fetch(`/api/mobile/posts/${postId}`, { method: "DELETE" });
+                window.location.href = "/profile";
+              } }));
             }}
             className="text-sm font-medium text-red-600"
           >
