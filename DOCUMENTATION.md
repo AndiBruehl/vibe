@@ -8,7 +8,11 @@ Profile owners pin or unpin up to three active posts directly on their post tile
 
 Only the owner sees pin controls, directly on each eligible post. There is no separate post-selection or management list. The pinned tiles themselves provide up/down controls for ordering. Server validation confirms an authenticated account, valid unique IDs, the three-item limit, active non-archived posts, and ownership. Direct pin/unpin operations validate the same conditions and close position gaps after removal. Missing or stale posts are excluded at render time, and deleting a post removes its pin records. Pin data failures are isolated from the regular feed so a temporary database issue does not turn the full profile into an error page.
 
-Native update checks read `public/releases/latest.json`. Every native release must include the versioned APK and Windows installer in their tracked `android-app/dist/` and `electron-app/dist/` paths, then point this manifest at exactly those artifacts. This keeps the Web download cards and installed Android/Desktop update checks in agreement.
+Native update checks read `public/releases/latest.json`. Every platform build must include its versioned artifact in the tracked `android-app/dist/` or `electron-app/dist/` path, and the corresponding manifest entry must point at that exact artifact. This keeps the Web download cards and installed Android/Desktop update checks in agreement.
+
+### Settings and Android update fixes (0.1.81.1)
+
+The three Settings section buttons use short, localized mobile labels and their full labels on wider layouts, so no navigation text is clipped on narrow screens. In the Android app, the WebView identifies itself as Vibe Android and the download card therefore shows only the APK. APK update handling validates the downloaded file and opens Android's package installer; if the installer cannot start, the same APK opens in the browser as a recovery path.
 
 The protected layout treats transient Prisma connection failures as recoverable. Message and activity navigation counters fall back to zero, and a failure while loading or creating the signed-in profile renders a VIBE recovery screen. This avoids exposing an internal connector error while Atlas/DNS connectivity returns.
 

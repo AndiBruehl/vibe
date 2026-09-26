@@ -1,7 +1,7 @@
 "use client";
 
 import { Download, MonitorDown, Smartphone } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import useVibeLanguage from "@/app/components/useVibeLanguage";
 
 type Release = {
@@ -19,6 +19,11 @@ export default function ReleaseDownloads() {
   const [loaded, setLoaded] = useState(false);
   const language = useVibeLanguage();
   const de = language === "de";
+  const isAndroidApp = useSyncExternalStore(
+    () => () => undefined,
+    () => /VibeAndroid\//i.test(navigator.userAgent),
+    () => false,
+  );
 
   useEffect(() => {
     void fetch("/releases/latest.json", { cache: "no-store" })
@@ -44,7 +49,7 @@ export default function ReleaseDownloads() {
       icon: Smartphone,
       release: releases?.android,
     },
-  ];
+  ].filter(({ label }) => !isAndroidApp || label === "Android");
 
   return (
     <section className="mt-5 border-t border-slate-200 pt-5 dark:border-slate-700/80">
@@ -55,7 +60,7 @@ export default function ReleaseDownloads() {
             {de ? "App herunterladen" : "Get the app"}
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            {de ? "Neueste Desktop- und Mobilversionen." : "Latest uploaded desktop and mobile builds."}
+            {isAndroidApp ? (de ? "Neueste Android-Version für dieses Gerät." : "Latest Android version for this device.") : (de ? "Neueste Desktop- und Mobilversionen." : "Latest uploaded desktop and mobile builds.")}
           </p>
         </div>
       </div>

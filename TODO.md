@@ -1,5 +1,11 @@
 # VIBE TODO
 
+## BETA 0.1.81.1 — Settings and Android update fixes
+
+- Keep all Settings tabs fully readable on narrow screens. ✅
+- Show Android users only the Android download. ✅
+- Make APK installation recover safely by opening the browser download if Android cannot launch the installer. ✅
+
 ## BETA 0.1.81 — Admin user management cards
 
 - Keep User management permanently visible. ✅

@@ -65,6 +65,14 @@ async function getLatestAndroidRelease(): Promise<UpdateRelease | null> {
   }
 }
 
+async function downloadAndInstallApk(url: string) {
+  const destination = `${FileSystem.documentDirectory ?? FileSystem.cacheDirectory}Vibe-update.apk`;
+  const result = await FileSystem.downloadAsync(url, destination, { headers: { Accept: "application/vnd.android.package-archive" } });
+  if (result.status < 200 || result.status >= 300 || !result.uri.toLowerCase().endsWith(".apk")) throw new Error("APK download failed.");
+  const contentUri = await FileSystem.getContentUriAsync(result.uri);
+  await IntentLauncher.startActivityAsync("android.intent.action.VIEW", { data: contentUri, flags: 1, type: "application/vnd.android.package-archive" });
+}
+
 WebBrowser.maybeCompleteAuthSession();
 
 // Retained for the legacy native screens that remain in the repository while the
@@ -180,21 +188,10 @@ export default function App() {
     setDownloadingUpdate(true);
     setUpdateError(null);
     try {
-      // GitHub Raw serves release assets as application/octet-stream. A simple
-      // local filename avoids Android turning a dotted version into a .bin file.
-      const destination = `${FileSystem.documentDirectory ?? FileSystem.cacheDirectory}Vibe-update.apk`;
-      const result = await FileSystem.downloadAsync(update.downloadUrl, destination, {
-        headers: { Accept: "application/vnd.android.package-archive" },
-      });
-      if (result.status !== 200 || !result.uri.toLowerCase().endsWith(".apk")) throw new Error("APK download failed.");
-      const contentUri = await FileSystem.getContentUriAsync(result.uri);
-      await IntentLauncher.startActivityAsync("android.intent.action.VIEW", {
-        data: contentUri,
-        flags: 1,
-        type: "application/vnd.android.package-archive",
-      });
+      await downloadAndInstallApk(update.downloadUrl);
     } catch {
-      setUpdateError("The update could not be downloaded. Please try again.");
+      setUpdateError("The update could not be installed. Opening the APK download instead.");
+      try { await Linking.openURL(update.downloadUrl); } catch { /* Keep the clear in-app error visible. */ }
     } finally {
       setDownloadingUpdate(false);
     }
@@ -232,13 +229,10 @@ export default function App() {
         if (/\.apk(?:[?#].*)?$/i.test(request.url)) {
           void (async () => {
             try {
-              const destination = `${FileSystem.documentDirectory ?? FileSystem.cacheDirectory}Vibe-update.apk`;
-              const result = await FileSystem.downloadAsync(request.url, destination, { headers: { Accept: "application/vnd.android.package-archive" } });
-              if (result.status !== 200) throw new Error("APK download failed.");
-              const contentUri = await FileSystem.getContentUriAsync(result.uri);
-              await IntentLauncher.startActivityAsync("android.intent.action.VIEW", { data: contentUri, flags: 1, type: "application/vnd.android.package-archive" });
+              await downloadAndInstallApk(request.url);
             } catch {
-              Alert.alert("VIBE", "The APK could not be downloaded. Please try again.");
+              Alert.alert("VIBE", "The APK could not be installed. The download will open in your browser.");
+              try { await Linking.openURL(request.url); } catch { /* The alert already explains the recoverable failure. */ }
             }
           })();
           return false;
