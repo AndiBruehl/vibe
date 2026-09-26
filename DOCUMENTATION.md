@@ -2,6 +2,14 @@
 
 ## Overview
 
+### Post and message editing (0.1.83)
+
+When an author changes a post's text, VIBE stores the prior text as a `PostRevision` and marks the post as Edited. The post page presents prior versions in a localized, expandable history. Existing posts without revisions remain unchanged.
+
+Message senders can edit their own text messages for ten minutes after they were sent. The server enforces ownership, conversation membership, the time limit, a non-empty maximum-length text value, and excludes shared-post messages. Successful corrections are marked Edited; the original send time remains intact, and edits do not change conversation activity counters. The local edit control keeps unsaved text visible and provides a retry message when a save fails. Reactions are unframed emoji controls, and direct-message Read/Unread status includes a local `YY-MM-DD HH:MM` timestamp.
+
+Message senders can also delete their own messages after explicit VIBE confirmation. The server verifies ownership and conversation membership, removes message reactions before the message, and revalidates the conversation. Unread-message badges query the remaining messages, so a deleted unread message no longer produces a notification for the other participant.
+
 ### Pinned profile posts (0.1.73)
 
 Profile owners pin or unpin up to three active posts directly on their post tiles or in the post detail view. Pins are stored in `ProfilePinnedPost`, which joins the profile and post IDs with an explicit display position. Pins render before the ordinary profile grid for users permitted to view that profile. Desktop uses three equal tiles; mobile keeps the first two side-by-side and gives a third tile the full row.

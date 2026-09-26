@@ -38,22 +38,22 @@ export default function MessageReactionPicker({ messageId, currentProfileId, rea
   }
 
   return (
-    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+    <div className="mt-2 flex flex-wrap items-center gap-1">
       {grouped.map(([emoji, { count, reacted }]) => (
         <button
           key={emoji}
           type="button"
           disabled={isPending}
           onClick={() => toggle(emoji)}
-          className={`inline-flex min-h-7 items-center gap-1 rounded-full border px-2 text-xs font-bold transition disabled:opacity-60 ${reacted ? "border-orange-400 bg-orange-50 text-orange-800 dark:bg-orange-500/20 dark:text-orange-100" : "border-slate-200 bg-white/75 text-slate-700 hover:border-orange-300 dark:border-slate-600 dark:bg-slate-950/30 dark:text-slate-200"}`}
+          className={`grid size-11 min-h-0 place-items-center rounded-full bg-transparent text-xl transition hover:scale-110 disabled:opacity-60 ${reacted ? "drop-shadow-[0_0_7px_rgba(251,146,60,0.8)]" : "opacity-85 hover:opacity-100"}`}
           aria-label={`${emoji} ${count}`}
         >
-          <span>{emoji}</span><span>{count}</span>
+          <span aria-hidden="true">{emoji}</span><span className="sr-only">{count}</span>
         </button>
       ))}
       <EmojiPicker
         ariaLabel={de ? "Reaktion hinzufügen" : "Add reaction"}
-        className="[&_button]:size-7 [&_button]:rounded-full [&_button]:border [&_button]:border-slate-200 [&_button]:bg-white/75 [&_button]:text-base dark:[&_button]:border-slate-600 dark:[&_button]:bg-slate-950/30"
+        className="[&_button]:!size-11 [&_button]:!min-h-0 [&_button]:rounded-full [&_button]:!border-0 [&_button]:!bg-transparent [&_button]:text-xl [&_button]:hover:scale-110"
         onSelect={toggle}
       />
     </div>

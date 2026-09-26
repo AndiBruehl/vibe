@@ -168,6 +168,7 @@ model Message {
   sharedPost   Post?    @relation("SharedPost", fields: [sharedPostId], references: [id])
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  editedAt     DateTime?
   reactions    MessageReaction[]
 
   @@index([conversationId, createdAt])
@@ -216,6 +217,7 @@ model Post {
   isArchived  Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  editedAt    DateTime?
 
   comments                Comment[]
   likes                   PostLike[]
@@ -225,6 +227,17 @@ model Post {
   profileTags             PostProfileTag[]
   sharedInMessages        Message[]                @relation("SharedPost")
   pinnedOnProfiles        ProfilePinnedPost[]
+  revisions               PostRevision[]
+}
+
+model PostRevision {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  postId      String   @db.ObjectId
+  post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  description String
+  createdAt   DateTime @default(now())
+
+  @@index([postId, createdAt])
 }
 
 model ProfilePinnedPost {

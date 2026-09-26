@@ -58,6 +58,10 @@ export default async function SinglePostPage({
             },
           }
         : false,
+      revisions: {
+        orderBy: { createdAt: "desc" },
+        select: { id: true, description: true, createdAt: true },
+      },
     },
   });
 
@@ -196,6 +200,15 @@ export default async function SinglePostPage({
                 <p className="text-slate-700 dark:text-slate-200">
                   <MentionText text={post.description} />
                 </p>
+                {post.editedAt ? <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                  <span>{de ? "Bearbeitet" : "Edited"}</span>
+                  {post.revisions.length ? <details className="mt-2 rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900/50">
+                    <summary className="cursor-pointer font-semibold text-slate-700 dark:text-slate-200">{de ? `Bearbeitungsverlauf (${post.revisions.length})` : `Edit history (${post.revisions.length})`}</summary>
+                    <ol className="mt-3 space-y-3 border-l border-slate-200 pl-3 dark:border-slate-700">
+                      {post.revisions.map((revision) => <li key={revision.id}><time dateTime={revision.createdAt.toISOString()} className="block text-[11px] font-medium text-slate-500 dark:text-slate-400">{revision.createdAt.toLocaleString(de ? "de-DE" : "en-US")}</time><p className="mt-1 whitespace-pre-wrap text-sm font-normal text-slate-700 dark:text-slate-200"><MentionText text={revision.description} /></p></li>)}
+                    </ol>
+                  </details> : null}
+                </div> : null}
 
                 {topics.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-2">

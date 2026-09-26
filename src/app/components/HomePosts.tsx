@@ -456,8 +456,9 @@ export default async function HomePosts({
                       <MentionText text={post.description} />
                     </p>
 
-                    <div className="text-xs text-slate-500 dark:text-slate-400">
-                      {new Date(post.createdAt).toLocaleDateString()}
+                    <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                      <span>{new Date(post.createdAt).toLocaleDateString()}</span>
+                      {post.editedAt ? <span className="font-semibold">· {de ? "Bearbeitet" : "Edited"}</span> : null}
                     </div>
 
                     {post.topics?.length > 0 && (

@@ -15,6 +15,8 @@ import VibeTeamBadge from "@/app/components/VibeTeamBadge";
 import ProgressiveImage from "@/app/components/ProgressiveImage";
 import VideoMedia from "@/app/components/VideoMedia";
 import ProfileAvatar from "@/app/components/ProfileAvatar";
+import MessageEditControl from "@/app/components/MessageEditControl";
+import MessageDeleteButton from "@/app/components/MessageDeleteButton";
 
 import { isObjectId } from "@/object-id";
 type ConversationPageProps = {
@@ -143,6 +145,7 @@ export default async function ConversationPage({
   }
 
   const latestMessage = conversation.messages.at(-1);
+  const latestMessageFromOther = [...conversation.messages].reverse().find((message: any) => message.senderId !== currentUserProfile.id) ?? null;
   const isGroup =
     Boolean(conversation.isGroup) ||
     (conversation.participants && conversation.participants.length > 2) ||
@@ -234,9 +237,10 @@ export default async function ConversationPage({
                 {conversation.participants.length} members
               </p>
             ) : otherProfile?.username ? (
-              <p className="truncate text-sm text-slate-500 dark:text-slate-400">
-                @{otherProfile.username}
-              </p>
+              <div className="text-right text-sm text-slate-500 dark:text-slate-400">
+                <p className="truncate">@{otherProfile.username}</p>
+                {latestMessageFromOther ? <p className="mt-0.5 text-[11px] font-medium"><span>{de ? "Letzte Nachricht" : "Last message"}: </span><LocalTime iso={latestMessageFromOther.createdAt} format="compact-date-time" fallback="--" /></p> : null}
+              </div>
             ) : null}
           </div>
         </div>
@@ -258,6 +262,8 @@ export default async function ConversationPage({
               otherParticipant?.lastReadAt &&
               new Date(otherParticipant.lastReadAt).getTime() >= new Date(message.createdAt).getTime(),
             );
+            // eslint-disable-next-line react-hooks/purity -- server-rendered time gate must be evaluated for this request.
+            const messageCanBeEdited = isOwnMessage && !message.sharedPost && Date.now() - new Date(message.createdAt).getTime() <= 10 * 60 * 1000;
 
             return (
               <article
@@ -294,6 +300,8 @@ export default async function ConversationPage({
                   {!message.sharedPost ? <p className="whitespace-pre-wrap wrap-break-word text-sm leading-6">
                     <MentionText text={message.body} linkClassName={isOwnMessage ? "font-semibold text-white underline decoration-white/60 underline-offset-2" : undefined} />
                   </p> : null}
+                  {message.editedAt ? <p className={`mt-1 text-[11px] font-semibold ${isOwnMessage ? "text-white/75" : "text-slate-400"}`}>{de ? "Bearbeitet" : "Edited"} · <LocalTime iso={message.editedAt} format="compact-date-time" fallback="--" /></p> : null}
+                  {messageCanBeEdited ? <MessageEditControl messageId={message.id} initialBody={message.body} de={de} ownMessage={isOwnMessage} /> : null}
                   {message.sharedPost ? <p className={`mb-2 text-sm font-semibold ${isOwnMessage ? "text-white" : "text-slate-800 dark:text-slate-100"}`}>{isOwnMessage ? (de ? "Du hast einen Beitrag geteilt" : "You shared a post") : (de ? `${message.sender?.name || message.sender?.username || "Jemand"} hat einen Beitrag geteilt` : `${message.sender?.name || message.sender?.username || "Someone"} shared a post`)}</p> : null}
                   {message.sharedPost ? <Link href={`/posts/${message.sharedPost.id}`} className={`block overflow-hidden rounded-xl no-underline ${isOwnMessage ? "bg-white/15 text-white" : "bg-slate-100 text-slate-900 dark:bg-slate-900 dark:text-slate-100"}`}>
                     <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-700">{message.sharedPost.mediaTypes?.[0] === "video" ? <VideoMedia src={message.sharedPost.image} poster={message.sharedPost.videoPosters?.[0]} className="size-full object-contain" alt={de ? "Geteiltes Video" : "Shared video"} /> : <ProgressiveImage src={message.sharedPost.image} alt={de ? "Geteilter Beitrag" : "Shared post"} lockAspectRatio="16 / 9" containerClassName="size-full" className="object-cover" />}</div>
@@ -314,20 +322,14 @@ export default async function ConversationPage({
                     currentProfileId={currentUserProfile.id}
                     reactions={message.reactions}
                   />
-                  <p
-                    className={`mt-1 text-right text-[11px] ${
-                      isOwnMessage ? "text-white/75" : "text-slate-400"
-                    }`}
-                  >
-                    <LocalTime
-                      iso={message.createdAt}
-                      options={{ hour: "2-digit", minute: "2-digit" }}
-                    />
-                  </p>
+                  <div className={`mt-1 flex items-center justify-end gap-1 text-[11px] ${isOwnMessage ? "text-white/75" : "text-slate-400"}`}>
+                    <LocalTime iso={message.createdAt} format="compact-date-time" fallback="--" />
+                    {isOwnMessage ? <MessageDeleteButton messageId={message.id} de={de} /> : null}
+                  </div>
                 </div>
                 {isOwnMessage && !isGroup && (
                   <p className={`mt-1 pr-1 text-right text-[11px] font-semibold ${wasSeen ? "text-slate-400 dark:text-slate-500" : "text-slate-400/80 dark:text-slate-500"}`}>
-                    {wasSeen ? (de ? "Gesehen" : "Read") : (de ? "Ungelesen" : "Unread")}
+                    {wasSeen ? (de ? "Gelesen" : "Read") : (de ? "Ungelesen" : "Unread")} · <LocalTime iso={wasSeen ? otherParticipant?.lastReadAt?.toISOString() : message.createdAt} format="compact-date-time" fallback="--" />
                   </p>
                 )}
               </article>

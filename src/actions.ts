@@ -301,7 +301,7 @@ export async function editPost(formData: FormData): Promise<void> {
 
   const post = await prisma.post.findUnique({
     where: { id: postIdValue },
-    select: { id: true, authorEmail: true },
+    select: { id: true, authorEmail: true, description: true },
   });
 
   if (!post) {
@@ -312,14 +312,21 @@ export async function editPost(formData: FormData): Promise<void> {
     throw new Error("You are not authorized to edit this post.");
   }
 
-  await prisma.post.update({
+  const descriptionChanged = cleanedDescription !== undefined && cleanedDescription !== post.description;
+  const postUpdate = {
+    ...(gallery ? { image: gallery[0], images: gallery, mediaTypes: galleryMediaTypes, videoPosters: galleryVideoPosters } : cleanedImage !== undefined ? { image: cleanedImage, images: parsePostImages([cleanedImage]), mediaTypes: ["image"], videoPosters: [] } : {}),
+    ...(cleanedDescription !== undefined ? { description: cleanedDescription } : {}),
+    editedAt: new Date(),
+  };
+
+  await prisma.$transaction(async (tx) => {
+    if (descriptionChanged) {
+      await tx.postRevision.create({ data: { postId: postIdValue, description: post.description } });
+    }
+    await tx.post.update({
     where: { id: postIdValue },
-    data: {
-      ...(gallery ? { image: gallery[0], images: gallery, mediaTypes: galleryMediaTypes, videoPosters: galleryVideoPosters } : cleanedImage !== undefined ? { image: cleanedImage, images: parsePostImages([cleanedImage]), mediaTypes: ["image"], videoPosters: [] } : {}),
-      ...(cleanedDescription !== undefined
-        ? { description: cleanedDescription }
-        : {}),
-    },
+      data: postUpdate,
+    });
   });
 
   const topicsSet = formData.get("topicsSet");
@@ -1373,6 +1380,59 @@ export async function sendMessage(formData: FormData): Promise<void> {
 
   revalidatePath("/messages");
   revalidatePath(`/messages/${conversation.id}`);
+}
+
+/** A sender may correct the text of a message for ten minutes after sending it. Edits do not update conversation activity. */
+export async function editMessage(formData: FormData): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.email) redirect("/");
+
+  const messageId = formData.get("messageId");
+  const bodyValue = formData.get("body");
+  if (!isObjectId(messageId) || typeof bodyValue !== "string") throw new Error("Invalid message edit.");
+
+  const body = bodyValue.trim();
+  if (!body) throw new Error("A message cannot be empty.");
+  if (body.length > 4000) throw new Error("Message is too long.");
+
+  const [viewer, message] = await Promise.all([
+    prisma.profile.findUnique({ where: { email: session.user.email }, select: { id: true } }),
+    prisma.message.findUnique({ where: { id: messageId }, select: { id: true, senderId: true, conversationId: true, body: true, imageUrl: true, sharedPostId: true, createdAt: true } }),
+  ]);
+  if (!viewer || !message || message.senderId !== viewer.id) throw new Error("Message not found.");
+  if (Date.now() - message.createdAt.getTime() > 10 * 60 * 1000) throw new Error("The edit window has closed.");
+  if (message.sharedPostId || body === message.body) return;
+
+  const membership = await prisma.conversationParticipant.findUnique({ where: { conversationId_profileId: { conversationId: message.conversationId, profileId: viewer.id } }, select: { id: true } });
+  if (!membership) throw new Error("Conversation not found.");
+
+  await prisma.message.update({ where: { id: message.id }, data: { body, editedAt: new Date() } });
+  revalidatePath("/messages");
+  revalidatePath(`/messages/${message.conversationId}`);
+}
+
+/** Removes only a message owned by the signed-in sender and its reactions. */
+export async function deleteMessage(messageId: string): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.email) redirect("/");
+  if (!isObjectId(messageId)) throw new Error("Invalid message.");
+
+  const [viewer, message] = await Promise.all([
+    prisma.profile.findUnique({ where: { email: session.user.email }, select: { id: true } }),
+    prisma.message.findUnique({ where: { id: messageId }, select: { id: true, senderId: true, conversationId: true } }),
+  ]);
+  if (!viewer || !message || message.senderId !== viewer.id) throw new Error("Message not found.");
+
+  const membership = await prisma.conversationParticipant.findUnique({ where: { conversationId_profileId: { conversationId: message.conversationId, profileId: viewer.id } }, select: { id: true } });
+  if (!membership) throw new Error("Conversation not found.");
+
+  await prisma.$transaction([
+    prisma.messageReaction.deleteMany({ where: { messageId: message.id } }),
+    prisma.message.delete({ where: { id: message.id } }),
+  ]);
+  // Unread counts query the remaining Message records, so the recipient's notification disappears too.
+  revalidatePath("/messages");
+  revalidatePath(`/messages/${message.conversationId}`);
 }
 
 export async function toggleMessageReaction(formData: FormData): Promise<void> {

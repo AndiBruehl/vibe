@@ -1,6 +1,6 @@
 {
   "name": "vibe",
-  "version": "0.1.81.1",
+  "version": "0.1.83",
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",

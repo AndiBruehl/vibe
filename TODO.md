@@ -1,5 +1,16 @@
 # VIBE TODO
 
+## BETA 0.1.83 — Post and message editing
+
+- Keep the previous text version whenever a post is edited, and show it in an expandable edit history. ✅
+- Mark edited posts and messages clearly in English and German. ✅
+- Let senders edit their own text messages for up to 10 minutes after sending without changing conversation activity. ✅
+- Let senders delete their own messages and clear the recipient's derived unread notification. ✅
+
+## Versioning rule
+
+- Never publish a VIBE release whose final version component is `.88`, regardless of its major or minor version (for example `0.1.88`, `0.88`, `1.0.88`, or `2.4.88`).
+
 ## BETA 0.1.81.1 — Settings and Android update fixes
 
 - Keep all Settings tabs fully readable on narrow screens. ✅

@@ -144,6 +144,7 @@ export default function MessageComposer({ conversationId, blocked = false, block
         <button type="submit" disabled={isSending || isUploading || (!body.trim() && !imageUrl)} className="flex size-11 shrink-0 items-center justify-center rounded-full bg-linear-to-tr from-(--ig-orange) to-(--ig-red) text-white transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50" aria-label={de ? "Nachricht senden" : "Send message"}>{isSending ? <LoaderCircle className="animate-spin" size={18} /> : <Send size={18} />}</button>
       </div>
       {error && <p className="mt-2 text-xs text-red-600 dark:text-red-300">{error}</p>}
+      <p className="mt-2 text-center text-[11px] font-medium text-slate-500 dark:text-slate-400">{de ? "Nachrichten können bis zu 10 Minuten nach dem Senden bearbeitet werden." : "Messages can be edited for up to 10 minutes after sending."}</p>
       {!error && draftReady && body.trim() && <div className="mt-2"><DraftStatus state={draftStatus} de={de} onDiscard={() => { setBody(""); localStorage.removeItem(draftKey); setDraftStatus(null); textareaRef.current?.focus(); }} /></div>}
       </>}
     </form>
