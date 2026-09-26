@@ -5,6 +5,7 @@
 - Keep all Settings tabs fully readable on narrow screens. ✅
 - Show Android users only the Android download. ✅
 - Make APK installation recover safely by opening the browser download if Android cannot launch the installer. ✅
+- Publish matching APK and Windows installer artifact names in the release manifest. ✅
 
 ## BETA 0.1.81 — Admin user management cards
 
