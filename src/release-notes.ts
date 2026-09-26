@@ -6,6 +6,7 @@ export type ReleaseNote = {
 
 // Keep newest releases first. This is the single source for the Home changelog.
 export const webReleaseNotes: ReleaseNote[] = [
+  { version: "0.1.83.1", date: "2026-09-26", changes: ["Fixed message replies so the quoted-message composer preview clears immediately after a successful send.", "Keeps the reply preview intact if sending fails, so the intended context is not lost."] },
   { version: "0.1.83", date: "2026-09-26", changes: ["Added replies to individual messages with a quoted preview and a jump back to the original message.", "Replies safely show a Deleted message fallback when their original has been removed.", "Added edit history for post text and message correction or deletion controls with resilient feedback."] },
   { version: "0.1.81.1", date: "2026-09-26", changes: ["Fixed Settings navigation on narrow screens: all three tabs now remain fully readable.", "Android now shows only the Android download, and APK updates use a safer install flow with a browser fallback.", "Updated the Windows EXE to the newest release version and published matching Android and Windows download artifacts."] },
   { version: "0.1.81", date: "2026-09-24", changes: ["Reworked Admin user management into permanently visible, single-column expandable member cards.", "Added localized guidance for opening a member card and safe empty states for user searches."] },

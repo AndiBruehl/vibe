@@ -109,6 +109,7 @@ export default function MessageComposer({ conversationId, blocked = false, block
       setDraftStatus(null);
       setImageUrl("");
       setPreviewUrl("");
+      setReplyTo(null);
       router.refresh();
     } catch {
       setError(de ? "Nachrichten sind in dieser Unterhaltung nicht möglich." : "Messages are not available in this conversation.");

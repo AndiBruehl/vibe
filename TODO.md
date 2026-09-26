@@ -1,5 +1,9 @@
 # VIBE TODO
 
+## BETA 0.1.83.1 — Reply composer cleanup
+
+- Clear the reply preview after a successful send while retaining it after a send failure. ✅
+
 ## BETA 0.1.83 — Message replies
 
 - Reply to a specific message with a quoted preview and jump back to the original. ✅
