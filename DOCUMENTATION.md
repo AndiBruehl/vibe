@@ -2,6 +2,12 @@
 
 ## Overview
 
+### Conversation message search (0.1.84)
+
+Each direct or group conversation has a search button in its header. It searches the text of messages already loaded for that conversation without navigating away or reloading the chat. The result control shows the current match number, supports previous/next navigation, and smoothly scrolls the selected message into view with a temporary VIBE highlight.
+
+Empty searches and queries with no matches have separate localized guidance in English and German. Messages without text, including shared-post messages, are safely excluded from matching.
+
 ### Post and message editing (0.1.83)
 
 When an author changes a post's text, VIBE stores the prior text as a `PostRevision` and marks the post as Edited. The post page presents prior versions in a localized, expandable history. Existing posts without revisions remain unchanged.

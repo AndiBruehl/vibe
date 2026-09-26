@@ -18,6 +18,7 @@ import ProfileAvatar from "@/app/components/ProfileAvatar";
 import MessageEditControl from "@/app/components/MessageEditControl";
 import MessageDeleteButton from "@/app/components/MessageDeleteButton";
 import MessageReplyButton from "@/app/components/MessageReplyButton";
+import ConversationMessageSearch from "@/app/components/ConversationMessageSearch";
 
 import { isObjectId } from "@/object-id";
 type ConversationPageProps = {
@@ -175,15 +176,18 @@ export default async function ConversationPage({
       />
 
       <section className="flex shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 pb-4 pt-1 sm:px-6 dark:border-slate-700 dark:bg-transparent">
-        <Link
-          href="/messages"
-          className="group flex items-center gap-2 text-slate-800 no-underline visited:text-slate-800 hover:text-slate-600 dark:text-slate-200 dark:visited:text-slate-400 dark:hover:text-slate-500"
-        >
-          <MoveLeft />
-          <span className="opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-            Inbox
-          </span>
-        </Link>
+        <div className="flex shrink-0 items-center gap-1">
+          <Link
+            href="/messages"
+            className="group flex items-center gap-2 text-slate-800 no-underline visited:text-slate-800 hover:text-slate-600 dark:text-slate-200 dark:visited:text-slate-400 dark:hover:text-slate-500"
+          >
+            <MoveLeft />
+            <span className="opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+              Inbox
+            </span>
+          </Link>
+          <ConversationMessageSearch messages={conversation.messages.map((message) => ({ id: message.id, body: message.body || "" }))} de={de} />
+        </div>
 
         <div className="flex min-w-0 items-center gap-3">
           {isGroup ? (

@@ -1,5 +1,11 @@
 # VIBE TODO
 
+## BETA 0.1.84 — Conversation message search
+
+- Search text messages inside an individual conversation without reloading the page. ✅
+- Move through matches and scroll to the selected message with a visible focus state. ✅
+- Provide localized empty-search and no-result fallbacks. ✅
+
 ## BETA 0.1.83.1 — Reply composer cleanup
 
 - Clear the reply preview after a successful send while retaining it after a send failure. ✅
