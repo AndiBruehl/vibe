@@ -166,6 +166,12 @@ model Message {
   imageUrl     String?
   sharedPostId String?  @db.ObjectId
   sharedPost   Post?    @relation("SharedPost", fields: [sharedPostId], references: [id])
+  replyToMessageId String? @db.ObjectId
+  replyToMessage   Message? @relation("MessageReplies", fields: [replyToMessageId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replies          Message[] @relation("MessageReplies")
+  replyPreviewBody String?
+  replyPreviewSender String?
+  replyToDeleted   Boolean @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   editedAt     DateTime?

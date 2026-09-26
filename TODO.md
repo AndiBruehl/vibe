@@ -1,5 +1,10 @@
 # VIBE TODO
 
+## BETA 0.1.83 — Message replies
+
+- Reply to a specific message with a quoted preview and jump back to the original. ✅
+- Keep replies readable when the original message has been deleted. ✅
+
 ## BETA 0.1.83 — Post and message editing
 
 - Keep the previous text version whenever a post is edited, and show it in an expandable edit history. ✅

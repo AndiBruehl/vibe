@@ -6,7 +6,7 @@ export type ReleaseNote = {
 
 // Keep newest releases first. This is the single source for the Home changelog.
 export const webReleaseNotes: ReleaseNote[] = [
-  { version: "0.1.82", date: "2026-09-26", changes: ["Added edit history for post text, with a clear Edited label and previous versions on the post page.", "Messages can now be corrected for up to 10 minutes after sending and show an Edited label afterwards without changing conversation activity.", "Refined message editing and reactions with VIBE-styled icon actions, resilient edit feedback, read timestamps, and sender-only message deletion."] },
+  { version: "0.1.83", date: "2026-09-26", changes: ["Added replies to individual messages with a quoted preview and a jump back to the original message.", "Replies safely show a Deleted message fallback when their original has been removed.", "Added edit history for post text and message correction or deletion controls with resilient feedback."] },
   { version: "0.1.81.1", date: "2026-09-26", changes: ["Fixed Settings navigation on narrow screens: all three tabs now remain fully readable.", "Android now shows only the Android download, and APK updates use a safer install flow with a browser fallback.", "Updated the Windows EXE to the newest release version and published matching Android and Windows download artifacts."] },
   { version: "0.1.81", date: "2026-09-24", changes: ["Reworked Admin user management into permanently visible, single-column expandable member cards.", "Added localized guidance for opening a member card and safe empty states for user searches."] },
   { version: "0.1.80.3", date: "2026-09-24", changes: ["Fixed custom badge clicks so they show the same label tooltip as system badges."] },

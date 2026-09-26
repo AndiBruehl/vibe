@@ -17,6 +17,7 @@ import VideoMedia from "@/app/components/VideoMedia";
 import ProfileAvatar from "@/app/components/ProfileAvatar";
 import MessageEditControl from "@/app/components/MessageEditControl";
 import MessageDeleteButton from "@/app/components/MessageDeleteButton";
+import MessageReplyButton from "@/app/components/MessageReplyButton";
 
 import { isObjectId } from "@/object-id";
 type ConversationPageProps = {
@@ -266,7 +267,7 @@ export default async function ConversationPage({
             const messageCanBeEdited = isOwnMessage && !message.sharedPost && Date.now() - new Date(message.createdAt).getTime() <= 10 * 60 * 1000;
 
             return (
-              <article
+              <article id={`message-${message.id}`}
                 key={message.id}
                 className={`flex flex-col ${
                   isOwnMessage ? "items-end" : "items-start"
@@ -297,6 +298,7 @@ export default async function ConversationPage({
                       )}
                     </div>
                   ) : null}
+                  {message.replyToMessageId || message.replyToDeleted ? <a href={message.replyToMessageId ? `#message-${message.replyToMessageId}` : undefined} className={`mb-2 block rounded-lg border-l-2 border-orange-400 bg-black/10 px-2 py-1.5 text-xs no-underline ${isOwnMessage ? "text-white/85" : "text-slate-600 dark:text-slate-300"}`}><b>{message.replyToDeleted ? (de ? "Gelöschte Nachricht" : "Deleted message") : message.replyPreviewSender}</b>{!message.replyToDeleted ? `: ${message.replyPreviewBody || ""}` : ""}</a> : null}
                   {!message.sharedPost ? <p className="whitespace-pre-wrap wrap-break-word text-sm leading-6">
                     <MentionText text={message.body} linkClassName={isOwnMessage ? "font-semibold text-white underline decoration-white/60 underline-offset-2" : undefined} />
                   </p> : null}
@@ -325,6 +327,7 @@ export default async function ConversationPage({
                   <div className={`mt-1 flex items-center justify-end gap-1 text-[11px] ${isOwnMessage ? "text-white/75" : "text-slate-400"}`}>
                     <LocalTime iso={message.createdAt} format="compact-date-time" fallback="--" />
                     {isOwnMessage ? <MessageDeleteButton messageId={message.id} de={de} /> : null}
+                    <MessageReplyButton id={message.id} body={message.body} sender={message.sender?.name || message.sender?.username || (de ? "VIBE-Mitglied" : "VIBE member")} de={de} />
                   </div>
                 </div>
                 {isOwnMessage && !isGroup && (

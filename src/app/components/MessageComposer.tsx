@@ -1,6 +1,6 @@
 "use client";
 
-import { ImagePlus, LoaderCircle, Send, X } from "lucide-react";
+import { ImagePlus, LoaderCircle, Reply, Send, X } from "lucide-react";
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { sendMessage } from "@/actions";
@@ -30,6 +30,7 @@ export default function MessageComposer({ conversationId, blocked = false, block
   const [error, setError] = useState("");
   const [draftReady, setDraftReady] = useState(false);
   const [draftStatus, setDraftStatus] = useState<"restored" | "saved" | null>(null);
+  const [replyTo, setReplyTo] = useState<{ id: string; body: string; sender: string } | null>(null);
   const draftKey = `vibe.messageDraft.${conversationId}`;
 
   useEffect(() => {
@@ -40,6 +41,7 @@ export default function MessageComposer({ conversationId, blocked = false, block
     }
     setDraftReady(true);
   }, [draftKey]);
+  useEffect(() => { const handler = (event: Event) => { const detail = (event as CustomEvent<{ id?: unknown; body?: unknown; sender?: unknown }>).detail; if (!detail || typeof detail.id !== "string" || !detail.id) return; setReplyTo({ id: detail.id, body: typeof detail.body === "string" ? detail.body : "", sender: typeof detail.sender === "string" && detail.sender ? detail.sender : "VIBE" }); }; window.addEventListener("vibe:message-reply", handler); return () => window.removeEventListener("vibe:message-reply", handler); }, []);
 
   useEffect(() => {
     if (!draftReady) return;
@@ -119,6 +121,7 @@ export default function MessageComposer({ conversationId, blocked = false, block
     <form ref={formRef} onSubmit={action} className="conversation-composer rounded-2xl bg-white p-3 shadow-lg shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
       <input type="hidden" name="conversationId" value={conversationId} />
       <input type="hidden" name="imageUrl" value={imageUrl} />
+      <input type="hidden" name="replyToMessageId" value={replyTo?.id || ""} />
       {blocked || systemNoReply ? (
         <div role="status" className="rounded-xl border border-amber-300/70 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900 dark:border-amber-500/35 dark:bg-amber-500/10 dark:text-amber-200">
           {systemNoReply ? (de ? "VibeTeam-Nachrichten können nicht beantwortet werden." : "VibeTeam messages cannot be replied to.") : de
@@ -136,6 +139,7 @@ export default function MessageComposer({ conversationId, blocked = false, block
           <button type="button" onClick={() => { setPreviewUrl(""); setImageUrl(""); }} className="absolute -right-2 -top-2 grid size-7 place-items-center rounded-full bg-slate-900 text-white shadow" aria-label={de ? "Bild entfernen" : "Remove image"}><X size={15} /></button>
         </div>
       )}
+      {replyTo && <div className="mb-2 flex items-center gap-2 rounded-xl border-l-2 border-orange-400 bg-slate-100 px-3 py-2 text-xs text-slate-700 dark:bg-slate-900 dark:text-slate-200"><Reply size={14}/><span className="min-w-0 flex-1 truncate"><b>{replyTo.sender}</b>: {replyTo.body || (de ? "Mediennachricht" : "Media message")}</span><button type="button" onClick={() => setReplyTo(null)} className="grid size-7 place-items-center rounded-full" aria-label={de ? "Antwort entfernen" : "Remove reply"}><X size={15}/></button></div>}
       <div className="grid w-full grid-cols-[2.75rem_2.75rem_minmax(0,1fr)_2.75rem] items-center gap-3">
         <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={uploadImage} />
         <button type="button" onClick={() => inputRef.current?.click()} disabled={isUploading} className="flex size-11 shrink-0 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100 disabled:opacity-50 dark:text-slate-300 dark:hover:bg-slate-700" aria-label={de ? "Bild anhängen" : "Attach image"}><ImagePlus size={21} /></button>

@@ -10,6 +10,10 @@ Message senders can edit their own text messages for ten minutes after they were
 
 Message senders can also delete their own messages after explicit VIBE confirmation. The server verifies ownership and conversation membership, removes message reactions before the message, and revalidates the conversation. Unread-message badges query the remaining messages, so a deleted unread message no longer produces a notification for the other participant.
 
+### Message replies (0.1.83)
+
+Members can reply to a specific message from its reply control. The composer shows the selected sender and preview before sending. Replies store a small preview and source ID, then link back to the original message in the conversation. The server accepts a reply only when its source belongs to the same conversation. If the source is later deleted, dependent replies preserve their preview state and show a localized Deleted message fallback instead of a broken reference.
+
 ### Pinned profile posts (0.1.73)
 
 Profile owners pin or unpin up to three active posts directly on their post tiles or in the post detail view. Pins are stored in `ProfilePinnedPost`, which joins the profile and post IDs with an explicit display position. Pins render before the ordinary profile grid for users permitted to view that profile. Desktop uses three equal tiles; mobile keeps the first two side-by-side and gives a third tile the full row.

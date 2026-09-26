@@ -1273,6 +1273,7 @@ export async function sendMessage(formData: FormData): Promise<void> {
   const conversationIdValue = formData.get("conversationId");
   const bodyValue = formData.get("body");
   const imageUrlValue = formData.get("imageUrl");
+  const replyToMessageId = formData.get("replyToMessageId");
 
   if (
     typeof conversationIdValue !== "string" ||
@@ -1325,6 +1326,7 @@ export async function sendMessage(formData: FormData): Promise<void> {
   if (!conversation) {
     throw new Error("Conversation not found.");
   }
+  const replyTo = isObjectId(replyToMessageId) ? await prisma.message.findFirst({ where: { id: replyToMessageId, conversationId: conversation.id }, include: { sender: { select: { name: true, username: true } } } }) : null;
 
   const isVibeTeamConversation = conversation.participants.some((participant) => participant.profile.isSystem && participant.profile.systemKind !== "support");
   const isSupportConversation = conversation.participants.some((participant) => participant.profile.systemKind === "support");
@@ -1355,6 +1357,7 @@ export async function sendMessage(formData: FormData): Promise<void> {
         senderId: currentUserProfile.id,
         body,
         imageUrl,
+        ...(replyTo ? { replyToMessageId: replyTo.id, replyPreviewBody: replyTo.body.slice(0, 280), replyPreviewSender: replyTo.sender.name || replyTo.sender.username || "VIBE" } : {}),
       },
     }),
     prisma.conversation.update({
@@ -1428,6 +1431,7 @@ export async function deleteMessage(messageId: string): Promise<void> {
 
   await prisma.$transaction([
     prisma.messageReaction.deleteMany({ where: { messageId: message.id } }),
+    prisma.message.updateMany({ where: { replyToMessageId: message.id }, data: { replyToMessageId: null, replyToDeleted: true } }),
     prisma.message.delete({ where: { id: message.id } }),
   ]);
   // Unread counts query the remaining Message records, so the recipient's notification disappears too.
