@@ -1,5 +1,10 @@
 # VIBE TODO
 
+## BETA 0.1.86.1 — Message edit action polish
+
+- Replace the reversed message-edit gradient with a clearer VIBE edit action. ✅
+- Keep save and cancel actions visually distinct and readable on outgoing messages. ✅
+
 ## BETA 0.1.86 — Pinned messages
 
 - Let conversation members pin up to three shared messages. ✅

@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, LoaderCircle, X } from "lucide-react";
+import { Check, LoaderCircle, Pencil, X } from "lucide-react";
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { editMessage } from "@/actions";
@@ -36,13 +36,13 @@ export default function MessageEditControl({ messageId, initialBody, de, ownMess
     });
   }
 
-  if (!open) return <button type="button" onClick={() => { setOpen(true); requestAnimationFrame(() => { const textarea = textareaRef.current; if (!textarea) return; textarea.focus(); textarea.setSelectionRange(textarea.value.length, textarea.value.length); }); }} className="mt-3 inline-flex min-h-10 items-center justify-center rounded-full bg-linear-to-r from-(--ig-orange) to-(--ig-red) px-4 text-xs font-black text-white shadow-md shadow-orange-950/25 transition hover:scale-[1.03] hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-300">{de ? "Bearbeiten" : "Edit"}</button>;
+  if (!open) return <button type="button" onClick={() => { setOpen(true); requestAnimationFrame(() => { const textarea = textareaRef.current; if (!textarea) return; textarea.focus(); textarea.setSelectionRange(textarea.value.length, textarea.value.length); }); }} className={`mt-3 inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl border px-3.5 text-xs font-black shadow-sm transition hover:scale-[1.02] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-300 ${ownMessage ? "border-white/45 bg-slate-950/15 text-white hover:bg-slate-950/25" : "border-orange-400/60 bg-orange-500/10 text-orange-700 hover:bg-orange-500/20 dark:text-orange-200"}`}><Pencil size={14} strokeWidth={2.75} aria-hidden="true" />{de ? "Bearbeiten" : "Edit"}</button>;
 
   return <div className={`mt-2 ${ownMessage ? "text-white" : "text-slate-700 dark:text-slate-200"}`}>
     <textarea ref={textareaRef} value={body} onChange={(event) => setBody(event.target.value)} maxLength={4000} rows={3} className="w-full rounded-lg border border-white/40 bg-black/10 px-2 py-1.5 text-xs text-inherit outline-none placeholder:text-current/60 dark:bg-black/20" />
     <div className="mt-3 flex items-center justify-end gap-2">
       <button type="button" onMouseEnter={() => setCancelHovered(true)} onMouseLeave={() => setCancelHovered(false)} onClick={() => { setBody(initialBody); setError(""); setOpen(false); }} disabled={pending} className="grid size-11 place-items-center rounded-full !bg-transparent !text-red-500 transition hover:!bg-transparent disabled:opacity-50" aria-label={de ? "Bearbeiten abbrechen" : "Cancel editing"}><X size={22} strokeWidth={cancelHovered ? 4 : 2.5} /></button>
-      <button type="button" onClick={save} disabled={pending} className="flex size-11 items-center justify-center rounded-full bg-linear-to-tr from-(--ig-orange) to-(--ig-red) text-white shadow-md shadow-orange-950/25 transition hover:scale-105 disabled:opacity-60" aria-label={de ? "Nachricht speichern" : "Save message"}>{pending ? <LoaderCircle size={18} className="animate-spin" /> : <Check size={20} />}</button>
+      <button type="button" onClick={save} disabled={pending} className={`flex size-11 items-center justify-center rounded-full shadow-md transition hover:scale-105 disabled:opacity-60 ${ownMessage ? "bg-white text-orange-600 shadow-orange-950/20" : "bg-orange-500 text-white shadow-orange-500/30"}`} aria-label={de ? "Nachricht speichern" : "Save message"}>{pending ? <LoaderCircle size={18} className="animate-spin" /> : <Check size={20} />}</button>
     </div>
     {error ? <p className="mt-2 text-xs font-semibold text-red-200 dark:text-red-300">{error}</p> : null}
   </div>;
