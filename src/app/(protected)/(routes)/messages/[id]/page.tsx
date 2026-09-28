@@ -20,6 +20,8 @@ import MessageDeleteButton from "@/app/components/MessageDeleteButton";
 import MessageReplyButton from "@/app/components/MessageReplyButton";
 import ConversationMessageSearch from "@/app/components/ConversationMessageSearch";
 import MessageBookmarkButton from "@/app/components/MessageBookmarkButton";
+import MessagePinButton from "@/app/components/MessagePinButton";
+import PinnedMessagesCarousel from "@/app/components/PinnedMessagesCarousel";
 
 import { isObjectId } from "@/object-id";
 type ConversationPageProps = {
@@ -126,6 +128,17 @@ export default async function ConversationPage({
       select: { messageId: true },
     }).catch(() => [])).map((bookmark) => bookmark.messageId),
   );
+
+  // Pins are an optional enhancement. Keep a healthy conversation readable
+  // while a new deployment has not created the collection yet or Atlas is
+  // reconnecting.
+  const pinStore = prisma.conversationPin;
+  const pinnedMessages = pinStore ? await pinStore.findMany({
+    where: { conversationId: conversation.id },
+    include: { message: { select: { id: true, body: true, imageUrl: true, sender: { select: { name: true, username: true } } } } },
+    orderBy: { createdAt: "asc" },
+  }).catch(() => []) : [];
+  const pinnedMessageIds = new Set(pinnedMessages.map((pin) => pin.messageId));
 
   const de = currentUserProfile.language === "de";
 
@@ -262,6 +275,8 @@ export default async function ConversationPage({
         </div>
       </section>
 
+      <PinnedMessagesCarousel messages={pinnedMessages.map((pin) => ({ id: pin.id, messageId: pin.message.id, body: pin.message.body, sender: pin.message.sender.name || pin.message.sender.username || (de ? "VIBE-Mitglied" : "VIBE member") }))} de={de} />
+
       <section className="conversation-messages min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-5 sm:px-6">
         {conversation.messages.length === 0 ? (
           <div className="rounded-2xl bg-white p-8 text-center shadow-md shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
@@ -342,6 +357,7 @@ export default async function ConversationPage({
                   <div className={`mt-1 flex items-center justify-end gap-1 text-[11px] ${isOwnMessage ? "text-white/75" : "text-slate-400"}`}>
                     <LocalTime iso={message.createdAt} format="compact-date-time" fallback="--" />
                     {isOwnMessage ? <MessageDeleteButton messageId={message.id} de={de} /> : null}
+                    <MessagePinButton messageId={message.id} initialPinned={pinnedMessageIds.has(message.id)} de={de} ownMessage={isOwnMessage} />
                     <MessageBookmarkButton messageId={message.id} initialBookmarked={savedMessageIds.has(message.id)} de={de} ownMessage={isOwnMessage} />
                     <MessageReplyButton id={message.id} body={message.body} sender={message.sender?.name || message.sender?.username || (de ? "VIBE-Mitglied" : "VIBE member")} de={de} />
                   </div>

@@ -1,5 +1,13 @@
 # VIBE TODO
 
+## BETA 0.1.86 — Pinned messages
+
+- Let conversation members pin up to three shared messages. ✅
+- Show pinned messages in a compact, scrollable chat header with navigation arrows. ✅
+- Let members remove one pin at a time without deleting the original message. ✅
+- Keep chats usable while pin storage is temporarily unavailable. ✅
+- Move the Quick settings orb below visible pinned messages so it never covers pin controls. ✅
+
 ## BETA 0.1.85 — Saved messages
 
 - Save a private copy of any accessible message and remove it again from the conversation. ✅

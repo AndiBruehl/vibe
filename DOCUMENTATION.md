@@ -14,6 +14,10 @@ Members can privately save any message in a conversation and remove it again fro
 
 Deleting a message removes its saved entries first. The conversation-deletion and account-deletion paths apply the same cleanup, so stale saved-message records cannot remain behind. The page has a localized empty state, no-results state, and recovery message with a retry action if saved entries cannot be loaded. A temporary `MessageBookmark` collection failure is isolated from the normal conversation query, so messages remain readable. Failed save or remove actions restore the prior button state and explain the recoverable problem in the member's language.
 
+### Pinned messages (0.1.86)
+
+Every participant can pin up to three messages in a direct or group conversation. The compact, theme-aware pin strip above the chat uses arrows to move through the pinned messages and jumps to the selected original message. Its small trash control removes only that pin; it never deletes the underlying message. When the strip is visible, the Quick settings orb dynamically moves beneath it so all pin controls remain reachable. `ConversationPin` enforces one pin per message in the same conversation, validates membership on every change, and is cleaned up when the message, conversation, or the pinning account is deleted. Pin storage is loaded independently, so a temporary unavailable or not-yet-deployed collection cannot prevent the conversation from opening.
+
 ### Post and message editing (0.1.83)
 
 When an author changes a post's text, VIBE stores the prior text as a `PostRevision` and marks the post as Edited. The post page presents prior versions in a localized, expandable history. Existing posts without revisions remain unchanged.

@@ -1432,6 +1432,7 @@ export async function deleteMessage(messageId: string): Promise<void> {
   await prisma.$transaction([
     prisma.messageReaction.deleteMany({ where: { messageId: message.id } }),
     prisma.messageBookmark.deleteMany({ where: { messageId: message.id } }),
+    ...(prisma.conversationPin ? [prisma.conversationPin.deleteMany({ where: { messageId: message.id } })] : []),
     prisma.message.updateMany({ where: { replyToMessageId: message.id }, data: { replyToMessageId: null, replyToDeleted: true } }),
     prisma.message.delete({ where: { id: message.id } }),
   ]);
@@ -1524,6 +1525,80 @@ export async function toggleMessageBookmark(formData: FormData): Promise<{ ok: b
   } catch {
     // A saved message is optional. Keep the chat usable while Atlas reconnects
     // or while a deployment is still applying the MessageBookmark collection.
+    return { ok: false, reason: "unavailable" };
+  }
+}
+
+/** Pins or unpins one accessible message. Conversations are limited to three shared pins. */
+export async function toggleConversationMessagePin(formData: FormData): Promise<{ ok: boolean; pinned?: boolean; reason?: "invalid" | "missing" | "forbidden" | "limit" | "unavailable" }> {
+  const session = await auth();
+  if (!session?.user?.email) redirect("/");
+
+  const messageId = formData.get("messageId");
+  if (!isObjectId(messageId)) return { ok: false, reason: "invalid" };
+  if (!prisma.conversationPin) return { ok: false, reason: "unavailable" };
+
+  try {
+    const [viewer, message] = await Promise.all([
+      prisma.profile.findUnique({ where: { email: session.user.email }, select: { id: true } }),
+      prisma.message.findUnique({ where: { id: messageId }, select: { id: true, conversationId: true } }),
+    ]);
+    if (!viewer || !message) return { ok: false, reason: "missing" };
+
+    const membership = await prisma.conversationParticipant.findUnique({
+      where: { conversationId_profileId: { conversationId: message.conversationId, profileId: viewer.id } },
+      select: { id: true },
+    });
+    if (!membership) return { ok: false, reason: "forbidden" };
+
+    const result = await prisma.$transaction(async (tx) => {
+      const existing = await tx.conversationPin.findUnique({
+        where: { conversationId_messageId: { conversationId: message.conversationId, messageId: message.id } },
+        select: { id: true },
+      });
+      if (existing) {
+        await tx.conversationPin.delete({ where: { id: existing.id } });
+        return { ok: true as const, pinned: false as const };
+      }
+
+      const count = await tx.conversationPin.count({ where: { conversationId: message.conversationId } });
+      if (count >= 3) return { ok: false as const, reason: "limit" as const };
+
+      await tx.conversationPin.create({ data: { conversationId: message.conversationId, messageId: message.id, pinnedById: viewer.id } });
+      return { ok: true as const, pinned: true as const };
+    });
+
+    if (result.ok) revalidatePath(`/messages/${message.conversationId}`);
+    return result;
+  } catch {
+    return { ok: false, reason: "unavailable" };
+  }
+}
+
+/** Removes only the selected shared pin after checking conversation membership. */
+export async function removeConversationMessagePin(formData: FormData): Promise<{ ok: boolean; reason?: "invalid" | "missing" | "forbidden" | "unavailable" }> {
+  const session = await auth();
+  if (!session?.user?.email) redirect("/");
+
+  const pinId = formData.get("pinId");
+  if (!isObjectId(pinId)) return { ok: false, reason: "invalid" };
+  if (!prisma.conversationPin) return { ok: false, reason: "unavailable" };
+
+  try {
+    const [viewer, pin] = await Promise.all([
+      prisma.profile.findUnique({ where: { email: session.user.email }, select: { id: true } }),
+      prisma.conversationPin.findUnique({ where: { id: pinId }, select: { id: true, conversationId: true } }),
+    ]);
+    if (!viewer || !pin) return { ok: false, reason: "missing" };
+    const membership = await prisma.conversationParticipant.findUnique({
+      where: { conversationId_profileId: { conversationId: pin.conversationId, profileId: viewer.id } },
+      select: { id: true },
+    });
+    if (!membership) return { ok: false, reason: "forbidden" };
+    await prisma.conversationPin.delete({ where: { id: pin.id } });
+    revalidatePath(`/messages/${pin.conversationId}`);
+    return { ok: true };
+  } catch {
     return { ok: false, reason: "unavailable" };
   }
 }
@@ -2397,8 +2472,10 @@ export async function deleteProfileAsSuperAdmin(formData: FormData): Promise<voi
     // before deleting either side of the relation.
     prisma.messageReaction.deleteMany({ where: { profileId: target.id } }),
     prisma.messageBookmark.deleteMany({ where: { profileId: target.id } }),
+    ...(prisma.conversationPin ? [prisma.conversationPin.deleteMany({ where: { pinnedById: target.id } })] : []),
     ...(sentMessageIds.length ? [prisma.messageReaction.deleteMany({ where: { messageId: { in: sentMessageIds } } })] : []),
     ...(sentMessageIds.length ? [prisma.messageBookmark.deleteMany({ where: { messageId: { in: sentMessageIds } } })] : []),
+    ...(prisma.conversationPin && sentMessageIds.length ? [prisma.conversationPin.deleteMany({ where: { messageId: { in: sentMessageIds } } })] : []),
     ...(removableCommentIds.length ? [
       prisma.comment.updateMany({ where: { parentCommentId: { in: removableCommentIds } }, data: { parentCommentId: null } }),
       prisma.commentMention.deleteMany({ where: { commentId: { in: removableCommentIds } } }),

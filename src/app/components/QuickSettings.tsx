@@ -18,6 +18,7 @@ export default function QuickSettings({ initialLanguage, initialTheme }: { initi
   const [feedback, setFeedback] = useState<"saved" | "failed" | "working" | null>(null);
   const [feedbackLeaving, setFeedbackLeaving] = useState(false);
   const [browseHeaderVisible, setBrowseHeaderVisible] = useState(true);
+  const [pinnedMessagesBottom, setPinnedMessagesBottom] = useState<number | null>(null);
   const panel = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -49,6 +50,34 @@ export default function QuickSettings({ initialLanguage, initialTheme }: { initi
     window.setTimeout(syncHeaderVisibility, 0);
     window.addEventListener("scroll", syncHeaderVisibility, { passive: true, capture: true });
     return () => window.removeEventListener("scroll", syncHeaderVisibility, true);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!pathname.startsWith("/messages/")) {
+      setPinnedMessagesBottom(null);
+      return;
+    }
+
+    let frame = 0;
+    const syncPinnedMessagesPosition = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const pinnedMessages = document.querySelector<HTMLElement>("[data-vibe-pinned-messages]");
+        setPinnedMessagesBottom(pinnedMessages ? Math.ceil(pinnedMessages.getBoundingClientRect().bottom) + 12 : null);
+      });
+    };
+
+    const observer = new MutationObserver(syncPinnedMessagesPosition);
+    observer.observe(document.body, { childList: true, subtree: true });
+    window.addEventListener("resize", syncPinnedMessagesPosition, { passive: true });
+    syncPinnedMessagesPosition();
+    window.setTimeout(syncPinnedMessagesPosition, 0);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      window.removeEventListener("resize", syncPinnedMessagesPosition);
+    };
   }, [pathname]);
 
   function showFeedback(next: "saved" | "failed" | "working") {
@@ -125,11 +154,16 @@ export default function QuickSettings({ initialLanguage, initialTheme }: { initi
   const position = pathname === "/browse" && browseHeaderVisible
     ? "right-28 top-3.5 md:right-28 md:top-3.5"
     : isConversation
-      ? "right-4 top-24 md:right-6 md:top-24"
-    : "right-4 top-3.5 md:right-6 md:top-3.5";
+      ? pinnedMessagesBottom === null ? "right-4 top-24 md:right-6 md:top-24" : "right-4 md:right-6"
+      : "right-4 top-3.5 md:right-6 md:top-3.5";
+  const dynamicPosition = pathname === "/browse" && browseHeaderVisible
+    ? { right: "7rem" }
+    : isConversation && pinnedMessagesBottom !== null
+      ? { top: `${pinnedMessagesBottom}px` }
+      : undefined;
 
   return (
-    <div ref={panel} className={`fixed ${position} z-50 transition-[right] duration-300`} style={pathname === "/browse" && browseHeaderVisible ? { right: "7rem" } : undefined} data-vibe-quick-settings>
+    <div ref={panel} className={`fixed ${position} z-50 transition-[right,top] duration-200`} style={dynamicPosition} data-vibe-quick-settings>
       <button type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open} aria-label={de ? "Schnelleinstellungen" : "Quick settings"}
         className="grid size-10 place-items-center rounded-full border border-slate-300/80 bg-white/90 text-slate-600 shadow-lg shadow-slate-900/10 backdrop-blur transition hover:-translate-y-0.5 hover:border-orange-300 hover:text-orange-500 dark:border-slate-600 dark:bg-slate-800/90 dark:text-slate-200 dark:shadow-black/30 dark:hover:border-orange-400 dark:hover:text-orange-300">
         <Settings2 size={18} aria-hidden="true" />

@@ -73,9 +73,10 @@ export async function DELETE(req: Request, context: any) {
 
   try {
     // delete all related data and the conversation; return counts for debugging
-    const [, , msgRes, partsRes] = await Promise.all([
+    const [, , , msgRes, partsRes] = await Promise.all([
       prisma.messageBookmark.deleteMany({ where: { message: { conversationId: id as string } } }),
       prisma.messageReaction.deleteMany({ where: { message: { conversationId: id as string } } }),
+      prisma.conversationPin ? prisma.conversationPin.deleteMany({ where: { conversationId: id as string } }) : Promise.resolve({ count: 0 }),
       prisma.message.deleteMany({ where: { conversationId: id as string } }),
       prisma.conversationParticipant.deleteMany({
         where: { conversationId: id as string },
