@@ -23,7 +23,7 @@ export async function DELETE(req: Request, context: any) {
         );
         id = maybe;
       }
-    } catch (e) {
+    } catch {
       // ignore URL parsing errors — we'll handle validation below
     }
   }
@@ -73,7 +73,9 @@ export async function DELETE(req: Request, context: any) {
 
   try {
     // delete all related data and the conversation; return counts for debugging
-    const [msgRes, partsRes] = await Promise.all([
+    const [, , msgRes, partsRes] = await Promise.all([
+      prisma.messageBookmark.deleteMany({ where: { message: { conversationId: id as string } } }),
+      prisma.messageReaction.deleteMany({ where: { message: { conversationId: id as string } } }),
       prisma.message.deleteMany({ where: { conversationId: id as string } }),
       prisma.conversationParticipant.deleteMany({
         where: { conversationId: id as string },

@@ -6,6 +6,7 @@ export type ReleaseNote = {
 
 // Keep newest releases first. This is the single source for the Home changelog.
 export const webReleaseNotes: ReleaseNote[] = [
+  { version: "0.1.85", date: "2026-09-28", changes: ["Added private saved messages for direct and group conversations.", "Browse saved messages by conversation, search them, and jump back to the original message.", "Saved entries now clean up safely when a message, conversation, or account is deleted.", "Added resilient saved-message fallbacks, retry feedback, and safe recovery during temporary storage interruptions."] },
   { version: "0.1.84", date: "2026-09-26", changes: ["Added in-chat message search for direct and group conversations without a page reload.", "Navigate between matches and jump to the selected message with a clear VIBE highlight.", "Added localized empty-search and no-result feedback."] },
   { version: "0.1.83.1", date: "2026-09-26", changes: ["Fixed message replies so the quoted-message composer preview clears immediately after a successful send.", "Keeps the reply preview intact if sending fails, so the intended context is not lost."] },
   { version: "0.1.83", date: "2026-09-26", changes: ["Added replies to individual messages with a quoted preview and a jump back to the original message.", "Replies safely show a Deleted message fallback when their original has been removed.", "Added edit history for post text and message correction or deletion controls with resilient feedback."] },

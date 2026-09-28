@@ -15,15 +15,21 @@ type ConversationStatus = {
 };
 
 async function fetchConversationStatus(conversationId: string) {
-  const response = await fetch(`/api/messages/${conversationId}/status`, {
-    cache: "no-store",
-  });
+  try {
+    const response = await fetch(`/api/messages/${conversationId}/status`, {
+      cache: "no-store",
+    });
 
-  if (!response.ok) {
+    if (!response.ok) {
+      return null;
+    }
+
+    return (await response.json()) as ConversationStatus;
+  } catch {
+    // During a local recompilation or a short connection interruption, leave
+    // the current conversation visible and retry on the next interval.
     return null;
   }
-
-  return (await response.json()) as ConversationStatus;
 }
 
 export default function ConversationLiveRefresh({

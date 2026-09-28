@@ -1431,6 +1431,7 @@ export async function deleteMessage(messageId: string): Promise<void> {
 
   await prisma.$transaction([
     prisma.messageReaction.deleteMany({ where: { messageId: message.id } }),
+    prisma.messageBookmark.deleteMany({ where: { messageId: message.id } }),
     prisma.message.updateMany({ where: { replyToMessageId: message.id }, data: { replyToMessageId: null, replyToDeleted: true } }),
     prisma.message.delete({ where: { id: message.id } }),
   ]);
@@ -1481,6 +1482,50 @@ export async function toggleMessageReaction(formData: FormData): Promise<void> {
     await prisma.messageReaction.create({ data: { messageId, profileId: viewer.id, emoji: emojiValue } });
   }
   revalidatePath(`/messages/${message.conversationId}`);
+}
+
+/** Saves or removes a private bookmark after verifying that the member belongs to the conversation. */
+export async function toggleMessageBookmark(formData: FormData): Promise<{ ok: boolean; saved?: boolean; reason?: "invalid" | "missing" | "forbidden" | "unavailable" }> {
+  const session = await auth();
+  if (!session?.user?.email) redirect("/");
+
+  const messageId = formData.get("messageId");
+  if (!isObjectId(messageId)) return { ok: false, reason: "invalid" };
+
+  try {
+    const [viewer, message] = await Promise.all([
+      prisma.profile.findUnique({ where: { email: session.user.email }, select: { id: true } }),
+      prisma.message.findUnique({ where: { id: messageId }, select: { id: true, conversationId: true } }),
+    ]);
+    if (!viewer || !message) return { ok: false, reason: "missing" };
+
+    const membership = await prisma.conversationParticipant.findUnique({
+      where: { conversationId_profileId: { conversationId: message.conversationId, profileId: viewer.id } },
+      select: { id: true },
+    });
+    if (!membership) return { ok: false, reason: "forbidden" };
+
+    const existing = await prisma.messageBookmark.findUnique({
+      where: { messageId_profileId: { messageId: message.id, profileId: viewer.id } },
+      select: { id: true },
+    });
+
+    if (existing) {
+      await prisma.messageBookmark.delete({ where: { id: existing.id } });
+      revalidatePath(`/messages/${message.conversationId}`);
+      revalidatePath("/messages/saved");
+      return { ok: true, saved: false };
+    }
+
+    await prisma.messageBookmark.create({ data: { messageId: message.id, profileId: viewer.id } });
+    revalidatePath(`/messages/${message.conversationId}`);
+    revalidatePath("/messages/saved");
+    return { ok: true, saved: true };
+  } catch {
+    // A saved message is optional. Keep the chat usable while Atlas reconnects
+    // or while a deployment is still applying the MessageBookmark collection.
+    return { ok: false, reason: "unavailable" };
+  }
 }
 
 async function requireAdminSession() {
@@ -2351,7 +2396,9 @@ export async function deleteProfileAsSuperAdmin(formData: FormData): Promise<voi
     // MessageReaction requires both its reacting profile and message. Clear it
     // before deleting either side of the relation.
     prisma.messageReaction.deleteMany({ where: { profileId: target.id } }),
+    prisma.messageBookmark.deleteMany({ where: { profileId: target.id } }),
     ...(sentMessageIds.length ? [prisma.messageReaction.deleteMany({ where: { messageId: { in: sentMessageIds } } })] : []),
+    ...(sentMessageIds.length ? [prisma.messageBookmark.deleteMany({ where: { messageId: { in: sentMessageIds } } })] : []),
     ...(removableCommentIds.length ? [
       prisma.comment.updateMany({ where: { parentCommentId: { in: removableCommentIds } }, data: { parentCommentId: null } }),
       prisma.commentMention.deleteMany({ where: { commentId: { in: removableCommentIds } } }),

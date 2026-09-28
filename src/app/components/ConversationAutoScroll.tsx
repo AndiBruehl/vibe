@@ -16,6 +16,12 @@ export default function ConversationAutoScroll({
     if (!el) return;
 
     const scrollToBottom = () => {
+      const hashTarget = window.location.hash && document.querySelector(window.location.hash);
+      if (hashTarget instanceof HTMLElement) {
+        hashTarget.scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
+      }
+
       try {
         el.scrollIntoView({ behavior: "smooth", block: "end" });
       } catch {}

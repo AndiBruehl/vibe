@@ -64,6 +64,7 @@ model Profile {
   conversations       ConversationParticipant[]
   sentMessages        Message[]                 @relation("SentMessages")
   messageReactions    MessageReaction[]
+  savedMessages       MessageBookmark[]
   stories             Story[]
   postTags            PostProfileTag[]
   pinnedPosts         ProfilePinnedPost[]
@@ -176,6 +177,7 @@ model Message {
   updatedAt    DateTime @updatedAt
   editedAt     DateTime?
   reactions    MessageReaction[]
+  bookmarks    MessageBookmark[]
 
   @@index([conversationId, createdAt])
   @@index([senderId])
@@ -234,6 +236,18 @@ model Post {
   sharedInMessages        Message[]                @relation("SharedPost")
   pinnedOnProfiles        ProfilePinnedPost[]
   revisions               PostRevision[]
+}
+
+model MessageBookmark {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  messageId String   @db.ObjectId
+  message   Message  @relation(fields: [messageId], references: [id])
+  profileId String   @db.ObjectId
+  profile   Profile  @relation(fields: [profileId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([messageId, profileId])
+  @@index([profileId, createdAt])
 }
 
 model PostRevision {

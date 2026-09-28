@@ -3,7 +3,7 @@ import { prisma } from "@/db";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MessageCircle, MoveLeft } from "lucide-react";
+import { Bookmark, MessageCircle, MoveLeft } from "lucide-react";
 import img1 from "../profile/default.jpg";
 import MessagesToast from "./MessagesToast";
 import ConversationListItem from "./ConversationListItem";
@@ -117,7 +117,10 @@ export default async function MessagesPage() {
         <div className="w-24" />
       </section>
 
-      <GroupChatForm />
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+        <GroupChatForm />
+        <Link href="/messages/saved" className="inline-flex min-h-11 items-center gap-2 rounded-full border border-orange-400/60 px-4 py-2 text-sm font-black text-orange-600 no-underline transition hover:bg-orange-500/10 dark:text-orange-300"><Bookmark size={17} />{currentUserProfile.language === "de" ? "Gespeicherte Nachrichten" : "Saved messages"}</Link>
+      </div>
 
       <section className="mt-6 overflow-hidden rounded-2xl bg-white shadow-md shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900">
         {conversations.length === 0 ? (

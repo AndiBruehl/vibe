@@ -8,6 +8,12 @@ Each direct or group conversation has a search button in its header. It searches
 
 Empty searches and queries with no matches have separate localized guidance in English and German. Messages without text, including shared-post messages, are safely excluded from matching.
 
+### Saved messages (0.1.85)
+
+Members can privately save any message in a conversation and remove it again from the same control. `MessageBookmark` stores one unique entry for each profile-and-message pair; server actions verify active conversation membership before changing it. The Saved messages page groups entries by conversation, searches message text, sender, and conversation name locally, and links back to the original message.
+
+Deleting a message removes its saved entries first. The conversation-deletion and account-deletion paths apply the same cleanup, so stale saved-message records cannot remain behind. The page has a localized empty state, no-results state, and recovery message with a retry action if saved entries cannot be loaded. A temporary `MessageBookmark` collection failure is isolated from the normal conversation query, so messages remain readable. Failed save or remove actions restore the prior button state and explain the recoverable problem in the member's language.
+
 ### Post and message editing (0.1.83)
 
 When an author changes a post's text, VIBE stores the prior text as a `PostRevision` and marks the post as Edited. The post page presents prior versions in a localized, expandable history. Existing posts without revisions remain unchanged.
@@ -34,9 +40,9 @@ Native update checks read `public/releases/latest.json`. Every platform build mu
 
 ### Settings and Android update fixes (0.1.81.1)
 
-The three Settings section buttons use short, localized mobile labels and their full labels on wider layouts, so no navigation text is clipped on narrow screens. In the Android app, the WebView identifies itself as Vibe Android and the download card therefore shows only the APK. APK update handling validates the downloaded file and opens Android's package installer; if the installer cannot start, the same APK opens in the browser as a recovery path. The release manifest points both platform entries at matching 0.1.81.1 artifact names. The Windows EXE is updated to the newest release version by copying the unchanged, verified installer when a release contains no Electron-native code.
+The three Settings section buttons use short, localized mobile labels and their full labels on wider layouts, so no navigation text is clipped on narrow screens. In the Android app, the WebView identifies itself as Vibe Android and the download card therefore shows only the APK. APK update handling validates the downloaded file and opens Android's package installer; if the installer cannot start, the same APK opens in the browser as a recovery path. The release manifest points both platform entries at matching 0.1.85 artifact names. The Windows EXE and Android APK are rebuilt and verified for each matching native release.
 
-The protected layout treats transient Prisma connection failures as recoverable. Message and activity navigation counters fall back to zero, and a failure while loading or creating the signed-in profile renders a VIBE recovery screen. This avoids exposing an internal connector error while Atlas/DNS connectivity returns.
+The protected layout treats transient Prisma connection failures as recoverable. Message and activity navigation counters fall back to zero, and a failure while loading or creating the signed-in profile renders a VIBE recovery screen. This avoids exposing an internal connector error while Atlas/DNS connectivity returns. Local development can opt into direct Atlas replica-set hosts with `VIBE_DEV_ATLAS_DIRECT=1` when SRV DNS is unreliable; this changes only the local connection path and never production's managed SRV URL.
 
 ### Profile section visibility (0.1.74)
 

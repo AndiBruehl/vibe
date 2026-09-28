@@ -1,5 +1,12 @@
 # VIBE TODO
 
+## BETA 0.1.85 — Saved messages
+
+- Save a private copy of any accessible message and remove it again from the conversation. ✅
+- Show saved messages in a searchable overview grouped by conversation. ✅
+- Remove saved records automatically when their original message is deleted. ✅
+- Keep chats usable during saved-message storage errors, restore failed save actions, and provide localized retry feedback. ✅
+
 ## BETA 0.1.84 — Conversation message search
 
 - Search text messages inside an individual conversation without reloading the page. ✅

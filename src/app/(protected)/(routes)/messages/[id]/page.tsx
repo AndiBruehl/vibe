@@ -19,6 +19,7 @@ import MessageEditControl from "@/app/components/MessageEditControl";
 import MessageDeleteButton from "@/app/components/MessageDeleteButton";
 import MessageReplyButton from "@/app/components/MessageReplyButton";
 import ConversationMessageSearch from "@/app/components/ConversationMessageSearch";
+import MessageBookmarkButton from "@/app/components/MessageBookmarkButton";
 
 import { isObjectId } from "@/object-id";
 type ConversationPageProps = {
@@ -115,6 +116,16 @@ export default async function ConversationPage({
   if (!conversation) {
     notFound();
   }
+
+  // Bookmark storage is deliberately optional for the conversation itself.
+  // A transient database error or a rollout where the new collection is not
+  // available yet must never hide an otherwise healthy chat.
+  const savedMessageIds = new Set(
+    (await prisma.messageBookmark.findMany({
+      where: { profileId: currentUserProfile.id, messageId: { in: conversation.messages.map((message) => message.id) } },
+      select: { messageId: true },
+    }).catch(() => [])).map((bookmark) => bookmark.messageId),
+  );
 
   const de = currentUserProfile.language === "de";
 
@@ -331,6 +342,7 @@ export default async function ConversationPage({
                   <div className={`mt-1 flex items-center justify-end gap-1 text-[11px] ${isOwnMessage ? "text-white/75" : "text-slate-400"}`}>
                     <LocalTime iso={message.createdAt} format="compact-date-time" fallback="--" />
                     {isOwnMessage ? <MessageDeleteButton messageId={message.id} de={de} /> : null}
+                    <MessageBookmarkButton messageId={message.id} initialBookmarked={savedMessageIds.has(message.id)} de={de} ownMessage={isOwnMessage} />
                     <MessageReplyButton id={message.id} body={message.body} sender={message.sender?.name || message.sender?.username || (de ? "VIBE-Mitglied" : "VIBE member")} de={de} />
                   </div>
                 </div>
