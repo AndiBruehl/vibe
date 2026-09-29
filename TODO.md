@@ -102,9 +102,14 @@
 
 ## BETA 0.2 — Optional location sharing
 
-- Let members voluntarily share an approximate location with VIBE.
-- Add an internal map that shows members who have explicitly enabled visibility.
-- Provide privacy controls for visibility, precision, and turning location sharing off at any time.
+- Manual location fallback and integrated interactive OpenStreetMap for members and post coordinates. ✅
+
+- Let members voluntarily share an approximate or more precise location with VIBE. ✅
+- Add an internal map that shows members who have explicitly enabled visibility. ✅
+- Provide privacy controls for visibility, precision, and turning location sharing off at any time. ✅
+- Let existing posts be updated with an optional “Where am I?” location marker. ✅
+- Make post locations clickable and open a map view. ✅
+- Show the current release version beside “Changelog” on Home from version 0.2 onwards. ✅
 
 ## BETA 0.1.79 — Video posters
 

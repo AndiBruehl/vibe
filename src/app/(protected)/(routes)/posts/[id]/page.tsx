@@ -3,7 +3,7 @@ import { isSuperAdmin } from "@/admin";
 import { prisma } from "@/db";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { MoveLeft } from "lucide-react";
+import { MapPin, MoveLeft } from "lucide-react";
 import LikeButton from "@/app/components/LikeButton";
 import BookmarkButton from "@/app/components/BookmarkButton";
 import CommentForm from "@/app/components/CommentForm";
@@ -200,6 +200,10 @@ export default async function SinglePostPage({
                 <p className="text-slate-700 dark:text-slate-200">
                   <MentionText text={post.description} />
                 </p>
+                {(post.locationLabel || post.locationLatitude !== null) ? <Link href={`/posts/${post.id}/map`} className="inline-flex max-w-full items-center gap-2 rounded-full border border-cyan-300 bg-cyan-50 px-3 py-1.5 text-sm font-bold text-cyan-900 no-underline transition hover:bg-cyan-100 dark:border-cyan-500/40 dark:bg-cyan-500/10 dark:text-cyan-100 dark:hover:bg-cyan-500/20">
+                  <MapPin size={15} className="shrink-0"/>
+                  <span className="truncate">{post.locationLabel || (de ? "Geteilter Ort" : "Shared location")}</span>
+                </Link> : null}
                 {post.editedAt ? <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                   <span>{de ? "Bearbeitet" : "Edited"}</span>
                   {post.revisions.length ? <details className="mt-2 rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900/50">
@@ -256,7 +260,7 @@ export default async function SinglePostPage({
                       </button>
                     </form>
 
-                    <PostComposer key={post.updatedAt.toISOString()} action={editPost} postId={post.id} initialImages={getPostImages(post)} initialMediaTypes={getPostMediaTypes(post)} initialVideoPosters={post.videoPosters} description={post.description} topics={topics.map((t) => t.name)} taggedProfiles={taggedProfiles}/>
+                    <PostComposer key={post.updatedAt.toISOString()} action={editPost} postId={post.id} initialImages={getPostImages(post)} initialMediaTypes={getPostMediaTypes(post)} initialVideoPosters={post.videoPosters} description={post.description} topics={topics.map((t) => t.name)} taggedProfiles={taggedProfiles} initialLocationLabel={post.locationLabel} initialLatitude={post.locationLatitude} initialLongitude={post.locationLongitude}/>
 
                   </section>
                 ) : isAdmin ? (

@@ -12,6 +12,7 @@ import ReleaseDownloads from "@/app/components/ReleaseDownloads";
 import AppVersion from "@/app/components/AppVersion";
 import ProfileVisibilitySettings from "@/app/components/ProfileVisibilitySettings";
 import ProfileBadgeVisibility from "@/app/components/ProfileBadgeVisibility";
+import LocationSharingSettings from "@/app/components/LocationSharingSettings";
 import { applyTheme, type ThemePreference } from "@/app/components/ProfileThemeRuntime";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -663,6 +664,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
 
       <ProfileVisibilitySettings profile={profile ?? {}} language={language} />
       <ProfileBadgeVisibility badges={profile?.profileBadges ?? []} hiddenBadges={profile?.hiddenProfileBadges ?? []} language={language} />
+      <LocationSharingSettings initialEnabled={profile?.locationSharingEnabled ?? false} initialPrecision={profile?.locationPrecision ?? "approximate"} initialLatitude={profile?.locationLatitude} initialLongitude={profile?.locationLongitude} initialAddress={profile?.locationLabel} language={language} />
 
       </div>
       <div className={activeAppearanceSection === "profile" ? "space-y-3" : "hidden"}>

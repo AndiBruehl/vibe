@@ -1,5 +1,15 @@
 # VIBE Documentation
 
+### Optional location sharing and VIBE map (0.2)
+
+Release date: 2026-09-29. Home displays both version and date beside Changelog. Native packages have internal version 0.2.0 (Android versionCode 91).
+
+Autosave is driven by user edits rather than server responses, ignores outdated responses and serializes requests. A failed search or storage request leaves the existing saved location intact. Free-text addresses retain five decimal places; automatic and coordinate input follows the precision setting. Address searches and tile loading contact OpenStreetMap; this is disclosed in the settings UI. Member and post map views are read-only; only the settings picker offers point selection.
+
+Members can choose a custom position by entering any place name or address, tapping the integrated OpenStreetMap, or entering latitude/longitude. Every nonempty text entry uses the same best-match geocoding flow. Address input is debounced and autosaved; if geocoding cannot find an address, the message appears directly above the address field and map selection remains available. Temporary geocoder outages also leave map and coordinate fallback available. This works without GPS permission. Coordinate validation and precision fallbacks apply to manual and automatic locations. Leaflet is loaded in the browser; failed map tiles leave coordinate entry available. Profiles at the same position share one marker listing their names.
+
+Location sharing is off by default. Members explicitly choose approximate or more precise sharing in Settings, and the browser requests their location only when they press the sharing action. Approximate positions are rounded before storage; members can stop sharing at any time, which immediately clears their coordinates. The internal `/map` route lists only opted-in, non-system profiles. Existing posts can be edited with an optional post-specific location marker through the "Where am I?" control; the post marker is stored separately from the member's live map visibility. Post location pills link to `/posts/[id]/map`, which renders an OpenStreetMap view when coordinates are available and falls back to an OpenStreetMap search link for text-only locations. The Home changelog header shows the latest release version beginning with this release.
+
 ## Overview
 
 ### Conversation message search (0.1.84)

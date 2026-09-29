@@ -1,0 +1,51 @@
+.map {
+  background: var(--ig-surface-bg);
+  color: var(--ig-text);
+  font-family: inherit;
+}
+
+/* Only recolor map tiles: markers, text and controls keep their own contrast. */
+:global(.dark) .map :global(.leaflet-tile-pane) {
+  filter: invert(1) hue-rotate(180deg) brightness(1.35) contrast(0.55) saturate(0.75);
+}
+
+.map :global(.leaflet-popup-content-wrapper),
+.map :global(.leaflet-popup-tip),
+.map :global(.leaflet-control-attribution),
+.map :global(.leaflet-bar a) {
+  background: var(--ig-surface-bg);
+  color: var(--ig-text);
+}
+
+.map :global(.leaflet-bar) {
+  border: 1px solid var(--ig-scroll-thumb);
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.map :global(.leaflet-bar a) {
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
+  border-color: var(--ig-scroll-thumb);
+}
+
+.map :global(.leaflet-bar a:hover),
+.map :global(.leaflet-bar a:focus-visible) {
+  background: var(--ig-surface-hover-bg);
+}
+
+.map :global(.leaflet-control-attribution a),
+.map :global(.leaflet-popup-close-button) {
+  color: var(--ig-text);
+}
+
+.map :global(.leaflet-interactive) {
+  fill: var(--ig-scroll-thumb);
+  stroke: var(--ig-text);
+}
+
+.map :global(.leaflet-popup-content) {
+  font-size: 14px;
+  line-height: 1.5;
+}

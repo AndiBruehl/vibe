@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState, type DragEvent } from "react";
-import { LoaderCircle } from "lucide-react";
+import { LoaderCircle, LocateFixed, MapPin, X } from "lucide-react";
 import { useFormStatus } from "react-dom";
 import { unstable_rethrow } from "next/navigation";
 import { PinataSDK } from "pinata";
@@ -100,6 +100,9 @@ export default function PostComposer({
   description = "",
   topics = [],
   taggedProfiles = [],
+  initialLocationLabel = "",
+  initialLatitude = null,
+  initialLongitude = null,
   accountDrafts = false,
   draftId,
   onDraftSaved,
@@ -112,6 +115,9 @@ export default function PostComposer({
   description?: string;
   topics?: string[];
   taggedProfiles?: TaggedProfile[];
+  initialLocationLabel?: string | null;
+  initialLatitude?: number | null;
+  initialLongitude?: number | null;
   accountDrafts?: boolean;
   draftId?: string;
   onDraftSaved?: (id: string) => void;
@@ -124,6 +130,11 @@ export default function PostComposer({
   const [videoDurations, setVideoDurations] = useState<Record<number, number>>({});
   const [posterFrameTimes, setPosterFrameTimes] = useState<Record<number, number>>({});
   const [draftDescription, setDraftDescription] = useState(description);
+  const [locationLabel, setLocationLabel] = useState(initialLocationLabel || "");
+  const [latitude, setLatitude] = useState<number | null>(initialLatitude);
+  const [longitude, setLongitude] = useState<number | null>(initialLongitude);
+  const [locationStatus, setLocationStatus] = useState("");
+  const [locationDirty, setLocationDirty] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [progress, setProgress] = useState("");
@@ -246,6 +257,31 @@ export default function PostComposer({
     setIsDragging(false);
     void upload(Array.from(event.dataTransfer.files));
   }
+  function capturePostLocation() {
+    setLocationStatus("");
+    if (!navigator.geolocation) {
+      setLocationStatus(de ? "Standort ist in diesem Browser nicht verfügbar." : "Location is not available in this browser.");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLatitude(Number(position.coords.latitude.toFixed(4)));
+        setLongitude(Number(position.coords.longitude.toFixed(4)));
+        setLocationLabel((current) => current || (de ? "Hier" : "Here"));
+        setLocationDirty(true);
+        setLocationStatus(de ? "Standort wird mit dem Beitrag gespeichert." : "Location will be saved with this post.");
+      },
+      () => setLocationStatus(de ? "Standort konnte nicht abgerufen werden." : "Could not get your location."),
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 },
+    );
+  }
+  function clearPostLocation() {
+    setLocationLabel("");
+    setLatitude(null);
+    setLongitude(null);
+    setLocationDirty(true);
+    setLocationStatus(de ? "Standort wird beim Speichern entfernt." : "Location will be removed when you save.");
+  }
   return (
     <form
       action={async (data) => {
@@ -289,6 +325,9 @@ export default function PostComposer({
       ))}
       {mediaTypes.map((type, i) => <input key={`type-${i}`} type="hidden" name="mediaType" value={type} />)}
       {images.map((_, i) => <input key={`poster-${i}`} type="hidden" name="videoPoster" value={videoPosters[i] || ""} />)}
+      <input type="hidden" name="postLocationSet" value="1" />
+      <input type="hidden" name="postLatitude" value={latitude ?? ""} />
+      <input type="hidden" name="postLongitude" value={longitude ?? ""} />
       <fieldset disabled={busy} className="space-y-3">
         <legend className="mb-2 font-semibold text-slate-900 dark:text-slate-100">
           {de ? "Medien" : "Media"} · {images.length}/4
@@ -383,6 +422,27 @@ export default function PostComposer({
           className="mt-2 block w-full rounded-xl border border-slate-300 bg-white p-3 text-slate-900 dark:border-slate-700 dark:bg-gray-900 dark:text-white"
         />
       </label>
+      <section className="rounded-2xl border border-cyan-300/60 bg-cyan-50/70 p-3 dark:border-cyan-500/30 dark:bg-cyan-500/10">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="inline-flex items-center gap-2 text-sm font-black text-cyan-900 dark:text-cyan-100"><MapPin size={16}/>{de ? "Ort am Beitrag" : "Post location"}</span>
+          {(locationLabel || latitude !== null) ? <button type="button" onClick={clearPostLocation} className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-bold text-red-700 transition hover:bg-red-100 dark:text-red-300 dark:hover:bg-red-500/15"><X size={14}/>{de ? "Entfernen" : "Remove"}</button> : null}
+        </div>
+        <div className="mt-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+          <input
+            name="postLocationLabel"
+            value={locationLabel}
+            onChange={(event) => { setLocationLabel(event.target.value); setLocationDirty(true); }}
+            maxLength={80}
+            placeholder={de ? "z. B. Berlin, Lieblingscafé, Zuhause" : "e.g. Berlin, favorite cafe, home"}
+            className="min-h-11 rounded-xl border border-cyan-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-cyan-500 dark:border-cyan-500/40 dark:bg-slate-950 dark:text-white"
+          />
+          <button type="button" onClick={capturePostLocation} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-cyan-600 px-3 py-2 text-sm font-black text-white transition hover:bg-cyan-700">
+            <LocateFixed size={16}/>{de ? "Wo bin ich?" : "Where am I?"}
+          </button>
+        </div>
+        <p className="mt-2 text-xs text-cyan-900/75 dark:text-cyan-100/75">{latitude !== null && longitude !== null ? (de ? "Koordinaten werden gerundet gespeichert." : "Coordinates are stored rounded.") : (de ? "Optional: Schreibe einen Ort oder nutze den Button." : "Optional: type a place or use the button.")}</p>
+        {locationStatus ? <p role="status" className="mt-2 text-xs font-bold text-cyan-900 dark:text-cyan-100">{locationStatus}</p> : null}
+      </section>
       <TopicPicker initial={topics} />
       <ProfileTagPicker initial={taggedProfiles} />
       {error && (
@@ -393,7 +453,7 @@ export default function PostComposer({
       <div className={`grid gap-3 ${isDraftable || accountDrafts ? "sm:grid-cols-2" : ""}`}>
         {accountDrafts && <SaveDraftButton disabled={busy} />}
         {isDraftable && <button type="button" onClick={discardDraft} className="min-h-12 rounded-xl border-2 border-slate-300 bg-slate-50 px-4 py-3 text-base font-bold text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">{de ? "Entwurf verwerfen" : "Discard draft"}</button>}
-        <Submit disabled={busy || !images.length} editing={!!postId} />
+        <Submit disabled={busy || !images.length} editing={!!postId || locationDirty} />
       </div>
     </form>
   );

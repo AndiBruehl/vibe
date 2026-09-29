@@ -151,8 +151,13 @@ export default function QuickSettings({ initialLanguage, initialTheme }: { initi
   // Browse has a right-aligned Profiles action in its header. Put the orb to
   // its left at every width so it cannot cover the action or the sort controls.
   const isConversation = pathname.startsWith("/messages/");
+  const isMap = pathname === "/map" || pathname.includes("/map");
   const position = pathname === "/browse" && browseHeaderVisible
     ? "right-28 top-3.5 md:right-28 md:top-3.5"
+    : pathname === "/map"
+      ? "right-4 top-3.5 md:right-6 md:top-3.5"
+    : isMap
+      ? "right-4 top-3.5 md:right-6 md:top-3.5"
     : isConversation
       ? pinnedMessagesBottom === null ? "right-4 top-24 md:right-6 md:top-24" : "right-4 md:right-6"
       : "right-4 top-3.5 md:right-6 md:top-3.5";

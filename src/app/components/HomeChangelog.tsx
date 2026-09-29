@@ -6,9 +6,10 @@ import { webReleaseNotes } from "@/release-notes";
 
 export default function HomeChangelog() {
   const [isOpen, setIsOpen] = useState(false);
+  const currentVersion = webReleaseNotes[0]?.version;
   return <section className="mx-auto w-full max-w-5xl overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/75 shadow-sm shadow-black/20">
     <button type="button" onClick={() => setIsOpen((open) => !open)} aria-expanded={isOpen} className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm font-bold text-slate-100 transition-colors hover:bg-slate-800/80 sm:px-5">
-      <span className="inline-flex items-center gap-2"><History size={16} className="text-orange-400" /> Changelog</span>
+      <span className="inline-flex flex-wrap items-center gap-2"><History size={16} className="shrink-0 text-orange-400" /> Changelog{currentVersion ? <span className="text-xs font-black text-orange-300">V{currentVersion} · <time dateTime={webReleaseNotes[0].date}>{webReleaseNotes[0].date}</time></span> : null}</span>
       <ChevronDown size={18} className={`text-slate-400 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} />
     </button>
     <div className={`grid transition-[grid-template-rows] duration-300 ease-out ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>

@@ -223,6 +223,7 @@ export async function postEntry(formData: FormData) {
   const description = formData.get("description");
   const topicsValue = formData.get("topics");
   const profileTags = formData.getAll("profileTags");
+  const location = parsePostLocation(formData);
 
   const draftId = String(formData.get("draftId") || "");
   const authorEmail = session.user.email;
@@ -238,6 +239,7 @@ export async function postEntry(formData: FormData) {
         mediaTypes,
         videoPosters,
         description: typeof description === "string" ? description.trim() : "",
+        ...location,
       },
     });
     if (draftId) await tx.postDraft.delete({ where: { id: draftId } });
@@ -273,6 +275,8 @@ export async function editPost(formData: FormData): Promise<void> {
   const galleryMediaTypes = gallery ? parsePostMediaTypes(formData.getAll("mediaType"), gallery.length) : undefined;
   const galleryVideoPosters = gallery ? parsePostVideoPosters(formData.getAll("videoPoster"), gallery.length) : undefined;
   const descriptionValue = formData.get("description");
+  const locationSet = formData.get("postLocationSet") === "1";
+  const location = locationSet ? parsePostLocation(formData) : {};
 
   if (typeof postIdValue !== "string" || !postIdValue) {
     throw new Error("Post ID is missing.");
@@ -291,7 +295,7 @@ export async function editPost(formData: FormData): Promise<void> {
   const cleanedDescription =
     typeof descriptionValue === "string" ? descriptionValue.trim() : undefined;
 
-  if (!gallery && cleanedImage === undefined && cleanedDescription === undefined && formData.get("profileTagsSet") !== "1") {
+  if (!gallery && cleanedImage === undefined && cleanedDescription === undefined && !locationSet && formData.get("profileTagsSet") !== "1") {
     throw new Error("Nothing to update.");
   }
 
@@ -316,6 +320,7 @@ export async function editPost(formData: FormData): Promise<void> {
   const postUpdate = {
     ...(gallery ? { image: gallery[0], images: gallery, mediaTypes: galleryMediaTypes, videoPosters: galleryVideoPosters } : cleanedImage !== undefined ? { image: cleanedImage, images: parsePostImages([cleanedImage]), mediaTypes: ["image"], videoPosters: [] } : {}),
     ...(cleanedDescription !== undefined ? { description: cleanedDescription } : {}),
+    ...location,
     editedAt: new Date(),
   };
 
@@ -1383,6 +1388,31 @@ export async function sendMessage(formData: FormData): Promise<void> {
 
   revalidatePath("/messages");
   revalidatePath(`/messages/${conversation.id}`);
+}
+
+function parsePostLocation(formData: FormData) {
+  const labelValue = formData.get("postLocationLabel");
+  const latitudeValue = formData.get("postLatitude");
+  const longitudeValue = formData.get("postLongitude");
+  const label = typeof labelValue === "string" ? labelValue.trim().slice(0, 80) : "";
+  const latitude = typeof latitudeValue === "string" && latitudeValue.trim() ? Number(latitudeValue) : null;
+  const longitude = typeof longitudeValue === "string" && longitudeValue.trim() ? Number(longitudeValue) : null;
+  const hasCoordinates = latitude !== null && longitude !== null;
+
+  if (hasCoordinates && (!Number.isFinite(latitude) || !Number.isFinite(longitude) || Math.abs(latitude) > 90 || Math.abs(longitude) > 180)) {
+    throw new Error("Invalid post location.");
+  }
+
+  if (!label && !hasCoordinates) {
+    return { locationLabel: null, locationLatitude: null, locationLongitude: null, locationUpdatedAt: null };
+  }
+
+  return {
+    locationLabel: label || null,
+    locationLatitude: hasCoordinates ? Math.round(latitude * 100) / 100 : null,
+    locationLongitude: hasCoordinates ? Math.round(longitude * 100) / 100 : null,
+    locationUpdatedAt: new Date(),
+  };
 }
 
 /** A sender may correct the text of a message for ten minutes after sending it. Edits do not update conversation activity. */
