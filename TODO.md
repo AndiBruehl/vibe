@@ -1,5 +1,14 @@
 # VIBE TODO
 
+## BETA 0.2.1 — Location reliability
+
+- Choose an explicit place search result, then autosave the selection. ✅
+- Apply approximate privacy to addresses, coordinates and GPS consistently. ✅
+- Remove post locations without changing post content; stop profile sharing and clear stored location. ✅
+- Show last-updated timestamps and clarify that locations are not live. ✅
+- Test rapid edits, empty coordinates, delayed responses, offline recovery and draft restoration. ✅
+- Web release 0.2.1; published native installers remain 0.2.0.
+
 ## BETA 0.1.86.1 — Message edit action polish
 
 - Replace the reversed message-edit gradient with a clearer VIBE edit action. ✅

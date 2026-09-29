@@ -664,7 +664,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
 
       <ProfileVisibilitySettings profile={profile ?? {}} language={language} />
       <ProfileBadgeVisibility badges={profile?.profileBadges ?? []} hiddenBadges={profile?.hiddenProfileBadges ?? []} language={language} />
-      <LocationSharingSettings initialEnabled={profile?.locationSharingEnabled ?? false} initialPrecision={profile?.locationPrecision ?? "approximate"} initialLatitude={profile?.locationLatitude} initialLongitude={profile?.locationLongitude} initialAddress={profile?.locationLabel} language={language} />
+      <LocationSharingSettings initialEnabled={profile?.locationSharingEnabled ?? false} initialPrecision={profile?.locationPrecision ?? "approximate"} initialLatitude={profile?.locationLatitude} initialLongitude={profile?.locationLongitude} initialAddress={profile?.locationLabel} initialUpdatedAt={profile?.locationUpdatedAt?.toISOString()} profileId={profile?.id ?? "current"} language={language} />
 
       </div>
       <div className={activeAppearanceSection === "profile" ? "space-y-3" : "hidden"}>

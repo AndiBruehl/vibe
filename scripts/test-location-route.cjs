@@ -22,15 +22,27 @@ function route({ results = [], fetchStatus = 200, storageFailure = false } = {})
   return { writes, post: (body) => module.exports.POST({ json: async () => body }) };
 }
 
-test('arbitrary names and street addresses retain the first valid ranked result', async () => {
+test('arbitrary names return valid choices without publishing until selected', async () => {
   for (const address of ['Hell', 'Heaven', 'Underworld', 'Schillerstraße 66 Erfurt', '東京', 'X']) {
     const api = route({ results: [{ lat: 'oops', lon: '11' }, { lat: '50.967123', lon: '11.025678', display_name: address }] });
     const result = await api.post({ enabled: true, address });
     assert.equal(result.status, 200);
-    assert.equal(result.body.latitude, 50.96712);
-    assert.equal(result.body.longitude, 11.02568);
+    assert.equal(result.body.candidates[0].latitude, 50.967123);
+    assert.equal(api.writes.length, 0);
+    const selected = result.body.candidates[0];
+    const saved = await api.post({ enabled: true, ...selected, address: selected.label, precision: 'exact' });
+    assert.equal(saved.body.latitude, 50.96712);
+    assert.equal(saved.body.longitude, 11.02568);
     assert.equal(api.writes.length, 1);
   }
+});
+test('approximate privacy also applies to selected addresses', async () => {
+  const api = route();
+  const saved = await api.post({ enabled: true, latitude: 50.967123, longitude: 11.025678, address: 'A precise street address', precision: 'approximate' });
+  assert.equal(saved.body.latitude, 51);
+  assert.equal(saved.body.longitude, 11);
+  assert.equal(saved.body.resolvedAddress, null);
+  assert.equal(api.writes[0].data.locationLabel, null);
 });
 test('no match preserves the saved location', async () => {
   const api = route();

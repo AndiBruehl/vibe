@@ -10,7 +10,7 @@ export default async function PostMapPage({ params }: { params: Promise<{ id: st
   const { id } = await params;
   const [viewer, post] = await Promise.all([
     prisma.profile.findUnique({ where: { email: session.user.email }, select: { language: true } }),
-    prisma.post.findUnique({ where: { id }, select: { id: true, authorEmail: true, isArchived: true, locationLabel: true, locationLatitude: true, locationLongitude: true } }),
+    prisma.post.findUnique({ where: { id }, select: { id: true, authorEmail: true, isArchived: true, locationLabel: true, locationLatitude: true, locationLongitude: true, locationUpdatedAt: true } }),
   ]);
 
   if (!post || (!post.locationLabel && post.locationLatitude === null)) notFound();
@@ -32,6 +32,6 @@ export default async function PostMapPage({ params }: { params: Promise<{ id: st
   }
 
   return <main className="mx-auto w-full max-w-5xl pb-24 md:pb-8">
-    <PostLocationMap de={de} postId={post.id} label={label} latitude={latitude} longitude={longitude} />
+    <PostLocationMap de={de} postId={post.id} label={label} latitude={latitude} longitude={longitude} canRemove={post.authorEmail === session.user.email} updatedAt={post.locationUpdatedAt?.toISOString()}/>
   </main>;
 }
