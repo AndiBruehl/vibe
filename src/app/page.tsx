@@ -1,6 +1,9 @@
-import { auth, signIn } from "@/auth";
+import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
+import LocalizedText from "@/app/components/LocalizedText";
+import GuestGoogleSignIn from "@/app/components/GuestGoogleSignIn";
 
 export default async function Home() {
   const session = await auth();
@@ -21,19 +24,8 @@ export default async function Home() {
           className="drop-shadow-2xl"
         />
 
-        <form
-          action={async () => {
-            "use server";
-            await signIn("google");
-          }}
-        >
-          <button
-            type="submit"
-            className="flex items-center gap-3 rounded-2xl bg-linear-to-r from-red-500 to-orange-500 px-8 py-4 text-lg font-semibold text-white shadow-xl shadow-black/30 transition hover:scale-[1.05] hover:shadow-2xl"
-          >
-            🔥 Login with Google
-          </button>
-        </form>
+        <GuestGoogleSignIn/>
+        <Link href="/home" className="rounded-xl border border-slate-400/40 px-6 py-3 font-bold"><LocalizedText en="View public posts as a guest" de="Öffentliche Beiträge als Gast ansehen"/></Link>
       </div>
     </div>
   );

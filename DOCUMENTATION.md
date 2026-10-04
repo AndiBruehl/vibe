@@ -1,5 +1,11 @@
 # VIBE Documentation
 
+### Read-only guest access (0.2.2)
+
+Anonymous `/home`, `/posts/[id]` and `/profile/[username]` requests are rewritten by the proxy to dedicated read-only guest pages. The authenticated layout stays unchanged. Guest navigation only exposes Home and Profile; Profile opens `/join`. Google registration/sign-in uses Auth.js CSRF validation, while additional providers remain planned for 0.2.3.
+
+Guest queries select public display fields only and require explicit public-profile and non-archived flags. Unknown visibility, private profiles and orphan posts fail closed. Guests have a theme/language-only settings orb and no comment form, likes, follows, bookmarks, message UI or other member controls. Member-only pages redirect to `/join`; anonymous mutations and member APIs return 401, including expired web sessions. Valid mobile bearer sessions and authenticated cron jobs retain their existing authorization paths. Guest responses use private/no-store caching, and storage outages have localized read-only recovery feedback. The guest header uses the VIBE logo. Browser storage failures do not prevent theme or language changes during the current visit.
+
 ### Optional location sharing and VIBE map (0.2.1)
 
 Release date: 2026-09-29. Home displays both version and date beside Changelog. Native packages have internal version 0.2.0 (Android versionCode 91).

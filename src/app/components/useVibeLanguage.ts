@@ -8,7 +8,8 @@ export default function useVibeLanguage(initialLanguage: VibeLanguage = "en") {
   const [language, setLanguage] = useState<VibeLanguage>(initialLanguage);
 
   useEffect(() => {
-    const stored = localStorage.getItem("vibe-language");
+    let stored: string | null = null;
+    try { stored = localStorage.getItem("vibe-language"); } catch { /* Language changes still work without persistent storage. */ }
     const apply = (next: VibeLanguage) => { setLanguage(next); document.documentElement.lang = next; };
     apply(stored === "de" ? "de" : initialLanguage);
     const update = (event: Event) => apply((event as CustomEvent<VibeLanguage>).detail === "de" ? "de" : "en");

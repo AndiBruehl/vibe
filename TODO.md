@@ -1,5 +1,22 @@
 # VIBE TODO
 
+## BETA 0.2.2 — Read-only guest access
+
+- Allow logged-out visitors to view public profiles and public posts only; preserve privacy and archived-content restrictions.
+- Show the existing settings orb for guests with only local theme and language selection; no Help or Settings links. Deny access to Settings and all other member-only areas, including direct URL and API access.
+- Guests cannot post, comment, like, follow, send messages, save content, or change any data. Enforce authentication on the server, not only by hiding controls.
+- Clicking Profile while logged out opens a localized invitation to create an account and join VIBE, with an option to sign in to an existing account.
+- Support English/German, every existing theme and mobile/desktop layouts; provide clear login-required feedback when a session expires.
+- Verify guest profile/post viewing, member-only route/API protection, restricted guest controls, and the Profile registration entry point.
+
+Implemented and covered by access regression tests. Native packages remain unchanged for this web release.
+
+## Planned 0.2.3 — Additional sign-in methods
+
+- Keep Google sign-in and add Microsoft, Apple and Discord sign-in.
+- Add email/password registration and sign-in, including email verification, secure password storage and password reset.
+- Preserve existing accounts and implement explicit, secure account linking; verify web, APK and EXE sign-in flows.
+
 ## BETA 0.2.1 — Location reliability
 
 - Choose an explicit place search result, then autosave the selection. ✅
