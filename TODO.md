@@ -1,10 +1,14 @@
 # VIBE TODO
 
-## BETA 0.2.3 — Additional sign-in methods (local)
+## BETA 0.2.3 — Google + Discord account linking (local)
 
-- Prepare provider hooks for Microsoft, Apple and Discord; login activation remains open. ✅
-- Prepare email/password registration, sign-in and reset-link security; email activation remains open. ✅
-- Complete and verify provider callbacks, email delivery, account linking and native sign-in before marking this feature complete. ⏳
+- Keep Google as the active login and add Discord as the only additional provider in this rollout. ⏳
+- Let a signed-in member explicitly link Discord to the existing Google-created VIBE account from Settings.
+- After linking, Google and Discord must resolve to the same VIBE profile, posts, messages and settings; never create a second profile.
+- Never merge accounts automatically based only on a matching email address. Reject conflicts and require an authenticated linking flow.
+- Handle revoked access, expired link proofs, provider errors and already-linked Discord identities with localized recovery feedback.
+- Verify first-login creation, explicit linking, both login paths, duplicate prevention, unlink policy and expired-session behavior.
+- Defer Microsoft, Apple and email/password until a later release.
 - Production provider credentials and native sign-in integration remain deployment steps.
 
 ## BETA 0.2.2 — Read-only guest access
