@@ -59,6 +59,7 @@ export default async function SettingsPage() {
 
           <div className="p-4 sm:p-5">
             <SettingsForm profile={profile} />
+            <Link href="/settings/login" className="mt-6 inline-flex min-h-11 items-center rounded-xl border border-orange-400/40 px-4 font-bold text-orange-500"><LocalizedText en="Sign-in methods" de="Anmeldemethoden"/></Link>
           </div>
         </div>
       </section>

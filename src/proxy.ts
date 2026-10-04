@@ -1,8 +1,9 @@
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { guestDestination, isGuestPage, isPublicAsset } from "@/guest-access";
 
-export const proxy = auth(async (request) => {
+const proxyHandler = auth(async (request) => {
   const path = request.nextUrl.pathname.replace(/\/$/, "") || "/";
   if (request.auth?.user?.email || isPublicAsset(path)) return NextResponse.next();
   // Auth endpoints validate their own OAuth state, CSRF tokens or mobile token.
@@ -28,3 +29,11 @@ export const proxy = auth(async (request) => {
   if (isGuestPage(path)) return NextResponse.next({ headers: { "Cache-Control": "private, no-store" } });
   return NextResponse.redirect(new URL("/join", request.url));
 });
+
+// Next.js 16 accepts either a named `proxy` function or a default export.
+// Keep both forms so the route remains discoverable across dev and production builds.
+export function proxy(request: NextRequest, context: unknown) {
+  return proxyHandler(request, context as never);
+}
+
+export default proxy;

@@ -250,6 +250,40 @@ model Post {
   revisions               PostRevision[]
 }
 
+// Deterministic string IDs use MongoDB's built-in _id uniqueness, without
+// requiring new unique indexes on existing production collections.
+model LoginCredential {
+  id           String @id @map("_id")
+  email        String
+  passwordHash String
+  version      Int @default(1)
+  updatedAt    DateTime @updatedAt
+}
+
+model LoginIdentity {
+  id           String @id @map("_id")
+  provider     String
+  email        String
+  createdAt    DateTime @default(now())
+}
+
+model LoginProof {
+  id           String @id @map("_id")
+  email        String
+  kind         String
+  provider     String?
+  identityId   String?
+  version      Int?
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+}
+
+model LoginRate {
+  id           String @id @map("_id")
+  count        Int @default(0)
+  expiresAt    DateTime
+}
+
 model MessageBookmark {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   messageId String   @db.ObjectId

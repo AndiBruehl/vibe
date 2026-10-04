@@ -1,5 +1,16 @@
 # VIBE TODO
 
+## BETA 0.2.3 — Additional sign-in methods (local)
+
+- Keep Google sign-in and add Microsoft, Apple and Discord when each provider is configured. ✅
+- Add email/password registration, sign-in and password reset through one-time email links. ✅
+- Require verified provider email claims and never merge accounts by matching email alone. ✅
+- Allow explicit provider linking from signed-in Settings; reject conflicts and expired link proofs. ✅
+- Fail closed when provider credentials or email delivery are missing; show localized retry feedback. ✅
+- Apply rate limits, CSRF/origin checks, password hashing and credential-version invalidation. ✅
+- Run auth security, TypeScript, ESLint and production-build checks. ⏳
+- Production provider credentials and native sign-in integration remain deployment steps.
+
 ## BETA 0.2.2 — Read-only guest access
 
 - Allow logged-out visitors to view public profiles and public posts only; preserve privacy and archived-content restrictions.

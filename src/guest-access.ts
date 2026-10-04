@@ -9,7 +9,7 @@ export function guestDestination(path: string): string | null {
 }
 
 export function isGuestPage(path: string) {
-  return path === "/" || path === "/join" || path === "/guest" || /^\/guest\/(profile\/[^/]+|posts\/[a-f\d]{24})$/i.test(path);
+  return path === "/" || path === "/join" || path === "/account/confirm" || path === "/guest" || /^\/guest\/(profile\/[^/]+|posts\/[a-f\d]{24})$/i.test(path);
 }
 
 export function isPublicAsset(path: string) {

@@ -1,5 +1,13 @@
 # VIBE Documentation
 
+### Additional sign-in methods (0.2.3 local)
+
+Auth.js keeps Google as the baseline and conditionally registers Microsoft Entra ID, Apple and Discord only when their complete server-side credentials are present. The login UI hides unavailable methods rather than presenting buttons that cannot work. Email/password registration, setup and reset require Resend configuration and an HTTPS auth origin; missing delivery configuration returns a safe unavailable state.
+
+Password credentials use scrypt-derived hashes, a minimum length of 12 characters, one-time proofs with a 20-minute expiry, rate limits, origin checks and credential-version invalidation. OAuth identities are separate records. Matching email addresses never auto-link a new provider. Linking starts only from an authenticated Settings page and rejects conflicts or expired proofs. Provider claims must be verified, and Microsoft fallback verification uses a one-time confirmation email.
+
+Login and registration errors are localized and intentionally neutral for unknown accounts. Confirmation tokens are sent in URL fragments, removed from browser history before submission and never written to logs. Email delivery timeouts remove pending proofs. This release contains no provider secrets and remains local until deployment configuration and provider callback registration are completed.
+
 ### Read-only guest access (0.2.2)
 
 Anonymous `/home`, `/posts/[id]` and `/profile/[username]` requests are rewritten by the proxy to dedicated read-only guest pages. The authenticated layout stays unchanged. Guest navigation only exposes Home and Profile; Profile opens `/join`. Google registration/sign-in uses Auth.js CSRF validation, while additional providers remain planned for 0.2.3.

@@ -1,14 +1,30 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
+import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id";
+import Apple from "next-auth/providers/apple";
+import Discord from "next-auth/providers/discord";
+import { availableLoginProviders, emailAuthAvailable } from "@/auth-options";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  pages: { signIn: "/", error: "/" },
   providers: [
     Google({
       clientId: process.env.AUTH_GOOGLE_ID ?? process.env.GOOGLE_CLIENT_ID,
       clientSecret:
         process.env.AUTH_GOOGLE_SECRET ?? process.env.GOOGLE_CLIENT_SECRET,
     }),
+
+    ...(availableLoginProviders().find((p) => p.id === "microsoft-entra-id")?.enabled ? [MicrosoftEntraID({ clientId: process.env.AUTH_MICROSOFT_ENTRA_ID_ID, clientSecret: process.env.AUTH_MICROSOFT_ENTRA_ID_SECRET, issuer: process.env.AUTH_MICROSOFT_ENTRA_ID_ISSUER || "https://login.microsoftonline.com/common/v2.0" })] : []),
+    ...(availableLoginProviders().find((p) => p.id === "apple")?.enabled ? [Apple({ clientId: process.env.AUTH_APPLE_ID, clientSecret: process.env.AUTH_APPLE_SECRET })] : []),
+    ...(availableLoginProviders().find((p) => p.id === "discord")?.enabled ? [Discord({ clientId: process.env.AUTH_DISCORD_ID, clientSecret: process.env.AUTH_DISCORD_SECRET })] : []),
+    ...(emailAuthAvailable() ? [Credentials({
+      id: "password", name: "Email and password", credentials: { email: {}, password: { type: "password" } },
+      async authorize(credentials) {
+        try { const { passwordLogin } = await import("@/login-store"); return await passwordLogin(credentials.email, credentials.password); }
+        catch { return null; }
+      },
+    })] : []),
 
     Credentials({
       id: "mobile",
@@ -40,7 +56,31 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
 
   callbacks: {
-    async signIn({ user }) {
+    async jwt({ token, user, account }) {
+      if (account?.provider === "password" && user) {
+        token.passwordVersion = (user as { authVersion?: number }).authVersion;
+      }
+      if (typeof token.passwordVersion === "number" && token.email) {
+        try {
+          const { prisma } = await import("@/db");
+          const { credentialId } = await import("@/login-store");
+          const credential = await prisma.loginCredential.findUnique({ where: { id: credentialId(token.email) }, select: { version: true } });
+          if (credential?.version !== token.passwordVersion) return null;
+        } catch { return null; }
+      }
+      return token;
+    },
+    async signIn({ user, account, profile }) {
+      if (account && ["google", "microsoft-entra-id", "apple", "discord"].includes(account.provider)) {
+        try {
+          const { resolveOAuth } = await import("@/login-oauth");
+          const claims = profile as { email_verified?: unknown; verified?: unknown } | undefined;
+          const verified = account.provider === "discord" ? claims?.verified === true : account.provider !== "microsoft-entra-id" && (claims?.email_verified === true || claims?.email_verified === "true");
+          const resolved = await resolveOAuth(account.provider, account.providerAccountId, user.email, verified);
+          if (resolved.redirect) return resolved.redirect;
+          user.email = resolved.email;
+        } catch { return "/?notice=unavailable"; }
+      }
       if (!user.email) {
         return false;
       }
