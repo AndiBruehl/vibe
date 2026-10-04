@@ -1,10 +1,18 @@
 # VIBE TODO
 
+## BUGFIX 0.2.3.1 — Account deletion and sign-in reliability
+
+- Delete provider identities, credentials and pending proofs with admin-deleted profiles. ✅
+- Revoke sessions after profile deletion and recover expired or orphaned provider links safely. ✅
+- Keep Google and Discord separate until an authenticated explicit link action. ✅
+- Hide admin-only notification settings from regular profiles and remove duplicate guest actions. ✅
+
 ## BETA 0.2.3 — Google + Discord account linking (local)
 
 - Keep Google as the active login and add Discord as the only additional provider in this rollout. ⏳
 - Let a signed-in member explicitly link Discord to the existing Google-created VIBE account from Settings.
 - After linking, Google and Discord must resolve to the same VIBE profile, posts, messages and settings; never create a second profile.
+- On a first Discord login, check existing provider identities and profiles before creating anything; show a clear sign-in/link choice when a matching VIBE account already exists.
 - Never merge accounts automatically based only on a matching email address. Reject conflicts and require an authenticated linking flow.
 - Handle revoked access, expired link proofs, provider errors and already-linked Discord identities with localized recovery feedback.
 - Verify first-login creation, explicit linking, both login paths, duplicate prevention, unlink policy and expired-session behavior.

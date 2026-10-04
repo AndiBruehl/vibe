@@ -4,6 +4,7 @@ import Google from "next-auth/providers/google";
 import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id";
 import Apple from "next-auth/providers/apple";
 import Discord from "next-auth/providers/discord";
+import { cookies } from "next/headers";
 import { availableLoginProviders, emailAuthAvailable } from "@/auth-options";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -47,6 +48,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
 
+        const { prisma } = await import("@/db");
+        const owner = await prisma.profile.findUnique({ where: { email: payload.email }, select: { id: true } });
+        if (!owner || owner.id !== payload.sub) return null;
+
         return {
           id: payload.sub,
           email: payload.email,
@@ -57,6 +62,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
   callbacks: {
     async jwt({ token, user, account }) {
+      // Bind sessions to an immutable profile ID, not a reusable email address.
+      // Legacy sessions must authenticate again to acquire this binding.
+      if (!account && typeof token.profileId !== "string") return null;
+      if (!token.email) return null;
+      try {
+        const { prisma } = await import("@/db");
+        const owner = await prisma.profile.findUnique({ where: { email: token.email }, select: { id: true } });
+        if (!owner || (!account && owner.id !== token.profileId)) return null;
+        token.profileId = owner.id;
+      } catch { return null; }
       if (account?.provider === "password" && user) {
         token.passwordVersion = (user as { authVersion?: number }).authVersion;
       }
@@ -75,11 +90,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         try {
           const { resolveOAuth } = await import("@/login-oauth");
           const claims = profile as { email_verified?: unknown; verified?: unknown } | undefined;
+          // Auth.js supplies the raw OAuth profile to this callback.
           const verified = account.provider === "discord" ? claims?.verified === true : account.provider !== "microsoft-entra-id" && (claims?.email_verified === true || claims?.email_verified === "true");
-          const resolved = await resolveOAuth(account.provider, account.providerAccountId, user.email, verified);
+          // The one-time proof binds the additional provider to the signed-in
+          // profile, including when the two providers use different emails.
+          const cookieStore = await cookies();
+          const linkToken = cookieStore.get("vibe-link")?.value;
+          if (linkToken) cookieStore.set("vibe-link", "", { path: "/api/auth", maxAge: 0 });
+          const resolved = await resolveOAuth(account.provider, account.providerAccountId, user.email, verified, linkToken, user.name);
           if (resolved.redirect) return resolved.redirect;
           user.email = resolved.email;
-        } catch { return "/?notice=unavailable"; }
+        } catch (error) {
+          console.error("OAuth provider resolution failed", { provider: account.provider, error });
+          return "/?notice=unavailable";
+        }
       }
       if (!user.email) {
         return false;
@@ -113,7 +137,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           },
         });
         const { claimWelcomeAndSend } = await import("@/system-profile");
-        await claimWelcomeAndSend(profile);
+        await claimWelcomeAndSend(profile).catch(() => console.warn("Welcome delivery deferred after account creation"));
       } else if (!existingProfile.username) {
         await prisma.profile.update({
           where: {
@@ -125,6 +149,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         });
       }
 
+      if (existingProfile && !existingProfile.welcomeSentAt) {
+        const { claimWelcomeAndSend } = await import("@/system-profile");
+        await claimWelcomeAndSend(existingProfile).catch(() => console.warn("Welcome delivery deferred after sign-in"));
+      }
       return true;
     },
   },

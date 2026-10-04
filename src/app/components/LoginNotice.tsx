@@ -6,6 +6,7 @@ export default function LoginNotice() {
   const de = useVibeLanguage() === "de";
   const notice = params.get("notice");
   const messages: Record<string, [string, string]> = {
+    expired: ["This linking request has expired. Start linking again from Sign-in methods.", "Diese Verknüpfungsanfrage ist abgelaufen. Starte die Verknüpfung unter Anmeldemethoden erneut."],
     link: ["This account already exists. Sign in using your existing method, then link the new provider in Settings → Sign-in methods.", "Dieses Konto existiert bereits. Melde dich mit deiner bisherigen Methode an und verknüpfe den Anbieter unter Einstellungen → Anmeldemethoden."],
     verify: ["Check your email to confirm this sign-in. Then sign in with Microsoft again.", "Bestätige diese Anmeldung über die E-Mail. Melde dich anschließend erneut mit Microsoft an."],
     email: ["This provider did not supply a verified email. Verify your email there or use another sign-in method.", "Dieser Anbieter hat keine bestätigte E-Mail geliefert. Bestätige sie dort oder nutze eine andere Anmeldemethode."],

@@ -2472,7 +2472,8 @@ export async function deleteProfileAsSuperAdmin(formData: FormData): Promise<voi
 
   const profileId = formData.get("profileId");
   const returnToValue = formData.get("returnTo");
-  const returnTo = typeof returnToValue === "string" && returnToValue.startsWith("/") && !returnToValue.startsWith("//") ? returnToValue : "/profiles";
+  // Only the two deletion contexts are valid. Never follow a stale referrer.
+  const stayInAdmin = returnToValue === "/admin";
   if (typeof profileId !== "string" || !profileId) throw new Error("Invalid profile.");
   const target = await prisma.profile.findUnique({ where: { id: profileId }, select: { id: true, email: true } });
   if (!target) throw new Error("Profile not found.");
@@ -2497,7 +2498,31 @@ export async function deleteProfileAsSuperAdmin(formData: FormData): Promise<voi
     : [];
   const removableCommentIds = [...new Set([...commentIds, ...postCommentIds])];
 
+  const [tickets, notes, polls] = await Promise.all([
+    prisma.supportTicket.findMany({ where: { requesterEmail: target.email }, select: { id: true } }),
+    prisma.adminNote.findMany({ where: { authorEmail: target.email }, select: { id: true } }),
+    prisma.poll.findMany({ where: { createdByEmail: target.email }, select: { id: true } }),
+  ]);
+  const ticketIds = tickets.map((item) => item.id);
+  const noteIds = notes.map((item) => item.id);
+  const pollIds = polls.map((item) => item.id);
+
   await prisma.$transaction([
+    prisma.profileFramePreset.deleteMany({ where: { profileId: target.id } }),
+    prisma.profileAppearancePreset.deleteMany({ where: { profileId: target.id } }),
+    prisma.profilePinnedPost.deleteMany({ where: { OR: [{ profileId: target.id }, { postId: { in: postIds } }] } }),
+    prisma.postRevision.deleteMany({ where: { postId: { in: postIds } } }),
+    prisma.postDraft.deleteMany({ where: { authorEmail: target.email } }),
+    prisma.pollVote.deleteMany({ where: { OR: [{ profileId: target.id }, { pollId: { in: pollIds } }] } }),
+    prisma.pollOption.deleteMany({ where: { pollId: { in: pollIds } } }),
+    prisma.poll.deleteMany({ where: { id: { in: pollIds } } }),
+    prisma.supportTicketMessage.deleteMany({ where: { OR: [{ ticketId: { in: ticketIds } }, { senderAdminEmail: target.email }] } }),
+    prisma.supportTicket.deleteMany({ where: { id: { in: ticketIds } } }),
+    prisma.supportTicket.updateMany({ where: { assignedAdminEmail: target.email }, data: { assignedAdminEmail: null, assignedAt: null } }),
+    prisma.adminNoteComment.deleteMany({ where: { noteId: { in: noteIds } } }),
+    prisma.adminNoteVote.deleteMany({ where: { noteId: { in: noteIds } } }),
+    prisma.adminNote.deleteMany({ where: { id: { in: noteIds } } }),
+    prisma.message.updateMany({ where: { replyToMessageId: { in: sentMessageIds } }, data: { replyToMessageId: null, replyPreviewBody: null, replyPreviewSender: null, replyToDeleted: true } }),
     // MessageReaction requires both its reacting profile and message. Clear it
     // before deleting either side of the relation.
     prisma.messageReaction.deleteMany({ where: { profileId: target.id } }),
@@ -2548,14 +2573,25 @@ export async function deleteProfileAsSuperAdmin(formData: FormData): Promise<voi
     prisma.adminNoteComment.deleteMany({ where: { authorEmail: target.email } }),
     prisma.adminNoteVote.deleteMany({ where: { voterEmail: target.email } }),
     prisma.adminActivity.deleteMany({ where: { actorEmail: target.email } }),
-    prisma.report.deleteMany({ where: { reporterEmail: target.email } }),
+    prisma.report.deleteMany({ where: { OR: [{ reporterEmail: target.email }, { targetOwnerEmail: target.email }, { targetId: { in: [target.id, ...postIds, ...removableCommentIds] } }] } }),
+    prisma.report.updateMany({ where: { moderatedByEmail: target.email }, data: { moderatedByEmail: null } }),
+    // Every provider points to the owning VIBE email, regardless of its own
+    // provider email. Delete all methods atomically with the profile.
+    prisma.loginIdentity.deleteMany({ where: { email: { equals: target.email, mode: "insensitive" } } }),
+    prisma.loginCredential.deleteMany({ where: { email: { equals: target.email, mode: "insensitive" } } }),
+    prisma.loginProof.deleteMany({ where: { email: { equals: target.email, mode: "insensitive" } } }),
     prisma.profile.delete({ where: { id: target.id } }),
   ]);
 
-  await notifyAdmins(actorEmail, "user-delete", "A user account was deleted");
+  // The deletion has committed. A notification failure must not report the
+  // account deletion as failed or prevent refreshing the administration page.
+  await notifyAdmins(actorEmail, "user-delete", "A user account was deleted").catch(() => {
+    console.warn("Account deleted; admin notification could not be delivered.");
+  });
   revalidatePath("/");
   revalidatePath("/home");
   revalidatePath("/profiles");
   revalidatePath("/admin");
-  redirect(returnTo);
+  if (stayInAdmin) return;
+  redirect("/profiles");
 }

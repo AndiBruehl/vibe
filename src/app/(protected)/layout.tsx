@@ -18,6 +18,7 @@ import ActionButtonFeedback from "@/app/components/ActionButtonFeedback";
 import QuickSettings from "@/app/components/QuickSettings";
 import ProfileThemeRuntime from "@/app/components/ProfileThemeRuntime";
 import PageTransition from "@/app/components/PageTransition";
+import SessionRevocation from "@/app/components/SessionRevocation";
 
 export default async function ProtectedLayout({
   children,
@@ -71,6 +72,7 @@ export default async function ProtectedLayout({
 
   return (
     <>
+      <SessionRevocation />
       <RestrictionNotice restriction={activeRestriction ? { endsAt: activeRestriction.endsAt.toISOString(), blocksMessages: activeRestriction.blocksMessages, blocksComments: activeRestriction.blocksComments, blocksPosts: activeRestriction.blocksPosts } : null} language={profile.language === "de" ? "de" : "en"} />
       <AdminPreviewMode />
       <DesktopNav

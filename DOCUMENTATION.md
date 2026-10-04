@@ -1,6 +1,6 @@
 # VIBE Documentation
 
-### Additional sign-in methods (0.2.3 local)
+### Additional sign-in methods (0.2.3.1 local)
 
 Google remains the only active login method. The code contains configuration-safe preparation for Microsoft Entra ID, Apple, Discord and email/password, but these methods are not yet integrated for production use. The login UI hides unavailable methods rather than presenting buttons that cannot work. Email/password preparation requires Resend configuration and an HTTPS auth origin; missing delivery configuration returns a safe unavailable state.
 

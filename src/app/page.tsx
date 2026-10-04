@@ -27,7 +27,7 @@ export default async function Home() {
           className="drop-shadow-2xl"
         />
 
-        <div className="w-full max-w-md space-y-4 px-4"><Suspense><LoginNotice/></Suspense><LoginMethods providers={availableLoginProviders()} emailEnabled={emailAuthAvailable()}/></div>
+        <div className="w-full max-w-md space-y-4 px-4"><Suspense><LoginNotice/></Suspense><LoginMethods providers={availableLoginProviders()} emailEnabled={emailAuthAvailable()} showGuestLink={false}/></div>
         <Link href="/home" className="rounded-xl border border-slate-400/40 px-6 py-3 font-bold"><LocalizedText en="View public posts as a guest" de="Öffentliche Beiträge als Gast ansehen"/></Link>
       </div>
     </div>
