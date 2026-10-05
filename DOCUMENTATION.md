@@ -1,10 +1,10 @@
 # VIBE Documentation
 
-### Version 0.3 preparation
+### Restricted guest access (0.3.0)
 
-Version 0.3 starts with restricted guest access as a product boundary. Logged-out visitors may view public profiles and public posts only. All member actions, private routes and write APIs must remain server-protected even when a UI control is hidden. Guest UI should stay small: public browsing, theme and language only, plus a clear account creation or sign-in path from Profile.
+Version 0.3 makes logged-out VIBE access intentionally read-only. Guests may view public posts, public profile pages and the public `/profiles` directory. The proxy rewrites anonymous `/home`, `/posts/[id]`, `/profile/[username]` and `/profiles` requests to dedicated guest pages. All member actions, private routes and write APIs remain server-protected even when a UI control is hidden.
 
-Google and Discord remain the active linked providers for this step. Microsoft, Apple and email/password stay planned until the restricted access behavior is stable and covered by regression tests.
+Guest UI stays small: public browsing, a Profile entry that opens account creation/sign-in, and the local theme/language orb only. Guests cannot post, comment, like, follow, message, bookmark, save, edit settings or call member APIs. Public profile and post queries select public fields only, filter private profiles and archived posts, preserve safe public personalization fields, and fail closed during storage errors. Admin and Verified labels are expanded on profile headers only; compact surfaces such as feeds, comments and directories use icon-only status badges. Google and Discord remain the active linked providers. Microsoft, Apple and email/password stay planned until the restricted access behavior is stable in production.
 
 ### Production verification (0.2.4.2)
 
@@ -18,7 +18,7 @@ Settings → Sign-in methods shows provider status and the date it was linked. G
 
 Provider conflicts lead to `/settings/login/conflict`, with bilingual recovery steps and a support link. Failure to load linked methods hides mutation controls. Deletion receipts are saved as `user-delete` admin activity in the deletion transaction, including a random receipt ID and no deleted-user identifiers or credentials.
 
-Run `node scripts/check-login-deployment.cjs https://vibe-social-network.vercel.app` for read-only provider callback-origin and anonymous-session checks. This does not perform OAuth consent or prove database write behavior. Web version is 0.2.4.1; native packages keep their actual artifact version until rebuilt (currently 0.2.0). The UI separately displays the web version and the running native wrapper version.
+Run `node scripts/check-login-deployment.cjs https://vibe-social-network.vercel.app` for read-only provider callback-origin and anonymous-session checks. This does not perform OAuth consent or prove database write behavior. Current web version is 0.3.0; native packages keep their actual artifact version until rebuilt (currently 0.2.0). The UI separately displays the web version and the running native wrapper version.
 
 ### Additional sign-in methods
 

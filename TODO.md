@@ -2,13 +2,15 @@
 
 ## 0.3.0 — Restricted guest access and account entry
 
-- Treat logged-out visitors as read-only guests: public profiles and public posts are visible, everything else is blocked by server rules.
-- Keep guest UI minimal: no flowing orb, no full settings page, no posting, commenting, liking, following, messaging, bookmarking or profile edits.
-- Allow guests to choose only theme and language from the small orb.
-- When guests click Profile, show a direct path to create an account or sign in.
+- Treat logged-out visitors as read-only guests: public profiles and public posts are visible, everything else is blocked by server rules. ✅
+- Keep guest UI minimal: no full settings page, no posting, commenting, liking, following, messaging, bookmarking or profile edits. ✅
+- Allow guests to choose only theme and language from the small orb. ✅
+- When guests click Profile, show a direct path to create an account or sign in. ✅
+- Add a public read-only profile directory for guests at `/profiles`, filtered to public profiles only. ✅
 - Keep Google and Discord as linked sign-in methods; continue hardening account linking before adding more providers.
 - Prepare Microsoft, Apple and email/password as later sign-in methods after the restricted access rules are stable.
-- Add regression tests for anonymous route access, anonymous API writes, visible guest navigation, public profile/post rendering and member-only redirects.
+- Add regression tests for anonymous route access, anonymous API writes, visible guest navigation, public profile/post rendering and member-only redirects. ✅
+- Verify with live MongoDB that `/profiles` shows real public profiles instead of the safe unavailable fallback before production deployment.
 
 ## VERIFY 0.2.4.2 — Production readiness
 

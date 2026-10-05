@@ -22,7 +22,7 @@ function request(path, method = 'GET', email = null, bearer = '') {
   return proxy({ nextUrl: url, url: url.toString(), method, auth: email ? { user: { email } } : null, headers: { get: (key) => key === 'authorization' ? bearer : null } });
 }
 test('anonymous views rewrite only public profile and post routes', async () => {
-  for (const [path, expected] of [['/home', '/guest'], ['/profile/anna', '/guest/profile/anna'], ['/posts/123456789012345678901234', '/guest/posts/123456789012345678901234']]) {
+  for (const [path, expected] of [['/home', '/guest'], ['/profiles', '/guest/profiles'], ['/profile/anna', '/guest/profile/anna'], ['/posts/123456789012345678901234', '/guest/posts/123456789012345678901234']]) {
     const response = await request(path);
     assert.equal(response.kind, 'rewrite'); assert.equal(response.path, expected);
   }
@@ -62,4 +62,13 @@ test('public queries filter private and archived content and select no sensitive
   for (const field of ['email', 'locationLatitude', 'locationLongitude', 'restrictedUntil', 'notificationLikes']) assert.equal(query.select.author.select[field], undefined);
   for (const field of ['authorEmail', 'revisions', 'comments', 'bookmarks']) assert.equal(query.select[field], undefined);
   assert.equal(query.take, 24);
+});
+test('public profile directory filters private profiles and sends public fields only', async () => {
+  let query;
+  const directory = load('src/profile-directory.ts', { '@/db': { prisma: { profile: { findMany: async (args) => { query = args; return []; } } } }, '@/profile-directory-order': { sortProfiles: (profiles) => profiles } });
+  await directory.getProfileDirectory('ann', 'newest', false, true);
+  assert.equal(query.where.isPrivate, false);
+  assert.equal(query.where.OR.length, 3);
+  for (const field of ['email', 'locationLatitude', 'locationLongitude', 'notificationLikes', 'theme']) assert.equal(query.select[field], undefined);
+  for (const field of ['id', 'name', 'username', 'avatar', 'subtitle', 'bio', 'isAdmin', 'isVerified']) assert.equal(query.select[field], true);
 });

@@ -8,8 +8,15 @@ import LoginNotice from "@/app/components/LoginNotice";
 import { availableLoginProviders, emailAuthAvailable } from "@/auth-options";
 import { Suspense } from "react";
 
+async function getLoginSession() {
+  return Promise.race([
+    auth(),
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), 2500)),
+  ]);
+}
+
 export default async function Home() {
-  const session = await auth();
+  const session = await getLoginSession();
 
   if (session?.user?.email) {
     redirect("/home");
