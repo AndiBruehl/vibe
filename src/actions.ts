@@ -2581,13 +2581,10 @@ export async function deleteProfileAsSuperAdmin(formData: FormData): Promise<voi
     prisma.loginCredential.deleteMany({ where: { email: { equals: target.email, mode: "insensitive" } } }),
     prisma.loginProof.deleteMany({ where: { email: { equals: target.email, mode: "insensitive" } } }),
     prisma.profile.delete({ where: { id: target.id } }),
+    prisma.adminActivity.create({ data: { actorEmail, kind: "user-delete", detail: "Account deletion committed, including provider links, credentials and pending proofs. Receipt: " + globalThis.crypto.randomUUID() } }),
   ]);
 
-  // The deletion has committed. A notification failure must not report the
-  // account deletion as failed or prevent refreshing the administration page.
-  await notifyAdmins(actorEmail, "user-delete", "A user account was deleted").catch(() => {
-    console.warn("Account deleted; admin notification could not be delivered.");
-  });
+  // The privacy-preserving receipt commits atomically with the deletion.
   revalidatePath("/");
   revalidatePath("/home");
   revalidatePath("/profiles");

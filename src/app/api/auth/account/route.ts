@@ -14,6 +14,14 @@ export async function POST(request: Request) {
   try {
     const body = JSON.parse(raw);
     const action = body?.action;
+    if (action === "unlink") {
+      const session = await auth();
+      if (!session?.user?.email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      if (!await loginRate(`unlink:${session.user.email}`, 10)) return NextResponse.json({ error: "RateLimited" }, { status: 429 });
+      const { unlinkProvider } = await import("@/login-unlink");
+      const result = await unlinkProvider(session.user.email, body.provider);
+      return NextResponse.json(result === "ok" ? { ok: true } : { error: result }, { status: result === "ok" ? 200 : result === "Unauthorized" ? 401 : 409 });
+    }
     if (action === "link") {
       const session = await auth();
       if (!session?.user?.email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

@@ -1,5 +1,21 @@
 # VIBE TODO
 
+## BETA 0.2.4 — Account linking and production reliability
+
+Implemented: provider cards, explicit unlink confirmation, transactional last-method protection, conflict recovery page, localized OAuth errors and atomic deletion receipts.
+
+Verified: 33 auth tests, TypeScript, targeted ESLint, and read-only Google/Discord callback-origin plus anonymous-session checks on localhost and production (2026-10-05). Includes cancellation return routing, a compact provider overview, green confirmation checks, and hiding Remove for the last usable method.
+
+Still open: real provider consent/sign-in/link/unlink round trips, a disposable-account deletion test, and native APK/EXE rebuilds and device verification. Public endpoint checks do not prove these flows. Native versions remain truthful at their existing artifact version.
+
+- Verify Google and Discord sign-in and explicit linking end to end in the production environment.
+- [x] Show each linked provider with its status and add a safe unlink flow with a guard against locking the account out.
+- [x] Add a clear localized conflict page when a provider belongs to another active VIBE profile.
+- [x] Add an auditable admin deletion result without retaining login secrets or provider tokens.
+- [x] Improve localized OAuth and unlink error recovery messages.
+- Run a Vercel production checklist for MongoDB, Google callbacks and Discord callbacks after secrets are configured.
+- Align the web, APK and EXE version display once the native artifacts are rebuilt.
+
 ## BUGFIX 0.2.3.1 — Account deletion and sign-in reliability
 
 - Delete provider identities, credentials and pending proofs with admin-deleted profiles. ✅

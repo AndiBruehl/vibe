@@ -1,8 +1,18 @@
 # VIBE Documentation
 
-### Additional sign-in methods (0.2.3.1 local)
+### Account linking and removal (0.2.4)
 
-Google remains the only active login method. The code contains configuration-safe preparation for Microsoft Entra ID, Apple, Discord and email/password, but these methods are not yet integrated for production use. The login UI hides unavailable methods rather than presenting buttons that cannot work. Email/password preparation requires Resend configuration and an HTTPS auth origin; missing delivery configuration returns a safe unavailable state.
+Linked providers appear together with green confirmation checks and connection dates. Already-linked action buttons are hidden. The last available provider has no Remove button. Cancelling an OAuth linking attempt returns to Sign-in methods; normal sign-in behavior is unchanged. Failed or timed-out removal requests show recovery feedback rather than claiming success.
+
+Settings → Sign-in methods shows provider status and the date it was linked. Google and Discord can be removed explicitly after confirmation. `/api/auth/account` checks the signed-in owner, request origin, rate limit and remaining usable methods. The last configured login method cannot be removed. A shared transactional lock record serializes concurrent removals; transaction conflicts fail closed and can be retried. Pending link proofs for a removed provider are deleted in the same transaction. Existing sessions remain valid until their normal expiry or profile deletion.
+
+Provider conflicts lead to `/settings/login/conflict`, with bilingual recovery steps and a support link. Failure to load linked methods hides mutation controls. Deletion receipts are saved as `user-delete` admin activity in the deletion transaction, including a random receipt ID and no deleted-user identifiers or credentials.
+
+Run `node scripts/check-login-deployment.cjs https://vibe-social-network.vercel.app` for read-only provider callback-origin and anonymous-session checks. This does not perform OAuth consent or prove database write behavior. Web version is 0.2.4; native packages keep their actual artifact version until rebuilt (currently 0.2.0). The UI separately displays the web version and the running native wrapper version.
+
+### Additional sign-in methods
+
+Google and Discord are configuration-driven login methods. Microsoft Entra ID, Apple and email/password remain deferred. The login UI hides unavailable methods. Email/password preparation requires Resend configuration and an HTTPS auth origin; missing delivery configuration returns a safe unavailable state.
 
 Password credentials use scrypt-derived hashes, a minimum length of 12 characters, one-time proofs with a 20-minute expiry, rate limits, origin checks and credential-version invalidation. OAuth identities are separate records. Matching email addresses never auto-link a new provider. Linking starts only from an authenticated Settings page and rejects conflicts or expired proofs. Provider claims must be verified, and Microsoft fallback verification uses a one-time confirmation email.
 
