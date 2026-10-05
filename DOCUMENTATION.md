@@ -1,5 +1,15 @@
 # VIBE Documentation
 
+### Version 0.3 preparation
+
+Version 0.3 starts with restricted guest access as a product boundary. Logged-out visitors may view public profiles and public posts only. All member actions, private routes and write APIs must remain server-protected even when a UI control is hidden. Guest UI should stay small: public browsing, theme and language only, plus a clear account creation or sign-in path from Profile.
+
+Google and Discord remain the active linked providers for this step. Microsoft, Apple and email/password stay planned until the restricted access behavior is stable and covered by regression tests.
+
+### Production verification (0.2.4.2)
+
+The read-only production login deployment check passed on 2026-10-05 for `https://vibe-social-network.vercel.app`: Google and Discord provider callback origins matched the deployed origin, and the anonymous Auth.js session response returned no user. This check does not perform provider consent, create accounts, link/unlink identities or write to MongoDB. Those real OAuth flows still require disposable test accounts.
+
 ### Account linking and removal (0.2.4.1)
 
 Linked providers appear together with green confirmation checks and connection dates. Already-linked action buttons are hidden. The last available provider has no Remove button. Cancelling an OAuth linking attempt returns to Sign-in methods; normal sign-in behavior is unchanged. Failed or timed-out removal requests show recovery feedback rather than claiming success.

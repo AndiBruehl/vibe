@@ -1,5 +1,22 @@
 # VIBE TODO
 
+## 0.3.0 — Restricted guest access and account entry
+
+- Treat logged-out visitors as read-only guests: public profiles and public posts are visible, everything else is blocked by server rules.
+- Keep guest UI minimal: no flowing orb, no full settings page, no posting, commenting, liking, following, messaging, bookmarking or profile edits.
+- Allow guests to choose only theme and language from the small orb.
+- When guests click Profile, show a direct path to create an account or sign in.
+- Keep Google and Discord as linked sign-in methods; continue hardening account linking before adding more providers.
+- Prepare Microsoft, Apple and email/password as later sign-in methods after the restricted access rules are stable.
+- Add regression tests for anonymous route access, anonymous API writes, visible guest navigation, public profile/post rendering and member-only redirects.
+
+## VERIFY 0.2.4.2 — Production readiness
+
+- Production read-only login deployment check passed on 2026-10-05 for `https://vibe-social-network.vercel.app`. ✅
+- Google and Discord callback origins match the Vercel deployment. ✅
+- Anonymous Auth.js session response is clean. ✅
+- Still requires manual real-provider consent/link/unlink checks with disposable accounts before declaring OAuth fully accepted.
+
 ## HOTFIX 0.2.4.1 — Account linking edge cases
 
 - Return cancelled Google and Discord linking attempts to Sign-in methods with the correct cancelled message. ✅
