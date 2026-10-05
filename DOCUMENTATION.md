@@ -1,14 +1,14 @@
 # VIBE Documentation
 
-### Account linking and removal (0.2.4)
+### Account linking and removal (0.2.4.1)
 
 Linked providers appear together with green confirmation checks and connection dates. Already-linked action buttons are hidden. The last available provider has no Remove button. Cancelling an OAuth linking attempt returns to Sign-in methods; normal sign-in behavior is unchanged. Failed or timed-out removal requests show recovery feedback rather than claiming success.
 
-Settings → Sign-in methods shows provider status and the date it was linked. Google and Discord can be removed explicitly after confirmation. `/api/auth/account` checks the signed-in owner, request origin, rate limit and remaining usable methods. The last configured login method cannot be removed. A shared transactional lock record serializes concurrent removals; transaction conflicts fail closed and can be retried. Pending link proofs for a removed provider are deleted in the same transaction. Existing sessions remain valid until their normal expiry or profile deletion.
+Settings → Sign-in methods shows provider status and the date it was linked. Google and Discord can be removed explicitly after confirmation. `/api/auth/account` checks the signed-in owner, request origin, rate limit and remaining usable methods. The last configured login method cannot be removed. A shared transactional lock record serializes concurrent removals; transaction conflicts fail closed and can be retried. Linked identities, password checks and pending link proofs use the canonical profile email case-insensitively so cleanup does not depend on provider email casing. Pending link proofs for a removed provider are deleted in the same transaction. Existing sessions remain valid until their normal expiry or profile deletion.
 
 Provider conflicts lead to `/settings/login/conflict`, with bilingual recovery steps and a support link. Failure to load linked methods hides mutation controls. Deletion receipts are saved as `user-delete` admin activity in the deletion transaction, including a random receipt ID and no deleted-user identifiers or credentials.
 
-Run `node scripts/check-login-deployment.cjs https://vibe-social-network.vercel.app` for read-only provider callback-origin and anonymous-session checks. This does not perform OAuth consent or prove database write behavior. Web version is 0.2.4; native packages keep their actual artifact version until rebuilt (currently 0.2.0). The UI separately displays the web version and the running native wrapper version.
+Run `node scripts/check-login-deployment.cjs https://vibe-social-network.vercel.app` for read-only provider callback-origin and anonymous-session checks. This does not perform OAuth consent or prove database write behavior. Web version is 0.2.4.1; native packages keep their actual artifact version until rebuilt (currently 0.2.0). The UI separately displays the web version and the running native wrapper version.
 
 ### Additional sign-in methods
 

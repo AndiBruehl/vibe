@@ -1,5 +1,12 @@
 # VIBE TODO
 
+## HOTFIX 0.2.4.1 — Account linking edge cases
+
+- Return cancelled Google and Discord linking attempts to Sign-in methods with the correct cancelled message. ✅
+- Remove linked login identities and pending proofs case-insensitively against the canonical profile email. ✅
+- Keep the last-method lockout protection intact while adding cancellation and unlink regression coverage. ✅
+- Native APK/EXE artifacts remain unchanged at their actual published version.
+
 ## BETA 0.2.4 — Account linking and production reliability
 
 Implemented: provider cards, explicit unlink confirmation, transactional last-method protection, conflict recovery page, localized OAuth errors and atomic deletion receipts.

@@ -6,6 +6,6 @@ export function linkingErrorReturn(requestUrl: string, linkToken: string | undef
   const destination = new URL(location, request.origin);
   if (destination.origin !== request.origin || !destination.searchParams.has("error")) return null;
   const result = new URL("/settings/login", request.origin);
-  result.searchParams.set("notice", request.searchParams.get("error") === "access_denied" ? "cancelled" : "linkfailed");
+  result.searchParams.set("notice", destination.searchParams.get("error") === "AccessDenied" ? "cancelled" : "linkfailed");
   return result.toString();
 }
