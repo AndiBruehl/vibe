@@ -1,3 +1,74 @@
+## BETA 0.3.10 — Guest access final audit
+
+- Add regression coverage for polished public detail navigation and read-only surfaces. ✅
+- Recheck public guest routes with live local data. ✅
+- Keep anonymous write/API blocking covered. ✅
+- Document the completed restricted guest access pass. ✅
+
+## BETA 0.3.9 — Public detail page polish
+
+- Add VIBE-style back links to public post and profile detail pages. ✅
+- Improve text-only public post detail fallback. ✅
+- Add public-profile context on guest profile details. ✅
+- Make unavailable count fallback text clearer. ✅
+
+## BETA 0.3.8 — Public profile directory polish
+
+- Make public profile cards clearer and more useful for guests. ✅
+- Add public-profile labels, bio fallback text and a stronger Open profile affordance. ✅
+- Improve public profile search/result status wording. ✅
+- Keep the directory read-only with no follow, message, settings or moderation actions. ✅
+
+## BETA 0.3.7 — Public feed card polish
+
+- Show safe public metadata on guest feed cards. ✅
+- Show compact status badges on guest feed authors. ✅
+- Add text-only post fallback tiles for public posts without media. ✅
+- Link optional public post locations from guest cards without adding member actions. ✅
+
+## BETA 0.3.6 — Guest conversion polish
+
+- Add one shared guest join prompt for public posts, public profiles and detail pages. ✅
+- Keep public browsing available while explaining which interactions require an account. ✅
+- Route every guest conversion action through `/join`. ✅
+- Preserve read-only guest access with no member actions exposed. ✅
+
+## BETA 0.3.5 — Public comments read-only
+
+- Show comments and first-level replies to logged-out visitors on public posts. ✅
+- Render only public author identity and comment text for guests. ✅
+- Hide like, reply, report, edit and delete controls for guests. ✅
+- Keep posts visible when comment loading fails. ✅
+
+## BETA 0.3.4 — Public access audit
+
+- Expand guest route rewrite and member-only redirect tests. ✅
+- Reconfirm anonymous write and member API blocking. ✅
+- Add fail-closed metadata tests for public posts. ✅
+- Add fail-closed metadata tests for public profiles. ✅
+
+## BETA 0.3.3 — Public SEO and share previews
+
+- Add profile metadata for public guest profile pages. ✅
+- Add post metadata for public guest post pages. ✅
+- Use public-only fields for preview titles, descriptions and images. ✅
+- Return noindex metadata for missing, archived, private-author or invalid resources. ✅
+
+## BETA 0.3.2 — Public post detail polish
+
+- Show public post details with author identity, date, likes and optional location. ✅
+- Keep guest post details read-only with Join VIBE guidance. ✅
+- Add media and text fallbacks for incomplete public post records. ✅
+- Preserve public-only filtering for archived posts and private authors. ✅
+
+## BETA 0.3.1 — Public profile polish
+
+- Show safe profile links on logged-out public profile pages. ✅
+- Show shoutouts only when the target profile is public. ✅
+- Show visible milestones and public profile counts without member actions. ✅
+- Keep public profiles read-only with a Join to interact entry point. ✅
+- Add fallbacks for optional public sections and unavailable count queries. ✅
+
 # VIBE TODO
 
 ## 0.3.0 — Restricted guest access and account entry

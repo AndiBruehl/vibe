@@ -72,3 +72,84 @@ test('public profile directory filters private profiles and sends public fields 
   for (const field of ['email', 'locationLatitude', 'locationLongitude', 'notificationLikes', 'theme']) assert.equal(query.select[field], undefined);
   for (const field of ['id', 'name', 'username', 'avatar', 'subtitle', 'bio', 'isAdmin', 'isVerified']) assert.equal(query.select[field], true);
 });
+
+
+test('public post metadata fails closed for archived or private-author posts', async () => {
+  let query;
+  const metadata = load('src/public-page-metadata.ts', {
+    '@/db': { prisma: { post: { findFirst: async (args) => { query = args; return null; } } } },
+    '@/guest-content': { publicPostWhere: { AND: [{ isArchived: false }, { author: { is: { isPrivate: false } } }] }, publicProfileWhere: { isPrivate: false } },
+    '@/public-metadata': { absolutePublicUrl: (path) => `https://example.test${path}`, plainTextSummary: (value, fallback) => value || fallback, publicImageUrl: (value) => value || 'https://example.test/logo.svg' },
+  });
+  const result = await metadata.publicPostMetadata('123456789012345678901234');
+  assert.equal(result.robots.index, false);
+  assert.equal(query.where.AND[0].isArchived, false);
+  assert.equal(query.where.AND[1].author.is.isPrivate, false);
+  for (const field of ['authorEmail', 'comments', 'bookmarks', 'revisions']) assert.equal(query.select[field], undefined);
+});
+
+test('public profile metadata fails closed for private or missing profiles', async () => {
+  let query;
+  const metadata = load('src/public-page-metadata.ts', {
+    '@/db': { prisma: { profile: { findFirst: async (args) => { query = args; return null; } } } },
+    '@/guest-content': { publicProfileWhere: { isPrivate: false }, publicPostWhere: { AND: [{ isArchived: false }, { author: { is: { isPrivate: false } } }] } },
+    '@/public-metadata': { absolutePublicUrl: (path) => `https://example.test${path}`, plainTextSummary: (value, fallback) => value || fallback, publicImageUrl: (value) => value || 'https://example.test/logo.svg' },
+  });
+  const result = await metadata.publicProfileMetadata('private-user');
+  assert.equal(result.robots.index, false);
+  assert.equal(query.where.isPrivate, false);
+  for (const field of ['email', 'locationLatitude', 'locationLongitude', 'notificationLikes']) assert.equal(query.select[field], undefined);
+});
+
+
+test('guest comments select public author fields only and no mutation state', async () => {
+  let query;
+  const comments = load('src/guest-comments.ts', {
+    '@/db': { prisma: { comment: { findMany: async (args) => { query = args; return []; } } } },
+  });
+  await comments.getGuestComments('123456789012345678901234');
+  assert.equal(query.where.postId, '123456789012345678901234');
+  assert.equal(query.where.parentCommentId, null);
+  for (const field of ['email', 'locationLatitude', 'locationLongitude', 'notificationLikes']) assert.equal(query.select.author.select[field], undefined);
+  for (const field of ['likes', 'mentions', 'authorEmail']) assert.equal(query.select[field], undefined);
+  assert.equal(query.take, 50);
+  assert.equal(query.select.replies.take, 20);
+});
+
+
+test('guest join prompt is shared across public guest pages', () => {
+  const prompt = fs.readFileSync('src/app/components/GuestJoinPrompt.tsx', 'utf8');
+  assert.match(prompt, /Create account or sign in/);
+  assert.match(prompt, /like, comment, follow, message and save posts/);
+  assert.doesNotMatch(prompt, /onSubmit|button type="submit"|fetch\(/);
+  for (const file of ['src/app/guest/page.tsx', 'src/app/guest/profiles/page.tsx', 'src/app/guest/profile/[username]/page.tsx', 'src/app/guest/posts/[id]/page.tsx']) {
+    const content = fs.readFileSync(file, 'utf8');
+    assert.match(content, /GuestJoinPrompt/, file);
+  }
+});
+
+
+test('guest feed cards expose public metadata without member actions', () => {
+  const content = fs.readFileSync('src/app/components/GuestPosts.tsx', 'utf8');
+  for (const text of ['formatPublicDate', 'likesCount', 'locationText', 'Open text post', 'AdminBadge']) assert.match(content, new RegExp(text));
+  for (const text of ['CommentForm', 'LikeButton', 'Bookmark', 'FollowButton', 'MessageButton', 'onSubmit', 'fetch(']) assert.equal(content.includes(text), false, text);
+});
+
+
+test('guest profile directory cards stay public and read-only', () => {
+  const content = fs.readFileSync('src/app/guest/profiles/page.tsx', 'utf8');
+  for (const text of ['Public profile', 'No public bio yet', 'Open profile', 'Search results for']) assert.match(content, new RegExp(text));
+  for (const text of ['FollowButton', 'MessageButton', '/settings', '/admin', 'onSubmit={', 'fetch(']) assert.equal(content.includes(text), false, text);
+});
+
+
+test('guest detail pages include polished navigation and read-only fallbacks', () => {
+  const post = fs.readFileSync('src/app/guest/posts/[id]/page.tsx', 'utf8');
+  const profile = fs.readFileSync('src/app/guest/profile/[username]/page.tsx', 'utf8');
+  for (const text of ['Back to public posts', 'Text-only public post', 'GuestPostComments']) assert.match(post, new RegExp(text));
+  for (const text of ['Back to public profiles', 'Public profile', 'Unavailable']) assert.match(profile, new RegExp(text));
+  for (const text of ['CommentForm', 'FollowButton', 'MessageButton', 'LikeButton', 'BookmarkButton', 'onSubmit={', 'fetch(']) {
+    assert.equal(post.includes(text), false, `post ${text}`);
+    assert.equal(profile.includes(text), false, `profile ${text}`);
+  }
+});

@@ -1,5 +1,49 @@
 # VIBE Documentation
 
+
+### Guest access final audit (0.3.10)
+
+The 0.3 guest-access pass now has regression coverage for the polished public detail navigation, text-only post fallback and read-only conversion surfaces. Public guest routes were rechecked against local live data, while anonymous write/API protections remain covered by the guest access tests.
+
+### Public detail page polish (0.3.9)
+
+Public post and profile detail pages now include VIBE-style back links for logged-out visitors. Text-only public posts use a clearer media fallback instead of a missing-media message. Public profile detail pages show an explicit public-profile label and use clearer fallback text when secondary counts cannot be loaded.
+
+
+### Public profile directory polish (0.3.8)
+
+The logged-out public profile directory now uses richer read-only profile cards. Cards show the public avatar, display name, compact status badges, username, a public-profile label, subtitle or bio fallback, and a clearer Open profile affordance. Search has a stronger input treatment and the result status names public profiles explicitly. These cards still select public fields only and expose no follow, message, settings or moderation actions.
+
+
+### Public feed card polish (0.3.7)
+
+Guest feed cards now show safe public context directly in the grid: compact author status badges, publish date, like count and optional location links. Text-only public posts no longer depend on missing media and get a dedicated open-post fallback tile. Empty public feeds use the same card language as the rest of guest browsing.
+
+
+### Guest conversion polish (0.3.6)
+
+Guest-facing public pages now use one shared Join prompt across the public feed, public profile directory, guest profile pages and guest post details. The prompt explains that reading remains available as a guest while likes, comments, follows, messages and saved posts require an account. It links to the same `/join` entry point and keeps all member actions blocked by the existing guest access rules.
+
+### Public comments read-only (0.3.5)
+
+Public post detail pages now show comments and first-level replies to logged-out visitors. The guest comment view is read-only: it renders public author identity, compact status badges and text only. Like, reply, report, edit and delete controls are not rendered. Comment query failures are isolated so the public post remains readable.
+
+### Public access audit (0.3.4)
+
+The guest access audit adds regression coverage around anonymous route rewrites, member-only redirects, write blocking, public field selection and metadata fail-closed behavior. Public profile and post preview metadata now has explicit tests proving that missing, archived, private-author or private-profile resources return noindex metadata and use the same public-only filters as the rendered guest pages.
+
+### Public SEO and share previews (0.3.3)
+
+Public guest profile and post pages generate stable metadata for link previews: titles, descriptions, canonical URLs, OpenGraph images and Twitter cards. Metadata queries use the same public-only access rules as the pages. Missing, archived, private-author or invalid resources return noindex metadata instead of exposing private details.
+
+### Public post detail polish (0.3.2)
+
+Logged-out post detail pages remain read-only but now present public posts more clearly: author identity, compact status badges, date, like count, optional location links and safe media/text fallbacks. Guests see Join VIBE guidance instead of member actions. Public access still requires a non-archived post whose author profile is public.
+
+### Public profile polish (0.3.1)
+
+Logged-out public profile pages keep the 0.3 restricted-access model while showing safe profile details that already belong to the public profile: visible links, non-private shoutouts, visible milestones and public post/follow counts. These sections follow the owner's profile visibility switches and never expose follow, message, comment, bookmark, settings or moderation actions. A guest-facing Join to interact entry point appears beside public posts. Optional sections and count queries fail softly so a temporary secondary-data issue does not hide the whole public profile.
+
 ### Restricted guest access (0.3.0)
 
 Version 0.3 makes logged-out VIBE access intentionally read-only. Guests may view public posts, public profile pages and the public `/profiles` directory. The proxy rewrites anonymous `/home`, `/posts/[id]`, `/profile/[username]` and `/profiles` requests to dedicated guest pages. All member actions, private routes and write APIs remain server-protected even when a UI control is hidden.
@@ -18,7 +62,7 @@ Settings → Sign-in methods shows provider status and the date it was linked. G
 
 Provider conflicts lead to `/settings/login/conflict`, with bilingual recovery steps and a support link. Failure to load linked methods hides mutation controls. Deletion receipts are saved as `user-delete` admin activity in the deletion transaction, including a random receipt ID and no deleted-user identifiers or credentials.
 
-Run `node scripts/check-login-deployment.cjs https://vibe-social-network.vercel.app` for read-only provider callback-origin and anonymous-session checks. This does not perform OAuth consent or prove database write behavior. Current web version is 0.3.0; native packages keep their actual artifact version until rebuilt (currently 0.2.0). The UI separately displays the web version and the running native wrapper version.
+Run `node scripts/check-login-deployment.cjs https://vibe-social-network.vercel.app` for read-only provider callback-origin and anonymous-session checks. This does not perform OAuth consent or prove database write behavior. Current web version is 0.3.10; native packages keep their actual artifact version until rebuilt (currently 0.2.0). The UI separately displays the web version and the running native wrapper version.
 
 ### Additional sign-in methods
 

@@ -10,8 +10,8 @@ export const publicPostWhere = {
   ],
 } satisfies Prisma.PostWhereInput;
 
-export const guestAuthorSelect = { username: true, name: true, avatar: true, avatarAccent: true, avatarAccentEnd: true, avatarAccentDirection: true } satisfies Prisma.ProfileSelect;
-export const guestPostSelect = { id: true, image: true, images: true, mediaTypes: true, videoPosters: true, description: true, createdAt: true, author: { select: guestAuthorSelect } } satisfies Prisma.PostSelect;
+export const guestAuthorSelect = { username: true, name: true, avatar: true, avatarAccent: true, avatarAccentEnd: true, avatarAccentDirection: true, isAdmin: true, isVerified: true, profileBadges: true, hiddenProfileBadges: true } satisfies Prisma.ProfileSelect;
+export const guestPostSelect = { id: true, image: true, images: true, mediaTypes: true, videoPosters: true, description: true, createdAt: true, likesCount: true, locationLabel: true, locationLatitude: true, locationLongitude: true, author: { select: guestAuthorSelect } } satisfies Prisma.PostSelect;
 
 export function getGuestPosts(username?: string, page = 1) {
   return prisma.post.findMany({
