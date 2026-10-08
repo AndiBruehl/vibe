@@ -64,6 +64,18 @@ test("aborted and subframe requests do not replace the page", async () => {
   result.windows[0].webContents.emit("did-fail-load", {}, -105, "offline", "", false);
   assert.equal(result.files.length,0);
 });
+
+test("OAuth network failure recovers the last VIBE page rather than an OAuth callback", async () => {
+  const result = await boot();
+  const page = result.urls[0] + 'settings/login';
+  result.windows[0].webContents.emit('did-navigate', {}, page);
+  result.windows[0].webContents.emit('did-navigate', {}, 'https://discord.com/oauth2/authorize');
+  result.windows[0].webContents.emit('did-navigate', {}, result.urls[0] + 'api/auth/callback/discord?code=secret');
+  result.windows[0].webContents.emit('did-fail-load', {}, -105, 'offline', '', true);
+  assert.equal(result.files[0].options.query.retry, page);
+  result.menu.find(item => item.label === 'View').submenu[0].click();
+  assert.equal(result.urls.at(-1), page);
+});
 test("a second instance exits without creating a competing window", async () => {
   const result = await boot(false);
   assert.equal(result.quit,true);

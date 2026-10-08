@@ -23,7 +23,11 @@ cd android
 
 Output: `android/app/build/outputs/apk/release/app-release.apk`. This bundles the JavaScript and does not need Metro. The existing Gradle configuration uses the development keystore, so this artifact is for testing; a store release needs a private production signing key.
 
-## Google sign-in
+## Google and Discord sign-in (0.4.1)
+
+The active app is the WebView shell in `App.tsx`. Both providers open `/api/mobile/auth/start` in the system browser. Sign-in method linking uses a one-use proof from the authenticated Settings page and returns without replacing the current mobile session. Deploy the matching backend before distributing the new APK. The original Google endpoint remains available to older APKs.
+
+### Legacy native screen
 
 The app opens the server's `/api/mobile/auth/google/start` endpoint in the system browser. The backend completes Google OAuth and redirects to `vibe://auth`, preserving the app's attempt identifier. The app checks the callback, validates the mobile token with `/api/mobile/profile`, then stores it in Expo SecureStore. Existing AsyncStorage tokens are migrated on first use.
 

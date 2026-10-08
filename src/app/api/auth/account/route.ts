@@ -31,7 +31,7 @@ export async function POST(request: Request) {
       if (!await loginRate(`link:${profile.email}`, 10)) return NextResponse.json({ error: "RateLimited" }, { status: 429 });
       const token = newSecret();
       await prisma.loginProof.create({ data: { id: secretDigest(token), email: profile.email, provider: body.provider, kind: "link", expiresAt: new Date(Date.now() + 10 * 60 * 1000) } });
-      const response = NextResponse.json({ ok: true });
+      const response = NextResponse.json({ ok: true, ...(body.native === true ? { linkToken: token } : {}) });
       const secure = origin.startsWith("https:");
       response.cookies.set("vibe-link", token, { httpOnly: true, secure, sameSite: secure ? "none" : "lax", path: "/api/auth", maxAge: 600 });
       return response;

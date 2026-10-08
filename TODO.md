@@ -427,3 +427,9 @@ Implemented and covered by access regression tests. Native packages remain uncha
 - For story slides that share a post, open a small dismissible pill on a short tap with a clear "View post / Beitrag ansehen" link and an X close control. Keep press-and-hold exclusively for pausing the story. ✅
 
 - Completed 2026-10-08: rebuilt Android APK 0.4.0 (versionCode 93) and Windows EXE 0.4.0; verified package versions and updated release metadata/download paths. Beta artifacts are included in the release; real-device acceptance remains open.
+
+## 0.4.1 release and acceptance
+
+- Implemented Android Google/Discord entry, browser linking return, callback validation and desktop recovery to the last VIBE page.
+- Completed: Web/native version alignment, rocket emoji, matching APK/EXE artifacts and download metadata, documented recovery behavior and automated checks.
+- Still open: real Google/Discord login and linking on Android and Windows, including cancel, offline/retry and app restart. The 0.4.1 APK requires the matching backend deployment.

@@ -34,9 +34,19 @@ export default function LoginMethods({ providers, emailEnabled, register = false
     if (disabled) return;
     setBusy(true); setMessage("");
     try {
+      const androidVersion = navigator.userAgent.match(/VibeAndroid\/(\d+)\.(\d+)\.(\d+)/);
+      const supportsNativeLink = androidVersion && (Number(androidVersion[1]) > 0 || Number(androidVersion[2]) > 4 || (Number(androidVersion[2]) === 4 && Number(androidVersion[3]) >= 1));
+      const native = supportsNativeLink ? (window as Window & { ReactNativeWebView?: { postMessage: (message: string) => void } }).ReactNativeWebView : undefined;
       if (linking) {
-        const response = await fetch("/api/auth/account", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "link", provider }), signal: AbortSignal.timeout(12000) });
+        const response = await fetch("/api/auth/account", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "link", provider, native: Boolean(native) }), signal: AbortSignal.timeout(12000) });
         if (!response.ok) throw Error("link unavailable");
+        if (native) {
+          const data = await response.json();
+          if (typeof data.linkToken !== "string") throw Error("link unavailable");
+          native.postMessage(JSON.stringify({ type: "vibe-link-provider", provider, linkToken: data.linkToken }));
+          setBusy(false);
+          return;
+        }
       }
       await signIn(provider, {
         redirectTo: linking ? "/settings/login" : "/home",

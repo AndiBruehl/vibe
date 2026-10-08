@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Alert, Animated, BackHandler, Easing, Linking, Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Animated, BackHandler, Easing, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { WebView } from "react-native-webview";
@@ -87,6 +87,11 @@ export type RootStackParamList = {
 export default function App() {
   const browser = useRef<WebView>(null);
   const initialDocumentLoaded = useRef(false);
+  const loginInFlight = useRef(false);
+  const completingLogin = useRef(false);
+  const completedCallback = useRef<string | null>(null);
+  const [lastProvider, setLastProvider] = useState<"google" | "discord">("google");
+  const [acknowledged, setAcknowledged] = useState(false);
   const navigationProgress = useRef(new Animated.Value(0)).current;
   const [loading, setLoading] = useState(true);
   const [navigating, setNavigating] = useState(false);
@@ -114,33 +119,59 @@ export default function App() {
   }, [mobileToken]);
 
   const finishLogin = useCallback(async (url: string) => {
+    if (completingLogin.current || completedCallback.current === url) return;
+    completingLogin.current = true;
+    try {
     const stored = await SecureStore.getItemAsync(pendingLoginKey);
     const pending = stored ? JSON.parse(stored) as PendingLogin : null;
     const token = parseLoginCallback(url, pending);
+    if (token === "linked") {
+      await SecureStore.deleteItemAsync(pendingLoginKey);
+      completedCallback.current = url;
+      browser.current?.reload();
+      Alert.alert("VIBE", "Sign-in method linked to your existing profile.");
+      return;
+    }
+    const response = await fetch(`${vibeUrl}/api/mobile/profile`, { headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(15000) });
+    if (!response.ok) throw new Error(response.status === 401 ? "Your sign-in expired. Please try again." : "VIBE is temporarily unavailable. Please try again.");
+    const profile = await response.json();
+    if (!profile?.id) throw new Error("VIBE could not validate this sign-in. Please try again.");
     await SecureStore.setItemAsync(mobileTokenKey, token);
     await SecureStore.deleteItemAsync(pendingLoginKey);
     setMobileToken(token);
+    completedCallback.current = url;
+    } finally { completingLogin.current = false; }
   }, []);
 
-  const startLogin = useCallback(async () => {
+  const startLogin = useCallback(async (provider: "google" | "discord", linkToken?: string) => {
+    if (loginInFlight.current) return;
+    loginInFlight.current = true;
+    setLastProvider(provider);
     setSigningIn(true); setLoginError(null);
     try {
       const state = Crypto.randomUUID();
-      await SecureStore.setItemAsync(pendingLoginKey, JSON.stringify({ state, startedAt: Date.now() }));
+      await SecureStore.setItemAsync(pendingLoginKey, JSON.stringify({ state, startedAt: Date.now(), linking: Boolean(linkToken) }));
       const redirectUri = `vibe://auth?state=${encodeURIComponent(state)}`;
-      const url = `${vibeUrl}/api/mobile/auth/google/start?redirectUri=${encodeURIComponent(redirectUri)}`;
+      const url = `${vibeUrl}/api/mobile/auth/start?provider=${provider}&redirectUri=${encodeURIComponent(redirectUri)}${linkToken ? `&linkToken=${encodeURIComponent(linkToken)}` : ""}`;
       const result = await WebBrowser.openAuthSessionAsync(url, redirectUri);
-      if (result.type !== "success") throw new Error("Sign-in was cancelled. Please try again.");
+      if (result.type !== "success") {
+        await SecureStore.deleteItemAsync(pendingLoginKey);
+        throw new Error("Sign-in was cancelled. You can try again here.");
+      }
       await finishLogin(result.url);
     } catch (cause) {
-      setLoginError(cause instanceof Error ? cause.message : "Google sign-in failed.");
-    } finally { setSigningIn(false); }
+      setLoginError(cause instanceof Error ? cause.message : "Sign-in failed. Please try again.");
+      if (linkToken) Alert.alert("VIBE", cause instanceof Error ? cause.message : "Linking failed. Please try again from Settings.");
+    } finally { loginInFlight.current = false; setSigningIn(false); }
   }, [finishLogin]);
 
   useEffect(() => {
     const subscription = Linking.addEventListener("url", ({ url }) => {
-      if (url.startsWith("vibe://auth")) void finishLogin(url).catch(cause => setLoginError(cause instanceof Error ? cause.message : "Google sign-in failed."));
+      if (url.startsWith("vibe://auth")) void finishLogin(url).catch(cause => setLoginError(cause instanceof Error ? cause.message : "Sign-in failed. Please try again."));
     });
+    void Linking.getInitialURL().then(url => {
+      if (url?.startsWith("vibe://auth")) return finishLogin(url);
+    }).catch(() => setLoginError("Could not resume sign-in. Please try again."));
     return () => subscription.remove();
   }, [finishLogin]);
 
@@ -207,7 +238,9 @@ export default function App() {
       injectedJavaScript={themeBridge}
       onMessage={({ nativeEvent }) => {
         try {
-          const data = JSON.parse(nativeEvent.data) as { type?: string; dark?: boolean };
+          if (new URL(nativeEvent.url).origin !== new URL(vibeUrl).origin) return;
+          const data = JSON.parse(nativeEvent.data) as { type?: string; dark?: boolean; provider?: string; linkToken?: string };
+          if (data.type === "vibe-link-provider" && (data.provider === "google" || data.provider === "discord") && typeof data.linkToken === "string" && /^[a-f0-9]{64}$/.test(data.linkToken)) void startLogin(data.provider, data.linkToken);
           if (data.type === "vibe-theme") setWebDarkMode(Boolean(data.dark));
         } catch { /* Ignore messages not emitted by the VIBE theme bridge. */ }
       }}
@@ -245,7 +278,11 @@ export default function App() {
         void Linking.openURL(request.url);
         return false;
       }}
-    /> : <View style={styles.login}><Text style={styles.loginTitle}>VIBE</Text><Text style={styles.loginSubtitle}>Sign in to open VIBE.</Text><Pressable style={styles.loginButton} disabled={signingIn} onPress={() => void startLogin()}>{signingIn ? <ActivityIndicator color={colors.white} /> : <Text style={styles.loginButtonText}>Continue with Google</Text>}</Pressable>{loginError ? <Text style={styles.loginError}>{loginError}</Text> : null}</View>}
+    /> : <ScrollView contentContainerStyle={styles.login}><Text style={styles.loginTitle}>VIBE</Text><Text style={styles.loginSubtitle}>Sign in to open VIBE.</Text>
+      <Text style={styles.loginError}>Use your existing sign-in method. To use Google and Discord on one profile, link the other method in Settings first. An unlinked login with another email creates a separate account.</Text>
+      <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: acknowledged }} onPress={() => setAcknowledged(value => !value)}><Text style={styles.loginButtonText}>{acknowledged ? "☑" : "☐"} I have read and understood.</Text></Pressable>
+      {(["google", "discord"] as const).map(provider => <Pressable key={provider} accessibilityRole="button" style={[styles.loginButton, (!acknowledged || signingIn) && styles.updateButtonDisabled]} disabled={signingIn || !acknowledged} onPress={() => void startLogin(provider)}>{signingIn && lastProvider === provider ? <ActivityIndicator color={colors.white} /> : <Text style={styles.loginButtonText}>Continue with {provider === "google" ? "Google" : "Discord"}</Text>}</Pressable>)}
+      {loginError ? <><Text accessibilityRole="alert" style={styles.loginError}>{loginError}</Text><Pressable accessibilityRole="button" disabled={signingIn || !acknowledged} style={styles.retry} onPress={() => void startLogin(lastProvider)}><Text style={styles.retryText}>Try again</Text></Pressable></> : null}</ScrollView>}
     {mobileToken && loading && <View pointerEvents="none" style={styles.loading}><ActivityIndicator color={colors.red} size="large" /></View>}
     {mobileToken && navigating && <View pointerEvents="none" style={styles.navigationFeedback}>
       <Animated.View style={[styles.navigationProgress, { width: navigationProgress.interpolate({ inputRange: [0, 1], outputRange: ["0%", "100%"] }) }]} />
@@ -300,7 +337,7 @@ const styles = StyleSheet.create({
   errorText: { color: colors.textSoft, textAlign: "center" },
   retry: { minHeight: 48, justifyContent: "center", borderRadius: 14, paddingHorizontal: 22, backgroundColor: colors.red },
   retryText: { color: colors.white, fontWeight: "800" },
-  login: { flex: 1, alignItems: "center", justifyContent: "center", padding: 28, gap: 14 },
+  login: { flexGrow: 1, alignItems: "center", justifyContent: "center", padding: 28, gap: 14 },
   loginTitle: { color: colors.text, fontSize: 40, fontWeight: "900" },
   loginSubtitle: { color: colors.textSoft, fontSize: 16 },
   loginButton: { alignItems: "center", backgroundColor: colors.red, borderRadius: 16, justifyContent: "center", marginTop: 10, minHeight: 54, paddingHorizontal: 24, alignSelf: "stretch" },

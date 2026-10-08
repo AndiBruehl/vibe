@@ -1,13 +1,14 @@
 const { app, BrowserWindow, Menu, shell, screen, dialog } = require("electron");
 const path = require("node:path");
 const fs = require("node:fs");
-const { DEFAULT_APP_URL, resolveAppUrl, isWebUrl, windowBounds } = require("./runtime.cjs");
+const { DEFAULT_APP_URL, resolveAppUrl, isWebUrl, windowBounds, recoveryUrl } = require("./runtime.cjs");
 
 let appUrl = DEFAULT_APP_URL;
 let mainWindow = null;
 let showingError = false;
 let logFile;
 let updateCheckStarted = false;
+let lastAppUrl = null;
 
 const RELEASE_MANIFEST_URL = "https://api.github.com/repos/AndiBruehl/vibe/contents/public/releases/latest.json";
 
@@ -154,14 +155,14 @@ function focusWindow() {
 function loadApp() {
   if (!mainWindow || mainWindow.isDestroyed()) return;
   showingError = false;
-  void mainWindow.loadURL(appUrl).catch(() => log("navigation-failed"));
+  void mainWindow.loadURL(lastAppUrl || appUrl).catch(() => log("navigation-failed"));
 }
 
 function showConnectionError(code) {
   if (!mainWindow || mainWindow.isDestroyed() || showingError) return;
   showingError = true;
   void mainWindow.loadFile(path.join(__dirname, "..", "assets", "connection-error.html"), {
-    query: { retry: appUrl, code: String(code) },
+    query: { retry: lastAppUrl || appUrl, code: String(code) },
   }).catch(() => {
     log("error-page-failed");
     dialog.showErrorBox("VIBE could not start", "The application files could not be loaded. Reinstall VIBE using the complete setup package.");
@@ -208,6 +209,12 @@ function createWindow() {
   mainWindow.webContents.on("will-navigate", (event, url) => {
     if (!isWebUrl(url)) event.preventDefault();
     else showingError = false;
+  });
+  mainWindow.webContents.on("did-navigate", (_event, url) => {
+    lastAppUrl = recoveryUrl(url, appUrl) || lastAppUrl;
+  });
+  mainWindow.webContents.on("did-navigate-in-page", (_event, url, isMainFrame) => {
+    if (isMainFrame) lastAppUrl = recoveryUrl(url, appUrl) || lastAppUrl;
   });
   mainWindow.webContents.on("page-title-updated", event => {
     event.preventDefault();

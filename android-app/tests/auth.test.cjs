@@ -33,6 +33,14 @@ test("handles cancellation and missing tokens as errors", () => {
   assert.throws(() => parseLoginCallback("vibe://auth?state=unique-attempt&error=Cancelled", pending, 2000), /Cancelled/);
   assert.throws(() => parseLoginCallback("vibe://auth?state=unique-attempt", pending, 2000), /mobile session/);
 });
+test("malformed stored attempts cannot bypass the expiry check", () => {
+  for (const startedAt of [undefined, NaN, '1000']) assert.throws(() => parseLoginCallback('vibe://auth?state=unique-attempt&token=session', { state: 'unique-attempt', startedAt }, 2000));
+});
+test("link completion requires a linking attempt and does not return a replacement token", () => {
+  const callback = 'vibe://auth?state=unique-attempt&linked=1';
+  assert.equal(parseLoginCallback(callback, { ...pending, linking: true }, 2000), 'linked');
+  assert.throws(() => parseLoginCallback(callback, pending, 2000));
+});
 
 function sessionFixture(failWrite = false) {
   const legacy = new Map([["vibe.mobileToken", "legacy-token"]]);

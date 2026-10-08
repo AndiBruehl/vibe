@@ -23,4 +23,15 @@ function windowBounds(workArea) {
   };
 }
 
-module.exports = { DEFAULT_APP_URL, resolveAppUrl, isWebUrl, windowBounds };
+function recoveryUrl(value, appUrl) {
+  try {
+    const url = new URL(value);
+    if (url.origin === new URL(appUrl).origin && !url.pathname.startsWith('/api/') && !url.username && !url.password) {
+      url.searchParams.delete('error'); url.searchParams.delete('notice');
+      return url.toString();
+    }
+  } catch { /* Keep the last safe VIBE destination. */ }
+  return null;
+}
+
+module.exports = { DEFAULT_APP_URL, resolveAppUrl, isWebUrl, windowBounds, recoveryUrl };

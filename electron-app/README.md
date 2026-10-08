@@ -2,6 +2,8 @@
 
 The desktop app loads the VIBE website. An internet connection is required.
 
+Version 0.4.1 remembers the last same-origin VIBE page for offline recovery. Reload after an OAuth/network failure returns there instead of replaying a callback URL. Cookies and the existing installation profile are retained.
+
 ## Local development
 
 Run `npm ci`, then `npm start`. For a local web server, set
