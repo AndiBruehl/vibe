@@ -44,7 +44,7 @@ for (const provider of ['google', 'discord']) {
   test(`${provider}: matching email alone never links a second provider`, async () => {
     const { resolve, writes, prisma } = setup(null, undefined, true);
     prisma.profile.findFirst = async () => ({ email: 'member@example.com' });
-    assert.equal((await resolve(provider, 'new-id', 'member@example.com', true)).redirect, '/?notice=link');
+    assert.equal((await resolve(provider, 'new-id', 'member@example.com', true)).redirect, '/join?notice=link');
     assert.equal(writes.length, 0);
   });
 }
@@ -75,7 +75,7 @@ for (const provider of ['google', 'discord']) {
   test(`${provider}: unverified email cannot recover an orphan`, async () => {
     for (const [email, verified] of [['member@example.com', false], ['other@example.com', false]]) {
       const { resolve, writes } = setup(null);
-      assert.equal((await resolve(provider, 'id', email, verified)).redirect, '/?notice=email');
+      assert.equal((await resolve(provider, 'id', email, verified)).redirect, '/join?notice=email');
       assert.deepEqual(writes, []);
     }
   });

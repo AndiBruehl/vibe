@@ -21,6 +21,7 @@ export default function LoginNotice() {
     OAuthCallbackError: ["The provider response could not be confirmed. Start sign-in again from this page.", "Die Antwort des Anbieters konnte nicht bestätigt werden. Starte die Anmeldung von dieser Seite erneut."],
     Configuration: ["This sign-in method is currently unavailable. Try another linked method or contact support.", "Diese Anmeldemethode ist gerade nicht verfügbar. Nutze eine andere verknüpfte Methode oder kontaktiere den Support."],
   };
-  const message = notice ? messages[notice] : params.has("error") ? errors[params.get("error") || ""] || ["Sign-in could not be completed. Start again or use another linked method.", "Die Anmeldung konnte nicht abgeschlossen werden. Starte erneut oder nutze eine andere verknüpfte Methode."] : null;
+  const error = params.get("error");
+  const message = notice ? messages[notice] : params.has("error") ? errors[error || ""] || ["Sign-in could not be completed. Start again or use another linked method.", "Die Anmeldung konnte nicht abgeschlossen werden. Starte erneut oder nutze eine andere verknüpfte Methode."] : null;
   return message ? <p role="status" className="rounded-xl border border-orange-400/40 p-3 text-sm">{message[de ? 1 : 0]}</p> : null;
 }

@@ -425,3 +425,5 @@ Implemented and covered by access regression tests. Native packages remain uncha
 ## BETA 0.1.69.3.1
 
 - For story slides that share a post, open a small dismissible pill on a short tap with a clear "View post / Beitrag ansehen" link and an X close control. Keep press-and-hold exclusively for pausing the story. ✅
+
+- Completed 2026-10-08: rebuilt Android APK 0.4.0 (versionCode 93) and Windows EXE 0.4.0; verified package versions and updated release metadata/download paths. Beta artifacts are included in the release; real-device acceptance remains open.

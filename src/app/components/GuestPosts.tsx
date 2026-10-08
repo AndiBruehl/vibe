@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { CalendarDays, Heart, MapPin } from "lucide-react";
-import { getGuestPosts } from "@/guest-content";
+import { getGuestPosts, guestPostSortOptions, type GuestPostSort } from "@/guest-content";
 import { getPostImages, getPostMediaTypes } from "@/post-images";
 import AdminBadge from "./AdminBadge";
 import PostThumbnail from "./PostThumbnail";
@@ -16,11 +16,23 @@ function formatPublicDate(date: Date) {
   return new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(date);
 }
 
-export default async function GuestPosts({ username, page = 1 }: { username?: string; page?: number }) {
+function sortHref(base: string, sort: GuestPostSort, page?: number) {
+  const params = new URLSearchParams();
+  if (sort !== "newest") params.set("sort", sort);
+  if (page && page > 1) params.set("page", String(page));
+  const query = params.toString();
+  return query ? `${base}?${query}` : base;
+}
+
+export default async function GuestPosts({ username, page = 1, sort = "newest" }: { username?: string; page?: number; sort?: GuestPostSort }) {
   let posts;
-  try { posts = await getGuestPosts(username, page); } catch { return <GuestUnavailable/>; }
+  try { posts = await getGuestPosts(username, page, sort); } catch { return <GuestUnavailable/>; }
   const base = username ? `/profile/${encodeURIComponent(username)}` : "/home";
   return <>
+    {!username && <nav aria-label="Guest post sorting" className="mb-4 flex flex-wrap items-center gap-2 rounded-2xl border border-slate-400/20 bg-white/70 p-2 text-sm dark:bg-slate-900/70">
+      <span className="px-2 font-bold text-slate-600 dark:text-slate-300"><LocalizedText en="Sort posts" de="Beiträge sortieren"/></span>
+      {guestPostSortOptions.map((option) => <Link key={option.value} href={sortHref(base, option.value)} className={`rounded-xl px-3 py-2 font-bold transition ${sort === option.value ? "bg-orange-500 text-white" : "hover:bg-slate-100 dark:hover:bg-white/10"}`}>{option.label}</Link>)}
+    </nav>}
     {!posts.length && <p className="rounded-2xl border border-slate-400/20 p-8 text-center text-sm text-slate-600 dark:text-slate-300"><LocalizedText en="No public posts here yet." de="Hier gibt es noch keine öffentlichen Beiträge."/></p>}
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{posts.map((post) => {
       const images = getPostImages(post).filter(Boolean);
@@ -40,6 +52,6 @@ export default async function GuestPosts({ username, page = 1 }: { username?: st
         </div>
       </article>;
     })}</div>
-    <div className="mt-5 flex justify-between gap-4">{page > 1 && <Link href={`${base}?page=${page - 1}`}><LocalizedText en="Previous" de="Zurück"/></Link>}{posts.length === 24 && page < 1000 && <Link href={`${base}?page=${page + 1}`}><LocalizedText en="Next" de="Weiter"/></Link>}</div>
+    <div className="mt-5 flex justify-between gap-4">{page > 1 && <Link href={sortHref(base, sort, page - 1)}><LocalizedText en="Previous" de="Zurück"/></Link>}{posts.length === 24 && page < 1000 && <Link href={sortHref(base, sort, page + 1)}><LocalizedText en="Next" de="Weiter"/></Link>}</div>
   </>;
 }

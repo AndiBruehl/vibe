@@ -1,6 +1,7 @@
 node_modules/
 .expo/
-dist/
+dist/*
+!dist/Vibe-BETA-0.4.0.apk
 android/local.properties
 *.jks
 *.p8

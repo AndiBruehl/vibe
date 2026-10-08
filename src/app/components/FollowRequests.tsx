@@ -7,8 +7,9 @@ import { UserRoundCheck } from "lucide-react";
 type FollowRequestsProps = { profileId: string; language: "en" | "de" };
 
 export default async function FollowRequests({ profileId, language }: FollowRequestsProps) {
+  const profiles = await prisma.profile.findMany({ select: { id: true } });
   const requests = await prisma.followRequest.findMany({
-    where: { followingId: profileId },
+    where: { followingId: profileId, followerId: { in: profiles.map((profile) => profile.id) } },
     include: { follower: { select: { username: true, name: true, avatar: true } } },
     orderBy: { createdAt: "desc" },
   });

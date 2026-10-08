@@ -1,14 +1,16 @@
 import GuestJoinPrompt from "@/app/components/GuestJoinPrompt";
 import GuestPosts from "@/app/components/GuestPosts";
 import LocalizedText from "@/app/components/LocalizedText";
-export default async function GuestHome({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
+import { normalizeGuestPostSort } from "@/guest-content";
+export default async function GuestHome({ searchParams }: { searchParams: Promise<{ page?: string; sort?: string }> }) {
   const query = await searchParams;
   const page = Math.min(1000, Math.max(1, Math.floor(Number(query.page) || 1)));
+  const sort = normalizeGuestPostSort(query.sort);
   return <>
     <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
       <h1 className="text-2xl font-bold"><LocalizedText en="Public posts" de="Öffentliche Beiträge"/></h1>
       <div className="w-full sm:max-w-md"><GuestJoinPrompt compact /></div>
     </div>
-    <GuestPosts page={page}/>
+    <GuestPosts page={page} sort={sort}/>
   </>;
 }

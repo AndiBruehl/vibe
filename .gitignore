@@ -52,6 +52,7 @@ next-env.d.ts
 
 # Local development logs and Android build cache
 .next-dev*.log
+.next-vibe-dev*.log
 android-app/android/.kotlin/
 
 # Temporary Android release-build logs

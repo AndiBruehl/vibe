@@ -125,12 +125,14 @@ export default async function ActivityPage() {
   // records prevents Prisma from failing the complete activity query.
   const validPosts = await prisma.post.findMany({ select: { id: true } });
   const validPostIds = validPosts.map((post) => post.id);
+  const validProfiles = await prisma.profile.findMany({ select: { id: true } });
+  const validFollowerIds = validProfiles.map((profile) => profile.id);
 
   const [follows, followRequests, postLikes, comments, commentLikes, conversations, mentions, adminActivities] = await Promise.all([
     // Safe Follows
     prisma.follow
       .findMany({
-        where: { followingId: currentUserProfile.id },
+        where: { followingId: currentUserProfile.id, followerId: { in: validFollowerIds } },
         include: {
           follower: {
             select: { name: true, username: true, avatar: true },
@@ -143,7 +145,7 @@ export default async function ActivityPage() {
 
     prisma.followRequest
       .findMany({
-        where: { followingId: currentUserProfile.id },
+        where: { followingId: currentUserProfile.id, followerId: { in: validFollowerIds } },
         include: { follower: { select: { name: true, username: true, avatar: true } } },
         orderBy: { createdAt: "desc" },
         take: 15,

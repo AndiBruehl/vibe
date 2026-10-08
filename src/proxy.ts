@@ -5,6 +5,11 @@ import { guestDestination, isGuestPage, isPublicAsset } from "@/guest-access";
 
 const proxyHandler = auth(async (request) => {
   const path = request.nextUrl.pathname.replace(/\/$/, "") || "/";
+  if (path === "/" && (request.nextUrl.searchParams.has("error") || request.nextUrl.searchParams.has("notice") || request.nextUrl.searchParams.has("loginError"))) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/join";
+    return NextResponse.redirect(url);
+  }
   if (request.auth?.user?.email || isPublicAsset(path)) return NextResponse.next();
   // Auth endpoints validate their own OAuth state, CSRF tokens or mobile token.
   if (path.startsWith("/api/auth/") || path.startsWith("/api/mobile/auth/")) return NextResponse.next();

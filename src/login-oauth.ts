@@ -36,26 +36,26 @@ export async function resolveOAuth(provider: string, accountId: string, emailInp
     // provider (explicit linking supports different emails). After deletion,
     // register against the provider's currently verified email instead.
     if (!verified || !normalizeEmail(emailInput)) {
-      return { redirect: "/?notice=email" };
+      return { redirect: "/join?notice=email" };
     }
     await prisma.loginIdentity.deleteMany({ where: { id, email: identity.email } });
   }
   const email = normalizeEmail(emailInput);
-  if (!email) return { redirect: "/?notice=email" };
+  if (!email) return { redirect: "/join?notice=email" };
   const existing = await prisma.profile.findFirst({ where: { email: { equals: email, mode: "insensitive" } }, select: { email: true } });
   if (existing) {
     // A second provider must be explicitly linked from the signed-in account.
     // Only bootstrap old Google-only profiles that predate identity records.
     const known = await prisma.loginIdentity.findFirst({ where: { email: existing.email }, select: { id: true } });
     const password = await prisma.loginCredential.findUnique({ where: { id: credentialId(email) }, select: { id: true } });
-    if (provider !== "google" || !verified || known || password) return { redirect: "/?notice=link" };
+    if (provider !== "google" || !verified || known || password) return { redirect: "/join?notice=link" };
     await prisma.loginIdentity.create({ data: { id, provider, email: existing.email } });
     return { email: existing.email };
   }
   if (!verified) {
-    if (provider !== "microsoft-entra-id") return { redirect: "/?notice=email" };
+    if (provider !== "microsoft-entra-id") return { redirect: "/join?notice=email" };
     if (await loginRate(`oauth-mail:${email}`, 3)) await issueProof(email, "oauth", false, { provider, identityId: id });
-    return { redirect: "/?notice=verify" };
+    return { redirect: "/join?notice=verify" };
   }
   await prisma.$transaction(async (tx) => {
     const base = email.split("@")[0].replace(/[^a-z0-9_-]/g, "").slice(0, 20) || "user";

@@ -8,7 +8,7 @@ import { cookies } from "next/headers";
 import { availableLoginProviders, emailAuthAvailable } from "@/auth-options";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  pages: { signIn: "/", error: "/" },
+  pages: { signIn: "/", error: "/join" },
   providers: [
     Google({
       clientId: process.env.AUTH_GOOGLE_ID ?? process.env.GOOGLE_CLIENT_ID,
@@ -18,7 +18,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
     ...(availableLoginProviders().find((p) => p.id === "microsoft-entra-id")?.enabled ? [MicrosoftEntraID({ clientId: process.env.AUTH_MICROSOFT_ENTRA_ID_ID, clientSecret: process.env.AUTH_MICROSOFT_ENTRA_ID_SECRET, issuer: process.env.AUTH_MICROSOFT_ENTRA_ID_ISSUER || "https://login.microsoftonline.com/common/v2.0" })] : []),
     ...(availableLoginProviders().find((p) => p.id === "apple")?.enabled ? [Apple({ clientId: process.env.AUTH_APPLE_ID, clientSecret: process.env.AUTH_APPLE_SECRET })] : []),
-    ...(availableLoginProviders().find((p) => p.id === "discord")?.enabled ? [Discord({ clientId: process.env.AUTH_DISCORD_ID, clientSecret: process.env.AUTH_DISCORD_SECRET })] : []),
+    ...(availableLoginProviders().find((p) => p.id === "discord")?.enabled ? [Discord({ clientId: process.env.AUTH_DISCORD_ID, clientSecret: process.env.AUTH_DISCORD_SECRET, issuer: "https://discord.com" })] : []),
     ...(emailAuthAvailable() ? [Credentials({
       id: "password", name: "Email and password", credentials: { email: {}, password: { type: "password" } },
       async authorize(credentials) {
@@ -98,11 +98,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           const linkToken = cookieStore.get("vibe-link")?.value;
           if (linkToken) cookieStore.set("vibe-link", "", { path: "/api/auth", maxAge: 0 });
           const resolved = await resolveOAuth(account.provider, account.providerAccountId, user.email, verified, linkToken, user.name);
-          if (resolved.redirect) return resolved.redirect;
+          if (resolved.redirect) {
+            return resolved.redirect;
+          }
           user.email = resolved.email;
         } catch (error) {
-          console.error("OAuth provider resolution failed", { provider: account.provider, error });
-          return "/?notice=unavailable";
+          console.error("[auth] OAuth provider resolution failed", { provider: account.provider, error });
+          return "/join?notice=unavailable";
         }
       }
       if (!user.email) {

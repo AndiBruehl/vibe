@@ -153,3 +153,48 @@ test('guest detail pages include polished navigation and read-only fallbacks', (
     assert.equal(profile.includes(text), false, `profile ${text}`);
   }
 });
+
+
+
+test('join page requires acknowledgement before starting guest account oauth', () => {
+  const join = fs.readFileSync('src/app/join/page.tsx', 'utf8');
+  const login = fs.readFileSync('src/app/components/LoginMethods.tsx', 'utf8');
+  assert.match(join, /requireAcknowledgement/);
+  assert.match(join, /unlinked Google or Discord login creates a separate new account/);
+  assert.match(login, /next-auth\/react/);
+  assert.match(login, /signIn\(provider/);
+  assert.match(login, /!acknowledged/);
+  assert.equal(login.includes('/api/auth/csrf'), false);
+  assert.equal(login.includes('/api/auth/signin/'), false);
+});
+
+
+test('root auth errors are redirected to join without changing protected routing', () => {
+  const root = fs.readFileSync('src/app/page.tsx', 'utf8');
+  const policy = fs.readFileSync('src/proxy.ts', 'utf8');
+  assert.match(policy, /pathname = "\/join"/);
+  assert.match(policy, /searchParams\.has\("error"\)/);
+  assert.match(root, /redirect\("\/home"\)/);
+});
+
+test('guest public posts support read-only sorting without protected routing changes', async () => {
+  let query;
+  const content = load('src/guest-content.ts', { '@/db': { prisma: { post: { findMany: async (args) => { query = args; return []; } } } } });
+  assert.equal(content.normalizeGuestPostSort('liked'), 'liked');
+  assert.equal(content.normalizeGuestPostSort('unknown'), 'newest');
+  await content.getGuestPosts(undefined, 1, 'liked');
+  assert.equal(JSON.stringify(query.orderBy), JSON.stringify([{ likesCount: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }]));
+  await content.getGuestPosts(undefined, 1, 'oldest');
+  assert.equal(JSON.stringify(query.orderBy), JSON.stringify([{ createdAt: 'asc' }, { id: 'asc' }]));
+  const guestHome = fs.readFileSync('src/app/guest/page.tsx', 'utf8');
+  const guestPosts = fs.readFileSync('src/app/components/GuestPosts.tsx', 'utf8');
+  assert.match(guestHome, /normalizeGuestPostSort/);
+  assert.match(guestPosts, /Guest post sorting/);
+});
+
+
+
+test('discord provider pins the issuer Discord now sends in callbacks', () => {
+  const auth = fs.readFileSync('src/auth.ts', 'utf8');
+  assert.match(auth, /Discord\(\{[^}]*issuer: "https:\/\/discord\.com"/s);
+});

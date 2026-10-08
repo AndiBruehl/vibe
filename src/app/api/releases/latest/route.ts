@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import releaseManifest from "../../../../../public/releases/latest.json";
 
 type GitHubFile = {
   name: string;
@@ -35,6 +36,7 @@ async function getLatestRelease(
     {
       headers: { Accept: "application/vnd.github+json" },
       cache: "no-store",
+      signal: AbortSignal.timeout(8000),
     },
   );
 
@@ -58,12 +60,12 @@ export async function GET() {
     getLatestRelease(
       "electron-app/dist",
       /^Vibe-Setup-(?:BETA-)?(\d+(?:\.\d+){2,4})-x64\.exe$/,
-    ),
-    getLatestRelease("android-app/dist", /^Vibe-(?:BETA-)?(\d+(?:\.\d+){2,4})\.apk$/),
+    ).catch(() => null),
+    getLatestRelease("android-app/dist", /^Vibe-(?:BETA-)?(\d+(?:\.\d+){2,4})\.apk$/).catch(() => null),
   ]);
 
   return NextResponse.json(
-    { windows, android },
+    { windows: windows ?? releaseManifest.windows, android: android ?? releaseManifest.android },
     { headers: { "Cache-Control": "no-store" } },
   );
 }

@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
   const token = formData.get("token");
 
   if (typeof token !== "string" || !token) {
-    return NextResponse.redirect(new URL("/?loginError=invalid", request.url));
+    return NextResponse.redirect(new URL("/join?loginError=invalid", request.url));
   }
 
   return signIn("mobile", {
