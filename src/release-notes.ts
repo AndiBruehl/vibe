@@ -6,6 +6,7 @@ export type ReleaseNote = {
 
 // Keep newest releases first. This is the single source for the Home changelog.
 export const webReleaseNotes: ReleaseNote[] = [
+  { version: "0.4.10.8", date: "2026-10-09", changes: ["Fixed Quick Settings feedback timers so router refresh after language save cannot leave the green saved pill stuck on screen.", "Separated mount/unmount cleanup from initial language/theme syncing.", "Added regression coverage so prop refresh does not clear feedback timers."] },
   { version: "0.4.10.7", date: "2026-10-09", changes: ["Fixed Quick Settings language changes so the working pill is replaced by the green saved pill after the save succeeds.", "Language saves now use the same feedback-then-close order as theme saves.", "Added regression coverage for working-to-saved language feedback before panel close."] },
   { version: "0.4.10.6", date: "2026-10-09", changes: ["Quick Settings now waits for the green saved pill to fade out before closing the panel.", "Successful and failed saves cancel the generic auto-close timer while feedback is visible.", "The panel still closes with the reverse exit animation after feedback has disappeared."] },
   { version: "0.4.10.5", date: "2026-10-09", changes: ["Quick Settings now pauses the auto-close timer while the pointer or focus is inside the orb.", "Re-entering the orb clears a running auto-close timer and leaving it starts a fresh timer.", "Added regression coverage for hover pause, timer reset and restart after leaving."] },

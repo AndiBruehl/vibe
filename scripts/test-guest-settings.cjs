@@ -7,7 +7,7 @@ const ts = require('typescript');
 function settings(blockStorage, guest = true) {
   const slots = [], themes = [], events = [], storage = new Map();
   const timers = new Map();
-  let index = 0, refIndex = 0, timerId = 0, tree, requests = 0;
+  let index = 0, refIndex = 0, timerId = 0, now = 0, tree, requests = 0;
   const refs = [];
   const module = { exports: {} };
   const code = ts.transpileModule(fs.readFileSync('src/app/components/QuickSettings.tsx', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX } }).outputText;
@@ -15,7 +15,7 @@ function settings(blockStorage, guest = true) {
   vm.runInNewContext(code, { module, exports: module.exports, document,
     window: {
       dispatchEvent: (event) => events.push(event),
-      setTimeout: (callback) => { const id = ++timerId; timers.set(id, callback); return id; },
+      setTimeout: (callback, delay = 0) => { const id = ++timerId; timers.set(id, { callback, due: now + delay }); return id; },
       clearTimeout: (id) => timers.delete(id),
     },
     CustomEvent: function (type, options) { this.type = type; this.detail = options.detail; },
@@ -42,7 +42,8 @@ function settings(blockStorage, guest = true) {
     nodes: () => nodes(tree),
     timerCount: () => timers.size,
     async event(predicate, handlerName) { const node = nodes(tree).find(predicate); assert.ok(node); await node.props[handlerName]({ currentTarget: { contains: () => false }, relatedTarget: null }); render(); },
-    runTimers() { const pending = [...timers.values()]; timers.clear(); for (const callback of pending) callback(); render(); },
+    runTimers() { const pending = [...timers.values()].map((timer) => timer.callback); timers.clear(); for (const callback of pending) callback(); render(); },
+    advance(ms) { now += ms; const ready = [...timers.entries()].filter(([, timer]) => timer.due <= now); for (const [id] of ready) timers.delete(id); for (const [, timer] of ready) timer.callback(); render(); },
     async click(predicate) { const node = nodes(tree).find(predicate); assert.ok(node); await node.props.onClick(); await Promise.resolve(); await Promise.resolve(); render(); },
   };
 }
@@ -108,10 +109,10 @@ test('quick settings waits for saved pill to hide before closing', async () => {
   await app.click((n) => n.props?.title === 'Dark');
   assert.ok(app.nodes().some((n) => n.props?.role === 'status' && String(n.props?.className ?? '').includes('vibe-quick-settings-feedback-saved')));
   assert.equal(app.nodes().some((n) => String(n.props?.className ?? '').includes('vibe-quick-settings-panel-exit')), false);
-  app.runTimers();
+  app.advance(2200);
   assert.ok(app.nodes().some((n) => String(n.props?.className ?? '').includes('vibe-quick-settings-feedback-exit')));
   assert.equal(app.nodes().some((n) => String(n.props?.className ?? '').includes('vibe-quick-settings-panel-exit')), false);
-  app.runTimers();
+  app.advance(180);
   assert.ok(app.nodes().some((n) => String(n.props?.className ?? '').includes('vibe-quick-settings-panel-exit')));
 });
 
@@ -123,8 +124,19 @@ test('quick settings language save replaces working with saved before closing', 
   assert.ok(app.nodes().some((n) => n.props?.role === 'status' && String(n.props?.className ?? '').includes('vibe-quick-settings-feedback-saved')));
   assert.equal(app.nodes().some((n) => String(n.props?.children ?? '').includes('WORKING') || String(n.props?.children ?? '').includes('WIRD')), false);
   assert.equal(app.nodes().some((n) => String(n.props?.className ?? '').includes('vibe-quick-settings-panel-exit')), false);
-  app.runTimers();
+  app.advance(2200);
   assert.ok(app.nodes().some((n) => String(n.props?.className ?? '').includes('vibe-quick-settings-feedback-exit')));
-  app.runTimers();
+  app.advance(180);
   assert.ok(app.nodes().some((n) => String(n.props?.className ?? '').includes('vibe-quick-settings-panel-exit')));
+});
+
+
+test('quick settings keeps feedback timers across language refresh', () => {
+  const source = fs.readFileSync('src/app/components/QuickSettings.tsx', 'utf8');
+  assert.ok(source.includes('useEffect(() => {\n    mounted.current = true;'));
+  assert.ok(source.includes('}, []);'));
+  assert.ok(source.includes('}, [initialLanguage, initialTheme, guest]);'));
+  const syncEffect = source.slice(source.indexOf('useEffect(() => {\n    setTheme(initialTheme);'), source.indexOf('}, [initialLanguage, initialTheme, guest]);'));
+  assert.equal(syncEffect.includes('clearTimeout'), false);
+  assert.equal(syncEffect.includes('mounted.current = false'), false);
 });

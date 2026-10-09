@@ -71,16 +71,6 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
 
   useEffect(() => {
     mounted.current = true;
-    setTheme(initialTheme);
-    setLanguage(initialLanguage);
-    if (guest) {
-      try {
-        const storedTheme = localStorage.getItem("theme");
-        const storedLanguage = localStorage.getItem("vibe-language");
-        if (storedTheme === "light" || storedTheme === "dark" || storedTheme === "system") setTheme(storedTheme);
-        if (storedLanguage === "en" || storedLanguage === "de") setLanguage(storedLanguage);
-      } catch { /* Browser storage is optional for guest preferences. */ }
-    }
     const close = (event: MouseEvent | TouchEvent) => {
       if (panel.current && !panel.current.contains(event.target as Node) && mounted.current) closePanel();
     };
@@ -96,6 +86,19 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
       if (feedbackTimer.current !== null) window.clearTimeout(feedbackTimer.current);
       if (feedbackExitTimer.current !== null) window.clearTimeout(feedbackExitTimer.current);
     };
+  }, []);
+
+  useEffect(() => {
+    setTheme(initialTheme);
+    setLanguage(initialLanguage);
+    if (guest) {
+      try {
+        const storedTheme = localStorage.getItem("theme");
+        const storedLanguage = localStorage.getItem("vibe-language");
+        if (storedTheme === "light" || storedTheme === "dark" || storedTheme === "system") setTheme(storedTheme);
+        if (storedLanguage === "en" || storedLanguage === "de") setLanguage(storedLanguage);
+      } catch { /* Browser storage is optional for guest preferences. */ }
+    }
   }, [initialLanguage, initialTheme, guest]);
 
   useEffect(() => {
