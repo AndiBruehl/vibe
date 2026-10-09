@@ -40,5 +40,18 @@ test('one platform can update while the other uses its fallback', async () => {
   })();
   assert.equal(result.windows.version, '0.4.1');
   assert.equal(result.windows.downloadUrl, 'https://example.com/new.exe');
+  assert.equal(result.windows.sha256, manifest.windows.sha256);
+  assert.equal(result.windows.sizeBytes, manifest.windows.sizeBytes);
   assert.deepEqual(result.android, manifest.android);
+});
+
+test('unknown newer files are ignored until integrity metadata is committed', async () => {
+  const result = await load(async (url) => {
+    if (url.includes('android-app')) return { ok: true, json: async () => [
+      { type: 'file', name: 'Vibe-BETA-9.9.9.apk', download_url: 'https://example.com/unknown.apk' },
+    ] };
+    return { ok: true, json: async () => [] };
+  })();
+  assert.deepEqual(result.android, manifest.android);
+  assert.deepEqual(result.windows, manifest.windows);
 });

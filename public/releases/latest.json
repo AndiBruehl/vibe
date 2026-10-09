@@ -1,11 +1,15 @@
 {
   "android": {
     "downloadUrl": "https://raw.githubusercontent.com/AndiBruehl/vibe/main/android-app/dist/Vibe-BETA-0.4.1.apk",
+    "sha256": "67B6E075AB49E199B6D13B7BFC9539B4604224DCE745FB95549CFA5226264EA0",
+    "sizeBytes": 74379595,
     "version": "0.4.1"
   },
   "releaseName": "BETA 0.4.1",
   "windows": {
     "downloadUrl": "https://raw.githubusercontent.com/AndiBruehl/vibe/main/electron-app/dist/Vibe-Setup-BETA-0.4.1-x64.exe",
+    "sha256": "C59FB7DF5BD90F082050FD98AEB01E095043F26C0243085724FB5EAFC2523A87",
+    "sizeBytes": 96091309,
     "version": "0.4.1"
   }
 }

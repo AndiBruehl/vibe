@@ -26,7 +26,7 @@ export default function LoginMethods({ providers, emailEnabled, register = false
       const response = await fetch("/api/auth/account", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action, email, language: de ? "de" : "en" }), signal: AbortSignal.timeout(12000) });
       if (!response.ok) throw Error("unavailable");
       setMessage(t("If this request is available for your account, an email is on its way. Check your inbox and spam folder.", "Wenn diese Anfrage für dein Konto möglich ist, erhältst du eine E-Mail. Prüfe auch den Spamordner."));
-    } catch { setMessage(t("The request could not be completed. Please wait a moment and retry.", "Die Anfrage konnte nicht abgeschlossen werden. Bitte warte kurz und versuche es erneut.")); }
+    } catch { setMessage(t("The request could not be completed. Keep this page open and try again in a moment.", "Die Anfrage konnte nicht abgeschlossen werden. Lass diese Seite offen und versuche es gleich erneut.")); }
     finally { setBusy(false); }
   }
 
@@ -52,7 +52,9 @@ export default function LoginMethods({ providers, emailEnabled, register = false
         redirectTo: linking ? "/settings/login" : "/home",
         ...(provider === "password" ? { email, password } : {}),
       });
-    } catch { setBusy(false); setMessage(t("Sign-in could not be started. Please retry.", "Die Anmeldung konnte nicht gestartet werden. Bitte versuche es erneut.")); }
+    } catch { setBusy(false); setMessage(linking
+      ? t("Linking could not be started. Your current session is unchanged; try again from this page.", "Die Verknüpfung konnte nicht gestartet werden. Deine aktuelle Sitzung bleibt unverändert; versuche es erneut von dieser Seite.")
+      : t("Sign-in could not be started. Try again from this page so VIBE can create a fresh attempt.", "Die Anmeldung konnte nicht gestartet werden. Versuche es erneut von dieser Seite, damit VIBE einen frischen Versuch anlegt.")); }
   }
 
   const button = "min-h-11 w-full rounded-xl bg-linear-to-r from-orange-500 to-red-500 px-4 py-3 font-bold text-white disabled:opacity-50";

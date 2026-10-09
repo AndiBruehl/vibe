@@ -20,7 +20,7 @@ const mobileTokenKey = "vibe.webMobileToken";
 const pendingLoginKey = "vibe.pendingLogin";
 const releaseManifestUrl = "https://raw.githubusercontent.com/AndiBruehl/vibe/main/public/releases/latest.json";
 
-type UpdateRelease = { version: string; downloadUrl: string };
+type UpdateRelease = { version: string; downloadUrl: string; sha256?: string; sizeBytes?: number };
 
 function isYouTubeUrl(url: string) {
   try {
@@ -65,10 +65,15 @@ async function getLatestAndroidRelease(): Promise<UpdateRelease | null> {
   }
 }
 
-async function downloadAndInstallApk(url: string) {
+async function downloadAndInstallApk(release: Pick<UpdateRelease, "downloadUrl" | "sizeBytes">) {
   const destination = `${FileSystem.documentDirectory ?? FileSystem.cacheDirectory}Vibe-update.apk`;
-  const result = await FileSystem.downloadAsync(url, destination, { headers: { Accept: "application/vnd.android.package-archive" } });
+  const result = await FileSystem.downloadAsync(release.downloadUrl, destination, { headers: { Accept: "application/vnd.android.package-archive" } });
   if (result.status < 200 || result.status >= 300 || !result.uri.toLowerCase().endsWith(".apk")) throw new Error("APK download failed.");
+  const info = await FileSystem.getInfoAsync(result.uri);
+  if (typeof release.sizeBytes === "number" && info.exists && info.size !== release.sizeBytes) {
+    await FileSystem.deleteAsync(result.uri, { idempotent: true });
+    throw new Error("APK integrity check failed.");
+  }
   const contentUri = await FileSystem.getContentUriAsync(result.uri);
   await IntentLauncher.startActivityAsync("android.intent.action.VIEW", { data: contentUri, flags: 1, type: "application/vnd.android.package-archive" });
 }
@@ -129,13 +134,13 @@ export default function App() {
       await SecureStore.deleteItemAsync(pendingLoginKey);
       completedCallback.current = url;
       browser.current?.reload();
-      Alert.alert("VIBE", "Sign-in method linked to your existing profile.");
+      Alert.alert("VIBE", "Sign-in method linked. You can use either method next time.");
       return;
     }
     const response = await fetch(`${vibeUrl}/api/mobile/profile`, { headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(15000) });
-    if (!response.ok) throw new Error(response.status === 401 ? "Your sign-in expired. Please try again." : "VIBE is temporarily unavailable. Please try again.");
+    if (!response.ok) throw new Error(response.status === 401 ? "This sign-in expired before VIBE could confirm it. Start again from this screen." : "VIBE is temporarily unavailable. Keep this screen open and try again in a moment.");
     const profile = await response.json();
-    if (!profile?.id) throw new Error("VIBE could not validate this sign-in. Please try again.");
+    if (!profile?.id) throw new Error("VIBE could not validate this sign-in. No account was changed; start again from this screen.");
     await SecureStore.setItemAsync(mobileTokenKey, token);
     await SecureStore.deleteItemAsync(pendingLoginKey);
     setMobileToken(token);
@@ -156,22 +161,22 @@ export default function App() {
       const result = await WebBrowser.openAuthSessionAsync(url, redirectUri);
       if (result.type !== "success") {
         await SecureStore.deleteItemAsync(pendingLoginKey);
-        throw new Error("Sign-in was cancelled. You can try again here.");
+        throw new Error("Sign-in was cancelled before anything changed. You can try again here.");
       }
       await finishLogin(result.url);
     } catch (cause) {
-      setLoginError(cause instanceof Error ? cause.message : "Sign-in failed. Please try again.");
-      if (linkToken) Alert.alert("VIBE", cause instanceof Error ? cause.message : "Linking failed. Please try again from Settings.");
+      setLoginError(cause instanceof Error ? cause.message : "Sign-in failed. Start again from this screen.");
+      if (linkToken) Alert.alert("VIBE", cause instanceof Error ? cause.message : "Linking failed. Your current session is unchanged; try again from Settings.");
     } finally { loginInFlight.current = false; setSigningIn(false); }
   }, [finishLogin]);
 
   useEffect(() => {
     const subscription = Linking.addEventListener("url", ({ url }) => {
-      if (url.startsWith("vibe://auth")) void finishLogin(url).catch(cause => setLoginError(cause instanceof Error ? cause.message : "Sign-in failed. Please try again."));
+      if (url.startsWith("vibe://auth")) void finishLogin(url).catch(cause => setLoginError(cause instanceof Error ? cause.message : "Sign-in failed. Start again from this screen."));
     });
     void Linking.getInitialURL().then(url => {
       if (url?.startsWith("vibe://auth")) return finishLogin(url);
-    }).catch(() => setLoginError("Could not resume sign-in. Please try again."));
+    }).catch(() => setLoginError("Could not resume sign-in. Start again from this screen."));
     return () => subscription.remove();
   }, [finishLogin]);
 
@@ -219,9 +224,11 @@ export default function App() {
     setDownloadingUpdate(true);
     setUpdateError(null);
     try {
-      await downloadAndInstallApk(update.downloadUrl);
-    } catch {
-      setUpdateError("The update could not be installed. Opening the APK download instead.");
+      await downloadAndInstallApk(update);
+    } catch (cause) {
+      setUpdateError(cause instanceof Error && cause.message.includes("integrity")
+        ? "The update download did not match the release metadata. Opening the APK download instead."
+        : "The update could not be installed. Opening the APK download instead.");
       try { await Linking.openURL(update.downloadUrl); } catch { /* Keep the clear in-app error visible. */ }
     } finally {
       setDownloadingUpdate(false);
@@ -262,7 +269,7 @@ export default function App() {
         if (/\.apk(?:[?#].*)?$/i.test(request.url)) {
           void (async () => {
             try {
-              await downloadAndInstallApk(request.url);
+              await downloadAndInstallApk({ downloadUrl: request.url });
             } catch {
               Alert.alert("VIBE", "The APK could not be installed. The download will open in your browser.");
               try { await Linking.openURL(request.url); } catch { /* The alert already explains the recoverable failure. */ }
@@ -279,7 +286,7 @@ export default function App() {
         return false;
       }}
     /> : <ScrollView contentContainerStyle={styles.login}><Text style={styles.loginTitle}>VIBE</Text><Text style={styles.loginSubtitle}>Sign in to open VIBE.</Text>
-      <Text style={styles.loginError}>Use your existing sign-in method. To use Google and Discord on one profile, link the other method in Settings first. An unlinked login with another email creates a separate account.</Text>
+      <Text style={styles.loginError}>Use your existing sign-in method. To keep Google and Discord on one profile, sign in first and link the other method in Settings. Cancelled or failed attempts do not change your account.</Text>
       <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: acknowledged }} onPress={() => setAcknowledged(value => !value)}><Text style={styles.loginButtonText}>{acknowledged ? "☑" : "☐"} I have read and understood.</Text></Pressable>
       {(["google", "discord"] as const).map(provider => <Pressable key={provider} accessibilityRole="button" style={[styles.loginButton, (!acknowledged || signingIn) && styles.updateButtonDisabled]} disabled={signingIn || !acknowledged} onPress={() => void startLogin(provider)}>{signingIn && lastProvider === provider ? <ActivityIndicator color={colors.white} /> : <Text style={styles.loginButtonText}>Continue with {provider === "google" ? "Google" : "Discord"}</Text>}</Pressable>)}
       {loginError ? <><Text accessibilityRole="alert" style={styles.loginError}>{loginError}</Text><Pressable accessibilityRole="button" disabled={signingIn || !acknowledged} style={styles.retry} onPress={() => void startLogin(lastProvider)}><Text style={styles.retryText}>Try again</Text></Pressable></> : null}</ScrollView>}
@@ -303,7 +310,7 @@ export default function App() {
       </Pressable>
       </View>
     </View>}
-    {error && <View style={styles.error}><Text style={styles.errorTitle}>VIBE could not connect</Text><Text style={styles.errorText}>Check your connection and try again.</Text><Pressable accessibilityRole="button" style={styles.retry} onPress={() => { setError(false); browser.current?.reload(); }}><Text style={styles.retryText}>Try again</Text></Pressable></View>}
+    {error && <View style={styles.error}><Text style={styles.errorTitle}>VIBE could not connect</Text><Text style={styles.errorText}>Your session is kept on this device. Check your connection, then retry.</Text><Pressable accessibilityRole="button" style={styles.retry} onPress={() => { setError(false); browser.current?.reload(); }}><Text style={styles.retryText}>Retry connection</Text></Pressable></View>}
   </SafeAreaView></SafeAreaProvider>;
 }
 

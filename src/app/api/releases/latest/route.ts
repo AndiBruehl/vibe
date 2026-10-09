@@ -10,6 +10,8 @@ type GitHubFile = {
 type Release = {
   version: string;
   downloadUrl: string;
+  sha256: string;
+  sizeBytes: number;
 };
 
 const REPOSITORY = "AndiBruehl/vibe";
@@ -30,6 +32,7 @@ function compareVersions(left: string, right: string) {
 async function getLatestRelease(
   directory: string,
   filePattern: RegExp,
+  knownRelease: Release,
 ): Promise<Release | null> {
   const response = await fetch(
     `https://api.github.com/repos/${REPOSITORY}/contents/${directory}?ref=main`,
@@ -45,8 +48,8 @@ async function getLatestRelease(
   const files = (await response.json()) as GitHubFile[];
   const releases = files.flatMap((file) => {
     const match = file.type === "file" ? file.name.match(filePattern) : null;
-    return match && file.download_url
-      ? [{ version: match[1], downloadUrl: file.download_url }]
+    return match && file.download_url && match[1] === knownRelease.version
+      ? [{ ...knownRelease, downloadUrl: file.download_url }]
       : [];
   });
 
@@ -60,8 +63,13 @@ export async function GET() {
     getLatestRelease(
       "electron-app/dist",
       /^Vibe-Setup-(?:BETA-)?(\d+(?:\.\d+){2,4})-x64\.exe$/,
+      releaseManifest.windows,
     ).catch(() => null),
-    getLatestRelease("android-app/dist", /^Vibe-(?:BETA-)?(\d+(?:\.\d+){2,4})\.apk$/).catch(() => null),
+    getLatestRelease(
+      "android-app/dist",
+      /^Vibe-(?:BETA-)?(\d+(?:\.\d+){2,4})\.apk$/,
+      releaseManifest.android,
+    ).catch(() => null),
   ]);
 
   return NextResponse.json(

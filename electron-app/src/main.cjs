@@ -37,7 +37,8 @@ async function getLatestDesktopRelease() {
     if (typeof payload?.content !== "string") throw new Error("invalid-release-content");
     const manifest = JSON.parse(Buffer.from(payload.content, "base64").toString("utf8"));
     const release = manifest?.windows;
-    if (typeof release?.version !== "string" || typeof release?.downloadUrl !== "string") throw new Error("invalid-release-manifest");
+    if (typeof release?.version !== "string" || typeof release?.downloadUrl !== "string" ||
+      typeof release?.sha256 !== "string" || typeof release?.sizeBytes !== "number") throw new Error("invalid-release-manifest");
     log("update-release-found", { currentVersion: displayVersion(), latestVersion: release.version });
     return release;
   } catch (error) {
@@ -71,7 +72,7 @@ async function checkForUpdates({ interactive = false } = {}) {
     eyebrow: "VIBE UPDATE",
     title: "Update available",
     message: `BETA ${release.version} is ready to download.`,
-    detail: `You’re currently using BETA ${displayVersion()}.`,
+    detail: `You’re currently using BETA ${displayVersion()}. SHA-256: ${release.sha256}.`,
     downloadUrl: release.downloadUrl,
     primaryLabel: "Download update",
   });
@@ -165,7 +166,7 @@ function showConnectionError(code) {
     query: { retry: lastAppUrl || appUrl, code: String(code) },
   }).catch(() => {
     log("error-page-failed");
-    dialog.showErrorBox("VIBE could not start", "The application files could not be loaded. Reinstall VIBE using the complete setup package.");
+    dialog.showErrorBox("VIBE could not start", "The recovery page could not be loaded. Reinstall VIBE using the complete setup package; your web account is not changed.");
   });
   mainWindow.show();
 }
@@ -297,7 +298,7 @@ if (!app.requestSingleInstanceLock()) {
     app.on("activate", () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); else focusWindow(); });
   }).catch(() => {
     log("startup-failed");
-    dialog.showErrorBox("VIBE could not start", "Try restarting the app. If this persists, reinstall VIBE using the complete setup package.");
+    dialog.showErrorBox("VIBE could not start", "Try restarting the app. If this persists, reinstall VIBE using the complete setup package. Your VIBE account remains on the server.");
     app.quit();
   });
   app.on("window-all-closed", () => { if (process.platform !== "darwin") app.quit(); });

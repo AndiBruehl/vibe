@@ -27,11 +27,11 @@ export function mobileErrorReturn(requestUrl: string, cookie: string | undefined
       result.searchParams.set('linked', '1');
       return result.toString();
     }
-    result.searchParams.set('error', reason === 'AccessDenied' ? 'Sign-in was cancelled. Please try again.' :
-      reason === 'conflict' ? 'This sign-in method belongs to another VIBE profile. Your existing profile was kept.' :
-      reason === 'expired' ? 'This linking attempt expired. Please start again in Settings.' :
+    result.searchParams.set('error', reason === 'AccessDenied' ? 'Sign-in was cancelled before anything changed. Start again when you are ready.' :
+      reason === 'conflict' ? 'This sign-in method belongs to another VIBE profile. Your current profile was kept unchanged.' :
+      reason === 'expired' ? 'This linking attempt expired. Start a fresh link from Settings.' :
       reason === 'link' ? 'This account already exists. Sign in with its existing method, then link the other provider in Settings.' :
-      'Sign-in could not be completed. Please try again.');
+      'Sign-in could not be completed. No account was changed; please start again.');
     return result.toString();
   } catch { return null; }
 }

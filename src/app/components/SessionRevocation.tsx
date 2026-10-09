@@ -13,7 +13,7 @@ export default function SessionRevocation() {
         const response = await fetch("/api/auth/session", { cache: "no-store", signal: AbortSignal.any([controller.signal, AbortSignal.timeout(8000)]) });
         if (!response.ok) return;
         const session = await response.json();
-        if (!stopped && !session?.user) window.location.replace("/");
+        if (!stopped && !session?.user) window.location.replace("/join?notice=session-expired");
       } catch { /* Retry after connectivity returns. */ }
       finally { pending = false; }
     }

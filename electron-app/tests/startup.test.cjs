@@ -37,6 +37,10 @@ async function boot(singleInstance = true) {
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,"../src/main.cjs"),"utf8"), {
     require: (name) => dependencies[name], __dirname: path.join(__dirname,"../src"), URL,
     process: {platform:"win32", arch:"x64", env:{}},
+    fetch: async () => ({ ok: true, json: async () => ({ content: Buffer.from(JSON.stringify({ windows: {
+      version: "0.4.1", downloadUrl: "https://example.com/Vibe.exe", sha256: "ABCDEF", sizeBytes: 123,
+    } })).toString("base64") }) }),
+    Buffer,
   });
   await new Promise(resolve=>setImmediate(resolve));
   return {windows, urls, files, external, menu, quit};
