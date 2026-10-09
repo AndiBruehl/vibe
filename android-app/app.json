@@ -2,7 +2,7 @@
   "expo": {
     "name": "Vibe",
     "slug": "vibe-android",
-    "version": "0.4.1",
+    "version": "0.4.9",
     "orientation": "portrait",
     "scheme": "vibe",
     "userInterfaceStyle": "dark",
@@ -12,13 +12,15 @@
     "icon": "./assets/icon.png",
     "android": {
       "package": "com.vibe.social",
-      "permissions": ["REQUEST_INSTALL_PACKAGES"],
+      "permissions": [
+        "REQUEST_INSTALL_PACKAGES"
+      ],
       "edgeToEdgeEnabled": false,
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#111827"
       },
-      "versionCode": 94
+      "versionCode": 95
     },
     "extra": {
       "apiUrl": "https://vibe-social-network.vercel.app"

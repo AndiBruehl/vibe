@@ -1,6 +1,6 @@
 {
   "name": "vibe-android",
-  "version": "0.4.1",
+  "version": "0.4.9",
   "private": true,
   "main": "expo/AppEntry.js",
   "scripts": {
