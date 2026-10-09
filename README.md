@@ -1,6 +1,6 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Local development version: **0.4.10.8** (2026-10-09) — quick settings refresh timer fix. See [release notes](docs/releases/0.4.10.8.md). Published native installers remain at 0.4.1; this local change has not been deployed.
+Local development version: **0.4.10.9** (2026-10-09) — quick settings feedback reset fix. See [release notes](docs/releases/0.4.10.9.md). Published native installers remain at 0.4.1; this local change has not been deployed.
 
 ## Getting Started
 

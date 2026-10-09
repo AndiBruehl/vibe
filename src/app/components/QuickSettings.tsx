@@ -44,7 +44,24 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
     }
   }
 
-  function closePanel() {
+  function clearFeedbackTimers() {
+    if (feedbackTimer.current !== null) {
+      window.clearTimeout(feedbackTimer.current);
+      feedbackTimer.current = null;
+    }
+    if (feedbackExitTimer.current !== null) {
+      window.clearTimeout(feedbackExitTimer.current);
+      feedbackExitTimer.current = null;
+    }
+  }
+
+  function resetFeedback() {
+    clearFeedbackTimers();
+    setFeedback(null);
+    setFeedbackLeaving(false);
+  }
+
+  function closePanel({ resetStatus = true }: { resetStatus?: boolean } = {}) {
     clearAutoCloseTimer();
     if (!mounted.current || (!openRef.current && !closingRef.current)) return;
     clearCloseAnimationTimer();
@@ -57,7 +74,19 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
       closingRef.current = false;
       setOpen(false);
       setClosing(false);
+      if (resetStatus) resetFeedback();
     }, 150);
+  }
+
+  function openPanel() {
+    if (!mounted.current) return;
+    clearCloseAnimationTimer();
+    closingRef.current = false;
+    setClosing(false);
+    openRef.current = true;
+    resetFeedback();
+    setOpen(true);
+    schedulePanelClose();
   }
 
   function schedulePanelClose(delay = 3000) {
@@ -83,8 +112,7 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
       clearAutoCloseTimer();
       clearCloseAnimationTimer();
       interacting.current = false;
-      if (feedbackTimer.current !== null) window.clearTimeout(feedbackTimer.current);
-      if (feedbackExitTimer.current !== null) window.clearTimeout(feedbackExitTimer.current);
+      clearFeedbackTimers();
     };
   }, []);
 
@@ -163,13 +191,13 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
 
   function showFeedback(next: "saved" | "failed" | "working") {
     if (!mounted.current) return;
+    clearFeedbackTimers();
     setFeedbackLeaving(false);
     setFeedback(next);
   }
 
   function hideFeedbackAfter(delay: number, afterHidden?: () => void) {
-    if (feedbackTimer.current !== null) window.clearTimeout(feedbackTimer.current);
-    if (feedbackExitTimer.current !== null) window.clearTimeout(feedbackExitTimer.current);
+    clearFeedbackTimers();
     feedbackTimer.current = window.setTimeout(() => {
       feedbackTimer.current = null;
       if (!mounted.current) return;
@@ -193,7 +221,7 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
       closePanel();
       return;
     }
-    schedulePanelClose();
+    clearAutoCloseTimer();
     const previous = theme;
     setTheme(next);
     localStorage.setItem("theme", next);
@@ -212,7 +240,7 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
       applyTheme(previous);
       showFeedback("failed");
     }
-    hideFeedbackAfter(2200, closePanel);
+    hideFeedbackAfter(2200, () => closePanel({ resetStatus: false }));
   }
 
   async function chooseLanguage(next: Language) {
@@ -225,7 +253,7 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
       closePanel();
       return;
     }
-    schedulePanelClose();
+    clearAutoCloseTimer();
     const previous = language;
     setLanguage(next);
     applyVibeLanguage(next);
@@ -242,14 +270,14 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
       setLanguage(previous);
       applyVibeLanguage(previous);
       showFeedback("failed");
-      hideFeedbackAfter(2200, closePanel);
+      hideFeedbackAfter(2200, () => closePanel({ resetStatus: false }));
       return;
     }
     if (!mounted.current) return;
     clearAutoCloseTimer();
     startTransition(() => router.refresh());
     showFeedback("saved");
-    hideFeedbackAfter(2200, closePanel);
+    hideFeedbackAfter(2200, () => closePanel({ resetStatus: false }));
   }
 
   const de = language === "de";
@@ -298,15 +326,7 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
     <div ref={panel} onPointerEnter={pausePanelClose} onPointerLeave={resumePanelClose} onFocusCapture={pausePanelClose} onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) resumePanelClose(); }} className={`fixed ${position} z-50 transition-[right,top] duration-200`} style={dynamicPosition} data-vibe-quick-settings>
       <button type="button" onClick={() => {
         if (!mounted.current) return;
-        setOpen((value) => {
-          const next = !value;
-          clearCloseAnimationTimer();
-          closingRef.current = false;
-          setClosing(false);
-          openRef.current = next;
-          if (next) schedulePanelClose(); else clearAutoCloseTimer();
-          return next;
-        });
+        if (openRef.current || closingRef.current) closePanel(); else openPanel();
       }} aria-expanded={open} aria-label={de ? "Schnelleinstellungen" : "Quick settings"}
         className="grid size-10 place-items-center rounded-full border border-slate-300/80 bg-white/90 text-slate-600 shadow-lg shadow-slate-900/10 backdrop-blur transition hover:-translate-y-0.5 hover:border-orange-300 hover:text-orange-500 dark:border-slate-600 dark:bg-slate-800/90 dark:text-slate-200 dark:shadow-black/30 dark:hover:border-orange-400 dark:hover:text-orange-300">
         <Settings2 size={18} aria-hidden="true" />
@@ -331,8 +351,8 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
         </div>
         {feedback && <p role="status" className={`mt-3 text-center text-xs font-semibold ${feedbackLeaving ? "vibe-quick-settings-feedback-exit" : ""} ${feedback === "failed" ? "text-red-600 dark:text-red-300" : `vibe-quick-settings-feedback vibe-quick-settings-feedback-${feedback} mx-auto flex items-center justify-center shadow-sm`}`}>{feedback === "saved" ? (de ? "Gespeichert" : "Saved") : feedback === "working" ? (de ? "WIRD UMGESTELLT" : "WORKING") : (de ? "Speichern fehlgeschlagen" : "Could not save")}</p>}
         {!guest && <div className="mt-3 grid grid-cols-2 gap-2 border-t border-slate-200 pt-3 dark:border-slate-700">
-          <Link href="/support" onClick={closePanel} className="inline-flex items-center justify-center gap-1 rounded-lg px-2 py-2 text-xs font-bold text-cyan-700 transition hover:bg-cyan-50 dark:text-cyan-300 dark:hover:bg-cyan-500/10"><CircleHelp size={14} />{de ? "Hilfe" : "Help"}</Link>
-          <Link href="/settings" onClick={closePanel} className="inline-flex items-center justify-center rounded-lg px-2 py-2 text-xs font-bold text-orange-600 transition hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-500/10">{de ? "Einstellungen" : "Settings"}</Link>
+          <Link href="/support" onClick={() => closePanel()} className="inline-flex items-center justify-center gap-1 rounded-lg px-2 py-2 text-xs font-bold text-cyan-700 transition hover:bg-cyan-50 dark:text-cyan-300 dark:hover:bg-cyan-500/10"><CircleHelp size={14} />{de ? "Hilfe" : "Help"}</Link>
+          <Link href="/settings" onClick={() => closePanel()} className="inline-flex items-center justify-center rounded-lg px-2 py-2 text-xs font-bold text-orange-600 transition hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-500/10">{de ? "Einstellungen" : "Settings"}</Link>
         </div>}
       </section>}
     </div>

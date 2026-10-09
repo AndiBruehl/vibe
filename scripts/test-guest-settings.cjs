@@ -130,9 +130,30 @@ test('quick settings language save replaces working with saved before closing', 
   assert.ok(app.nodes().some((n) => String(n.props?.className ?? '').includes('vibe-quick-settings-panel-exit')));
 });
 
+test('quick settings clears saved feedback when manually closed and reopened', async () => {
+  const app = settings(false, false);
+  await app.click((n) => n.props?.['aria-label'] === 'Quick settings');
+  await app.click((n) => n.props?.title === 'Dark');
+  assert.ok(app.nodes().some((n) => n.props?.role === 'status' && String(n.props?.className ?? '').includes('vibe-quick-settings-feedback-saved')));
+  await app.click((n) => n.props?.['aria-label'] === 'Quick settings');
+  app.advance(150);
+  await app.click((n) => n.props?.['aria-label'] === 'Quick settings');
+  assert.equal(app.nodes().some((n) => n.props?.role === 'status'), false);
+});
+
+
+test('quick settings action saves are not closed by the generic auto-close timer', () => {
+  const source = fs.readFileSync('src/app/components/QuickSettings.tsx', 'utf8').replace(/\r\n/g, '\n');
+  const themeAction = source.slice(source.indexOf('async function chooseTheme'), source.indexOf('async function chooseLanguage'));
+  const languageAction = source.slice(source.indexOf('async function chooseLanguage'), source.indexOf('  const de = language ==='));
+  assert.ok(themeAction.includes('clearAutoCloseTimer();\n    const previous = theme;'));
+  assert.ok(languageAction.includes('clearAutoCloseTimer();\n    const previous = language;'));
+  assert.equal(themeAction.includes('schedulePanelClose();\n    const previous = theme;'), false);
+  assert.equal(languageAction.includes('schedulePanelClose();\n    const previous = language;'), false);
+});
 
 test('quick settings keeps feedback timers across language refresh', () => {
-  const source = fs.readFileSync('src/app/components/QuickSettings.tsx', 'utf8');
+  const source = fs.readFileSync('src/app/components/QuickSettings.tsx', 'utf8').replace(/\r\n/g, '\n');
   assert.ok(source.includes('useEffect(() => {\n    mounted.current = true;'));
   assert.ok(source.includes('}, []);'));
   assert.ok(source.includes('}, [initialLanguage, initialTheme, guest]);'));
