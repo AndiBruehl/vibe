@@ -38,6 +38,8 @@ function settings(blockStorage) {
   render();
   return { themes, events, storage, document, requests: () => requests,
     nodes: () => nodes(tree),
+    timerCount: () => timers.size,
+    async event(predicate, handlerName) { const node = nodes(tree).find(predicate); assert.ok(node); await node.props[handlerName]({ currentTarget: { contains: () => false }, relatedTarget: null }); render(); },
     runTimers() { const pending = [...timers.values()]; timers.clear(); for (const callback of pending) callback(); render(); },
     async click(predicate) { const node = nodes(tree).find(predicate); assert.ok(node); await node.props.onClick(); render(); },
   };
@@ -80,4 +82,19 @@ test('quick settings close animation mirrors the enter motion', () => {
   assert.match(css, /@keyframes vibe-quick-settings-exit/);
   assert.match(css, /vibe-quick-settings-panel-exit/);
   assert.ok(css.includes('translateY(-0.35rem) scale(0.97)'));
+});
+
+
+test('quick settings pauses auto-close while hovered', async () => {
+  const app = settings(false);
+  await app.click((n) => n.props?.['aria-label'] === 'Quick settings');
+  assert.equal(app.timerCount(), 1);
+  await app.event((n) => n.props?.['data-vibe-quick-settings'] !== undefined, 'onPointerEnter');
+  assert.equal(app.timerCount(), 0);
+  app.runTimers();
+  assert.ok(app.nodes().some((n) => n.props?.title === 'Dark'));
+  await app.event((n) => n.props?.['data-vibe-quick-settings'] !== undefined, 'onPointerLeave');
+  assert.equal(app.timerCount(), 1);
+  app.runTimers();
+  assert.ok(app.nodes().some((n) => String(n.props?.className ?? '').includes('vibe-quick-settings-panel-exit')));
 });

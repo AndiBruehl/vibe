@@ -26,6 +26,7 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
   const mounted = useRef(true);
   const autoCloseTimer = useRef<number | null>(null);
   const closeAnimationTimer = useRef<number | null>(null);
+  const interacting = useRef(false);
   const feedbackTimer = useRef<number | null>(null);
   const feedbackExitTimer = useRef<number | null>(null);
 
@@ -61,6 +62,7 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
 
   function schedulePanelClose(delay = 3000) {
     clearAutoCloseTimer();
+    if (interacting.current) return;
     autoCloseTimer.current = window.setTimeout(() => {
       autoCloseTimer.current = null;
       closePanel();
@@ -90,6 +92,7 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
       mounted.current = false;
       clearAutoCloseTimer();
       clearCloseAnimationTimer();
+      interacting.current = false;
       if (feedbackTimer.current !== null) window.clearTimeout(feedbackTimer.current);
       if (feedbackExitTimer.current !== null) window.clearTimeout(feedbackExitTimer.current);
     };
@@ -277,8 +280,18 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
       ? { top: `${pinnedMessagesBottom}px` }
       : undefined;
 
+  function pausePanelClose() {
+    interacting.current = true;
+    clearAutoCloseTimer();
+  }
+
+  function resumePanelClose() {
+    interacting.current = false;
+    if (openRef.current && !closingRef.current) schedulePanelClose();
+  }
+
   return (
-    <div ref={panel} className={`fixed ${position} z-50 transition-[right,top] duration-200`} style={dynamicPosition} data-vibe-quick-settings>
+    <div ref={panel} onPointerEnter={pausePanelClose} onPointerLeave={resumePanelClose} onFocusCapture={pausePanelClose} onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) resumePanelClose(); }} className={`fixed ${position} z-50 transition-[right,top] duration-200`} style={dynamicPosition} data-vibe-quick-settings>
       <button type="button" onClick={() => {
         if (!mounted.current) return;
         setOpen((value) => {

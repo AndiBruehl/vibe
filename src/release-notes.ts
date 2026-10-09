@@ -6,6 +6,7 @@ export type ReleaseNote = {
 
 // Keep newest releases first. This is the single source for the Home changelog.
 export const webReleaseNotes: ReleaseNote[] = [
+  { version: "0.4.10.5", date: "2026-10-09", changes: ["Quick Settings now pauses the auto-close timer while the pointer or focus is inside the orb.", "Re-entering the orb clears a running auto-close timer and leaving it starts a fresh timer.", "Added regression coverage for hover pause, timer reset and restart after leaving."] },
   { version: "0.4.10.4", date: "2026-10-09", changes: ["Quick Settings now plays a reverse exit animation before the panel is removed.", "Auto-close, action-close and outside-click close all use the same animated close path.", "Added regression coverage for the exit animation class and matching reverse motion."] },
   { version: "0.4.10.3", date: "2026-10-09", changes: ["Opening Quick Settings now starts the three-second auto-close timer immediately.", "Manual close clears the pending auto-close timer.", "Added regression coverage for the open-without-selection auto-close path."] },
   { version: "0.4.10.2", date: "2026-10-09", changes: ["Guarded Quick Settings timers and async save callbacks so they cannot update state after navigation or unmount.", "Cleared pending feedback and auto-close timers when Quick Settings unmounts.", "Kept the 0.4.10.1 auto-close behavior while removing the React state-update warning."] },

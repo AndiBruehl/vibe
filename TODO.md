@@ -453,3 +453,4 @@ Implemented and covered by access regression tests. Native packages remain uncha
 - **0.4.10.2 — quick settings timer guard (local):** guarded Quick Settings timers and async save callbacks against state updates after route navigation or unmount while preserving the auto-close behavior. ✅
 - **0.4.10.3 — quick settings open auto-close (local):** starts the three-second auto-close timer as soon as the settings orb is opened, clears it on manual close and keeps action-completion closing intact. ✅
 - **0.4.10.4 — quick settings exit animation (local):** adds a reverse Quick Settings panel animation before unmounting and routes auto-close, action-close and outside-click close through that animated path. ✅
+- **0.4.10.5 — quick settings hover pause (local):** pauses and clears the Quick Settings auto-close timer while pointer/focus is inside the orb, then starts a fresh timer only after leaving hover/focus. ✅
