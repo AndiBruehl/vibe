@@ -11,7 +11,7 @@ function settings(blockStorage) {
   const code = ts.transpileModule(fs.readFileSync('src/app/components/QuickSettings.tsx', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX } }).outputText;
   const document = { documentElement: {} };
   vm.runInNewContext(code, { module, exports: module.exports, document,
-    window: { dispatchEvent: (event) => events.push(event) },
+    window: { dispatchEvent: (event) => events.push(event), setTimeout, clearTimeout },
     CustomEvent: function (type, options) { this.type = type; this.detail = options.detail; },
     localStorage: { setItem(key, value) { if (blockStorage) throw Error('blocked'); storage.set(key, value); } },
     fetch: async () => { requests++; throw Error('Guest must not call member API'); },
@@ -36,7 +36,10 @@ for (const blocked of [false, true]) test(`guest theme/language work without mem
   await app.click((n) => n.props?.['aria-label'] === 'Quick settings');
   assert.equal(app.nodes().filter((n) => n.props?.href).length, 0, 'No Help or Settings links');
   await app.click((n) => n.props?.title === 'Dark');
+  assert.equal(app.nodes().some((n) => n.props?.title === 'Dark'), false, 'Orb closes after theme action');
+  await app.click((n) => n.props?.['aria-label'] === 'Quick settings');
   await app.click((n) => n.type === 'button' && n.props.children === 'Deutsch');
+  assert.equal(app.nodes().some((n) => n.type === 'button' && n.props.children === 'Deutsch'), false, 'Orb closes after language action');
   assert.deepEqual(app.themes, ['dark']);
   assert.equal(app.document.documentElement.lang, 'de');
   assert.equal(app.events[0].detail, 'de');

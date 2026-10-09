@@ -20,6 +20,27 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
   const [browseHeaderVisible, setBrowseHeaderVisible] = useState(true);
   const [pinnedMessagesBottom, setPinnedMessagesBottom] = useState<number | null>(null);
   const panel = useRef<HTMLDivElement>(null);
+  const autoCloseTimer = useRef<number | null>(null);
+
+  function clearAutoCloseTimer() {
+    if (autoCloseTimer.current !== null) {
+      window.clearTimeout(autoCloseTimer.current);
+      autoCloseTimer.current = null;
+    }
+  }
+
+  function closePanel() {
+    clearAutoCloseTimer();
+    setOpen(false);
+  }
+
+  function schedulePanelClose(delay = 3000) {
+    clearAutoCloseTimer();
+    autoCloseTimer.current = window.setTimeout(() => {
+      autoCloseTimer.current = null;
+      setOpen(false);
+    }, delay);
+  }
 
   useEffect(() => {
     setTheme(initialTheme);
@@ -40,8 +61,14 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
     return () => {
       document.removeEventListener("mousedown", close);
       document.removeEventListener("touchstart", close);
+      clearAutoCloseTimer();
     };
   }, [initialLanguage, initialTheme, guest]);
+
+  useEffect(() => {
+    setOpen(false);
+    clearAutoCloseTimer();
+  }, [pathname]);
 
   useEffect(() => {
     if (!guest || theme !== "system") return;
@@ -109,13 +136,15 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
   }
 
   async function chooseTheme(next: ThemePreference) {
-    if (next === theme) return;
+    if (next === theme) { schedulePanelClose(); return; }
     if (guest) {
       setTheme(next);
       try { localStorage.setItem("theme", next); } catch { /* Apply for this visit even if storage is blocked. */ }
       applyTheme(next);
+      closePanel();
       return;
     }
+    schedulePanelClose();
     const previous = theme;
     setTheme(next);
     localStorage.setItem("theme", next);
@@ -124,24 +153,28 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
       const response = await fetch("/api/profile/theme", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ theme: next }) });
       if (!response.ok) throw new Error("Theme could not be saved");
       showFeedback("saved");
+      closePanel();
     } catch {
       setTheme(previous);
       localStorage.setItem("theme", previous);
       applyTheme(previous);
       showFeedback("failed");
+      closePanel();
     }
     hideFeedbackAfter(2200);
   }
 
   async function chooseLanguage(next: Language) {
-    if (next === language) return;
+    if (next === language) { schedulePanelClose(); return; }
     if (guest) {
       setLanguage(next);
       try { localStorage.setItem("vibe-language", next); } catch { /* Apply for this visit even if storage is blocked. */ }
       document.documentElement.lang = next;
       window.dispatchEvent(new CustomEvent("vibe-language-change", { detail: next }));
+      closePanel();
       return;
     }
+    schedulePanelClose();
     const previous = language;
     setLanguage(next);
     applyVibeLanguage(next);
@@ -157,11 +190,13 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
       applyVibeLanguage(previous);
       showFeedback("failed");
       hideFeedbackAfter(2200);
+      closePanel();
       return;
     }
     startTransition(() => router.refresh());
     window.setTimeout(() => showFeedback("saved"), 650);
     hideFeedbackAfter(2600);
+    closePanel();
   }
 
   const de = language === "de";
@@ -222,8 +257,8 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
         </div>
         {feedback && <p role="status" className={`mt-3 text-center text-xs font-semibold ${feedbackLeaving ? "vibe-quick-settings-feedback-exit" : ""} ${feedback === "failed" ? "text-red-600 dark:text-red-300" : `vibe-quick-settings-feedback vibe-quick-settings-feedback-${feedback} mx-auto flex items-center justify-center shadow-sm`}`}>{feedback === "saved" ? (de ? "Gespeichert" : "Saved") : feedback === "working" ? (de ? "WIRD UMGESTELLT" : "WORKING") : (de ? "Speichern fehlgeschlagen" : "Could not save")}</p>}
         {!guest && <div className="mt-3 grid grid-cols-2 gap-2 border-t border-slate-200 pt-3 dark:border-slate-700">
-          <Link href="/support" className="inline-flex items-center justify-center gap-1 rounded-lg px-2 py-2 text-xs font-bold text-cyan-700 transition hover:bg-cyan-50 dark:text-cyan-300 dark:hover:bg-cyan-500/10"><CircleHelp size={14} />{de ? "Hilfe" : "Help"}</Link>
-          <Link href="/settings" className="inline-flex items-center justify-center rounded-lg px-2 py-2 text-xs font-bold text-orange-600 transition hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-500/10">{de ? "Einstellungen" : "Settings"}</Link>
+          <Link href="/support" onClick={closePanel} className="inline-flex items-center justify-center gap-1 rounded-lg px-2 py-2 text-xs font-bold text-cyan-700 transition hover:bg-cyan-50 dark:text-cyan-300 dark:hover:bg-cyan-500/10"><CircleHelp size={14} />{de ? "Hilfe" : "Help"}</Link>
+          <Link href="/settings" onClick={closePanel} className="inline-flex items-center justify-center rounded-lg px-2 py-2 text-xs font-bold text-orange-600 transition hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-500/10">{de ? "Einstellungen" : "Settings"}</Link>
         </div>}
       </section>}
     </div>
