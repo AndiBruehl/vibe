@@ -245,8 +245,8 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
     if (!mounted.current) return;
     clearAutoCloseTimer();
     startTransition(() => router.refresh());
-    feedbackTimer.current = window.setTimeout(() => showFeedback("saved"), 650);
-    hideFeedbackAfter(2600, closePanel);
+    showFeedback("saved");
+    hideFeedbackAfter(2200, closePanel);
   }
 
   const de = language === "de";

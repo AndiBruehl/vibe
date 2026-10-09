@@ -24,12 +24,14 @@ function settings(blockStorage, guest = true) {
     require(name) {
       if (name === 'react') return {
         useState(value) { const i = index++; if (!(i in slots)) slots[i] = value; return [slots[i], (v) => { slots[i] = typeof v === 'function' ? v(slots[i]) : v; }]; },
+        startTransition(callback) { callback(); },
         useEffect() {},
         useRef(value = null) { const i = refIndex++; if (!(i in refs)) refs[i] = { current: value }; return refs[i]; },
       };
       if (name === 'react/jsx-runtime') return { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }) };
-      if (name === 'next/navigation') return { usePathname: () => '/home', useRouter: () => ({}) };
+      if (name === 'next/navigation') return { usePathname: () => '/home', useRouter: () => ({ refresh() {} }) };
       if (name.includes('ProfileThemeRuntime')) return { applyTheme: (theme) => themes.push(theme) };
+      if (name.includes('language-events')) return { applyVibeLanguage: (language) => { document.documentElement.lang = language; events.push({ type: 'vibe-language-change', detail: language }); } };
       return {};
     },
   });
@@ -109,6 +111,20 @@ test('quick settings waits for saved pill to hide before closing', async () => {
   app.runTimers();
   assert.ok(app.nodes().some((n) => String(n.props?.className ?? '').includes('vibe-quick-settings-feedback-exit')));
   assert.equal(app.nodes().some((n) => String(n.props?.className ?? '').includes('vibe-quick-settings-panel-exit')), false);
+  app.runTimers();
+  assert.ok(app.nodes().some((n) => String(n.props?.className ?? '').includes('vibe-quick-settings-panel-exit')));
+});
+
+
+test('quick settings language save replaces working with saved before closing', async () => {
+  const app = settings(false, false);
+  await app.click((n) => n.props?.['aria-label'] === 'Quick settings');
+  await app.click((n) => n.type === 'button' && n.props.children === 'Deutsch');
+  assert.ok(app.nodes().some((n) => n.props?.role === 'status' && String(n.props?.className ?? '').includes('vibe-quick-settings-feedback-saved')));
+  assert.equal(app.nodes().some((n) => String(n.props?.children ?? '').includes('WORKING') || String(n.props?.children ?? '').includes('WIRD')), false);
+  assert.equal(app.nodes().some((n) => String(n.props?.className ?? '').includes('vibe-quick-settings-panel-exit')), false);
+  app.runTimers();
+  assert.ok(app.nodes().some((n) => String(n.props?.className ?? '').includes('vibe-quick-settings-feedback-exit')));
   app.runTimers();
   assert.ok(app.nodes().some((n) => String(n.props?.className ?? '').includes('vibe-quick-settings-panel-exit')));
 });
