@@ -11,6 +11,7 @@ let updateCheckStarted = false;
 let lastAppUrl = null;
 
 const RELEASE_MANIFEST_URL = "https://api.github.com/repos/AndiBruehl/vibe/contents/public/releases/latest.json";
+const SHA256_PATTERN = /^[A-Fa-f0-9]{64}$/;
 
 function displayVersion(version = app.getVersion()) {
   return version.replace(/-beta\.(\d+(?:\.\d+)*)$/, ".$1").replace(/-(\d+(?:\.\d+)*)$/, ".$1");
@@ -38,7 +39,8 @@ async function getLatestDesktopRelease() {
     const manifest = JSON.parse(Buffer.from(payload.content, "base64").toString("utf8"));
     const release = manifest?.windows;
     if (typeof release?.version !== "string" || typeof release?.downloadUrl !== "string" ||
-      typeof release?.sha256 !== "string" || typeof release?.sizeBytes !== "number") throw new Error("invalid-release-manifest");
+      typeof release?.sha256 !== "string" || !SHA256_PATTERN.test(release.sha256) ||
+      !Number.isSafeInteger(release?.sizeBytes) || release.sizeBytes <= 0) throw new Error("invalid-release-manifest");
     log("update-release-found", { currentVersion: displayVersion(), latestVersion: release.version });
     return release;
   } catch (error) {
@@ -72,7 +74,7 @@ async function checkForUpdates({ interactive = false } = {}) {
     eyebrow: "VIBE UPDATE",
     title: "Update available",
     message: `BETA ${release.version} is ready to download.`,
-    detail: `You’re currently using BETA ${displayVersion()}. SHA-256: ${release.sha256}.`,
+    detail: `You’re currently using BETA ${displayVersion()}. SHA-256: ${release.sha256}. Size: ${release.sizeBytes} bytes.`,
     downloadUrl: release.downloadUrl,
     primaryLabel: "Download update",
   });

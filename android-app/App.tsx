@@ -20,7 +20,7 @@ const mobileTokenKey = "vibe.webMobileToken";
 const pendingLoginKey = "vibe.pendingLogin";
 const releaseManifestUrl = "https://raw.githubusercontent.com/AndiBruehl/vibe/main/public/releases/latest.json";
 
-type UpdateRelease = { version: string; downloadUrl: string; sha256?: string; sizeBytes?: number };
+type UpdateRelease = { version: string; downloadUrl: string; sha256: string; sizeBytes: number };
 
 function isYouTubeUrl(url: string) {
   try {
@@ -57,7 +57,8 @@ async function getLatestAndroidRelease(): Promise<UpdateRelease | null> {
     const response = await fetch(`${releaseManifestUrl}?v=${Date.now()}`, { cache: "no-store" });
     if (!response.ok) return null;
     const manifest = await response.json() as { android?: UpdateRelease };
-    return typeof manifest.android?.version === "string" && typeof manifest.android?.downloadUrl === "string"
+    return typeof manifest.android?.version === "string" && typeof manifest.android?.downloadUrl === "string" &&
+      typeof manifest.android?.sha256 === "string" && typeof manifest.android?.sizeBytes === "number"
       ? manifest.android
       : null;
   } catch {
@@ -65,7 +66,7 @@ async function getLatestAndroidRelease(): Promise<UpdateRelease | null> {
   }
 }
 
-async function downloadAndInstallApk(release: Pick<UpdateRelease, "downloadUrl" | "sizeBytes">) {
+async function downloadAndInstallApk(release: Pick<UpdateRelease, "downloadUrl" | "sizeBytes"> | { downloadUrl: string; sizeBytes?: number }) {
   const destination = `${FileSystem.documentDirectory ?? FileSystem.cacheDirectory}Vibe-update.apk`;
   const result = await FileSystem.downloadAsync(release.downloadUrl, destination, { headers: { Accept: "application/vnd.android.package-archive" } });
   if (result.status < 200 || result.status >= 300 || !result.uri.toLowerCase().endsWith(".apk")) throw new Error("APK download failed.");
@@ -300,7 +301,7 @@ export default function App() {
       <View style={styles.updateTextWrap}>
         <Text style={styles.updateEyebrow}>VIBE UPDATE</Text>
         <Text style={[styles.updateTitle, webDarkMode ? styles.updateTitleDark : styles.updateTitleLight]}>Update available</Text>
-        <Text style={[styles.updateText, webDarkMode ? styles.updateTextDark : styles.updateTextLight]}>{updateError ?? `VIBE BETA ${update.version} is ready to download.`}</Text>
+        <Text style={[styles.updateText, webDarkMode ? styles.updateTextDark : styles.updateTextLight]}>{updateError ?? `VIBE BETA ${update.version} is ready to download. Metadata includes SHA-256 and byte-size checks.`}</Text>
       </View>
       <Pressable accessibilityRole="button" disabled={downloadingUpdate} style={[styles.updateButton, downloadingUpdate && styles.updateButtonDisabled]} onPress={() => void downloadUpdate()}>
         {downloadingUpdate ? <ActivityIndicator color={colors.white} size="small" /> : <Text style={styles.updateButtonText}>Download</Text>}

@@ -38,7 +38,7 @@ async function boot(singleInstance = true) {
     require: (name) => dependencies[name], __dirname: path.join(__dirname,"../src"), URL,
     process: {platform:"win32", arch:"x64", env:{}},
     fetch: async () => ({ ok: true, json: async () => ({ content: Buffer.from(JSON.stringify({ windows: {
-      version: "0.4.1", downloadUrl: "https://example.com/Vibe.exe", sha256: "ABCDEF", sizeBytes: 123,
+      version: "0.4.1", downloadUrl: "https://example.com/Vibe.exe", sha256: "C59FB7DF5BD90F082050FD98AEB01E095043F26C0243085724FB5EAFC2523A87", sizeBytes: 123,
     } })).toString("base64") }) }),
     Buffer,
   });

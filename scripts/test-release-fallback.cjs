@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const ts = require('typescript');
 const manifest = require('../public/releases/latest.json');
+const signature = require('../public/releases/latest.sig.example.json');
 
 function load(fetch) {
   const m = { exports: {} };
@@ -11,7 +12,11 @@ function load(fetch) {
     compilerOptions: { module: ts.ModuleKind.CommonJS, esModuleInterop: true },
   }).outputText, {
     module: m, exports: m.exports, fetch, AbortSignal,
-    require: (name) => name === 'next/server' ? { NextResponse: { json: (body) => body } } : manifest,
+    require: (name) => {
+      if (name === 'next/server') return { NextResponse: { json: (body) => body } };
+      if (name.includes('latest.sig.example.json')) return signature;
+      return manifest;
+    },
   });
   return m.exports.GET;
 }
@@ -26,6 +31,8 @@ for (const [name, fetch] of [
     const result = await load(fetch)();
     assert.deepEqual(result.windows, manifest.windows);
     assert.deepEqual(result.android, manifest.android);
+    assert.equal(result.signature.schema, signature.schema);
+    assert.equal(result.signature.payloadSha256, signature.payloadSha256);
   });
 }
 
@@ -54,4 +61,5 @@ test('unknown newer files are ignored until integrity metadata is committed', as
   })();
   assert.deepEqual(result.android, manifest.android);
   assert.deepEqual(result.windows, manifest.windows);
+  assert.equal(result.signature.schema, signature.schema);
 });

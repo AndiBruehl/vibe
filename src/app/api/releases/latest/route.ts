@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import releaseManifest from "../../../../../public/releases/latest.json";
+import releaseSignature from "../../../../../public/releases/latest.sig.example.json";
 
 type GitHubFile = {
   name: string;
@@ -12,6 +13,14 @@ type Release = {
   downloadUrl: string;
   sha256: string;
   sizeBytes: number;
+};
+
+type ReleaseSignature = {
+  algorithm: string;
+  keyId: string;
+  payloadSha256: string;
+  schema: string;
+  signature: string;
 };
 
 const REPOSITORY = "AndiBruehl/vibe";
@@ -73,7 +82,11 @@ export async function GET() {
   ]);
 
   return NextResponse.json(
-    { windows: windows ?? releaseManifest.windows, android: android ?? releaseManifest.android },
+    {
+      windows: windows ?? releaseManifest.windows,
+      android: android ?? releaseManifest.android,
+      signature: releaseSignature as ReleaseSignature,
+    },
     { headers: { "Cache-Control": "no-store" } },
   );
 }
