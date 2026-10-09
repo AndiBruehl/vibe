@@ -1,6 +1,6 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Local development version: **0.4.2** (2026-10-09) — Android debug-keystore hygiene. See [release notes](docs/releases/0.4.2.md). Published native installers remain at 0.4.1; this local change has not been deployed.
+Local development version: **0.4.3** (2026-10-09) — device authentication acceptance preparation. See [release notes](docs/releases/0.4.3.md) and [acceptance matrix](docs/acceptance/device-auth-0.4.3.md). Published native installers remain at 0.4.1; this local change has not been deployed.
 
 ## Getting Started
 
