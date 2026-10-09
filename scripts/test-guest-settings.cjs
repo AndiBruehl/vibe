@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const ts = require('typescript');
 
-function settings(blockStorage) {
+function settings(blockStorage, guest = true) {
   const slots = [], themes = [], events = [], storage = new Map();
   const timers = new Map();
   let index = 0, refIndex = 0, timerId = 0, tree, requests = 0;
@@ -20,7 +20,7 @@ function settings(blockStorage) {
     },
     CustomEvent: function (type, options) { this.type = type; this.detail = options.detail; },
     localStorage: { setItem(key, value) { if (blockStorage) throw Error('blocked'); storage.set(key, value); } },
-    fetch: async () => { requests++; throw Error('Guest must not call member API'); },
+    fetch: async () => { requests++; return { ok: true }; },
     require(name) {
       if (name === 'react') return {
         useState(value) { const i = index++; if (!(i in slots)) slots[i] = value; return [slots[i], (v) => { slots[i] = typeof v === 'function' ? v(slots[i]) : v; }]; },
@@ -33,7 +33,7 @@ function settings(blockStorage) {
       return {};
     },
   });
-  function render() { index = 0; refIndex = 0; tree = module.exports.default({ guest: true, initialTheme: 'system', initialLanguage: 'en' }); }
+  function render() { index = 0; refIndex = 0; tree = module.exports.default({ guest, initialTheme: 'system', initialLanguage: 'en' }); }
   function nodes(node) { return !node || typeof node !== 'object' ? [] : Array.isArray(node) ? node.flatMap(nodes) : [node, ...nodes(node.props?.children)]; }
   render();
   return { themes, events, storage, document, requests: () => requests,
@@ -41,7 +41,7 @@ function settings(blockStorage) {
     timerCount: () => timers.size,
     async event(predicate, handlerName) { const node = nodes(tree).find(predicate); assert.ok(node); await node.props[handlerName]({ currentTarget: { contains: () => false }, relatedTarget: null }); render(); },
     runTimers() { const pending = [...timers.values()]; timers.clear(); for (const callback of pending) callback(); render(); },
-    async click(predicate) { const node = nodes(tree).find(predicate); assert.ok(node); await node.props.onClick(); render(); },
+    async click(predicate) { const node = nodes(tree).find(predicate); assert.ok(node); await node.props.onClick(); await Promise.resolve(); await Promise.resolve(); render(); },
   };
 }
 for (const blocked of [false, true]) test(`guest theme/language work without member APIs (storage blocked: ${blocked})`, async () => {
@@ -95,6 +95,20 @@ test('quick settings pauses auto-close while hovered', async () => {
   assert.ok(app.nodes().some((n) => n.props?.title === 'Dark'));
   await app.event((n) => n.props?.['data-vibe-quick-settings'] !== undefined, 'onPointerLeave');
   assert.equal(app.timerCount(), 1);
+  app.runTimers();
+  assert.ok(app.nodes().some((n) => String(n.props?.className ?? '').includes('vibe-quick-settings-panel-exit')));
+});
+
+
+test('quick settings waits for saved pill to hide before closing', async () => {
+  const app = settings(false, false);
+  await app.click((n) => n.props?.['aria-label'] === 'Quick settings');
+  await app.click((n) => n.props?.title === 'Dark');
+  assert.ok(app.nodes().some((n) => n.props?.role === 'status' && String(n.props?.className ?? '').includes('vibe-quick-settings-feedback-saved')));
+  assert.equal(app.nodes().some((n) => String(n.props?.className ?? '').includes('vibe-quick-settings-panel-exit')), false);
+  app.runTimers();
+  assert.ok(app.nodes().some((n) => String(n.props?.className ?? '').includes('vibe-quick-settings-feedback-exit')));
+  assert.equal(app.nodes().some((n) => String(n.props?.className ?? '').includes('vibe-quick-settings-panel-exit')), false);
   app.runTimers();
   assert.ok(app.nodes().some((n) => String(n.props?.className ?? '').includes('vibe-quick-settings-panel-exit')));
 });

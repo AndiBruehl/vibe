@@ -454,3 +454,4 @@ Implemented and covered by access regression tests. Native packages remain uncha
 - **0.4.10.3 — quick settings open auto-close (local):** starts the three-second auto-close timer as soon as the settings orb is opened, clears it on manual close and keeps action-completion closing intact. ✅
 - **0.4.10.4 — quick settings exit animation (local):** adds a reverse Quick Settings panel animation before unmounting and routes auto-close, action-close and outside-click close through that animated path. ✅
 - **0.4.10.5 — quick settings hover pause (local):** pauses and clears the Quick Settings auto-close timer while pointer/focus is inside the orb, then starts a fresh timer only after leaving hover/focus. ✅
+- **0.4.10.6 — quick settings feedback-then-close (local):** waits for the saved/failed feedback pill to fade out before running the Quick Settings panel exit animation, and cancels the generic auto-close while feedback is visible. ✅

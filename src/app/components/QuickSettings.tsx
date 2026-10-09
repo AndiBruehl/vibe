@@ -164,7 +164,7 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
     setFeedback(next);
   }
 
-  function hideFeedbackAfter(delay: number) {
+  function hideFeedbackAfter(delay: number, afterHidden?: () => void) {
     if (feedbackTimer.current !== null) window.clearTimeout(feedbackTimer.current);
     if (feedbackExitTimer.current !== null) window.clearTimeout(feedbackExitTimer.current);
     feedbackTimer.current = window.setTimeout(() => {
@@ -176,6 +176,7 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
         if (!mounted.current) return;
         setFeedback(null);
         setFeedbackLeaving(false);
+        afterHidden?.();
       }, 180);
     }, delay);
   }
@@ -198,17 +199,17 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
       const response = await fetch("/api/profile/theme", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ theme: next }) });
       if (!mounted.current) return;
       if (!response.ok) throw new Error("Theme could not be saved");
+      clearAutoCloseTimer();
       showFeedback("saved");
-      closePanel();
     } catch {
       if (!mounted.current) return;
+      clearAutoCloseTimer();
       setTheme(previous);
       localStorage.setItem("theme", previous);
       applyTheme(previous);
       showFeedback("failed");
-      closePanel();
     }
-    hideFeedbackAfter(2200);
+    hideFeedbackAfter(2200, closePanel);
   }
 
   async function chooseLanguage(next: Language) {
@@ -234,18 +235,18 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
     }
     if (!mounted.current) return;
     if (!response.ok) {
+      clearAutoCloseTimer();
       setLanguage(previous);
       applyVibeLanguage(previous);
       showFeedback("failed");
-      hideFeedbackAfter(2200);
-      closePanel();
+      hideFeedbackAfter(2200, closePanel);
       return;
     }
     if (!mounted.current) return;
+    clearAutoCloseTimer();
     startTransition(() => router.refresh());
     feedbackTimer.current = window.setTimeout(() => showFeedback("saved"), 650);
-    hideFeedbackAfter(2600);
-    closePanel();
+    hideFeedbackAfter(2600, closePanel);
   }
 
   const de = language === "de";
