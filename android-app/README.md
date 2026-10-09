@@ -16,12 +16,13 @@ npm run lint
 Install Android SDK 36 and JDK 17 or newer, set `JAVA_HOME` to a JDK (not a JRE), and configure `android/local.properties` with the local SDK path.
 
 ```powershell
-npx expo prebuild --platform android --no-install
 cd android
 .\gradlew.bat assembleRelease
 ```
 
-Output: `android/app/build/outputs/apk/release/app-release.apk`. This bundles the JavaScript and does not need Metro. The existing Gradle configuration uses the development keystore, so this artifact is for testing; a store release needs a private production signing key.
+Output: `android/app/build/outputs/apk/release/app-release.apk`. This bundles the JavaScript and does not need Metro. Current beta APKs use Android tooling's debug signing flow; the debug key is generated outside the repository instead of being committed. For local development use `assembleDebug` with Metro.
+
+The native Android project is checked in. Do not regenerate it with Expo prebuild unless the resulting native changes are reviewed before committing.
 
 ## Google and Discord sign-in (0.4.1)
 
