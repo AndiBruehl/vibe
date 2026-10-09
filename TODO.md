@@ -433,3 +433,12 @@ Implemented and covered by access regression tests. Native packages remain uncha
 - Implemented Android Google/Discord entry, browser linking return, callback validation and desktop recovery to the last VIBE page.
 - Completed: Web/native version alignment, rocket emoji, matching APK/EXE artifacts and download metadata, documented recovery behavior and automated checks.
 - Still open: real Google/Discord login and linking on Android and Windows, including cancel, offline/retry and app restart. The 0.4.1 APK requires the matching backend deployment.
+
+## 0.4.x roadmap
+
+- Completed 0.4.1.1: clickable caption URLs and profile mentions, selectable mention autocomplete wired to draft state, resilient suggestion lookup. Web hotfix; native installers remain 0.4.1.
+
+- **0.4.2 — signing and repository hygiene:** remove the tracked Android debug keystore and hardcoded standard debug password from the repository; configure protected release signing secrets and document the rotation/verification process. Resolve the GitGuardian generic-password finding after confirming no production secret is involved.
+- **0.4.3 — device authentication acceptance:** test Google and Discord on Android and desktop with real consent, cancellation, linking, different email addresses, app restart, expired attempts and intermittent connectivity.
+- **0.4.4 — update integrity:** add signed release metadata, checksum verification and clear recovery when an APK or EXE update cannot be downloaded or installed.
+- **0.4.5 — authentication UX polish:** refine retry, cancellation, session status and provider-link confirmation messages across Web, Android and Desktop.

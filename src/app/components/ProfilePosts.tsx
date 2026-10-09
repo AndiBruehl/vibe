@@ -1,8 +1,8 @@
+import MentionText from "@/app/components/MentionText";
 import PostImageCount from "@/app/components/PostImageCount";
 import SortablePosts from "./SortablePosts";
 import { prisma } from "@/db";
 import Link from "next/link"; // Re-enable topic chips
-import ProgressiveImage from "./ProgressiveImage";
 import PostThumbnail from "./PostThumbnail";
 import { getPostMediaTypes } from "@/post-images";
 import PinnedProfilePosts from "./PinnedProfilePosts";
@@ -62,7 +62,7 @@ export default async function ProfilePosts({ email, language = "en", canManagePi
 
             <div className="space-y-2 p-3">
               <p className="line-clamp-2 text-sm text-slate-700 dark:text-slate-200">
-                {post.description || "No description"}
+                <MentionText text={post.description || "No description"} />
               </p>
             </div>
           </div>

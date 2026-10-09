@@ -70,7 +70,7 @@ export default function CommentForm({ postId, compact = false }: CommentFormProp
           rows={1}
           placeholder={de ? "Schreibe einen Kommentar..." : "Write a comment..."}
           value={text}
-          onChange={(event) => setText(event.target.value)}
+          onValueChange={setText}
           className="vibe-composer-control w-full resize-none rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-orange-400 focus:ring-4 focus:ring-orange-500/15 dark:border-slate-600 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
           required
         />
@@ -92,7 +92,7 @@ export default function CommentForm({ postId, compact = false }: CommentFormProp
         rows={3}
         placeholder={de ? "Schreibe einen Kommentar..." : "Write a comment..."}
         value={text}
-        onChange={(event) => setText(event.target.value)}
+        onValueChange={setText}
         className="w-full resize-none rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-500 dark:border-gray-600 dark:bg-gray-900 dark:text-white"
         required
       />

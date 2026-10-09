@@ -417,7 +417,7 @@ export default function PostComposer({
         <MentionTextarea
           name="description"
           value={draftDescription}
-          onChange={(event) => setDraftDescription(event.target.value)}
+          onValueChange={setDraftDescription}
           rows={4}
           className="mt-2 block w-full rounded-xl border border-slate-300 bg-white p-3 text-slate-900 dark:border-slate-700 dark:bg-gray-900 dark:text-white"
         />

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { captionParts } from "@/caption-links";
 
 type MentionTextProps = {
   text: string;
@@ -15,22 +16,9 @@ export default function MentionText({
 }: MentionTextProps) {
   return (
     <span className={className}>
-      {text.split(/(@[^\s@/]+)/u).map((part, index) => {
-        if (!part.startsWith("@")) return <span key={index}>{part}</span>;
-
-        const match = part.match(/^@(.+?)([.,!?;:)\]}]*)$/u);
-        const handle = match?.[1];
-        if (!handle) return <span key={index}>{part}</span>;
-
-        return (
-          <span key={index}>
-            <Link href={`/profile/${encodeURIComponent(handle)}`} className={linkClassName}>
-              @{handle}
-            </Link>
-            {match?.[2]}
-          </span>
-        );
-      })}
+      {captionParts(text).map((part, index) => !part.href ? <span key={index}>{part.text}</span> : part.external ?
+        <a key={index} href={part.href} target="_blank" rel="noopener noreferrer" className={linkClassName}>{part.text}</a> :
+        <Link key={index} href={part.href} className={linkClassName}>{part.text}</Link>)}
     </span>
   );
 }

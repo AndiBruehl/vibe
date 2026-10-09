@@ -42,6 +42,7 @@ const MentionTextarea = forwardRef<HTMLTextAreaElement, MentionTextareaProps>(fu
   const [loading, setLoading] = useState(false);
   const value = controlledValue ?? uncontrolledValue;
   const mention = useMemo(() => activeMention(value, cursor), [value, cursor]);
+  const mentionQuery = mention?.query;
 
   useEffect(() => {
     const form = textareaRef.current?.form;
@@ -55,23 +56,28 @@ const MentionTextarea = forwardRef<HTMLTextAreaElement, MentionTextareaProps>(fu
   }, [controlledValue, defaultValue]);
 
   useEffect(() => {
-    if (!mention) {
+    if (!mentionQuery) {
       setSuggestions([]);
+      setLoading(false);
       return;
     }
 
     const controller = new AbortController();
+    setSuggestions([]);
+    const deadline = window.setTimeout(() => { controller.abort(); setLoading(false); setSuggestions([]); }, 8000);
     const timeout = window.setTimeout(async () => {
       setLoading(true);
       try {
-        const response = await fetch(`/api/profiles/search?q=${encodeURIComponent(mention.query)}&prefix=1`, {
+        const response = await fetch(`/api/profiles/search?q=${encodeURIComponent(mentionQuery)}&prefix=1`, {
           cache: "no-store",
           signal: controller.signal,
         });
-        setSuggestions(response.ok ? await response.json() as ProfileSuggestion[] : []);
-      } catch (error) {
-        if (!(error instanceof DOMException && error.name === "AbortError")) setSuggestions([]);
+        const data: unknown = response.ok ? await response.json() : [];
+        if (!controller.signal.aborted) setSuggestions(Array.isArray(data) ? data.filter((item): item is ProfileSuggestion => item && typeof item.id === "string" && typeof item.username === "string" && item.username.length > 0 && (item.name === null || typeof item.name === "string") && (item.avatar === null || typeof item.avatar === "string")) : []);
+      } catch {
+        if (!controller.signal.aborted) setSuggestions([]);
       } finally {
+        window.clearTimeout(deadline);
         if (!controller.signal.aborted) setLoading(false);
       }
     }, 180);
@@ -79,8 +85,9 @@ const MentionTextarea = forwardRef<HTMLTextAreaElement, MentionTextareaProps>(fu
     return () => {
       controller.abort();
       window.clearTimeout(timeout);
+      window.clearTimeout(deadline);
     };
-  }, [mention?.query]);
+  }, [mentionQuery]);
 
   function updateValue(nextValue: string, event?: ChangeEvent<HTMLTextAreaElement>) {
     if (controlledValue === undefined) setUncontrolledValue(nextValue);
@@ -119,7 +126,7 @@ const MentionTextarea = forwardRef<HTMLTextAreaElement, MentionTextareaProps>(fu
         }}
         onClick={(event) => setCursor(event.currentTarget.selectionStart ?? value.length)}
         onKeyUp={(event) => setCursor(event.currentTarget.selectionStart ?? value.length)}
-        onBlur={() => window.setTimeout(() => setSuggestions([]), 120)}
+        onBlur={(event) => { if (!event.currentTarget.parentElement?.contains(event.relatedTarget)) setSuggestions([]); }}
       />
       {mention && (loading || suggestions.length > 0) ? (
         <div className="absolute z-50 mt-1 max-h-56 w-full overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-slate-700 dark:bg-slate-900">
@@ -127,7 +134,7 @@ const MentionTextarea = forwardRef<HTMLTextAreaElement, MentionTextareaProps>(fu
             <button
               key={profile.id}
               type="button"
-              onMouseDown={(event) => event.preventDefault()}
+              onPointerDown={(event) => event.preventDefault()}
               onClick={() => selectProfile(profile)}
               className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition hover:bg-orange-50 dark:hover:bg-slate-800"
             >

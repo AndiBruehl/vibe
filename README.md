@@ -1,5 +1,7 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+Latest web hotfix: **0.4.1.1** (2026-10-09) — clickable caption links and working mention suggestion selection. See [release notes](docs/releases/0.4.1.1.md). Native installers remain at 0.4.1 and load the updated website after deployment.
+
 ## Getting Started
 
 First, run the development server:

@@ -1,4 +1,5 @@
 import PostImageCount from "@/app/components/PostImageCount";
+import MentionText from "@/app/components/MentionText";
 import SortablePosts from "@/app/components/SortablePosts";
 import { prisma } from "@/db";
 import Link from "next/link";
@@ -227,15 +228,14 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             ) : (
               <SortablePosts posts={posts.map((post) => ({ id: post.id, description: post.description, createdAt: post.createdAt }))} className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
                 {posts.map((post) => (
-                  <Link
+                  <article
                     key={post.id}
-                    href={`/profile/post/${post.id}`}
                     className="group overflow-hidden rounded-2xl bg-white shadow-md shadow-gray-200 transition hover:shadow-lg dark:bg-gray-800 dark:shadow-gray-900"
                   >
-                    <div className="relative aspect-square w-full overflow-hidden bg-slate-200 dark:bg-slate-700">
+                    <Link href={`/profile/post/${post.id}`} className="block relative aspect-square w-full overflow-hidden bg-slate-200 dark:bg-slate-700">
                       <PostImageCount images={post.images}/>
               {getPostMediaTypes(post)[0] === VIDEO_MEDIA_TYPE ? <VideoMedia src={post.image} poster={post.videoPosters?.[0]} className="size-full bg-slate-950 object-cover" alt={post.description || "Post video"} /> : <ProgressiveImage src={post.image} alt={post.description || "Post image"} lockAspectRatio="1 / 1" containerClassName="size-full" className="object-cover transition duration-300 group-hover:scale-[1.02]" />}
-                    </div>
+                    </Link>
 
                     <div className="space-y-2 p-3">
                       <div className="flex items-center gap-2">
@@ -252,7 +252,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                       </div>
 
                       <p className="line-clamp-2 text-sm text-slate-700 dark:text-slate-300">
-                        {post.description}
+                        <MentionText text={post.description} />
                       </p>
 
                       <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
@@ -262,7 +262,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                         </span>
                       </div>
                     </div>
-                  </Link>
+                  </article>
                 ))}
               </SortablePosts>
             )}

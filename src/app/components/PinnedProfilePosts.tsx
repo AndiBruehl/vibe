@@ -1,4 +1,4 @@
-import Link from "next/link";
+import MentionText from "@/app/components/MentionText";
 import { prisma } from "@/db";
 import { getPostMediaTypes } from "@/post-images";
 import PostImageCount from "./PostImageCount";
@@ -32,7 +32,7 @@ export default async function PinnedProfilePosts({ email, language, canManage = 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
         {pinnedPosts.map((post, index) => <article key={post.id} className={`group overflow-hidden rounded-2xl bg-white shadow-md shadow-gray-200 dark:bg-gray-800 dark:shadow-gray-900 ${index === 2 ? "col-span-2 md:col-span-1" : ""}`}>
           <div className="relative aspect-square w-full overflow-hidden"><PostImageCount images={post.images} /><PostThumbnail href={`/posts/${post.id}`} src={post.image} mediaType={getPostMediaTypes(post)[0]} poster={post.videoPosters?.[0]} alt={post.description || (de ? "Angepinnter Beitrag" : "Pinned post")} />{canManage && <ProfilePinOrderButtons postId={post.id} position={post.position} total={pinnedPosts.length} language={language} />}</div>
-          <Link href={`/posts/${post.id}`} className="block p-3"><p className="line-clamp-2 text-sm text-slate-700 dark:text-slate-200">{post.description || (de ? "Ohne Beschreibung" : "No description")}</p></Link>
+          <div className="block p-3"><p className="line-clamp-2 text-sm text-slate-700 dark:text-slate-200"><MentionText text={post.description || (de ? "Ohne Beschreibung" : "No description")} /></p></div>
         </article>)}
       </div>
     </section>}

@@ -1,3 +1,4 @@
+import MentionText from "@/app/components/MentionText";
 import SortablePosts from "@/app/components/SortablePosts";
 import PostCarousel from "@/app/components/PostCarousel";
 import { getPostImages, getPostMediaTypes } from "@/post-images";
@@ -154,7 +155,7 @@ export default async function TopicPage({ params }: Props) {
                           href={`/posts/${p.id}`}
                           className="no-underline hover:underline"
                         >
-                          <p className="text-slate-800">{p.description}</p>
+                          <p className="text-slate-800"><MentionText text={p.description} /></p>
 
                         </Link>
                         <PostCarousel images={getPostImages(p)} mediaTypes={getPostMediaTypes(p)} videoPosters={p.videoPosters} alt={p.description || "Post image"} href={`/posts/${p.id}`} postId={p.id}/>
