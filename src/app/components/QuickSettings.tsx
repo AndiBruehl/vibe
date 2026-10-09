@@ -13,6 +13,9 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [closing, setClosing] = useState(false);
+  const openRef = useRef(false);
+  const closingRef = useRef(false);
   const [theme, setTheme] = useState<ThemePreference>(initialTheme);
   const [language, setLanguage] = useState<Language>(initialLanguage);
   const [feedback, setFeedback] = useState<"saved" | "failed" | "working" | null>(null);
@@ -22,8 +25,16 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
   const panel = useRef<HTMLDivElement>(null);
   const mounted = useRef(true);
   const autoCloseTimer = useRef<number | null>(null);
+  const closeAnimationTimer = useRef<number | null>(null);
   const feedbackTimer = useRef<number | null>(null);
   const feedbackExitTimer = useRef<number | null>(null);
+
+  function clearCloseAnimationTimer() {
+    if (closeAnimationTimer.current !== null) {
+      window.clearTimeout(closeAnimationTimer.current);
+      closeAnimationTimer.current = null;
+    }
+  }
 
   function clearAutoCloseTimer() {
     if (autoCloseTimer.current !== null) {
@@ -34,14 +45,25 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
 
   function closePanel() {
     clearAutoCloseTimer();
-    if (mounted.current) setOpen(false);
+    if (!mounted.current || (!openRef.current && !closingRef.current)) return;
+    clearCloseAnimationTimer();
+    closingRef.current = true;
+    setClosing(true);
+    closeAnimationTimer.current = window.setTimeout(() => {
+      closeAnimationTimer.current = null;
+      if (!mounted.current) return;
+      openRef.current = false;
+      closingRef.current = false;
+      setOpen(false);
+      setClosing(false);
+    }, 150);
   }
 
   function schedulePanelClose(delay = 3000) {
     clearAutoCloseTimer();
     autoCloseTimer.current = window.setTimeout(() => {
       autoCloseTimer.current = null;
-      if (mounted.current) setOpen(false);
+      closePanel();
     }, delay);
   }
 
@@ -58,7 +80,7 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
       } catch { /* Browser storage is optional for guest preferences. */ }
     }
     const close = (event: MouseEvent | TouchEvent) => {
-      if (panel.current && !panel.current.contains(event.target as Node) && mounted.current) setOpen(false);
+      if (panel.current && !panel.current.contains(event.target as Node) && mounted.current) closePanel();
     };
     document.addEventListener("mousedown", close);
     document.addEventListener("touchstart", close);
@@ -67,13 +89,14 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
       document.removeEventListener("touchstart", close);
       mounted.current = false;
       clearAutoCloseTimer();
+      clearCloseAnimationTimer();
       if (feedbackTimer.current !== null) window.clearTimeout(feedbackTimer.current);
       if (feedbackExitTimer.current !== null) window.clearTimeout(feedbackExitTimer.current);
     };
   }, [initialLanguage, initialTheme, guest]);
 
   useEffect(() => {
-    if (mounted.current) setOpen(false);
+    closePanel();
     clearAutoCloseTimer();
   }, [pathname]);
 
@@ -260,6 +283,10 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
         if (!mounted.current) return;
         setOpen((value) => {
           const next = !value;
+          clearCloseAnimationTimer();
+          closingRef.current = false;
+          setClosing(false);
+          openRef.current = next;
           if (next) schedulePanelClose(); else clearAutoCloseTimer();
           return next;
         });
@@ -268,7 +295,7 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
         <Settings2 size={18} aria-hidden="true" />
       </button>
 
-      {open && <section className="vibe-quick-settings-panel absolute right-0 mt-2 w-56 origin-top-right rounded-2xl border border-slate-300/80 bg-white/95 p-3 shadow-2xl shadow-slate-900/20 backdrop-blur dark:border-slate-600 dark:bg-slate-900/95 dark:shadow-black/40">
+      {open && <section className={`vibe-quick-settings-panel ${closing ? "vibe-quick-settings-panel-exit pointer-events-none" : ""} absolute right-0 mt-2 w-56 origin-top-right rounded-2xl border border-slate-300/80 bg-white/95 p-3 shadow-2xl shadow-slate-900/20 backdrop-blur dark:border-slate-600 dark:bg-slate-900/95 dark:shadow-black/40`}>
         <p className="mb-2 text-xs font-black uppercase tracking-[.14em] text-slate-500 dark:text-slate-400">{de ? "Schnellzugriff" : "Quick settings"}</p>
         <div className="space-y-1.5">
           <p className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-200"><Sun size={14} /> {de ? "Darstellung" : "Theme"}</p>

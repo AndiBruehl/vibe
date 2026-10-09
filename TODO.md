@@ -452,3 +452,4 @@ Implemented and covered by access regression tests. Native packages remain uncha
 - **0.4.10.1 — quick settings auto-close (local):** closes the settings orb after theme/language actions complete, falls back to a three-second auto-close timer, closes before Settings/Support navigation and resets closed after route changes. ✅
 - **0.4.10.2 — quick settings timer guard (local):** guarded Quick Settings timers and async save callbacks against state updates after route navigation or unmount while preserving the auto-close behavior. ✅
 - **0.4.10.3 — quick settings open auto-close (local):** starts the three-second auto-close timer as soon as the settings orb is opened, clears it on manual close and keeps action-completion closing intact. ✅
+- **0.4.10.4 — quick settings exit animation (local):** adds a reverse Quick Settings panel animation before unmounting and routes auto-close, action-close and outside-click close through that animated path. ✅

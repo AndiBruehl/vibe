@@ -47,10 +47,14 @@ for (const blocked of [false, true]) test(`guest theme/language work without mem
   await app.click((n) => n.props?.['aria-label'] === 'Quick settings');
   assert.equal(app.nodes().filter((n) => n.props?.href).length, 0, 'No Help or Settings links');
   await app.click((n) => n.props?.title === 'Dark');
-  assert.equal(app.nodes().some((n) => n.props?.title === 'Dark'), false, 'Orb closes after theme action');
+  assert.ok(app.nodes().some((n) => String(n.props?.className ?? '').includes('vibe-quick-settings-panel-exit')), 'Orb starts exit animation after theme action');
+  app.runTimers();
+  assert.equal(app.nodes().some((n) => n.props?.title === 'Dark'), false, 'Orb closes after theme exit animation');
   await app.click((n) => n.props?.['aria-label'] === 'Quick settings');
   await app.click((n) => n.type === 'button' && n.props.children === 'Deutsch');
-  assert.equal(app.nodes().some((n) => n.type === 'button' && n.props.children === 'Deutsch'), false, 'Orb closes after language action');
+  assert.ok(app.nodes().some((n) => String(n.props?.className ?? '').includes('vibe-quick-settings-panel-exit')), 'Orb starts exit animation after language action');
+  app.runTimers();
+  assert.equal(app.nodes().some((n) => n.type === 'button' && n.props.children === 'Deutsch'), false, 'Orb closes after language exit animation');
   assert.deepEqual(app.themes, ['dark']);
   assert.equal(app.document.documentElement.lang, 'de');
   assert.equal(app.events[0].detail, 'de');
@@ -64,5 +68,16 @@ test('quick settings auto-closes after being opened', async () => {
   await app.click((n) => n.props?.['aria-label'] === 'Quick settings');
   assert.ok(app.nodes().some((n) => n.props?.title === 'Dark'));
   app.runTimers();
+  assert.ok(app.nodes().some((n) => String(n.props?.className ?? '').includes('vibe-quick-settings-panel-exit')));
+  app.runTimers();
   assert.equal(app.nodes().some((n) => n.props?.title === 'Dark'), false);
+});
+
+
+test('quick settings close animation mirrors the enter motion', () => {
+  const css = fs.readFileSync('src/app/globals.css', 'utf8');
+  assert.match(css, /@keyframes vibe-quick-settings-enter/);
+  assert.match(css, /@keyframes vibe-quick-settings-exit/);
+  assert.match(css, /vibe-quick-settings-panel-exit/);
+  assert.ok(css.includes('translateY(-0.35rem) scale(0.97)'));
 });
