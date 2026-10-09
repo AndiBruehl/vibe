@@ -256,7 +256,14 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
 
   return (
     <div ref={panel} className={`fixed ${position} z-50 transition-[right,top] duration-200`} style={dynamicPosition} data-vibe-quick-settings>
-      <button type="button" onClick={() => { if (mounted.current) setOpen((value) => !value); }} aria-expanded={open} aria-label={de ? "Schnelleinstellungen" : "Quick settings"}
+      <button type="button" onClick={() => {
+        if (!mounted.current) return;
+        setOpen((value) => {
+          const next = !value;
+          if (next) schedulePanelClose(); else clearAutoCloseTimer();
+          return next;
+        });
+      }} aria-expanded={open} aria-label={de ? "Schnelleinstellungen" : "Quick settings"}
         className="grid size-10 place-items-center rounded-full border border-slate-300/80 bg-white/90 text-slate-600 shadow-lg shadow-slate-900/10 backdrop-blur transition hover:-translate-y-0.5 hover:border-orange-300 hover:text-orange-500 dark:border-slate-600 dark:bg-slate-800/90 dark:text-slate-200 dark:shadow-black/30 dark:hover:border-orange-400 dark:hover:text-orange-300">
         <Settings2 size={18} aria-hidden="true" />
       </button>

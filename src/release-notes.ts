@@ -6,6 +6,7 @@ export type ReleaseNote = {
 
 // Keep newest releases first. This is the single source for the Home changelog.
 export const webReleaseNotes: ReleaseNote[] = [
+  { version: "0.4.10.3", date: "2026-10-09", changes: ["Opening Quick Settings now starts the three-second auto-close timer immediately.", "Manual close clears the pending auto-close timer.", "Added regression coverage for the open-without-selection auto-close path."] },
   { version: "0.4.10.2", date: "2026-10-09", changes: ["Guarded Quick Settings timers and async save callbacks so they cannot update state after navigation or unmount.", "Cleared pending feedback and auto-close timers when Quick Settings unmounts.", "Kept the 0.4.10.1 auto-close behavior while removing the React state-update warning."] },
   { version: "0.4.10.1", date: "2026-10-09", changes: ["Quick Settings now closes after theme or language actions complete, with a three-second fallback timer.", "Opening Settings or Support closes the orb before navigation so returning to the previous page keeps it closed.", "Route changes clear any pending Quick Settings auto-close timer and reset the panel to closed."] },
   { version: "0.4.11", date: "2026-10-09", changes: ["Added a production signing decision record for Android and Windows native artifacts.", "Defined the beta/debug signing boundary and release gates before any production-signed native release.", "Added regression coverage so the signing decision keeps private-key, GitGuardian and device-migration evidence requirements visible."] },

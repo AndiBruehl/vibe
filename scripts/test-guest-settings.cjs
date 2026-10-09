@@ -6,13 +6,18 @@ const ts = require('typescript');
 
 function settings(blockStorage) {
   const slots = [], themes = [], events = [], storage = new Map();
-  let index = 0, refIndex = 0, tree, requests = 0;
+  const timers = new Map();
+  let index = 0, refIndex = 0, timerId = 0, tree, requests = 0;
   const refs = [];
   const module = { exports: {} };
   const code = ts.transpileModule(fs.readFileSync('src/app/components/QuickSettings.tsx', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX } }).outputText;
   const document = { documentElement: {} };
   vm.runInNewContext(code, { module, exports: module.exports, document,
-    window: { dispatchEvent: (event) => events.push(event), setTimeout, clearTimeout },
+    window: {
+      dispatchEvent: (event) => events.push(event),
+      setTimeout: (callback) => { const id = ++timerId; timers.set(id, callback); return id; },
+      clearTimeout: (id) => timers.delete(id),
+    },
     CustomEvent: function (type, options) { this.type = type; this.detail = options.detail; },
     localStorage: { setItem(key, value) { if (blockStorage) throw Error('blocked'); storage.set(key, value); } },
     fetch: async () => { requests++; throw Error('Guest must not call member API'); },
@@ -33,6 +38,7 @@ function settings(blockStorage) {
   render();
   return { themes, events, storage, document, requests: () => requests,
     nodes: () => nodes(tree),
+    runTimers() { const pending = [...timers.values()]; timers.clear(); for (const callback of pending) callback(); render(); },
     async click(predicate) { const node = nodes(tree).find(predicate); assert.ok(node); await node.props.onClick(); render(); },
   };
 }
@@ -50,4 +56,13 @@ for (const blocked of [false, true]) test(`guest theme/language work without mem
   assert.equal(app.events[0].detail, 'de');
   assert.equal(app.requests(), 0);
   if (!blocked) { assert.equal(app.storage.get('theme'), 'dark'); assert.equal(app.storage.get('vibe-language'), 'de'); }
+});
+
+
+test('quick settings auto-closes after being opened', async () => {
+  const app = settings(false);
+  await app.click((n) => n.props?.['aria-label'] === 'Quick settings');
+  assert.ok(app.nodes().some((n) => n.props?.title === 'Dark'));
+  app.runTimers();
+  assert.equal(app.nodes().some((n) => n.props?.title === 'Dark'), false);
 });
