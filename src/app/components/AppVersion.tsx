@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import useVibeLanguage from "@/app/components/useVibeLanguage";
 
-const WEB_VERSION = "0.4.11";
+const WEB_VERSION = "0.5.0";
 const WEB_RELEASE_DATE = "2026-10-09";
-const BETA_FLAIR = " 🚀";
+const BETA_FLAIR = " 🛡️";
 
 export default function AppVersion() {
   const language = useVibeLanguage();
