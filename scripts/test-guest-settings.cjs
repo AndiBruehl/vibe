@@ -6,7 +6,8 @@ const ts = require('typescript');
 
 function settings(blockStorage) {
   const slots = [], themes = [], events = [], storage = new Map();
-  let index = 0, tree, requests = 0;
+  let index = 0, refIndex = 0, tree, requests = 0;
+  const refs = [];
   const module = { exports: {} };
   const code = ts.transpileModule(fs.readFileSync('src/app/components/QuickSettings.tsx', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX } }).outputText;
   const document = { documentElement: {} };
@@ -16,14 +17,18 @@ function settings(blockStorage) {
     localStorage: { setItem(key, value) { if (blockStorage) throw Error('blocked'); storage.set(key, value); } },
     fetch: async () => { requests++; throw Error('Guest must not call member API'); },
     require(name) {
-      if (name === 'react') return { useState(value) { const i = index++; if (!(i in slots)) slots[i] = value; return [slots[i], (v) => { slots[i] = typeof v === 'function' ? v(slots[i]) : v; }]; }, useEffect() {}, useRef: () => ({ current: null }) };
+      if (name === 'react') return {
+        useState(value) { const i = index++; if (!(i in slots)) slots[i] = value; return [slots[i], (v) => { slots[i] = typeof v === 'function' ? v(slots[i]) : v; }]; },
+        useEffect() {},
+        useRef(value = null) { const i = refIndex++; if (!(i in refs)) refs[i] = { current: value }; return refs[i]; },
+      };
       if (name === 'react/jsx-runtime') return { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }) };
       if (name === 'next/navigation') return { usePathname: () => '/home', useRouter: () => ({}) };
       if (name.includes('ProfileThemeRuntime')) return { applyTheme: (theme) => themes.push(theme) };
       return {};
     },
   });
-  function render() { index = 0; tree = module.exports.default({ guest: true, initialTheme: 'system', initialLanguage: 'en' }); }
+  function render() { index = 0; refIndex = 0; tree = module.exports.default({ guest: true, initialTheme: 'system', initialLanguage: 'en' }); }
   function nodes(node) { return !node || typeof node !== 'object' ? [] : Array.isArray(node) ? node.flatMap(nodes) : [node, ...nodes(node.props?.children)]; }
   render();
   return { themes, events, storage, document, requests: () => requests,

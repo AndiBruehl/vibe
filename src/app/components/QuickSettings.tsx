@@ -20,7 +20,10 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
   const [browseHeaderVisible, setBrowseHeaderVisible] = useState(true);
   const [pinnedMessagesBottom, setPinnedMessagesBottom] = useState<number | null>(null);
   const panel = useRef<HTMLDivElement>(null);
+  const mounted = useRef(true);
   const autoCloseTimer = useRef<number | null>(null);
+  const feedbackTimer = useRef<number | null>(null);
+  const feedbackExitTimer = useRef<number | null>(null);
 
   function clearAutoCloseTimer() {
     if (autoCloseTimer.current !== null) {
@@ -31,18 +34,19 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
 
   function closePanel() {
     clearAutoCloseTimer();
-    setOpen(false);
+    if (mounted.current) setOpen(false);
   }
 
   function schedulePanelClose(delay = 3000) {
     clearAutoCloseTimer();
     autoCloseTimer.current = window.setTimeout(() => {
       autoCloseTimer.current = null;
-      setOpen(false);
+      if (mounted.current) setOpen(false);
     }, delay);
   }
 
   useEffect(() => {
+    mounted.current = true;
     setTheme(initialTheme);
     setLanguage(initialLanguage);
     if (guest) {
@@ -54,19 +58,22 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
       } catch { /* Browser storage is optional for guest preferences. */ }
     }
     const close = (event: MouseEvent | TouchEvent) => {
-      if (panel.current && !panel.current.contains(event.target as Node)) setOpen(false);
+      if (panel.current && !panel.current.contains(event.target as Node) && mounted.current) setOpen(false);
     };
     document.addEventListener("mousedown", close);
     document.addEventListener("touchstart", close);
     return () => {
       document.removeEventListener("mousedown", close);
       document.removeEventListener("touchstart", close);
+      mounted.current = false;
       clearAutoCloseTimer();
+      if (feedbackTimer.current !== null) window.clearTimeout(feedbackTimer.current);
+      if (feedbackExitTimer.current !== null) window.clearTimeout(feedbackExitTimer.current);
     };
   }, [initialLanguage, initialTheme, guest]);
 
   useEffect(() => {
-    setOpen(false);
+    if (mounted.current) setOpen(false);
     clearAutoCloseTimer();
   }, [pathname]);
 
@@ -85,6 +92,7 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
     }
 
     const syncHeaderVisibility = () => {
+      if (!mounted.current) return;
       const header = document.querySelector("[data-vibe-browse-header]");
       if (header) setBrowseHeaderVisible(header.getBoundingClientRect().bottom > 0);
     };
@@ -105,6 +113,7 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
     const syncPinnedMessagesPosition = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
+        if (!mounted.current) return;
         const pinnedMessages = document.querySelector<HTMLElement>("[data-vibe-pinned-messages]");
         setPinnedMessagesBottom(pinnedMessages ? Math.ceil(pinnedMessages.getBoundingClientRect().bottom) + 12 : null);
       });
@@ -124,14 +133,24 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
   }, [pathname]);
 
   function showFeedback(next: "saved" | "failed" | "working") {
+    if (!mounted.current) return;
     setFeedbackLeaving(false);
     setFeedback(next);
   }
 
   function hideFeedbackAfter(delay: number) {
-    window.setTimeout(() => {
+    if (feedbackTimer.current !== null) window.clearTimeout(feedbackTimer.current);
+    if (feedbackExitTimer.current !== null) window.clearTimeout(feedbackExitTimer.current);
+    feedbackTimer.current = window.setTimeout(() => {
+      feedbackTimer.current = null;
+      if (!mounted.current) return;
       setFeedbackLeaving(true);
-      window.setTimeout(() => { setFeedback(null); setFeedbackLeaving(false); }, 180);
+      feedbackExitTimer.current = window.setTimeout(() => {
+        feedbackExitTimer.current = null;
+        if (!mounted.current) return;
+        setFeedback(null);
+        setFeedbackLeaving(false);
+      }, 180);
     }, delay);
   }
 
@@ -151,10 +170,12 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
     applyTheme(next);
     try {
       const response = await fetch("/api/profile/theme", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ theme: next }) });
+      if (!mounted.current) return;
       if (!response.ok) throw new Error("Theme could not be saved");
       showFeedback("saved");
       closePanel();
     } catch {
+      if (!mounted.current) return;
       setTheme(previous);
       localStorage.setItem("theme", previous);
       applyTheme(previous);
@@ -185,6 +206,7 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
     } catch {
       response = new Response(null, { status: 503 });
     }
+    if (!mounted.current) return;
     if (!response.ok) {
       setLanguage(previous);
       applyVibeLanguage(previous);
@@ -193,8 +215,9 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
       closePanel();
       return;
     }
+    if (!mounted.current) return;
     startTransition(() => router.refresh());
-    window.setTimeout(() => showFeedback("saved"), 650);
+    feedbackTimer.current = window.setTimeout(() => showFeedback("saved"), 650);
     hideFeedbackAfter(2600);
     closePanel();
   }
@@ -233,7 +256,7 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
 
   return (
     <div ref={panel} className={`fixed ${position} z-50 transition-[right,top] duration-200`} style={dynamicPosition} data-vibe-quick-settings>
-      <button type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open} aria-label={de ? "Schnelleinstellungen" : "Quick settings"}
+      <button type="button" onClick={() => { if (mounted.current) setOpen((value) => !value); }} aria-expanded={open} aria-label={de ? "Schnelleinstellungen" : "Quick settings"}
         className="grid size-10 place-items-center rounded-full border border-slate-300/80 bg-white/90 text-slate-600 shadow-lg shadow-slate-900/10 backdrop-blur transition hover:-translate-y-0.5 hover:border-orange-300 hover:text-orange-500 dark:border-slate-600 dark:bg-slate-800/90 dark:text-slate-200 dark:shadow-black/30 dark:hover:border-orange-400 dark:hover:text-orange-300">
         <Settings2 size={18} aria-hidden="true" />
       </button>
