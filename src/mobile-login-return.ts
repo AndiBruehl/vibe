@@ -3,10 +3,10 @@ export const mobileLoginCookie = "vibe-mobile-login";
 export function mobileRedirect(value: string | null) {
   try {
     const url = new URL(value || "");
-    if (url.protocol !== "vibe:" || url.hostname !== "auth" || (url.pathname && url.pathname !== "/") || url.username || url.password || url.port) return null;
+    if (!["vibe:", "vibebeta:"].includes(url.protocol) || url.hostname !== "auth" || (url.pathname && url.pathname !== "/") || url.username || url.password || url.port) return null;
     const state = url.searchParams.get("state");
     if (!state || !/^[a-zA-Z0-9_-]{16,128}$/.test(state)) return null;
-    return `vibe://auth?state=${encodeURIComponent(state)}`;
+    return `${url.protocol}//auth?state=${encodeURIComponent(state)}`;
   } catch { return null; }
 }
 

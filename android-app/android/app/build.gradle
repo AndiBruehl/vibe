@@ -89,11 +89,11 @@ android {
 
     namespace 'com.vibe.social'
     defaultConfig {
-        applicationId 'com.vibe.social'
+        applicationId 'com.vibe.social.beta'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 104
-        versionName "0.5.0.4"
+        versionCode 105
+        versionName "0.5.0.5"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
     }

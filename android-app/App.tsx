@@ -19,6 +19,7 @@ const appVersion = Constants.expoConfig?.version || "0.1.69.1";
 const mobileTokenKey = "vibe.webMobileToken";
 const pendingLoginKey = "vibe.pendingLogin";
 const releaseManifestUrls = [`${vibeUrl}/releases/latest.json`, "https://raw.githubusercontent.com/AndiBruehl/vibe/main/public/releases/latest.json"];
+const authRedirectScheme = "vibebeta";
 
 type UpdateRelease = { version: string; downloadUrl: string; sha256: string; sizeBytes: number };
 
@@ -163,7 +164,7 @@ export default function App() {
     try {
       const state = Crypto.randomUUID();
       await SecureStore.setItemAsync(pendingLoginKey, JSON.stringify({ state, startedAt: Date.now(), linking: Boolean(linkToken) }));
-      const redirectUri = `vibe://auth?state=${encodeURIComponent(state)}`;
+      const redirectUri = `${authRedirectScheme}://auth?state=${encodeURIComponent(state)}`;
       const url = `${vibeUrl}/api/mobile/auth/start?provider=${provider}&redirectUri=${encodeURIComponent(redirectUri)}${linkToken ? `&linkToken=${encodeURIComponent(linkToken)}` : ""}`;
       const result = await WebBrowser.openAuthSessionAsync(url, redirectUri);
       if (result.type !== "success") {
@@ -179,7 +180,7 @@ export default function App() {
 
   useEffect(() => {
     const subscription = Linking.addEventListener("url", ({ url }) => {
-      if (url.startsWith("vibe://auth")) void finishLogin(url).catch(cause => setLoginError(cause instanceof Error ? cause.message : "Sign-in failed. Start again from this screen."));
+      if (url.startsWith(`${authRedirectScheme}://auth`)) void finishLogin(url).catch(cause => setLoginError(cause instanceof Error ? cause.message : "Sign-in failed. Start again from this screen."));
     });
     void Linking.getInitialURL().then(url => {
       if (url?.startsWith("vibe://auth")) return finishLogin(url);

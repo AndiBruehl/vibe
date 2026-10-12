@@ -9,6 +9,7 @@ const { mobileRedirect, mobileErrorReturn, matchesMobileAttempt } = m.exports;
 const redirect = 'vibe://auth?state=1234567890abcdef';
 test('only exact app callback destinations with state are accepted', () => {
   assert.equal(mobileRedirect(redirect + '&token=injected'), redirect);
+  assert.equal(mobileRedirect('vibebeta://auth?state=1234567890abcdef&token=injected'), 'vibebeta://auth?state=1234567890abcdef');
   for (const value of ['https://evil.test', 'vibe://evil?state=1234567890abcdef', 'vibe://auth/path?state=1234567890abcdef', 'vibe://auth', 'vibe://user@auth?state=1234567890abcdef']) assert.equal(mobileRedirect(value), null);
 });
 test('session handoff requires its unexpired browser attempt and exact return state', () => {

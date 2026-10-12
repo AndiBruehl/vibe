@@ -4,7 +4,7 @@ const { TARGET_VERSION, ACCEPTED_NATIVE_VERSION, buildNativeReleaseReadiness } =
 const fs = require('node:fs');
 const appVersionSource = fs.readFileSync('src/app/components/AppVersion.tsx', 'utf8');
 
-test('0.5.0.4 package metadata is prepared while Android is published and Windows stays pinned', () => {
+test('0.5.0.5 package metadata is prepared while Android is published and Windows stays pinned', () => {
   const report = buildNativeReleaseReadiness();
   assert.equal(report.targetVersion, TARGET_VERSION);
   assert.equal(report.acceptedNativeVersion, ACCEPTED_NATIVE_VERSION);
@@ -19,7 +19,7 @@ test('0.5.0.4 package metadata is prepared while Android is published and Window
   ]);
 });
 
-test('0.5.0.4 native release remains blocked until rebuilt artifacts and real signature exist', () => {
+test('0.5.0.5 native release remains blocked until rebuilt artifacts and real signature exist', () => {
   const report = buildNativeReleaseReadiness();
   assert.equal(report.readyToPublishNative, false);
   assert.ok(report.blockers.some((check) => check.id === 'windows-050-artifact' && !check.ok));
@@ -27,8 +27,8 @@ test('0.5.0.4 native release remains blocked until rebuilt artifacts and real si
   assert.ok(report.blockers.some((check) => check.id === 'windows-050-published' && !check.ok));
 });
 
-test('0.5.0.4 visible version uses the shield beta flair', () => {
-  assert.match(appVersionSource, /WEB_VERSION = "0\.5\.0\.4"/);
+test('0.5.0.5 visible version uses the shield beta flair', () => {
+  assert.match(appVersionSource, /WEB_VERSION = "0\.5\.0\.5"/);
   assert.match(appVersionSource, /BETA_FLAIR = " 🛡️"/);
 });
 test('mobile auth web bridge validates tokens and recovers without a WebView HTTP failure', () => {
@@ -65,4 +65,16 @@ test('android update manifest tries Vercel before GitHub raw fallback', () => {
   const appSource = fs.readFileSync('android-app/App.tsx', 'utf8');
   assert.match(appSource, /releaseManifestUrls = \[`\$\{vibeUrl\}\/releases\/latest\.json`, "https:\/\/raw\.githubusercontent\.com\/AndiBruehl\/vibe\/main\/public\/releases\/latest\.json"\]/);
   assert.match(appSource, /for \(const url of releaseManifestUrls\)/);
+});
+
+test('android conflict-safe beta package uses its own package id and auth scheme', () => {
+  const appJson = JSON.parse(fs.readFileSync('android-app/app.json', 'utf8'));
+  const appSource = fs.readFileSync('android-app/App.tsx', 'utf8');
+  const manifestSource = fs.readFileSync('android-app/android/app/src/main/AndroidManifest.xml', 'utf8');
+  const gradleSource = fs.readFileSync('android-app/android/app/build.gradle', 'utf8');
+  assert.equal(appJson.expo.android.package, 'com.vibe.social.beta');
+  assert.equal(appJson.expo.scheme, 'vibebeta');
+  assert.match(gradleSource, /applicationId 'com\.vibe\.social\.beta'/);
+  assert.match(appSource, /authRedirectScheme = "vibebeta"/);
+  assert.match(manifestSource, /android:scheme="vibebeta"/);
 });
