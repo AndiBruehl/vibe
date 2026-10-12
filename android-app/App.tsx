@@ -18,7 +18,7 @@ const vibeUrl = (process.env.EXPO_PUBLIC_API_URL || extra?.apiUrl || "https://vi
 const appVersion = Constants.expoConfig?.version || "0.1.69.1";
 const mobileTokenKey = "vibe.webMobileToken";
 const pendingLoginKey = "vibe.pendingLogin";
-const releaseManifestUrl = "https://raw.githubusercontent.com/AndiBruehl/vibe/main/public/releases/latest.json";
+const releaseManifestUrls = [`${vibeUrl}/releases/latest.json`, "https://raw.githubusercontent.com/AndiBruehl/vibe/main/public/releases/latest.json"];
 
 type UpdateRelease = { version: string; downloadUrl: string; sha256: string; sizeBytes: number };
 
@@ -58,19 +58,21 @@ function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}, time
   return fetch(input, { ...init, signal: controller.signal }).finally(() => clearTimeout(timer));
 }
 async function getLatestAndroidRelease(): Promise<UpdateRelease | null> {
-  try {
-    const response = await fetch(`${releaseManifestUrl}?v=${Date.now()}`, { cache: "no-store" });
-    if (!response.ok) return null;
-    const manifest = await response.json() as { android?: UpdateRelease };
-    return typeof manifest.android?.version === "string" && typeof manifest.android?.downloadUrl === "string" &&
-      typeof manifest.android?.sha256 === "string" && typeof manifest.android?.sizeBytes === "number"
-      ? manifest.android
-      : null;
-  } catch {
-    return null;
+  for (const url of releaseManifestUrls) {
+    try {
+      const response = await fetch(`${url}?v=${Date.now()}`, { cache: "no-store" });
+      if (!response.ok) continue;
+      const manifest = await response.json() as { android?: UpdateRelease };
+      if (typeof manifest.android?.version === "string" && typeof manifest.android?.downloadUrl === "string" &&
+        typeof manifest.android?.sha256 === "string" && typeof manifest.android?.sizeBytes === "number") {
+        return manifest.android;
+      }
+    } catch {
+      // Try the next release manifest source.
+    }
   }
+  return null;
 }
-
 async function downloadAndInstallApk(release: Pick<UpdateRelease, "downloadUrl" | "sizeBytes"> | { downloadUrl: string; sizeBytes?: number }) {
   const destination = `${FileSystem.documentDirectory ?? FileSystem.cacheDirectory}Vibe-update.apk`;
   const result = await FileSystem.downloadAsync(release.downloadUrl, destination, { headers: { Accept: "application/vnd.android.package-archive" } });
@@ -123,11 +125,10 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!mobileToken) return;
     void getLatestAndroidRelease().then((release) => {
       if (release && compareVersions(release.version, appVersion) > 0) setUpdate(release);
     });
-  }, [mobileToken]);
+  }, []);
 
   const finishLogin = useCallback(async (url: string) => {
     if (completingLogin.current || completedCallback.current === url) return;

@@ -4,7 +4,7 @@ const { TARGET_VERSION, ACCEPTED_NATIVE_VERSION, buildNativeReleaseReadiness } =
 const fs = require('node:fs');
 const appVersionSource = fs.readFileSync('src/app/components/AppVersion.tsx', 'utf8');
 
-test('0.5.0.3 package metadata is prepared while Android is published and Windows stays pinned', () => {
+test('0.5.0.4 package metadata is prepared while Android is published and Windows stays pinned', () => {
   const report = buildNativeReleaseReadiness();
   assert.equal(report.targetVersion, TARGET_VERSION);
   assert.equal(report.acceptedNativeVersion, ACCEPTED_NATIVE_VERSION);
@@ -19,7 +19,7 @@ test('0.5.0.3 package metadata is prepared while Android is published and Window
   ]);
 });
 
-test('0.5.0.3 native release remains blocked until rebuilt artifacts and real signature exist', () => {
+test('0.5.0.4 native release remains blocked until rebuilt artifacts and real signature exist', () => {
   const report = buildNativeReleaseReadiness();
   assert.equal(report.readyToPublishNative, false);
   assert.ok(report.blockers.some((check) => check.id === 'windows-050-artifact' && !check.ok));
@@ -27,8 +27,8 @@ test('0.5.0.3 native release remains blocked until rebuilt artifacts and real si
   assert.ok(report.blockers.some((check) => check.id === 'windows-050-published' && !check.ok));
 });
 
-test('0.5.0.3 visible version uses the shield beta flair', () => {
-  assert.match(appVersionSource, /WEB_VERSION = "0\.5\.0\.3"/);
+test('0.5.0.4 visible version uses the shield beta flair', () => {
+  assert.match(appVersionSource, /WEB_VERSION = "0\.5\.0\.4"/);
   assert.match(appVersionSource, /BETA_FLAIR = " 🛡️"/);
 });
 test('mobile auth web bridge validates tokens and recovers without a WebView HTTP failure', () => {
@@ -56,6 +56,13 @@ test('android login verification avoids AbortSignal.timeout for React Native com
 
 test('android update prompt does not require a mobile token', () => {
   const appSource = fs.readFileSync('android-app/App.tsx', 'utf8');
-  assert.equal(appSource.includes('if (!mobileToken) return;\n    void getLatestAndroidRelease'), false);
+  assert.doesNotMatch(appSource, /if \(!mobileToken\) return;\s*void getLatestAndroidRelease/);
+  assert.match(appSource, /useEffect\(\(\) => \{\s*void getLatestAndroidRelease/);
   assert.match(appSource, /\{update && <View/);
+});
+
+test('android update manifest tries Vercel before GitHub raw fallback', () => {
+  const appSource = fs.readFileSync('android-app/App.tsx', 'utf8');
+  assert.match(appSource, /releaseManifestUrls = \[`\$\{vibeUrl\}\/releases\/latest\.json`, "https:\/\/raw\.githubusercontent\.com\/AndiBruehl\/vibe\/main\/public\/releases\/latest\.json"\]/);
+  assert.match(appSource, /for \(const url of releaseManifestUrls\)/);
 });

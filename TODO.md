@@ -462,3 +462,5 @@ Implemented and covered by access regression tests. Native packages remain uncha
 - **0.4.10.7 — quick settings language feedback fix (local):** replaces the language-change working pill with the green saved pill after a successful save, then waits for feedback fade-out before closing the orb. ✅
 - **0.4.10.8 — quick settings refresh timer fix (local):** separates mount/unmount cleanup from language/theme prop syncing so router refresh after a language save cannot clear the saved-pill fade-out timer and leave the orb open. ✅
 - **0.4.10.9 — quick settings feedback reset fix (local):** clears stale saved feedback when the orb is closed or reopened, and prevents action saves from racing the generic auto-close timer before saved feedback appears. ✅
+
+- 2026-10-12: 0.5.0.4 APK-Update-Check startet ohne Mobile-Token und liest zuerst das Vercel-Manifest, GitHub Raw bleibt Fallback. ✅

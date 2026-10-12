@@ -1,7 +1,7 @@
 {
   "algorithm": "Ed25519",
   "keyId": "unprovisioned-local-placeholder",
-  "payloadSha256": "DA812CA7693C2EE38C181671B88C00860154D89503F2A94B198D6D75FD500F9D",
+  "payloadSha256": "65C473357FF728732914CEB9D5F3BE2F6C6FC8C9B3F17C58A9978D55B8808D34",
   "schema": "vibe-release-manifest-signature/v1",
   "signature": ""
 }
