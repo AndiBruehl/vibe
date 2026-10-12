@@ -466,3 +466,5 @@ Implemented and covered by access regression tests. Native packages remain uncha
 - 2026-10-12: 0.5.0.4 APK-Update-Check startet ohne Mobile-Token und liest zuerst das Vercel-Manifest, GitHub Raw bleibt Fallback. ✅
 
 - 2026-10-12: 0.5.0.5 Konflikt-sichere Android-Beta mit Package-ID `com.vibe.social.beta` und Login-Scheme `vibebeta://auth` vorbereitet. ✅
+
+- 2026-10-12: 0.5.0.6 Android-Beta behält `com.vibe.social.beta`, nutzt für Google Login aber wieder das live-kompatible `vibe://auth`. ✅

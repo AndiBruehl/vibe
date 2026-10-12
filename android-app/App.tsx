@@ -19,7 +19,7 @@ const appVersion = Constants.expoConfig?.version || "0.1.69.1";
 const mobileTokenKey = "vibe.webMobileToken";
 const pendingLoginKey = "vibe.pendingLogin";
 const releaseManifestUrls = [`${vibeUrl}/releases/latest.json`, "https://raw.githubusercontent.com/AndiBruehl/vibe/main/public/releases/latest.json"];
-const authRedirectScheme = "vibebeta";
+const authRedirectScheme = "vibe";
 
 type UpdateRelease = { version: string; downloadUrl: string; sha256: string; sizeBytes: number };
 
@@ -183,7 +183,7 @@ export default function App() {
       if (url.startsWith(`${authRedirectScheme}://auth`)) void finishLogin(url).catch(cause => setLoginError(cause instanceof Error ? cause.message : "Sign-in failed. Start again from this screen."));
     });
     void Linking.getInitialURL().then(url => {
-      if (url?.startsWith("vibe://auth")) return finishLogin(url);
+      if (url?.startsWith(`${authRedirectScheme}://auth`)) return finishLogin(url);
     }).catch(() => setLoginError("Could not resume sign-in. Start again from this screen."));
     return () => subscription.remove();
   }, [finishLogin]);
