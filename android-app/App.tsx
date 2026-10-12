@@ -313,7 +313,7 @@ export default function App() {
       <Animated.View style={[styles.navigationProgress, { width: navigationProgress.interpolate({ inputRange: [0, 1], outputRange: ["0%", "100%"] }) }]} />
       <View style={styles.navigationSpinner}><ActivityIndicator color={colors.white} size="small" /></View>
     </View>}
-    {mobileToken && update && <View style={[styles.updateOverlay, webDarkMode ? styles.updateOverlayDark : styles.updateOverlayLight]}>
+    {update && <View style={[styles.updateOverlay, webDarkMode ? styles.updateOverlayDark : styles.updateOverlayLight]}>
       <View style={[styles.updateBanner, webDarkMode ? styles.updateBannerDark : styles.updateBannerLight]}>
       <View style={styles.updateTextWrap}>
         <Text style={styles.updateEyebrow}>VIBE UPDATE</Text>

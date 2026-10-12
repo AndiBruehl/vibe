@@ -1,6 +1,6 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Local development version: **0.5.0.2** (2026-10-12) 🛡️ — Android login callback runtime fix. See [release notes](docs/releases/0.5.0.2.md). Android APK metadata now points to 0.5.0.2; Windows remains at 0.4.1 until rebuilt, signed and manually accepted.
+Local development version: **0.5.0.3** (2026-10-12) 🛡️ — Android update prompt before login fix. See [release notes](docs/releases/0.5.0.3.md). Android APK metadata now points to 0.5.0.3; Windows remains at 0.4.1 until rebuilt, signed and manually accepted.
 
 ## Getting Started
 
