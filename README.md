@@ -1,6 +1,6 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Local development version: **0.5.0** (2026-10-09) 🛡️ — native release readiness prep. See [release notes](docs/releases/0.5.0.md). Published native installers remain at 0.4.1 until rebuilt, signed and manually accepted.
+Local development version: **0.5.0.1** (2026-10-12) 🛡️ — mobile auth bridge recovery fix. See [release notes](docs/releases/0.5.0.1.md). Published native installers remain at 0.4.1 until rebuilt, signed and manually accepted.
 
 ## Getting Started
 

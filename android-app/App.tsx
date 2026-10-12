@@ -182,6 +182,13 @@ export default function App() {
   }, [finishLogin]);
 
   const handleNavigation = useCallback((state: WebViewNavigation) => setCanGoBack(state.canGoBack), []);
+  const resetMobileSession = useCallback(async (message: string) => {
+    await SecureStore.deleteItemAsync(mobileTokenKey).catch(() => undefined);
+    setMobileToken(null);
+    setError(false);
+    setLoading(false);
+    setLoginError(message);
+  }, []);
   const beginNavigation = useCallback(() => {
     navigationProgress.stopAnimation();
     navigationProgress.setValue(0);
@@ -262,6 +269,11 @@ export default function App() {
         completeNavigation();
       }}
       onError={() => { setLoading(false); setError(true); }}
+      onHttpError={({ nativeEvent }) => {
+        if (nativeEvent.url.startsWith(`${vibeUrl}/api/mobile/auth/web`)) {
+          void resetMobileSession("Your mobile session expired. Sign in again to continue.");
+        }
+      }}
       onShouldStartLoadWithRequest={request => {
         if (isYouTubeUrl(request.url)) {
           void Linking.openURL(request.url);
