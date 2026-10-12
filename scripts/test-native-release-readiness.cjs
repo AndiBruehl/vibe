@@ -4,7 +4,7 @@ const { TARGET_VERSION, ACCEPTED_NATIVE_VERSION, buildNativeReleaseReadiness } =
 const fs = require('node:fs');
 const appVersionSource = fs.readFileSync('src/app/components/AppVersion.tsx', 'utf8');
 
-test('0.5.0.2 package metadata is prepared while public native downloads stay pinned', () => {
+test('0.5.0.2 package metadata is prepared while Android is published and Windows stays pinned', () => {
   const report = buildNativeReleaseReadiness();
   assert.equal(report.targetVersion, TARGET_VERSION);
   assert.equal(report.acceptedNativeVersion, ACCEPTED_NATIVE_VERSION);
@@ -13,7 +13,8 @@ test('0.5.0.2 package metadata is prepared while public native downloads stay pi
     ['android-version', true],
     ['android-version-code', true],
     ['desktop-version', true],
-    ['published-manifest-pinned', true],
+    ['published-android-target', true],
+    ['published-windows-pinned', true],
     ['signature-placeholder-unprovisioned', true],
   ]);
 });
@@ -21,10 +22,9 @@ test('0.5.0.2 package metadata is prepared while public native downloads stay pi
 test('0.5.0.2 native release remains blocked until rebuilt artifacts and real signature exist', () => {
   const report = buildNativeReleaseReadiness();
   assert.equal(report.readyToPublishNative, false);
-  assert.ok(report.blockers.some((check) => check.id === 'android-050-artifact' && !check.ok));
   assert.ok(report.blockers.some((check) => check.id === 'windows-050-artifact' && !check.ok));
   assert.ok(report.blockers.some((check) => check.id === 'real-signature' && !check.ok));
-  assert.ok(report.blockers.some((check) => check.id === 'manifest-050-published' && !check.ok));
+  assert.ok(report.blockers.some((check) => check.id === 'windows-050-published' && !check.ok));
 });
 
 test('0.5.0.2 visible version uses the shield beta flair', () => {
