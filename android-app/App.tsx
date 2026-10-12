@@ -52,6 +52,11 @@ function compareVersions(left: string, right: string) {
   return 0;
 }
 
+function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}, timeoutMs = 15000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(input, { ...init, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
 async function getLatestAndroidRelease(): Promise<UpdateRelease | null> {
   try {
     const response = await fetch(`${releaseManifestUrl}?v=${Date.now()}`, { cache: "no-store" });
@@ -138,7 +143,7 @@ export default function App() {
       Alert.alert("VIBE", "Sign-in method linked. You can use either method next time.");
       return;
     }
-    const response = await fetch(`${vibeUrl}/api/mobile/profile`, { headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(15000) });
+    const response = await fetchWithTimeout(`${vibeUrl}/api/mobile/profile`, { headers: { Authorization: `Bearer ${token}` } });
     if (!response.ok) throw new Error(response.status === 401 ? "This sign-in expired before VIBE could confirm it. Start again from this screen." : "VIBE is temporarily unavailable. Keep this screen open and try again in a moment.");
     const profile = await response.json();
     if (!profile?.id) throw new Error("VIBE could not validate this sign-in. No account was changed; start again from this screen.");

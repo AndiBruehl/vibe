@@ -4,7 +4,7 @@ const { TARGET_VERSION, ACCEPTED_NATIVE_VERSION, buildNativeReleaseReadiness } =
 const fs = require('node:fs');
 const appVersionSource = fs.readFileSync('src/app/components/AppVersion.tsx', 'utf8');
 
-test('0.5.0.1 package metadata is prepared while public native downloads stay pinned', () => {
+test('0.5.0.2 package metadata is prepared while public native downloads stay pinned', () => {
   const report = buildNativeReleaseReadiness();
   assert.equal(report.targetVersion, TARGET_VERSION);
   assert.equal(report.acceptedNativeVersion, ACCEPTED_NATIVE_VERSION);
@@ -18,7 +18,7 @@ test('0.5.0.1 package metadata is prepared while public native downloads stay pi
   ]);
 });
 
-test('0.5.0.1 native release remains blocked until rebuilt artifacts and real signature exist', () => {
+test('0.5.0.2 native release remains blocked until rebuilt artifacts and real signature exist', () => {
   const report = buildNativeReleaseReadiness();
   assert.equal(report.readyToPublishNative, false);
   assert.ok(report.blockers.some((check) => check.id === 'android-050-artifact' && !check.ok));
@@ -27,8 +27,8 @@ test('0.5.0.1 native release remains blocked until rebuilt artifacts and real si
   assert.ok(report.blockers.some((check) => check.id === 'manifest-050-published' && !check.ok));
 });
 
-test('0.5.0.1 visible version uses the shield beta flair', () => {
-  assert.match(appVersionSource, /WEB_VERSION = "0\.5\.0\.1"/);
+test('0.5.0.2 visible version uses the shield beta flair', () => {
+  assert.match(appVersionSource, /WEB_VERSION = "0\.5\.0\.2"/);
   assert.match(appVersionSource, /BETA_FLAIR = " 🛡️"/);
 });
 test('mobile auth web bridge validates tokens and recovers without a WebView HTTP failure', () => {
@@ -44,4 +44,12 @@ test('android clears stored mobile session when the auth bridge returns an HTTP 
   assert.match(appSource, /nativeEvent\.url\.startsWith\(`\$\{vibeUrl\}\/api\/mobile\/auth\/web`\)/);
   assert.match(appSource, /SecureStore\.deleteItemAsync\(mobileTokenKey\)/);
   assert.match(appSource, /Your mobile session expired/);
+});
+
+
+test('android login verification avoids AbortSignal.timeout for React Native compatibility', () => {
+  const appSource = fs.readFileSync('android-app/App.tsx', 'utf8');
+  assert.match(appSource, /function fetchWithTimeout/);
+  assert.match(appSource, /new AbortController\(\)/);
+  assert.equal(appSource.includes('AbortSignal.timeout'), false);
 });
