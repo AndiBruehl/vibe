@@ -6,6 +6,7 @@ export type ReleaseNote = {
 
 // Keep newest releases first. This is the single source for the Home changelog.
 export const webReleaseNotes: ReleaseNote[] = [
+  { version: "0.5.0.6", date: "2026-10-23", changes: ["Restored the live-compatible vibe://auth callback for Google login while keeping the conflict-safe Android beta package ID com.vibe.social.beta.", "Rebuilt the Windows beta installer and updated the Android and Windows download manifest entries with their artifact hashes and sizes."] },
   { version: "0.5.0.5", date: "2026-10-12", changes: ["Added a conflict-safe Android beta APK with package ID com.vibe.social.beta.", "The Android beta login callback now uses vibebeta://auth so hidden old package leftovers cannot intercept the sign-in return.", "The backend accepts both vibe://auth and vibebeta://auth mobile callbacks."] },
   { version: "0.5.0.4", date: "2026-10-12", changes: ["Android update discovery now really starts before a stored mobile session is required.", "The APK checks the Vercel-hosted release manifest first and keeps GitHub Raw as a fallback.", "The regression test now catches token-gated update checks across line endings so this cannot silently pass again."] },
   { version: "0.5.0.3", date: "2026-10-12", changes: ["Android now checks for APK updates on app launch even before a mobile session exists.", "The update prompt can appear on the native login screen, so a broken login state can still recover by installing the newer APK.", "Added regression coverage so update discovery is not gated by the stored mobile token."] },

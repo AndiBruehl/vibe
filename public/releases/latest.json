@@ -7,9 +7,9 @@
   },
   "releaseName": "BETA 0.5.0.6",
   "windows": {
-    "downloadUrl": "https://raw.githubusercontent.com/AndiBruehl/vibe/main/electron-app/dist/Vibe-Setup-BETA-0.4.1-x64.exe",
-    "sha256": "C59FB7DF5BD90F082050FD98AEB01E095043F26C0243085724FB5EAFC2523A87",
-    "sizeBytes": 96091309,
-    "version": "0.4.1"
+    "downloadUrl": "https://raw.githubusercontent.com/AndiBruehl/vibe/main/electron-app/dist/Vibe-Setup-BETA-0.5.0.6-x64.exe",
+    "sha256": "78097AF8831AA3075209451408A04035F3D1601D63FE040A647808DE1585017F",
+    "sizeBytes": 96091614,
+    "version": "0.5.0.6"
   }
 }

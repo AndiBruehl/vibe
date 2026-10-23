@@ -28,7 +28,7 @@ function buildNativeReleaseReadiness() {
     { id: 'android-version-code', ok: androidConfig.expo.android.versionCode === 106, detail: `android versionCode is ${androidConfig.expo.android.versionCode}` },
     { id: 'desktop-version', ok: desktopPackage.version === TARGET_VERSION, detail: `desktop package version is ${desktopPackage.version}` },
     { id: 'published-android-target', ok: manifest.android.version === TARGET_VERSION, detail: `published android manifest is ${manifest.android.version}` },
-    { id: 'published-windows-pinned', ok: manifest.windows.version === ACCEPTED_NATIVE_VERSION, detail: `published windows manifest is ${manifest.windows.version}` },
+    { id: 'published-windows-target', ok: manifest.windows.version === TARGET_VERSION, detail: `published windows manifest is ${manifest.windows.version}` },
     { id: 'signature-placeholder-unprovisioned', ok: signature.keyId === 'unprovisioned-local-placeholder' && signature.signature === '', detail: `signature keyId is ${signature.keyId || '(missing)'}` },
   ];
 
