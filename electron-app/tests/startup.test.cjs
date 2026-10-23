@@ -33,12 +33,12 @@ async function boot(singleInstance = true) {
     shell: {openExternal: (url) => {external.push(url); return Promise.resolve();}, openPath: () => Promise.resolve("")},
     dialog: {showErrorBox() {}, showMessageBox: () => Promise.resolve()},
   };
-  const dependencies = {electron, "node:path":path, "node:fs":{appendFileSync(){},mkdirSync(){},existsSync:()=>false}, "./runtime.cjs":require("../src/runtime.cjs")};
+  const dependencies = {electron, "node:path":path, "node:fs":{appendFileSync(){},mkdirSync(){},existsSync:()=>false}, "./runtime.cjs":require("../src/runtime.cjs"), "./releaseUpdate.cjs":require("../src/releaseUpdate.cjs")};
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,"../src/main.cjs"),"utf8"), {
     require: (name) => dependencies[name], __dirname: path.join(__dirname,"../src"), URL,
     process: {platform:"win32", arch:"x64", env:{}},
     fetch: async () => ({ ok: true, json: async () => ({ content: Buffer.from(JSON.stringify({ windows: {
-      version: "0.4.1", downloadUrl: "https://example.com/Vibe.exe", sha256: "C59FB7DF5BD90F082050FD98AEB01E095043F26C0243085724FB5EAFC2523A87", sizeBytes: 123,
+      version: "0.4.1", downloadUrl: "https://raw.githubusercontent.com/AndiBruehl/vibe/main/electron-app/dist/Vibe-Setup-BETA-0.4.1-x64.exe", sha256: "C59FB7DF5BD90F082050FD98AEB01E095043F26C0243085724FB5EAFC2523A87", sizeBytes: 123,
     } })).toString("base64") }) }),
     Buffer,
   });

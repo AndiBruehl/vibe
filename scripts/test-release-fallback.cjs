@@ -41,11 +41,11 @@ test('one platform can update while the other uses its fallback', async () => {
     assert.ok(options.signal);
     if (url.includes('android-app')) throw Error('timeout');
     return { ok: true, json: async () => [
-      { type: 'file', name: 'Vibe-Setup-BETA-0.4.1-x64.exe', download_url: 'https://example.com/new.exe' },
-      { type: 'file', name: 'Vibe-Setup-BETA-0.3.10-x64.exe', download_url: 'https://example.com/old.exe' },
+      { type: 'file', name: 'Vibe-Setup-BETA-0.5.0.6-x64.exe', download_url: 'https://example.com/new.exe' },
+      { type: 'file', name: 'Vibe-Setup-BETA-0.5.0.5-x64.exe', download_url: 'https://example.com/old.exe' },
     ] };
   })();
-  assert.equal(result.windows.version, '0.4.1');
+  assert.equal(result.windows.version, '0.5.0.6');
   assert.equal(result.windows.downloadUrl, 'https://example.com/new.exe');
   assert.equal(result.windows.sha256, manifest.windows.sha256);
   assert.equal(result.windows.sizeBytes, manifest.windows.sizeBytes);

@@ -5,6 +5,7 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { WebView } from "react-native-webview";
 import type { WebViewNavigation } from "react-native-webview/lib/WebViewTypes";
 import Constants from "expo-constants";
+import { File as ExpoFile } from "expo-file-system";
 import * as Crypto from "expo-crypto";
 import * as SecureStore from "expo-secure-store";
 import * as WebBrowser from "expo-web-browser";
@@ -12,6 +13,7 @@ import * as FileSystem from "expo-file-system/legacy";
 import * as IntentLauncher from "expo-intent-launcher";
 import { colors } from "@/theme";
 import { parseLoginCallback, type PendingLogin } from "@/lib/loginCallback";
+import { assertApkIntegrity, isSha256, isValidAndroidUpdateRelease, shouldFallbackToBrowser, UpdateIntegrityError, type AndroidUpdateRelease } from "@/lib/releaseIntegrity";
 
 const extra = Constants.expoConfig?.extra as { apiUrl?: string } | undefined;
 const vibeUrl = (process.env.EXPO_PUBLIC_API_URL || extra?.apiUrl || "https://vibe-social-network.vercel.app").replace(/\/$/, "");
@@ -20,8 +22,6 @@ const mobileTokenKey = "vibe.webMobileToken";
 const pendingLoginKey = "vibe.pendingLogin";
 const releaseManifestUrls = [`${vibeUrl}/releases/latest.json`, "https://raw.githubusercontent.com/AndiBruehl/vibe/main/public/releases/latest.json"];
 const authRedirectScheme = "vibe";
-
-type UpdateRelease = { version: string; downloadUrl: string; sha256: string; sizeBytes: number };
 
 function isYouTubeUrl(url: string) {
   try {
@@ -58,30 +58,64 @@ function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}, time
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   return fetch(input, { ...init, signal: controller.signal }).finally(() => clearTimeout(timer));
 }
-async function getLatestAndroidRelease(): Promise<UpdateRelease | null> {
+async function getLatestAndroidRelease(): Promise<AndroidUpdateRelease | null> {
   for (const url of releaseManifestUrls) {
     try {
       const response = await fetch(`${url}?v=${Date.now()}`, { cache: "no-store" });
       if (!response.ok) continue;
-      const manifest = await response.json() as { android?: UpdateRelease };
-      if (typeof manifest.android?.version === "string" && typeof manifest.android?.downloadUrl === "string" &&
-        typeof manifest.android?.sha256 === "string" && typeof manifest.android?.sizeBytes === "number") {
-        return manifest.android;
-      }
+      const manifest = await response.json() as { android?: unknown };
+      if (isValidAndroidUpdateRelease(manifest.android)) return manifest.android;
     } catch {
       // Try the next release manifest source.
     }
   }
   return null;
 }
-async function downloadAndInstallApk(release: Pick<UpdateRelease, "downloadUrl" | "sizeBytes"> | { downloadUrl: string; sizeBytes?: number }) {
+async function deleteDownloadedApk(uri: string) {
+  try {
+    await FileSystem.deleteAsync(uri, { idempotent: true });
+  } catch {
+    // Cleanup is best-effort; it must not turn a verification failure into a browser fallback.
+  }
+}
+async function downloadAndInstallApk(release: { downloadUrl: string; sha256?: string; sizeBytes?: number }) {
   const destination = `${FileSystem.documentDirectory ?? FileSystem.cacheDirectory}Vibe-update.apk`;
-  const result = await FileSystem.downloadAsync(release.downloadUrl, destination, { headers: { Accept: "application/vnd.android.package-archive" } });
-  if (result.status < 200 || result.status >= 300 || !result.uri.toLowerCase().endsWith(".apk")) throw new Error("APK download failed.");
-  const info = await FileSystem.getInfoAsync(result.uri);
-  if (typeof release.sizeBytes === "number" && info.exists && info.size !== release.sizeBytes) {
-    await FileSystem.deleteAsync(result.uri, { idempotent: true });
-    throw new Error("APK integrity check failed.");
+  let result: Awaited<ReturnType<typeof FileSystem.downloadAsync>>;
+  try {
+    result = await FileSystem.downloadAsync(release.downloadUrl, destination, { headers: { Accept: "application/vnd.android.package-archive" } });
+  } catch (cause) {
+    await FileSystem.deleteAsync(destination, { idempotent: true }).catch(() => {});
+    throw cause;
+  }
+  if (result.status < 200 || result.status >= 300 || !result.uri.toLowerCase().endsWith(".apk")) {
+    await deleteDownloadedApk(result.uri);
+    throw new Error("APK download failed.");
+  }
+  const hasIntegrityMetadata = release.sha256 !== undefined || release.sizeBytes !== undefined;
+  if (hasIntegrityMetadata) {
+    try {
+      const info = await FileSystem.getInfoAsync(result.uri);
+      if (!info.exists || !Number.isSafeInteger(release.sizeBytes) || (release.sizeBytes ?? 0) <= 0 || !isSha256(release.sha256)) {
+        throw new UpdateIntegrityError("APK release metadata is incomplete.");
+      }
+      if (info.size !== release.sizeBytes) throw new UpdateIntegrityError();
+      const handle = new ExpoFile(result.uri).open();
+      let remainingBytes = info.size;
+      try {
+        await assertApkIntegrity(() => {
+          if (remainingBytes <= 0) return new Uint8Array();
+          const chunk = handle.readBytes(Math.min(1024 * 1024, remainingBytes));
+          remainingBytes -= chunk.length;
+          return chunk;
+        }, release);
+      } finally {
+        handle.close();
+      }
+    } catch (cause) {
+      await deleteDownloadedApk(result.uri);
+      if (cause instanceof UpdateIntegrityError) throw cause;
+      throw new UpdateIntegrityError("APK integrity could not be verified.");
+    }
   }
   const contentUri = await FileSystem.getContentUriAsync(result.uri);
   await IntentLauncher.startActivityAsync("android.intent.action.VIEW", { data: contentUri, flags: 1, type: "application/vnd.android.package-archive" });
@@ -114,7 +148,7 @@ export default function App() {
   const [mobileToken, setMobileToken] = useState<string | null | undefined>(undefined);
   const [signingIn, setSigningIn] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
-  const [update, setUpdate] = useState<UpdateRelease | null>(null);
+  const [update, setUpdate] = useState<AndroidUpdateRelease | null>(null);
   const [webDarkMode, setWebDarkMode] = useState(true);
   const [downloadingUpdate, setDownloadingUpdate] = useState(false);
   const [updateError, setUpdateError] = useState<string | null>(null);
@@ -241,10 +275,12 @@ export default function App() {
     try {
       await downloadAndInstallApk(update);
     } catch (cause) {
-      setUpdateError(cause instanceof Error && cause.message.includes("integrity")
-        ? "The update download did not match the release metadata. Opening the APK download instead."
+      setUpdateError(cause instanceof UpdateIntegrityError
+        ? "The update did not match its release metadata and was blocked. Try again later."
         : "The update could not be installed. Opening the APK download instead.");
-      try { await Linking.openURL(update.downloadUrl); } catch { /* Keep the clear in-app error visible. */ }
+      if (shouldFallbackToBrowser(cause)) {
+        try { await Linking.openURL(update.downloadUrl); } catch { /* Keep the clear in-app error visible. */ }
+      }
     } finally {
       setDownloadingUpdate(false);
     }

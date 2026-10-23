@@ -1,6 +1,6 @@
 {
   "name": "vibe-desktop",
-  "version": "0.5.0.6",
+  "version": "0.5.1",
   "description": "Vibe desktop app",
   "private": true,
   "main": "src/main.cjs",
@@ -54,7 +54,7 @@
       "icon": "assets/icon.png"
     },
     "nsis": {
-      "artifactName": "Vibe-Setup-${version}-${arch}.${ext}",
+      "artifactName": "Vibe-Setup-BETA-${version}-${arch}.${ext}",
       "oneClick": false,
       "perMachine": false,
       "allowElevation": false,

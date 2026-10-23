@@ -2,7 +2,10 @@ const assert = require("node:assert/strict");
 const path = require("node:path");
 const { extractFile } = require("@electron/asar");
 const config = require("../package.json");
-const archive = path.join(__dirname, "..", "dist", "win-unpacked", "resources", "app.asar");
+const buildDirectory = process.env.VIBE_DESKTOP_BUILD_DIR
+  ? path.resolve(process.env.VIBE_DESKTOP_BUILD_DIR)
+  : path.join(__dirname, "..", "dist");
+const archive = path.join(buildDirectory, "win-unpacked", "resources", "app.asar");
 const packaged = JSON.parse(extractFile(archive, "package.json").toString());
 const normalizeVersion = version => version.replace(/-beta\.(\d+(?:\.\d+)*)$/, ".$1");
 assert.equal(normalizeVersion(packaged.version), normalizeVersion(config.version));
