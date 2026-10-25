@@ -472,3 +472,8 @@ Implemented and covered by access regression tests. Native packages remain uncha
 - 2026-10-23: 0.5.0.6 Windows-EXE gebaut, Hash/Size ins Download-Manifest übernommen; echte detached Release-Signatur bleibt offen. ✅
 
 - **0.5.1 — native Update-Integrität und Debug-Abnahme vorbereitet (local):** Android prüft APK-Größe und SHA-256 in 1-MiB-Blöcken vor dem Installerstart und blockiert Browser-Fallbacks bei Integritätsfehlern. Desktop lehnt ungültige Update-Metadaten und fremde Download-URLs ab. Android/Windows-Debugkandidaten und lokale Hash-Metadaten sind vorbereitet. Android 15 Emulator-Neuinstallation und Start bis zum Anmeldebildschirm bestanden. Offen: Google-/Discord-Abnahme auf echten Geräten, Updatehinweis vor Login mit veröffentlichter 0.5.1-Manifestversion, Installations-/Fallbackprüfung und detached Release-Signatur. Öffentliche Downloads bleiben bis zur Geräteabnahme auf 0.5.0.6.
+
+## Planned 0.5.x
+
+- **0.5.2 — erstes Minispiel:** Ein erstes spielbares Minispiel unter `/games` ergänzen; die konkrete Spielauswahl wird beim Umsetzungsstart festgelegt.
+- **0.5.3 — Konto löschen im Profil:** Eine „Delete Account“-Schaltfläche im Profil ergänzen, mit verständlichen Hinweisen zu den Folgen, deutlicher Warnung sowie expliziter Bestätigungs- und Abbruchmöglichkeit.
