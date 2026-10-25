@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowUpRight, Sparkles } from "lucide-react";
+import { ArrowUpRight, Sparkles } from "lucide-react";
+import BackNavigationLink from "@/app/components/BackNavigationLink";
 import GameArtwork, { type VibeGame } from "@/app/components/games/GameArtwork";
 import LocalizedText from "@/app/components/LocalizedText";
 
@@ -26,10 +27,7 @@ export default function GameDetailShell({
 }) {
   return (
     <main data-vibe-protected-main className="mx-auto w-full max-w-5xl pb-28 pt-3 md:pb-10">
-      <Link href="/games" className="group inline-flex min-h-11 items-center gap-2 rounded-xl border border-[#ff8d72]/35 bg-white px-4 text-sm font-black text-slate-900 shadow-md shadow-[#ff4778]/10 transition duration-200 hover:-translate-y-0.5 hover:border-[#ffc198]/60 hover:bg-linear-to-r hover:from-[#ff3881] hover:via-[#ff4f52] hover:to-[#ff9b23] hover:text-white hover:shadow-[0_10px_30px_rgba(255,64,107,0.3)] active:translate-y-0 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#ffc198] dark:bg-[#111324] dark:text-white">
-        <ArrowLeft size={17} className="transition-transform duration-200 group-hover:-translate-x-1" aria-hidden="true" />
-        <LocalizedText en="Back to games" de="Zurück zu den Spielen" />
-      </Link>
+      <BackNavigationLink href="/games" />
 
       {compact ? (
         <section className="mt-2 flex items-center gap-3 rounded-2xl border border-[#f2c4d0] bg-white px-4 py-3 shadow-lg shadow-[#ff4778]/[0.06] dark:border-[#ff8d72]/20 dark:bg-[#111324] sm:gap-4 sm:px-5">
