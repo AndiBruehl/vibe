@@ -26,9 +26,7 @@ function ReflexArtwork() {
       <span className="absolute bottom-[23%] left-[28%] size-1.5 rounded-full bg-cyan-200/80" />
       <div className="relative grid size-32 place-items-center rounded-full border border-violet-300/30 bg-violet-400/10 shadow-[0_0_70px_rgba(139,92,246,0.25)] sm:size-40">
         <div className="grid size-24 place-items-center rounded-full border border-violet-200/40 bg-linear-to-br from-violet-500/40 to-fuchsia-400/20 sm:size-32">
-          <span className="grid h-14 w-20 place-items-center rounded-2xl bg-slate-950/80 px-1 shadow-lg shadow-orange-400/30 sm:h-[4.5rem] sm:w-28">
-            <Image src="/logo.svg" alt="" width={1536} height={1024} className="h-full w-full object-contain drop-shadow-[0_0_9px_rgba(251,146,60,0.6)]" />
-          </span>
+          <Image src="/logo.svg" alt="" width={1536} height={1024} className="relative z-10 h-auto w-28 object-contain drop-shadow-[0_0_14px_rgba(251,146,60,0.7)] sm:w-36" />
         </div>
       </div>
       <div className="absolute bottom-4 left-4 rounded-full border border-white/10 bg-black/25 px-3 py-1.5 text-[10px] font-black tracking-[0.18em] text-violet-100/80">WAIT FOR THE GLOW</div>

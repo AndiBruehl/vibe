@@ -142,8 +142,8 @@ export default function ReflexGame() {
             className={`group grid min-h-48 w-full select-none place-items-center rounded-[1.3rem] border p-4 text-center transition duration-200 focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-amber-300 active:scale-[0.99] disabled:cursor-wait disabled:opacity-90 sm:min-h-60 sm:p-5 lg:min-h-72 ${buttonTone}`}
           >
             <span className="block">
-              <span className="mx-auto mb-5 grid size-16 place-items-center rounded-[1.35rem] border border-white/15 bg-black/10 p-2 shadow-inner shadow-white/10 transition group-hover:scale-105 sm:size-20 sm:p-2.5">
-                <Image src="/logo.svg" alt="" width={1536} height={1024} className="h-full w-full object-contain" />
+              <span className={`mx-auto mb-4 block w-20 transition duration-200 group-hover:scale-105 sm:w-24 ${phase === "go" ? "drop-shadow-[0_0_22px_rgba(74,222,128,0.85)]" : "drop-shadow-[0_0_14px_rgba(255,145,90,0.55)]"}`}>
+                <Image src="/logo.svg" alt="" width={1536} height={1024} className="block h-auto w-full object-contain" />
               </span>
               <span className="block text-2xl font-black tracking-tight sm:text-3xl">{buttonLabel}</span>
               <span className={`mt-2 block text-sm font-semibold ${phase === "go" ? "text-emerald-950/70" : "text-white/65"}`}>
