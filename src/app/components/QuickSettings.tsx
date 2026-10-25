@@ -3,7 +3,7 @@
 import { CircleHelp, Languages, MonitorSmartphone, Moon, Settings2, Sun, X } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { startTransition, useEffect, useRef, useState } from "react";
+import { startTransition, useCallback, useEffect, useRef, useState } from "react";
 import { applyTheme, type ThemePreference } from "@/app/components/ProfileThemeRuntime";
 import { applyVibeLanguage } from "@/app/components/language-events";
 
@@ -21,7 +21,9 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
   const [feedback, setFeedback] = useState<"saved" | "failed" | "working" | null>(null);
   const [feedbackLeaving, setFeedbackLeaving] = useState(false);
   const [gameHelpOpen, setGameHelpOpen] = useState(false);
+  const [gameHelpClosing, setGameHelpClosing] = useState(false);
   const gameHelpOpenRef = useRef(false);
+  const gameHelpClosingRef = useRef(false);
   const gameHelpInteracting = useRef(false);
   const [browseHeaderVisible, setBrowseHeaderVisible] = useState(true);
   const [pinnedMessagesBottom, setPinnedMessagesBottom] = useState<number | null>(null);
@@ -29,6 +31,7 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
   const gameHelpPanel = useRef<HTMLDivElement>(null);
   const mounted = useRef(true);
   const gameHelpAutoCloseTimer = useRef<number | null>(null);
+  const gameHelpCloseAnimationTimer = useRef<number | null>(null);
   const autoCloseTimer = useRef<number | null>(null);
   const closeAnimationTimer = useRef<number | null>(null);
   const interacting = useRef(false);
@@ -56,22 +59,42 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
     }
   }
 
-  function closeGameHelp() {
-    clearGameHelpAutoCloseTimer();
-    gameHelpOpenRef.current = false;
-    gameHelpInteracting.current = false;
-    if (mounted.current) setGameHelpOpen(false);
+  function clearGameHelpCloseAnimationTimer() {
+    if (gameHelpCloseAnimationTimer.current !== null) {
+      window.clearTimeout(gameHelpCloseAnimationTimer.current);
+      gameHelpCloseAnimationTimer.current = null;
+    }
   }
+
+  const closeGameHelp = useCallback(() => {
+    if (gameHelpAutoCloseTimer.current !== null) {
+      window.clearTimeout(gameHelpAutoCloseTimer.current);
+      gameHelpAutoCloseTimer.current = null;
+    }
+    gameHelpInteracting.current = false;
+    if (!mounted.current || !gameHelpOpenRef.current || gameHelpClosingRef.current) return;
+    if (gameHelpCloseAnimationTimer.current !== null) {
+      window.clearTimeout(gameHelpCloseAnimationTimer.current);
+      gameHelpCloseAnimationTimer.current = null;
+    }
+    gameHelpClosingRef.current = true;
+    setGameHelpClosing(true);
+    gameHelpCloseAnimationTimer.current = window.setTimeout(() => {
+      gameHelpCloseAnimationTimer.current = null;
+      if (!mounted.current) return;
+      gameHelpOpenRef.current = false;
+      gameHelpClosingRef.current = false;
+      setGameHelpOpen(false);
+      setGameHelpClosing(false);
+    }, 150);
+  }, []);
 
   function scheduleGameHelpClose(delay = 3000) {
     clearGameHelpAutoCloseTimer();
-    if (!gameHelpOpenRef.current || gameHelpInteracting.current || !mounted.current) return;
+    if (!gameHelpOpenRef.current || gameHelpClosingRef.current || gameHelpInteracting.current || !mounted.current) return;
     gameHelpAutoCloseTimer.current = window.setTimeout(() => {
       gameHelpAutoCloseTimer.current = null;
-      if (!mounted.current) return;
-      gameHelpOpenRef.current = false;
-      gameHelpInteracting.current = false;
-      setGameHelpOpen(false);
+      closeGameHelp();
     }, delay);
   }
 
@@ -142,10 +165,12 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
       mounted.current = false;
       clearAutoCloseTimer();
       clearGameHelpAutoCloseTimer();
+      clearGameHelpCloseAnimationTimer();
       clearCloseAnimationTimer();
       interacting.current = false;
       gameHelpInteracting.current = false;
       gameHelpOpenRef.current = false;
+      gameHelpClosingRef.current = false;
       clearFeedbackTimers();
     };
   }, []);
@@ -167,22 +192,19 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
     closePanel();
     clearAutoCloseTimer();
     clearGameHelpAutoCloseTimer();
+    clearGameHelpCloseAnimationTimer();
     gameHelpOpenRef.current = false;
+    gameHelpClosingRef.current = false;
     gameHelpInteracting.current = false;
     setGameHelpOpen(false);
+    setGameHelpClosing(false);
   }, [pathname]);
 
   useEffect(() => {
     if (!gameHelpOpen) return;
 
     const dismissHelp = () => {
-      if (gameHelpAutoCloseTimer.current !== null) {
-        window.clearTimeout(gameHelpAutoCloseTimer.current);
-        gameHelpAutoCloseTimer.current = null;
-      }
-      gameHelpOpenRef.current = false;
-      gameHelpInteracting.current = false;
-      setGameHelpOpen(false);
+      closeGameHelp();
     };
     const closeOnOutsidePointer = (event: PointerEvent) => {
       if (gameHelpPanel.current && !gameHelpPanel.current.contains(event.target as Node)) {
@@ -199,7 +221,7 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
       document.removeEventListener("pointerdown", closeOnOutsidePointer);
       document.removeEventListener("keydown", closeOnEscape);
     };
-  }, [gameHelpOpen]);
+  }, [gameHelpOpen, closeGameHelp]);
 
   useEffect(() => {
     if (!guest || theme !== "system") return;
@@ -405,19 +427,28 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
       {isReflexGame && <div ref={gameHelpPanel} onPointerEnter={pauseGameHelpClose} onPointerLeave={resumeGameHelpClose} onFocusCapture={pauseGameHelpClose} onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) resumeGameHelpClose(); }} className="relative">
         <button type="button" onClick={() => {
           if (gameHelpOpenRef.current) {
+            if (gameHelpClosingRef.current) {
+              clearGameHelpCloseAnimationTimer();
+              gameHelpClosingRef.current = false;
+              setGameHelpClosing(false);
+              scheduleGameHelpClose();
+              return;
+            }
             closeGameHelp();
             return;
           }
           closePanel();
+          gameHelpClosingRef.current = false;
           gameHelpOpenRef.current = true;
           setGameHelpOpen(true);
+          setGameHelpClosing(false);
           scheduleGameHelpClose();
         }} aria-expanded={gameHelpOpen} aria-controls="vibe-reflex-help" aria-label={de ? "Spielanleitung" : "Game instructions"}
           className="grid size-10 place-items-center rounded-full border border-slate-300/80 bg-white/90 text-slate-600 shadow-lg shadow-slate-900/10 backdrop-blur transition hover:-translate-y-0.5 hover:border-orange-300 hover:text-orange-500 dark:border-slate-600 dark:bg-slate-800/90 dark:text-slate-200 dark:shadow-black/30 dark:hover:border-orange-400 dark:hover:text-orange-300">
           <CircleHelp size={18} aria-hidden="true" />
         </button>
 
-        {gameHelpOpen && <section id="vibe-reflex-help" role="dialog" aria-label={de ? "So spielst du VIBE Reflex" : "How to play VIBE Reflex"} className="absolute right-0 top-12 z-[60] w-72 max-w-[calc(100vw-1.5rem)] rounded-2xl border border-slate-300/80 bg-white/95 p-4 shadow-2xl shadow-slate-900/20 backdrop-blur dark:border-slate-600 dark:bg-slate-900/95 dark:shadow-black/40">
+        {gameHelpOpen && <section id="vibe-reflex-help" role="dialog" aria-label={de ? "So spielst du VIBE Reflex" : "How to play VIBE Reflex"} className={`vibe-quick-settings-panel ${gameHelpClosing ? "vibe-quick-settings-panel-exit pointer-events-none" : ""} absolute right-0 top-12 z-[60] w-72 max-w-[calc(100vw-1.5rem)] origin-top-right rounded-2xl border border-slate-300/80 bg-white/95 p-4 shadow-2xl shadow-slate-900/20 backdrop-blur dark:border-slate-600 dark:bg-slate-900/95 dark:shadow-black/40`}>
           <div className="flex items-center justify-between gap-3">
             <p className="text-xs font-black uppercase tracking-[.14em] text-slate-700 dark:text-slate-200">{de ? "So spielst du" : "How to play"}</p>
             <button type="button" onClick={closeGameHelp} aria-label={de ? "Schließen" : "Close instructions"} className="grid size-7 place-items-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-orange-600 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-orange-300"><X size={15} /></button>
