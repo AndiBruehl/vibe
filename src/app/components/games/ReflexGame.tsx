@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { Timer } from "lucide-react";
 import LocalizedText from "@/app/components/LocalizedText";
 import useVibeLanguage from "@/app/components/useVibeLanguage";
@@ -141,7 +142,9 @@ export default function ReflexGame() {
             className={`group grid min-h-60 w-full select-none place-items-center rounded-[1.3rem] border p-5 text-center transition duration-200 focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-amber-300 active:scale-[0.99] disabled:cursor-wait disabled:opacity-90 sm:min-h-72 ${buttonTone}`}
           >
             <span className="block">
-              <span className={`mx-auto mb-5 grid size-16 place-items-center rounded-[1.35rem] border border-white/15 bg-black/10 text-2xl font-black shadow-inner shadow-white/10 transition group-hover:scale-105 sm:size-20 sm:text-3xl ${phase === "go" ? "text-emerald-950" : "text-white"}`}>V</span>
+              <span className="mx-auto mb-5 grid size-16 place-items-center rounded-[1.35rem] border border-white/15 bg-black/10 p-2 shadow-inner shadow-white/10 transition group-hover:scale-105 sm:size-20 sm:p-2.5">
+                <Image src="/logo.svg" alt="" width={1536} height={1024} className="h-full w-full object-contain" />
+              </span>
               <span className="block text-2xl font-black tracking-tight sm:text-3xl">{buttonLabel}</span>
               <span className={`mt-2 block text-sm font-semibold ${phase === "go" ? "text-emerald-950/70" : "text-white/65"}`}>
                 {phase === "waiting" ? (de ? "Warte, bis das Feld grün wird" : "Wait until the field turns green") : phase === "go" ? (de ? "So schnell du kannst" : "As fast as you can") : phase === "false-start" ? (de ? "Der gleiche Versuch kommt gleich nochmal" : "The same round is coming right back") : phase === "between" ? (de ? "Mach dich bereit" : "Get ready") : phase === "finished" ? (de ? "Tippe für eine neue Runde" : "Tap to start a new run") : (de ? "Das Feld wechselt nach einer zufälligen Zeit" : "The field changes after a random delay")}
