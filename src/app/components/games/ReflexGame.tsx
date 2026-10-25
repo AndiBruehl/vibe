@@ -147,12 +147,12 @@ export default function ReflexGame() {
             <span aria-hidden="true" className="pointer-events-none absolute left-[18%] top-[22%] size-2 rounded-full bg-fuchsia-300/70" />
             <span aria-hidden="true" className="pointer-events-none absolute right-[20%] top-[31%] size-1.5 rounded-full bg-amber-200/80" />
             <span aria-hidden="true" className="pointer-events-none absolute bottom-[23%] left-[28%] size-1.5 rounded-full bg-cyan-200/80" />
-            <span className="relative z-10 block">
-              <div className="mx-auto mb-2 transition-transform duration-200 group-hover:scale-105 md:mb-3">
+            <span className="relative z-10 flex w-full flex-col items-center text-center">
+              <div className="mb-2 flex w-full items-center justify-center transition-transform duration-200 group-hover:scale-105 md:mb-3">
                 <ReflexOrbit state={phase} compact />
               </div>
-              <span className="block text-xl font-black tracking-tight md:text-3xl">{buttonLabel}</span>
-              <span className={`mt-1 block text-xs font-semibold md:mt-2 md:text-sm ${phase === "go" ? "text-emerald-100/80" : "text-white/65"}`}>
+              <span className="flex min-h-7 w-full items-center justify-center text-center text-xl font-black tracking-tight md:min-h-9 md:text-3xl">{buttonLabel}</span>
+              <span className={`mt-1 flex w-full items-center justify-center text-center text-xs font-semibold md:mt-2 md:text-sm ${phase === "go" ? "text-emerald-100/80" : "text-white/65"}`}>
                 {phase === "waiting" ? (de ? "Warte, bis das Feld grün wird" : "Wait until the field turns green") : phase === "go" ? (de ? "So schnell du kannst" : "As fast as you can") : phase === "false-start" ? (de ? "Der gleiche Versuch kommt gleich nochmal" : "The same round is coming right back") : phase === "between" ? (de ? "Mach dich bereit" : "Get ready") : phase === "finished" ? (de ? "Tippe für eine neue Runde" : "Tap to start a new run") : (de ? "Das Feld wechselt nach einer zufälligen Zeit" : "The field changes after a random delay")}
               </span>
             </span>
