@@ -3,6 +3,7 @@ const path = require('node:path');
 
 const ROOT = path.join(__dirname, '..');
 const TARGET_VERSION = '0.5.1';
+const CURRENT_WEB_VERSION = '0.5.2';
 const ACCEPTED_NATIVE_VERSION = '0.5.0.6';
 const TARGET_ANDROID_APK = 'android-app/dist/Vibe-BETA-0.5.1.apk';
 const TARGET_WINDOWS_EXE = 'electron-app/dist/Vibe-Setup-BETA-0.5.1-x64.exe';
@@ -24,7 +25,7 @@ function buildNativeReleaseReadiness() {
   const signature = readJson('public/releases/latest.sig.example.json');
 
   const prepared = [
-    { id: 'web-version', ok: rootPackage.version === TARGET_VERSION, detail: `web package version is ${rootPackage.version}` },
+    { id: 'web-version', ok: rootPackage.version === CURRENT_WEB_VERSION, detail: `web package version is ${rootPackage.version}` },
     { id: 'android-version', ok: androidPackage.version === TARGET_VERSION && androidConfig.expo.version === TARGET_VERSION, detail: `android package/app version is ${androidPackage.version}/${androidConfig.expo.version}` },
     { id: 'android-version-code', ok: androidConfig.expo.android.versionCode === 107, detail: `android versionCode is ${androidConfig.expo.android.versionCode}` },
     { id: 'desktop-version', ok: desktopPackage.version === TARGET_VERSION, detail: `desktop package version is ${desktopPackage.version}` },
@@ -55,4 +56,4 @@ if (require.main === module) {
   if (!report.prepared.every((check) => check.ok)) process.exitCode = 1;
 }
 
-module.exports = { TARGET_VERSION, ACCEPTED_NATIVE_VERSION, TARGET_ANDROID_APK, TARGET_WINDOWS_EXE, buildNativeReleaseReadiness };
+module.exports = { TARGET_VERSION, CURRENT_WEB_VERSION, ACCEPTED_NATIVE_VERSION, TARGET_ANDROID_APK, TARGET_WINDOWS_EXE, buildNativeReleaseReadiness };

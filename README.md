@@ -1,6 +1,6 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Local development version: **0.5.1** (2026-10-23) 🛡️ — Native update integrity checks and debug release candidates. See [release notes](docs/releases/0.5.1.md). The published native manifest remains on accepted 0.5.0.6 artifacts until 0.5.1 device acceptance is recorded.
+Local web version: **0.5.2** (2026-10-25) 🛡️ — Added VIBE Reflex and a redesigned Games hub with dedicated game pages. See [release notes](docs/releases/0.5.2.md). Android and Windows remain local 0.5.1 debug candidates; the published native manifest remains on 0.5.0.6.
 
 ## Getting Started
 

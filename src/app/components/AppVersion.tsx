@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import useVibeLanguage from "@/app/components/useVibeLanguage";
 
-const WEB_VERSION = "0.5.1";
-const WEB_RELEASE_DATE = "2026-10-09";
+const WEB_VERSION = "0.5.2";
+const WEB_RELEASE_DATE = "2026-10-25";
 const BETA_FLAIR = " 🛡️";
 
 export default function AppVersion() {

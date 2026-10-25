@@ -1,12 +1,13 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { TARGET_VERSION, ACCEPTED_NATIVE_VERSION, buildNativeReleaseReadiness } = require('./native-release-readiness.cjs');
+const { TARGET_VERSION, CURRENT_WEB_VERSION, ACCEPTED_NATIVE_VERSION, buildNativeReleaseReadiness } = require('./native-release-readiness.cjs');
 const fs = require('node:fs');
 const appVersionSource = fs.readFileSync('src/app/components/AppVersion.tsx', 'utf8');
 
-test('0.5.1 package metadata is prepared while published native artifacts stay on accepted 0.5.0.6', () => {
+test('0.5.1 native candidates stay local while the web version advances to 0.5.2', () => {
   const report = buildNativeReleaseReadiness();
   assert.equal(report.targetVersion, TARGET_VERSION);
+  assert.equal(CURRENT_WEB_VERSION, '0.5.2');
   assert.equal(report.acceptedNativeVersion, ACCEPTED_NATIVE_VERSION);
   assert.deepEqual(report.prepared.map((check) => [check.id, check.ok]), [
     ['web-version', true],
@@ -30,8 +31,8 @@ test('0.5.1 native release remains gated by device acceptance and a real signatu
   ]);
 });
 
-test('0.5.1 visible version uses the shield beta flair', () => {
-  assert.match(appVersionSource, /WEB_VERSION = "0\.5\.1"/);
+test('0.5.2 visible web version uses the shield beta flair', () => {
+  assert.match(appVersionSource, /WEB_VERSION = "0\.5\.2"/);
   assert.match(appVersionSource, /BETA_FLAIR = " 🛡️"/);
 });
 test('mobile auth web bridge validates tokens and recovers without a WebView HTTP failure', () => {

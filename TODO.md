@@ -475,5 +475,8 @@ Implemented and covered by access regression tests. Native packages remain uncha
 
 ## Planned 0.5.x
 
-- **0.5.2 — erstes Minispiel:** Ein erstes spielbares Minispiel unter `/games` ergänzen; die konkrete Spielauswahl wird beim Umsetzungsstart festgelegt.
+- **0.5.2 — VIBE Reflex (local web):** Fünf Runden Reaktionstest mit zufälligem Signal, Fehlstart-Wiederholung, Durchschnitt und Bestwert pro Lauf. Spieleübersicht mit Vorschaukarten und eigenen Detailseiten für Reflex und die späteren Spiele VIBE Trail und VIBE Stack. Android/Windows bleiben bei ihren lokalen 0.5.1-Kandidaten.
 - **0.5.3 — Konto löschen im Profil:** Eine „Delete Account“-Schaltfläche im Profil ergänzen, mit verständlichen Hinweisen zu den Folgen, deutlicher Warnung sowie expliziter Bestätigungs- und Abbruchmöglichkeit.
+- **Später, ohne Versionsnummer — Ranglisten:** Bestenlisten für die VIBE-Minispiele ergänzen.
+- **Später, ohne Versionsnummer — VIBE Trail:** Spur-Spiel nach Snake-Art; das VIBE-Logo ersetzt die Äpfel bzw. Sammelobjekte.
+- **Später, ohne Versionsnummer — VIBE Stack:** Block-Puzzle nach Tetris-Art mit VIBE-Logos als Steinen.
