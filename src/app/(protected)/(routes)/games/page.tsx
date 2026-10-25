@@ -49,7 +49,7 @@ const games: GameCardData[] = [
   },
 ];
 
-function GameCard({ game, index }: { game: GameCardData; index: number }) {
+function GameCard({ game }: { game: GameCardData }) {
   return (
     <Link
       href={`/games/${game.id}`}
@@ -57,7 +57,6 @@ function GameCard({ game, index }: { game: GameCardData; index: number }) {
     >
       <div className="relative overflow-hidden rounded-[1.35rem]">
         <GameArtwork game={game.id} />
-        <span className="absolute left-3 top-3 rounded-full border border-white/15 bg-[#090b18]/80 px-2.5 py-1 text-[10px] font-black tracking-[0.16em] text-white/80 backdrop-blur">ARCADE / 0{index + 1}</span>
       </div>
       <div className="flex flex-1 flex-col px-2 pb-2 pt-4 sm:px-3">
         <div className="flex items-center justify-between gap-3">
@@ -92,7 +91,7 @@ export default function GamesPage() {
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 opacity-[0.07] [background-image:linear-gradient(rgba(80,35,65,0.16)_1px,transparent_1px),linear-gradient(90deg,rgba(80,35,65,0.16)_1px,transparent_1px)] [background-size:34px_34px] [mask-image:linear-gradient(to_bottom,black,transparent_80%)] dark:opacity-[0.14] dark:[background-image:linear-gradient(rgba(255,255,255,0.13)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.13)_1px,transparent_1px)]" />
         <div className="relative grid items-center gap-8 lg:grid-cols-[1fr_0.9fr] lg:gap-12">
           <div className="relative z-10">
-            <span className="inline-flex items-center gap-2 rounded-full border border-[#ff8c70]/25 bg-[#ff6a7d]/10 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.2em] text-[#b42356] dark:text-[#ffc198]"><Gamepad2 size={14} aria-hidden="true" /> VIBE ARCADE <span className="text-slate-500/60 dark:text-white/35">/</span> 001</span>
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#ff8c70]/25 bg-[#ff6a7d]/10 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.2em] text-[#b42356] dark:text-[#ffc198]"><Gamepad2 size={14} aria-hidden="true" /> VIBE ARCADE</span>
             <h1 className="mt-5 max-w-xl text-4xl font-black leading-[1.02] tracking-tight text-slate-950 dark:text-white sm:text-5xl lg:text-6xl"><LocalizedText en="Your next little side quest." de="Deine nächste kleine Nebenmission." /></h1>
             <p className="mt-4 max-w-xl text-base leading-7 text-slate-600 dark:text-slate-300 sm:text-lg"><LocalizedText en="Quick games. Big VIBE. Pick a challenge and make this break yours." de="Kurze Spiele. Große VIBE. Such dir eine Herausforderung und mach diese Pause zu deiner." /></p>
             <div className="mt-6 flex flex-wrap gap-2 text-[11px] font-black uppercase tracking-[0.1em] text-slate-600 dark:text-slate-300">
@@ -128,7 +127,7 @@ export default function GamesPage() {
           <p className="text-sm font-semibold text-slate-500 dark:text-slate-400"><LocalizedText en="01 live · 03 in the works" de="01 spielbar · 03 in Arbeit" /></p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {games.map((game, index) => <GameCard key={game.id} game={game} index={index} />)}
+          {games.map((game) => <GameCard key={game.id} game={game} />)}
         </div>
       </section>
 

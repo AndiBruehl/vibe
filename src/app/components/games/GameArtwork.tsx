@@ -30,7 +30,6 @@ function ReflexArtwork() {
         </div>
       </div>
       <div className="absolute bottom-4 left-4 rounded-full border border-white/10 bg-black/25 px-3 py-1.5 text-[10px] font-black tracking-[0.18em] text-violet-100/80">WAIT FOR THE GLOW</div>
-      <div className="absolute right-4 top-4 rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-bold text-white/70">01—05</div>
     </div>
   );
 }
