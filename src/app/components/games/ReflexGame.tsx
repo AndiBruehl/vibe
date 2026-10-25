@@ -119,14 +119,14 @@ export default function ReflexGame() {
           : "border-transparent bg-linear-to-r from-violet-500 via-fuchsia-500 to-orange-400 text-white shadow-lg shadow-fuchsia-950/25";
 
   return (
-    <section aria-label={de ? "VIBE Reflex-Spiel" : "VIBE Reflex game"} className="mt-5 rounded-[2rem] border border-violet-200/70 bg-white/80 p-4 shadow-xl shadow-violet-950/5 dark:border-white/10 dark:bg-slate-900/80 dark:shadow-black/20 sm:p-7">
+    <section aria-label={de ? "VIBE Reflex-Spiel" : "VIBE Reflex game"} className="mt-3 rounded-[2rem] border border-violet-200/70 bg-white/80 p-3 shadow-xl shadow-violet-950/5 dark:border-white/10 dark:bg-slate-900/80 dark:shadow-black/20 sm:mt-4 sm:p-7">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-violet-700 dark:text-violet-200"><Timer size={15} aria-hidden="true" /> {de ? "Reaktionsmodus" : "Reaction mode"}</p>
         <p className="text-xs font-bold text-slate-500 dark:text-slate-400">{de ? "Nur du gegen die Zeit" : "Just you vs. the clock"}</p>
       </div>
 
-      <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_250px]">
-        <div className="rounded-[1.6rem] border border-white/10 bg-[#0d1224] p-3 shadow-inner shadow-black/20 sm:p-5">
+      <div className="mt-3 grid gap-4 lg:mt-5 lg:grid-cols-[minmax(0,1fr)_250px] lg:gap-5">
+        <div className="rounded-[1.6rem] border border-white/10 bg-[#0d1224] p-2.5 shadow-inner shadow-black/20 sm:p-5">
           <div className="mb-3 flex items-center justify-between px-1 text-xs font-bold text-slate-400">
             <span>{de ? `Runde ${phase === "idle" ? 0 : Math.min(round, REFLEX_ROUND_COUNT)} von ${REFLEX_ROUND_COUNT}` : `Round ${phase === "idle" ? 0 : Math.min(round, REFLEX_ROUND_COUNT)} of ${REFLEX_ROUND_COUNT}`}</span>
             <div className="flex gap-1.5" aria-label={de ? `${times.length} von 5 Runden abgeschlossen` : `${times.length} of 5 rounds complete`}>
@@ -139,7 +139,7 @@ export default function ReflexGame() {
             onClick={handleTap}
             disabled={phase === "false-start" || phase === "between"}
             aria-label={buttonLabel}
-            className={`group grid min-h-60 w-full select-none place-items-center rounded-[1.3rem] border p-5 text-center transition duration-200 focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-amber-300 active:scale-[0.99] disabled:cursor-wait disabled:opacity-90 sm:min-h-72 ${buttonTone}`}
+            className={`group grid min-h-48 w-full select-none place-items-center rounded-[1.3rem] border p-4 text-center transition duration-200 focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-amber-300 active:scale-[0.99] disabled:cursor-wait disabled:opacity-90 sm:min-h-60 sm:p-5 lg:min-h-72 ${buttonTone}`}
           >
             <span className="block">
               <span className="mx-auto mb-5 grid size-16 place-items-center rounded-[1.35rem] border border-white/15 bg-black/10 p-2 shadow-inner shadow-white/10 transition group-hover:scale-105 sm:size-20 sm:p-2.5">
