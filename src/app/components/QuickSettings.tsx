@@ -21,11 +21,14 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
   const [feedback, setFeedback] = useState<"saved" | "failed" | "working" | null>(null);
   const [feedbackLeaving, setFeedbackLeaving] = useState(false);
   const [gameHelpOpen, setGameHelpOpen] = useState(false);
+  const gameHelpOpenRef = useRef(false);
+  const gameHelpInteracting = useRef(false);
   const [browseHeaderVisible, setBrowseHeaderVisible] = useState(true);
   const [pinnedMessagesBottom, setPinnedMessagesBottom] = useState<number | null>(null);
   const panel = useRef<HTMLDivElement>(null);
   const gameHelpPanel = useRef<HTMLDivElement>(null);
   const mounted = useRef(true);
+  const gameHelpAutoCloseTimer = useRef<number | null>(null);
   const autoCloseTimer = useRef<number | null>(null);
   const closeAnimationTimer = useRef<number | null>(null);
   const interacting = useRef(false);
@@ -44,6 +47,32 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
       window.clearTimeout(autoCloseTimer.current);
       autoCloseTimer.current = null;
     }
+  }
+
+  function clearGameHelpAutoCloseTimer() {
+    if (gameHelpAutoCloseTimer.current !== null) {
+      window.clearTimeout(gameHelpAutoCloseTimer.current);
+      gameHelpAutoCloseTimer.current = null;
+    }
+  }
+
+  function closeGameHelp() {
+    clearGameHelpAutoCloseTimer();
+    gameHelpOpenRef.current = false;
+    gameHelpInteracting.current = false;
+    if (mounted.current) setGameHelpOpen(false);
+  }
+
+  function scheduleGameHelpClose(delay = 3000) {
+    clearGameHelpAutoCloseTimer();
+    if (!gameHelpOpenRef.current || gameHelpInteracting.current || !mounted.current) return;
+    gameHelpAutoCloseTimer.current = window.setTimeout(() => {
+      gameHelpAutoCloseTimer.current = null;
+      if (!mounted.current) return;
+      gameHelpOpenRef.current = false;
+      gameHelpInteracting.current = false;
+      setGameHelpOpen(false);
+    }, delay);
   }
 
   function clearFeedbackTimers() {
@@ -112,8 +141,11 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
       document.removeEventListener("touchstart", close);
       mounted.current = false;
       clearAutoCloseTimer();
+      clearGameHelpAutoCloseTimer();
       clearCloseAnimationTimer();
       interacting.current = false;
+      gameHelpInteracting.current = false;
+      gameHelpOpenRef.current = false;
       clearFeedbackTimers();
     };
   }, []);
@@ -134,17 +166,31 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
   useEffect(() => {
     closePanel();
     clearAutoCloseTimer();
+    clearGameHelpAutoCloseTimer();
+    gameHelpOpenRef.current = false;
+    gameHelpInteracting.current = false;
     setGameHelpOpen(false);
   }, [pathname]);
 
   useEffect(() => {
     if (!gameHelpOpen) return;
 
+    const dismissHelp = () => {
+      if (gameHelpAutoCloseTimer.current !== null) {
+        window.clearTimeout(gameHelpAutoCloseTimer.current);
+        gameHelpAutoCloseTimer.current = null;
+      }
+      gameHelpOpenRef.current = false;
+      gameHelpInteracting.current = false;
+      setGameHelpOpen(false);
+    };
     const closeOnOutsidePointer = (event: PointerEvent) => {
-      if (gameHelpPanel.current && !gameHelpPanel.current.contains(event.target as Node)) setGameHelpOpen(false);
+      if (gameHelpPanel.current && !gameHelpPanel.current.contains(event.target as Node)) {
+        dismissHelp();
+      }
     };
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setGameHelpOpen(false);
+      if (event.key === "Escape") dismissHelp();
     };
 
     document.addEventListener("pointerdown", closeOnOutsidePointer);
@@ -344,13 +390,28 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
     if (openRef.current && !closingRef.current) schedulePanelClose();
   }
 
+  function pauseGameHelpClose() {
+    gameHelpInteracting.current = true;
+    clearGameHelpAutoCloseTimer();
+  }
+
+  function resumeGameHelpClose() {
+    gameHelpInteracting.current = false;
+    scheduleGameHelpClose();
+  }
+
   return (
     <div ref={panel} onPointerEnter={pausePanelClose} onPointerLeave={resumePanelClose} onFocusCapture={pausePanelClose} onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) resumePanelClose(); }} className={`fixed ${position} z-50 flex items-start gap-2 transition-[right,top] duration-200`} style={dynamicPosition} data-vibe-quick-settings>
-      {isReflexGame && <div ref={gameHelpPanel} className="relative">
+      {isReflexGame && <div ref={gameHelpPanel} onPointerEnter={pauseGameHelpClose} onPointerLeave={resumeGameHelpClose} onFocusCapture={pauseGameHelpClose} onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) resumeGameHelpClose(); }} className="relative">
         <button type="button" onClick={() => {
-          const nextOpen = !gameHelpOpen;
-          if (nextOpen) closePanel();
-          setGameHelpOpen(nextOpen);
+          if (gameHelpOpenRef.current) {
+            closeGameHelp();
+            return;
+          }
+          closePanel();
+          gameHelpOpenRef.current = true;
+          setGameHelpOpen(true);
+          scheduleGameHelpClose();
         }} aria-expanded={gameHelpOpen} aria-controls="vibe-reflex-help" aria-label={de ? "Spielanleitung" : "Game instructions"}
           className="grid size-10 place-items-center rounded-full border border-slate-300/80 bg-white/90 text-slate-600 shadow-lg shadow-slate-900/10 backdrop-blur transition hover:-translate-y-0.5 hover:border-orange-300 hover:text-orange-500 dark:border-slate-600 dark:bg-slate-800/90 dark:text-slate-200 dark:shadow-black/30 dark:hover:border-orange-400 dark:hover:text-orange-300">
           <CircleHelp size={18} aria-hidden="true" />
@@ -359,7 +420,7 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
         {gameHelpOpen && <section id="vibe-reflex-help" role="dialog" aria-label={de ? "So spielst du VIBE Reflex" : "How to play VIBE Reflex"} className="absolute right-0 top-12 z-[60] w-72 max-w-[calc(100vw-1.5rem)] rounded-2xl border border-slate-300/80 bg-white/95 p-4 shadow-2xl shadow-slate-900/20 backdrop-blur dark:border-slate-600 dark:bg-slate-900/95 dark:shadow-black/40">
           <div className="flex items-center justify-between gap-3">
             <p className="text-xs font-black uppercase tracking-[.14em] text-slate-700 dark:text-slate-200">{de ? "So spielst du" : "How to play"}</p>
-            <button type="button" onClick={() => setGameHelpOpen(false)} aria-label={de ? "Schließen" : "Close instructions"} className="grid size-7 place-items-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-orange-600 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-orange-300"><X size={15} /></button>
+            <button type="button" onClick={closeGameHelp} aria-label={de ? "Schließen" : "Close instructions"} className="grid size-7 place-items-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-orange-600 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-orange-300"><X size={15} /></button>
           </div>
           <ol className="mt-3 space-y-2.5 text-sm font-medium leading-5 text-slate-700 dark:text-slate-300">
             <li className="flex gap-2"><span className="font-black text-orange-600 dark:text-orange-300">01</span><span>{de ? "Starte fünf Runden." : "Start a five-round run."}</span></li>
@@ -371,7 +432,7 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
 
       <button type="button" onClick={() => {
         if (!mounted.current) return;
-        setGameHelpOpen(false);
+        closeGameHelp();
         if (openRef.current || closingRef.current) closePanel(); else openPanel();
       }} aria-expanded={open} aria-label={de ? "Schnelleinstellungen" : "Quick settings"}
         className="grid size-10 place-items-center rounded-full border border-slate-300/80 bg-white/90 text-slate-600 shadow-lg shadow-slate-900/10 backdrop-blur transition hover:-translate-y-0.5 hover:border-orange-300 hover:text-orange-500 dark:border-slate-600 dark:bg-slate-800/90 dark:text-slate-200 dark:shadow-black/30 dark:hover:border-orange-400 dark:hover:text-orange-300">
