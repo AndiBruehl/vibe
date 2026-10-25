@@ -35,7 +35,7 @@ const games: GameCardData[] = [
     id: "stack",
     title: "VIBE Stack",
     description: { en: "Stack VIBE-logo pieces, clear lines, and chase your local high score.", de: "Staple VIBE-Logo-Steine, lösche Reihen und knacke deinen lokalen Bestwert." },
-    badge: { en: "Play offline", de: "Offline spielen" },
+    badge: { en: "Play now", de: "Jetzt spielen" },
     available: true,
     accent: "from-[#fa47bb] to-[#7b5cff]",
   },

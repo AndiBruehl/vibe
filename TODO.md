@@ -479,5 +479,5 @@ Implemented and covered by access regression tests. Native packages remain uncha
 - **0.5.3 — Konto löschen im Profil:** Eine „Delete Account“-Schaltfläche im Profil ergänzen, mit verständlichen Hinweisen zu den Folgen, deutlicher Warnung sowie expliziter Bestätigungs- und Abbruchmöglichkeit.
 - **Später, ohne Versionsnummer — Ranglisten:** Bestenlisten für die VIBE-Minispiele ergänzen.
 - **Später, ohne Versionsnummer — VIBE Trail:** Spur-Spiel nach Snake-Art; das VIBE-Logo ersetzt die Äpfel bzw. Sammelobjekte.
-- **VIBE Stack — lokal/offline spielbar:** Block-Puzzle mit VIBE-Logo-Steinen, Tastatur- und Touch-Steuerung sowie lokalem Bestwert auf dem Gerät. Kein Online-Dienst und noch keiner Release-Version zugeordnet.
+- **VIBE Stack — lokal umgesetzt, noch nicht gepusht:** Block-Puzzle mit VIBE-Logo-Steinen, Tastatur- und Touch-Steuerung sowie lokalem Bestwert auf dem Gerät. Noch keiner Release-Version zugeordnet.
 - **Später, ohne Versionsnummer — VIBE Glide:** One-touch-Flugspiel; das VIBE-Logo ist die Spielfigur und fliegt durch Hindernislücken.
