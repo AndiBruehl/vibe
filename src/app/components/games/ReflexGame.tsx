@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Timer } from "lucide-react";
-import LocalizedText from "@/app/components/LocalizedText";
 import useVibeLanguage from "@/app/components/useVibeLanguage";
 import { getReflexSummary, REFLEX_ROUND_COUNT } from "@/app/components/games/reflexLogic";
 
@@ -182,17 +181,12 @@ export default function ReflexGame() {
                 {de ? "Dein Ergebnis bleibt nur in diesem Lauf. Ranglisten kommen später." : "Your result stays in this run. Leaderboards are planned for later."}
               </p>
             </div>
-          ) : (
-            <div className="rounded-2xl border border-violet-200/80 bg-violet-50 p-4 dark:border-violet-300/10 dark:bg-violet-400/[0.07]">
-              <p className="text-xs font-black uppercase tracking-[0.15em] text-violet-800 dark:text-violet-200">{de ? "So geht’s" : "How to play"}</p>
-              <ol className="mt-3 space-y-2 text-sm font-medium leading-5 text-slate-700 dark:text-slate-300">
-                <li className="flex gap-2"><span className="font-black text-violet-600 dark:text-violet-300">01</span><LocalizedText en="Start a five-round run." de="Starte fünf Runden." /></li>
-                <li className="flex gap-2"><span className="font-black text-violet-600 dark:text-violet-300">02</span><LocalizedText en="Wait for the green signal." de="Warte auf das grüne Signal." /></li>
-                <li className="flex gap-2"><span className="font-black text-violet-600 dark:text-violet-300">03</span><LocalizedText en="Tap or press Space as fast as you can." de="Tippe oder drücke Leertaste so schnell du kannst." /></li>
-              </ol>
-              {times.length > 0 && lastTime !== null && <p className="mt-4 flex items-center justify-between rounded-xl bg-white px-3 py-2 text-sm dark:bg-white/[0.045]"><span className="font-bold text-slate-500 dark:text-slate-400">{de ? "Letzte Reaktion" : "Last reaction"}</span><span className="font-black tabular-nums text-slate-900 dark:text-white">{lastTime} ms</span></p>}
+          ) : lastTime !== null ? (
+            <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-slate-50 px-4 py-3 text-sm dark:border-white/10 dark:bg-slate-950/50">
+              <span className="font-bold text-slate-500 dark:text-slate-400">{de ? "Letzte Reaktion" : "Last reaction"}</span>
+              <span className="font-black tabular-nums text-slate-900 dark:text-white">{lastTime} ms</span>
             </div>
-          )}
+          ) : null}
         </aside>
       </div>
     </section>

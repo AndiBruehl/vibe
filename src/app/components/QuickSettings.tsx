@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleHelp, Languages, MonitorSmartphone, Moon, Settings2, Sun } from "lucide-react";
+import { CircleHelp, Languages, MonitorSmartphone, Moon, Settings2, Sun, X } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { startTransition, useEffect, useRef, useState } from "react";
@@ -20,9 +20,11 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
   const [language, setLanguage] = useState<Language>(initialLanguage);
   const [feedback, setFeedback] = useState<"saved" | "failed" | "working" | null>(null);
   const [feedbackLeaving, setFeedbackLeaving] = useState(false);
+  const [gameHelpOpen, setGameHelpOpen] = useState(false);
   const [browseHeaderVisible, setBrowseHeaderVisible] = useState(true);
   const [pinnedMessagesBottom, setPinnedMessagesBottom] = useState<number | null>(null);
   const panel = useRef<HTMLDivElement>(null);
+  const gameHelpPanel = useRef<HTMLDivElement>(null);
   const mounted = useRef(true);
   const autoCloseTimer = useRef<number | null>(null);
   const closeAnimationTimer = useRef<number | null>(null);
@@ -132,7 +134,26 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
   useEffect(() => {
     closePanel();
     clearAutoCloseTimer();
+    setGameHelpOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (!gameHelpOpen) return;
+
+    const closeOnOutsidePointer = (event: PointerEvent) => {
+      if (gameHelpPanel.current && !gameHelpPanel.current.contains(event.target as Node)) setGameHelpOpen(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setGameHelpOpen(false);
+    };
+
+    document.addEventListener("pointerdown", closeOnOutsidePointer);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutsidePointer);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [gameHelpOpen]);
 
   useEffect(() => {
     if (!guest || theme !== "system") return;
@@ -281,6 +302,7 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
   }
 
   const de = language === "de";
+  const isReflexGame = pathname === "/games/reflex";
   const themeOptions: { value: ThemePreference; label: string; icon: typeof Sun }[] = [
     { value: "light", label: de ? "Hell" : "Light", icon: Sun },
     { value: "dark", label: de ? "Dunkel" : "Dark", icon: Moon },
@@ -323,9 +345,33 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
   }
 
   return (
-    <div ref={panel} onPointerEnter={pausePanelClose} onPointerLeave={resumePanelClose} onFocusCapture={pausePanelClose} onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) resumePanelClose(); }} className={`fixed ${position} z-50 transition-[right,top] duration-200`} style={dynamicPosition} data-vibe-quick-settings>
+    <div ref={panel} onPointerEnter={pausePanelClose} onPointerLeave={resumePanelClose} onFocusCapture={pausePanelClose} onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) resumePanelClose(); }} className={`fixed ${position} z-50 flex items-start gap-2 transition-[right,top] duration-200`} style={dynamicPosition} data-vibe-quick-settings>
+      {isReflexGame && <div ref={gameHelpPanel} className="relative">
+        <button type="button" onClick={() => {
+          const nextOpen = !gameHelpOpen;
+          if (nextOpen) closePanel();
+          setGameHelpOpen(nextOpen);
+        }} aria-expanded={gameHelpOpen} aria-controls="vibe-reflex-help" aria-label={de ? "Spielanleitung" : "Game instructions"}
+          className="grid size-10 place-items-center rounded-full border border-slate-300/80 bg-white/90 text-slate-600 shadow-lg shadow-slate-900/10 backdrop-blur transition hover:-translate-y-0.5 hover:border-orange-300 hover:text-orange-500 dark:border-slate-600 dark:bg-slate-800/90 dark:text-slate-200 dark:shadow-black/30 dark:hover:border-orange-400 dark:hover:text-orange-300">
+          <CircleHelp size={18} aria-hidden="true" />
+        </button>
+
+        {gameHelpOpen && <section id="vibe-reflex-help" role="dialog" aria-label={de ? "So spielst du VIBE Reflex" : "How to play VIBE Reflex"} className="absolute right-0 top-12 z-[60] w-72 max-w-[calc(100vw-1.5rem)] rounded-2xl border border-slate-300/80 bg-white/95 p-4 shadow-2xl shadow-slate-900/20 backdrop-blur dark:border-slate-600 dark:bg-slate-900/95 dark:shadow-black/40">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs font-black uppercase tracking-[.14em] text-slate-700 dark:text-slate-200">{de ? "So spielst du" : "How to play"}</p>
+            <button type="button" onClick={() => setGameHelpOpen(false)} aria-label={de ? "Schließen" : "Close instructions"} className="grid size-7 place-items-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-orange-600 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-orange-300"><X size={15} /></button>
+          </div>
+          <ol className="mt-3 space-y-2.5 text-sm font-medium leading-5 text-slate-700 dark:text-slate-300">
+            <li className="flex gap-2"><span className="font-black text-orange-600 dark:text-orange-300">01</span><span>{de ? "Starte fünf Runden." : "Start a five-round run."}</span></li>
+            <li className="flex gap-2"><span className="font-black text-orange-600 dark:text-orange-300">02</span><span>{de ? "Warte auf das grüne Signal." : "Wait for the green signal."}</span></li>
+            <li className="flex gap-2"><span className="font-black text-orange-600 dark:text-orange-300">03</span><span>{de ? "Tippe oder drücke Leertaste so schnell du kannst." : "Tap or press Space as fast as you can."}</span></li>
+          </ol>
+        </section>}
+      </div>}
+
       <button type="button" onClick={() => {
         if (!mounted.current) return;
+        setGameHelpOpen(false);
         if (openRef.current || closingRef.current) closePanel(); else openPanel();
       }} aria-expanded={open} aria-label={de ? "Schnelleinstellungen" : "Quick settings"}
         className="grid size-10 place-items-center rounded-full border border-slate-300/80 bg-white/90 text-slate-600 shadow-lg shadow-slate-900/10 backdrop-blur transition hover:-translate-y-0.5 hover:border-orange-300 hover:text-orange-500 dark:border-slate-600 dark:bg-slate-800/90 dark:text-slate-200 dark:shadow-black/30 dark:hover:border-orange-400 dark:hover:text-orange-300">
