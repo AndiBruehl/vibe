@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-export type VibeGame = "reflex" | "trail" | "stack";
+export type VibeGame = "reflex" | "trail" | "stack" | "glide";
 
 const trailTiles = new Map<number, "body" | "head" | "logo">([
   [16, "logo"],
@@ -83,10 +83,27 @@ function StackArtwork() {
   );
 }
 
+function GlideArtwork() {
+  return (
+    <div className="relative grid size-full place-items-center overflow-hidden rounded-[1.35rem] bg-[#10101f]">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_22%_48%,rgba(255,82,141,0.23),transparent_34%),linear-gradient(155deg,#17152f,#10172b_58%,#21112c)]" />
+      <div aria-hidden="true" className="absolute inset-0 opacity-20 [background-image:linear-gradient(rgba(255,255,255,0.13)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.13)_1px,transparent_1px)] [background-size:30px_30px]" />
+      <span className="absolute left-[24%] top-[43%] z-10 -rotate-6 drop-shadow-[0_0_18px_rgba(255,102,139,0.8)]">
+        <Image src="/logo.svg" alt="" width={1536} height={1024} className="h-auto w-24 sm:w-32" />
+      </span>
+      <div aria-hidden="true" className="absolute left-[56%] top-0 h-[35%] w-10 rounded-b-xl border-x border-b border-cyan-100/35 bg-linear-to-r from-cyan-400/75 via-teal-300/80 to-cyan-500/70 shadow-[0_0_26px_rgba(34,211,238,0.32)] sm:w-14" />
+      <div aria-hidden="true" className="absolute bottom-0 left-[56%] h-[32%] w-10 rounded-t-xl border-x border-t border-cyan-100/35 bg-linear-to-r from-cyan-400/75 via-teal-300/80 to-cyan-500/70 shadow-[0_0_26px_rgba(34,211,238,0.32)] sm:w-14" />
+      <span className="absolute left-[40%] top-[34%] h-px w-[17%] rotate-6 bg-linear-to-r from-[#ff568b]/0 via-[#ff8c70] to-cyan-300/80" />
+      <span className="absolute right-4 top-4 rounded-full border border-white/10 bg-slate-950/50 px-2.5 py-1 text-[10px] font-bold tracking-[0.15em] text-white/70">FLIGHT / 01</span>
+      <span className="absolute bottom-3 right-4 text-[10px] font-black tracking-[0.2em] text-cyan-100/70">KEEP THE VIBE AIRBORNE</span>
+    </div>
+  );
+}
+
 export default function GameArtwork({ game }: { game: VibeGame }) {
   return (
     <div aria-hidden="true" className="aspect-[1.55] w-full">
-      {game === "reflex" ? <ReflexArtwork /> : game === "trail" ? <TrailArtwork /> : <StackArtwork />}
+      {game === "reflex" ? <ReflexArtwork /> : game === "trail" ? <TrailArtwork /> : game === "stack" ? <StackArtwork /> : <GlideArtwork />}
     </div>
   );
 }

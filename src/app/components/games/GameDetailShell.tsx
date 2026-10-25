@@ -8,6 +8,7 @@ const gameNames: Record<VibeGame, string> = {
   reflex: "VIBE Reflex",
   trail: "VIBE Trail",
   stack: "VIBE Stack",
+  glide: "VIBE Glide",
 };
 
 export default function GameDetailShell({
