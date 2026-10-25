@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import { Timer } from "lucide-react";
 import useVibeLanguage from "@/app/components/useVibeLanguage";
+import { ReflexOrbit, type ReflexSignalState } from "@/app/components/games/GameArtwork";
 import { getReflexSummary, REFLEX_ROUND_COUNT } from "@/app/components/games/reflexLogic";
 
-type ReflexPhase = "idle" | "waiting" | "go" | "false-start" | "between" | "finished";
+type ReflexPhase = ReflexSignalState;
 
 export default function ReflexGame() {
   const de = useVibeLanguage() === "de";
@@ -108,14 +108,17 @@ export default function ReflexGame() {
               : "";
 
   const buttonTone = phase === "go"
-    ? "border-emerald-200 bg-linear-to-br from-emerald-300 to-lime-300 text-emerald-950 shadow-[0_0_50px_rgba(74,222,128,0.25)]"
-    : phase === "waiting"
-      ? "border-violet-300/20 bg-linear-to-br from-violet-950 to-slate-950 text-white"
-      : phase === "false-start"
-        ? "border-rose-300/20 bg-linear-to-br from-rose-950 to-slate-950 text-rose-100"
-        : phase === "between"
-          ? "border-white/10 bg-white/[0.06] text-white/80"
-          : "border-transparent bg-linear-to-r from-violet-500 via-fuchsia-500 to-orange-400 text-white shadow-lg shadow-fuchsia-950/25";
+    ? "border-emerald-200/55 bg-[#101c19] text-white shadow-[0_0_50px_rgba(74,222,128,0.18)]"
+    : phase === "false-start"
+      ? "border-rose-200/45 bg-[#1b111c] text-white shadow-[0_0_45px_rgba(251,113,133,0.16)]"
+      : phase === "between"
+        ? "border-violet-300/20 bg-[#11132d] text-white/90"
+        : "border-violet-300/30 bg-[#11132d] text-white shadow-[0_0_45px_rgba(139,92,246,0.14)]";
+  const playfieldGlow = phase === "go"
+    ? "bg-[radial-gradient(ellipse_at_50%_55%,rgba(74,222,128,0.24),transparent_58%)]"
+    : phase === "false-start"
+      ? "bg-[radial-gradient(ellipse_at_50%_55%,rgba(251,113,133,0.2),transparent_58%)]"
+      : "bg-[radial-gradient(ellipse_at_50%_80%,rgba(124,58,237,0.3),transparent_58%)]";
 
   return (
     <section aria-label={de ? "VIBE Reflex-Spiel" : "VIBE Reflex game"} className="mt-2 rounded-[2rem] border border-violet-200/70 bg-white/80 p-2.5 shadow-xl shadow-violet-950/5 dark:border-white/10 dark:bg-slate-900/80 dark:shadow-black/20 sm:p-5 lg:mt-4 lg:p-7">
@@ -138,14 +141,18 @@ export default function ReflexGame() {
             onClick={handleTap}
             disabled={phase === "false-start" || phase === "between"}
             aria-label={buttonLabel}
-            className={`group grid min-h-40 w-full select-none place-items-center rounded-[1.3rem] border p-3 text-center transition duration-200 focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-amber-300 active:scale-[0.99] disabled:cursor-wait disabled:opacity-90 md:min-h-56 md:p-5 lg:min-h-72 ${buttonTone}`}
+            className={`group relative isolate grid min-h-44 w-full select-none place-items-center overflow-hidden rounded-[1.3rem] border p-3 text-center transition duration-300 focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-amber-300 active:scale-[0.99] disabled:cursor-wait disabled:opacity-90 md:min-h-60 md:p-5 lg:min-h-72 ${buttonTone}`}
           >
-            <span className="block">
-              <span className={`mx-auto mb-3 block w-16 transition duration-200 group-hover:scale-105 md:mb-5 md:w-24 ${phase === "go" ? "drop-shadow-[0_0_22px_rgba(74,222,128,0.85)]" : "drop-shadow-[0_0_14px_rgba(255,145,90,0.55)]"}`}>
-                <Image src="/logo.svg" alt="" width={1536} height={1024} className="block h-auto w-full object-contain" />
-              </span>
+            <span aria-hidden="true" className={`pointer-events-none absolute inset-0 transition-colors duration-300 ${playfieldGlow}`} />
+            <span aria-hidden="true" className="pointer-events-none absolute left-[18%] top-[22%] size-2 rounded-full bg-fuchsia-300/70" />
+            <span aria-hidden="true" className="pointer-events-none absolute right-[20%] top-[31%] size-1.5 rounded-full bg-amber-200/80" />
+            <span aria-hidden="true" className="pointer-events-none absolute bottom-[23%] left-[28%] size-1.5 rounded-full bg-cyan-200/80" />
+            <span className="relative z-10 block">
+              <div className="mx-auto mb-2 transition-transform duration-200 group-hover:scale-105 md:mb-3">
+                <ReflexOrbit state={phase} compact />
+              </div>
               <span className="block text-xl font-black tracking-tight md:text-3xl">{buttonLabel}</span>
-              <span className={`mt-1 block text-xs font-semibold md:mt-2 md:text-sm ${phase === "go" ? "text-emerald-950/70" : "text-white/65"}`}>
+              <span className={`mt-1 block text-xs font-semibold md:mt-2 md:text-sm ${phase === "go" ? "text-emerald-100/80" : "text-white/65"}`}>
                 {phase === "waiting" ? (de ? "Warte, bis das Feld grün wird" : "Wait until the field turns green") : phase === "go" ? (de ? "So schnell du kannst" : "As fast as you can") : phase === "false-start" ? (de ? "Der gleiche Versuch kommt gleich nochmal" : "The same round is coming right back") : phase === "between" ? (de ? "Mach dich bereit" : "Get ready") : phase === "finished" ? (de ? "Tippe für eine neue Runde" : "Tap to start a new run") : (de ? "Das Feld wechselt nach einer zufälligen Zeit" : "The field changes after a random delay")}
               </span>
             </span>

@@ -1,6 +1,36 @@
 import Image from "next/image";
 
 export type VibeGame = "reflex" | "trail" | "stack" | "glide";
+export type ReflexSignalState = "idle" | "waiting" | "go" | "false-start" | "between" | "finished";
+
+export function ReflexOrbit({ state = "idle", compact = false }: { state?: ReflexSignalState; compact?: boolean }) {
+  const isGo = state === "go";
+  const isFalseStart = state === "false-start";
+  const outerTone = isGo
+    ? "border-emerald-200/60 bg-emerald-400/15 shadow-[0_0_70px_rgba(74,222,128,0.35)]"
+    : isFalseStart
+      ? "border-rose-200/50 bg-rose-400/10 shadow-[0_0_70px_rgba(251,113,133,0.3)]"
+      : "border-violet-300/30 bg-violet-400/10 shadow-[0_0_70px_rgba(139,92,246,0.25)]";
+  const innerTone = isGo
+    ? "border-emerald-100/60 bg-linear-to-br from-emerald-300/30 to-lime-400/10"
+    : isFalseStart
+      ? "border-rose-200/45 bg-linear-to-br from-rose-400/20 to-rose-900/10"
+      : "border-violet-200/40 bg-linear-to-br from-violet-500/40 to-fuchsia-400/20";
+
+  return (
+    <div className={`relative grid ${compact ? "size-24 md:size-32" : "size-32 sm:size-40"} place-items-center rounded-full border ${outerTone}`}>
+      <div className={`grid ${compact ? "size-16 md:size-24" : "size-24 sm:size-32"} place-items-center rounded-full border ${innerTone}`}>
+        <Image
+          src="/logo.svg"
+          alt=""
+          width={1536}
+          height={1024}
+          className={`relative z-10 h-auto object-contain ${compact ? "w-20 md:w-28" : "w-28 sm:w-36"} ${isGo ? "drop-shadow-[0_0_20px_rgba(74,222,128,0.85)]" : isFalseStart ? "drop-shadow-[0_0_18px_rgba(251,113,133,0.8)]" : "drop-shadow-[0_0_14px_rgba(251,146,60,0.7)]"}`}
+        />
+      </div>
+    </div>
+  );
+}
 
 const trailTiles = new Map<number, "body" | "head" | "logo">([
   [16, "logo"],
@@ -24,11 +54,7 @@ function ReflexArtwork() {
       <span className="absolute left-[18%] top-[22%] size-2 rounded-full bg-fuchsia-300/70" />
       <span className="absolute right-[20%] top-[31%] size-1.5 rounded-full bg-amber-200/80" />
       <span className="absolute bottom-[23%] left-[28%] size-1.5 rounded-full bg-cyan-200/80" />
-      <div className="relative grid size-32 place-items-center rounded-full border border-violet-300/30 bg-violet-400/10 shadow-[0_0_70px_rgba(139,92,246,0.25)] sm:size-40">
-        <div className="grid size-24 place-items-center rounded-full border border-violet-200/40 bg-linear-to-br from-violet-500/40 to-fuchsia-400/20 sm:size-32">
-          <Image src="/logo.svg" alt="" width={1536} height={1024} className="relative z-10 h-auto w-28 object-contain drop-shadow-[0_0_14px_rgba(251,146,60,0.7)] sm:w-36" />
-        </div>
-      </div>
+      <ReflexOrbit />
       <div className="absolute bottom-4 left-4 rounded-full border border-white/10 bg-black/25 px-3 py-1.5 text-[10px] font-black tracking-[0.18em] text-violet-100/80">WAIT FOR THE GLOW</div>
     </div>
   );
