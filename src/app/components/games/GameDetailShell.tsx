@@ -30,18 +30,19 @@ export default function GameDetailShell({
       <BackNavigationLink href="/games" />
 
       {compact ? (
-        <section className="mt-2 flex items-center gap-3 rounded-2xl border border-[#f2c4d0] bg-white px-4 py-3 shadow-lg shadow-[#ff4778]/[0.06] dark:border-[#ff8d72]/20 dark:bg-[#111324] sm:gap-4 sm:px-5">
-          <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-linear-to-br from-[#ff3881] to-[#ff9b23] text-white shadow-md shadow-[#ff4778]/20 sm:size-11">
-            <Sparkles size={20} aria-hidden="true" />
-          </span>
-          <div className="min-w-0">
-            <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.15em] text-[#bd315d] dark:text-[#ffc198]">
+        <>
+          <section className="mt-1 flex min-h-9 items-center gap-2 px-1">
+            <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-linear-to-br from-[#ff3881] to-[#ff9b23] text-white shadow-sm shadow-[#ff4778]/20">
+              <Sparkles size={15} aria-hidden="true" />
+            </span>
+            <h1 className="min-w-0 truncate text-xl font-black leading-tight tracking-tight text-slate-950 dark:text-white sm:text-2xl">{gameNames[game]}</h1>
+            <span className="ml-auto inline-flex shrink-0 items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.1em] text-[#bd315d] dark:text-[#ffc198]">
+              <span className="size-1.5 rounded-full bg-emerald-500" />
               <LocalizedText en={available ? "Ready to play" : "Coming soon"} de={available ? "Jetzt spielbar" : "Kommt bald"} />
-            </p>
-            <h1 className="truncate text-2xl font-black leading-tight tracking-tight text-slate-950 dark:text-white sm:text-3xl">{gameNames[game]}</h1>
-            <p className="line-clamp-1 text-xs leading-5 text-slate-600 dark:text-slate-300 sm:line-clamp-2"><LocalizedText en={description.en} de={description.de} /></p>
-          </div>
-        </section>
+            </span>
+          </section>
+          <p className="sr-only"><LocalizedText en={description.en} de={description.de} /></p>
+        </>
       ) : (
         <section className="mt-4 grid gap-5 overflow-hidden rounded-[2rem] border border-violet-200/70 bg-white/80 p-4 shadow-xl shadow-violet-950/5 dark:border-white/10 dark:bg-slate-900/80 dark:shadow-black/20 sm:p-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-8 lg:p-8">
           <div className="order-2 min-w-0 px-1 pb-2 lg:order-1 lg:px-2">

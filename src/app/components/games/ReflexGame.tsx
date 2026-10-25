@@ -119,14 +119,14 @@ export default function ReflexGame() {
           : "border-transparent bg-linear-to-r from-violet-500 via-fuchsia-500 to-orange-400 text-white shadow-lg shadow-fuchsia-950/25";
 
   return (
-    <section aria-label={de ? "VIBE Reflex-Spiel" : "VIBE Reflex game"} className="mt-3 rounded-[2rem] border border-violet-200/70 bg-white/80 p-3 shadow-xl shadow-violet-950/5 dark:border-white/10 dark:bg-slate-900/80 dark:shadow-black/20 sm:mt-4 sm:p-7">
+    <section aria-label={de ? "VIBE Reflex-Spiel" : "VIBE Reflex game"} className="mt-2 rounded-[2rem] border border-violet-200/70 bg-white/80 p-2.5 shadow-xl shadow-violet-950/5 dark:border-white/10 dark:bg-slate-900/80 dark:shadow-black/20 sm:p-5 lg:mt-4 lg:p-7">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-violet-700 dark:text-violet-200"><Timer size={15} aria-hidden="true" /> {de ? "Reaktionsmodus" : "Reaction mode"}</p>
         <p className="text-xs font-bold text-slate-500 dark:text-slate-400">{de ? "Nur du gegen die Zeit" : "Just you vs. the clock"}</p>
       </div>
 
-      <div className="mt-3 grid gap-4 lg:mt-5 lg:grid-cols-[minmax(0,1fr)_250px] lg:gap-5">
-        <div className="rounded-[1.6rem] border border-white/10 bg-[#0d1224] p-2.5 shadow-inner shadow-black/20 sm:p-5">
+      <div className="mt-2 grid gap-3 md:mt-4 md:grid-cols-[minmax(0,1fr)_250px] md:gap-4">
+        <div className="rounded-[1.6rem] border border-white/10 bg-[#0d1224] p-2 shadow-inner shadow-black/20 sm:p-3 md:p-5">
           <div className="mb-3 flex items-center justify-between px-1 text-xs font-bold text-slate-400">
             <span>{de ? `Runde ${phase === "idle" ? 0 : Math.min(round, REFLEX_ROUND_COUNT)} von ${REFLEX_ROUND_COUNT}` : `Round ${phase === "idle" ? 0 : Math.min(round, REFLEX_ROUND_COUNT)} of ${REFLEX_ROUND_COUNT}`}</span>
             <div className="flex gap-1.5" aria-label={de ? `${times.length} von 5 Runden abgeschlossen` : `${times.length} of 5 rounds complete`}>
@@ -139,14 +139,14 @@ export default function ReflexGame() {
             onClick={handleTap}
             disabled={phase === "false-start" || phase === "between"}
             aria-label={buttonLabel}
-            className={`group grid min-h-48 w-full select-none place-items-center rounded-[1.3rem] border p-4 text-center transition duration-200 focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-amber-300 active:scale-[0.99] disabled:cursor-wait disabled:opacity-90 sm:min-h-60 sm:p-5 lg:min-h-72 ${buttonTone}`}
+            className={`group grid min-h-40 w-full select-none place-items-center rounded-[1.3rem] border p-3 text-center transition duration-200 focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-amber-300 active:scale-[0.99] disabled:cursor-wait disabled:opacity-90 md:min-h-56 md:p-5 lg:min-h-72 ${buttonTone}`}
           >
             <span className="block">
-              <span className={`mx-auto mb-4 block w-20 transition duration-200 group-hover:scale-105 sm:w-24 ${phase === "go" ? "drop-shadow-[0_0_22px_rgba(74,222,128,0.85)]" : "drop-shadow-[0_0_14px_rgba(255,145,90,0.55)]"}`}>
+              <span className={`mx-auto mb-3 block w-16 transition duration-200 group-hover:scale-105 md:mb-5 md:w-24 ${phase === "go" ? "drop-shadow-[0_0_22px_rgba(74,222,128,0.85)]" : "drop-shadow-[0_0_14px_rgba(255,145,90,0.55)]"}`}>
                 <Image src="/logo.svg" alt="" width={1536} height={1024} className="block h-auto w-full object-contain" />
               </span>
-              <span className="block text-2xl font-black tracking-tight sm:text-3xl">{buttonLabel}</span>
-              <span className={`mt-2 block text-sm font-semibold ${phase === "go" ? "text-emerald-950/70" : "text-white/65"}`}>
+              <span className="block text-xl font-black tracking-tight md:text-3xl">{buttonLabel}</span>
+              <span className={`mt-1 block text-xs font-semibold md:mt-2 md:text-sm ${phase === "go" ? "text-emerald-950/70" : "text-white/65"}`}>
                 {phase === "waiting" ? (de ? "Warte, bis das Feld grün wird" : "Wait until the field turns green") : phase === "go" ? (de ? "So schnell du kannst" : "As fast as you can") : phase === "false-start" ? (de ? "Der gleiche Versuch kommt gleich nochmal" : "The same round is coming right back") : phase === "between" ? (de ? "Mach dich bereit" : "Get ready") : phase === "finished" ? (de ? "Tippe für eine neue Runde" : "Tap to start a new run") : (de ? "Das Feld wechselt nach einer zufälligen Zeit" : "The field changes after a random delay")}
               </span>
             </span>
