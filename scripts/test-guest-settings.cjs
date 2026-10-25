@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const ts = require('typescript');
 
-function settings(blockStorage, guest = true) {
+function settings(blockStorage, guest = true, pathname = '/home') {
   const slots = [], themes = [], events = [], storage = new Map();
   const timers = new Map();
   let index = 0, refIndex = 0, timerId = 0, now = 0, tree, requests = 0;
@@ -24,12 +24,13 @@ function settings(blockStorage, guest = true) {
     require(name) {
       if (name === 'react') return {
         useState(value) { const i = index++; if (!(i in slots)) slots[i] = value; return [slots[i], (v) => { slots[i] = typeof v === 'function' ? v(slots[i]) : v; }]; },
+        useCallback(callback) { return callback; },
         startTransition(callback) { callback(); },
         useEffect() {},
         useRef(value = null) { const i = refIndex++; if (!(i in refs)) refs[i] = { current: value }; return refs[i]; },
       };
       if (name === 'react/jsx-runtime') return { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }) };
-      if (name === 'next/navigation') return { usePathname: () => '/home', useRouter: () => ({ refresh() {} }) };
+      if (name === 'next/navigation') return { usePathname: () => pathname, useRouter: () => ({ refresh() {} }) };
       if (name.includes('ProfileThemeRuntime')) return { applyTheme: (theme) => themes.push(theme) };
       if (name.includes('language-events')) return { applyVibeLanguage: (language) => { document.documentElement.lang = language; events.push({ type: 'vibe-language-change', detail: language }); } };
       return {};
@@ -83,8 +84,50 @@ test('quick settings close animation mirrors the enter motion', () => {
   const css = fs.readFileSync('src/app/globals.css', 'utf8');
   assert.match(css, /@keyframes vibe-quick-settings-enter/);
   assert.match(css, /@keyframes vibe-quick-settings-exit/);
+  assert.match(css, /\.vibe-quick-settings-panel\s*\{\s*animation:\s*vibe-quick-settings-enter 150ms ease-out both;/);
+  assert.match(css, /\.vibe-quick-settings-panel-exit\s*\{\s*animation:\s*vibe-quick-settings-exit 150ms ease-in both;/);
   assert.match(css, /vibe-quick-settings-panel-exit/);
   assert.ok(css.includes('translateY(-0.35rem) scale(0.97)'));
+});
+
+
+test('Reflex help orb uses the shared entrance and animated close with a three-second idle fallback', async () => {
+  const app = settings(false, true, '/games/reflex');
+  await app.click((n) => n.props?.['aria-label'] === 'Game instructions');
+  assert.ok(app.nodes().some((n) => n.props?.id === 'vibe-reflex-help' && String(n.props?.className ?? '').includes('vibe-quick-settings-panel')));
+  app.advance(3000);
+  assert.ok(app.nodes().some((n) => n.props?.id === 'vibe-reflex-help' && String(n.props?.className ?? '').includes('vibe-quick-settings-panel-exit')));
+  app.advance(149);
+  assert.ok(app.nodes().some((n) => n.props?.id === 'vibe-reflex-help'), 'Help stays mounted through the exit animation');
+  app.advance(1);
+  assert.equal(app.nodes().some((n) => n.props?.id === 'vibe-reflex-help'), false);
+});
+
+
+test('Reflex help orb pauses its idle fallback while hovered and restarts it on leave', async () => {
+  const app = settings(false, true, '/games/reflex');
+  await app.click((n) => n.props?.['aria-label'] === 'Game instructions');
+  const wrapper = (n) => n.type === 'div' && n.props?.className === 'relative';
+  await app.event(wrapper, 'onPointerEnter');
+  assert.equal(app.timerCount(), 0);
+  app.advance(3000);
+  assert.equal(app.nodes().some((n) => String(n.props?.className ?? '').includes('vibe-quick-settings-panel-exit')), false);
+  await app.event(wrapper, 'onPointerLeave');
+  app.advance(3000);
+  assert.ok(app.nodes().some((n) => String(n.props?.className ?? '').includes('vibe-quick-settings-panel-exit')));
+});
+
+
+test('Reflex help orb can be reopened during its exit animation', async () => {
+  const app = settings(false, true, '/games/reflex');
+  await app.click((n) => n.props?.['aria-label'] === 'Game instructions');
+  await app.click((n) => n.props?.['aria-label'] === 'Close instructions');
+  assert.ok(app.nodes().some((n) => String(n.props?.className ?? '').includes('vibe-quick-settings-panel-exit')));
+  await app.click((n) => n.props?.['aria-label'] === 'Game instructions');
+  assert.equal(app.nodes().some((n) => String(n.props?.className ?? '').includes('vibe-quick-settings-panel-exit')), false);
+  assert.ok(app.nodes().some((n) => n.props?.id === 'vibe-reflex-help'));
+  app.advance(150);
+  assert.ok(app.nodes().some((n) => n.props?.id === 'vibe-reflex-help'));
 });
 
 
