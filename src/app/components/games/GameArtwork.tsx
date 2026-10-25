@@ -42,9 +42,11 @@ const trailTiles = new Map<number, "body" | "head" | "logo">([
 ]);
 
 const stackTiles = new Map<number, string>([
-  [11, "bg-fuchsia-300"], [12, "bg-fuchsia-300"], [18, "bg-fuchsia-300"], [19, "bg-fuchsia-300"],
-  [26, "bg-violet-300"], [27, "bg-violet-300"], [28, "bg-violet-300"], [35, "bg-violet-300"],
-  [36, "bg-cyan-300"], [37, "bg-cyan-300"], [38, "bg-cyan-300"], [45, "bg-cyan-300"],
+  [34, "bg-fuchsia-300"], [35, "bg-fuchsia-300"], [36, "bg-fuchsia-300"], [45, "bg-fuchsia-300"],
+  [90, "bg-cyan-300"], [91, "bg-cyan-300"], [92, "bg-cyan-300"], [94, "bg-cyan-300"], [95, "bg-cyan-300"], [96, "bg-cyan-300"], [97, "bg-cyan-300"], [98, "bg-cyan-300"], [99, "bg-cyan-300"],
+  [80, "bg-violet-300"], [81, "bg-violet-300"], [84, "bg-violet-300"], [85, "bg-violet-300"], [86, "bg-violet-300"], [87, "bg-violet-300"], [89, "bg-violet-300"],
+  [70, "bg-fuchsia-300"], [71, "bg-fuchsia-300"], [74, "bg-fuchsia-300"], [78, "bg-fuchsia-300"], [79, "bg-fuchsia-300"],
+  [60, "bg-violet-300"], [69, "bg-violet-300"], [50, "bg-cyan-300"], [59, "bg-cyan-300"],
 ]);
 
 function ReflexArtwork() {
@@ -93,17 +95,29 @@ function StackArtwork() {
   return (
     <div className="relative grid size-full place-items-center overflow-hidden rounded-[1.35rem] bg-[#17132a]">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_55%_35%,rgba(217,70,239,0.18),transparent_60%)]" />
-      <div className="relative grid grid-cols-7 gap-1 rounded-2xl border border-white/10 bg-slate-950/55 p-2 shadow-2xl sm:gap-1.5 sm:p-3">
-        {Array.from({ length: 49 }, (_, index) => {
+      <div className="relative flex items-center gap-2 rounded-2xl border border-white/10 bg-slate-950/55 p-2 shadow-2xl sm:gap-3 sm:p-3">
+        <div className="grid grid-cols-10 gap-[3px] rounded-xl border border-white/[0.07] bg-[#0b1021] p-1.5 sm:p-2">
+        {Array.from({ length: 120 }, (_, index) => {
           const color = stackTiles.get(index);
           return (
-            <span key={index} className={`grid aspect-square size-5 place-items-center overflow-hidden rounded sm:size-6 sm:rounded-md ${color ?? "bg-white/[0.035]"}`}>
+            <span key={index} className={`grid aspect-square size-3.5 place-items-center overflow-hidden rounded-[3px] sm:size-4 md:size-[18px] ${color ?? "bg-white/[0.035]"}`}>
               {color && <Image src="/logo.svg" alt="" width={1536} height={1024} className="h-full w-full scale-[1.8] object-contain drop-shadow-[0_0_5px_rgba(255,255,255,0.35)]" />}
             </span>
           );
         })}
+        </div>
+        <div className="hidden w-14 shrink-0 flex-col gap-2 sm:flex">
+          <span className="text-[8px] font-black uppercase tracking-[0.15em] text-fuchsia-100/70">NEXT</span>
+          <div className="grid grid-cols-3 gap-1 rounded-lg border border-white/10 bg-white/[0.035] p-1.5">
+            {[1, 3, 4, 5].map((cell) => <span key={cell} className="aspect-square rounded-[2px] bg-violet-300">
+              <Image src="/logo.svg" alt="" width={1536} height={1024} className="h-full w-full scale-[1.8] object-contain" />
+            </span>)}
+          </div>
+          <span className="text-[8px] font-black uppercase tracking-[0.15em] text-white/45">LINES</span>
+          <span className="text-sm font-black tabular-nums text-white/80">04</span>
+        </div>
       </div>
-      <span className="absolute bottom-3 right-4 text-[10px] font-black tracking-[0.2em] text-fuchsia-100/70">MAKE ROOM. STACK VIBE.</span>
+      <span className="absolute bottom-3 right-4 text-[10px] font-black tracking-[0.2em] text-fuchsia-100/70">VIBE STACK · SOLO</span>
     </div>
   );
 }

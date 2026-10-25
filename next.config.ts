@@ -1,9 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Keep local Turbopack output separate from stale development caches while
-  // retaining Vercel's required default output directory in production.
-  distDir: process.env.VERCEL ? ".next" : ".next-vibe",
+  // Keep local dev caches separate; isolated runs can override the output directory.
+  distDir: process.env.VIBE_NEXT_DIST_DIR ?? (process.env.VERCEL ? ".next" : ".next-vibe"),
   // Keep Turbopack scoped to this application when a parent directory has a lockfile.
   turbopack: {
     root: process.cwd(),

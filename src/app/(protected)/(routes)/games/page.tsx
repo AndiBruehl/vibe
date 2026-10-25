@@ -34,9 +34,9 @@ const games: GameCardData[] = [
   {
     id: "stack",
     title: "VIBE Stack",
-    description: { en: "Drop logo-shaped blocks, build lines, and make room for the next move.", de: "Setze logo-förmige Blöcke, bilde Reihen und schaff Platz für den nächsten Zug." },
-    badge: { en: "Coming soon", de: "Kommt bald" },
-    available: false,
+    description: { en: "Stack VIBE-logo pieces, clear lines, and chase your local high score.", de: "Staple VIBE-Logo-Steine, lösche Reihen und knacke deinen lokalen Bestwert." },
+    badge: { en: "Play offline", de: "Offline spielen" },
+    available: true,
     accent: "from-[#fa47bb] to-[#7b5cff]",
   },
   {
@@ -124,7 +124,7 @@ export default function GamesPage() {
             <p className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-[0.18em] text-[#c52c5c] dark:text-[#ff8c70]"><Sparkles size={14} aria-hidden="true" /> SELECT YOUR GAME</p>
             <h2 id="vibe-games-list" className="mt-1 text-2xl font-black tracking-tight text-slate-950 dark:text-white sm:text-3xl"><LocalizedText en="Choose your side quest" de="Wähl deine Nebenmission" /></h2>
           </div>
-          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400"><LocalizedText en="01 live · 03 in the works" de="01 spielbar · 03 in Arbeit" /></p>
+          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400"><LocalizedText en="02 playable · 02 in the works" de="02 spielbar · 02 in Arbeit" /></p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {games.map((game) => <GameCard key={game.id} game={game} />)}
