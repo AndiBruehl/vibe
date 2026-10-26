@@ -43,8 +43,8 @@ const games: GameCardData[] = [
     id: "glide",
     title: "VIBE Glide",
     description: { en: "Fly the VIBE logo through the gaps. How long can you stay airborne?", de: "Flieg mit dem VIBE-Logo durch die Lücken. Wie lange bleibst du in der Luft?" },
-    badge: { en: "Coming soon", de: "Kommt bald" },
-    available: false,
+    badge: { en: "Play now", de: "Jetzt spielen" },
+    available: true,
     accent: "from-[#ff5a8b] to-[#ffad37]",
   },
 ];
@@ -124,7 +124,7 @@ export default function GamesPage() {
             <p className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-[0.18em] text-[#c52c5c] dark:text-[#ff8c70]"><Sparkles size={14} aria-hidden="true" /> SELECT YOUR GAME</p>
             <h2 id="vibe-games-list" className="mt-1 text-2xl font-black tracking-tight text-slate-950 dark:text-white sm:text-3xl"><LocalizedText en="Choose your side quest" de="Wähl deine Nebenmission" /></h2>
           </div>
-          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400"><LocalizedText en="03 playable · 01 in the works" de="03 spielbar · 01 in Arbeit" /></p>
+          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400"><LocalizedText en="04 playable" de="04 spielbar" /></p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {games.map((game) => <GameCard key={game.id} game={game} />)}
@@ -135,7 +135,7 @@ export default function GamesPage() {
         <div aria-hidden="true" className="pointer-events-none absolute -right-8 -top-16 size-48 rounded-full bg-[#ff4b8c]/10 blur-3xl" />
         <div className="relative max-w-xl">
           <p className="text-sm font-black text-slate-950 dark:text-white"><LocalizedText en="More little games are loading." de="Weitere kleine Spiele laden schon." /></p>
-          <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300"><LocalizedText en="More little games are on the way: fly the VIBE logo, then chase new challenges." de="Weitere kleine Spiele sind unterwegs: Flieg mit dem VIBE-Logo und stell dich neuen Herausforderungen." /></p>
+          <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300"><LocalizedText en="More little games are on the way. Pick a new challenge whenever you need a quick break." de="Weitere kleine Spiele sind unterwegs. Such dir eine Herausforderung für deine nächste Pause." /></p>
         </div>
         <span className="relative mt-3 inline-flex shrink-0 items-center gap-2 rounded-lg border border-[#f2c4d0] bg-[#fff5f3] px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#bd315d] dark:border-white/10 dark:bg-white/[0.06] dark:text-[#ffc198] sm:mt-0"><Clock3 size={14} aria-hidden="true" /><LocalizedText en="More soon" de="Mehr folgt" /></span>
       </section>

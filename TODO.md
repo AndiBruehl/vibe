@@ -477,6 +477,10 @@ Implemented and covered by access regression tests. Native packages remain uncha
 
 - **0.5.2 — VIBE Reflex und VIBE Stack (Web):** Fünf Runden Reaktionstest mit zufälligem Signal, Fehlstart-Wiederholung, Durchschnitt und Bestwert pro Lauf. Die Spieleübersicht bietet Vorschauen und eigene Seiten. Stack hat ein 10×20-Spielfeld, VIBE-Logo-Steine, Bewegung, Drehung, Halten, Drops, Level, Reihenwertung und lokalen Bestwert. Bei nicht verfügbarem Browser-Speicher bleibt Stack spielbar; eine leere Teilewarteschlange wird sicher neu befüllt. Der Reflex-Hilfe-Orb übernimmt die Ein- und Ausblendanimation der Schnellzugriffe; sein Drei-Sekunden-Fallback pausiert bei Hover/Fokus und startet danach neu. Android/Windows bleiben bei ihren lokalen 0.5.1-Kandidaten. ✅
 - **0.5.3 — VIBE Trail (Web):** Snake-artiges Spurspiel mit dem VIBE-Logo als Sammelobjekt, Tastatur-/Touch-Steuerung, wachsendem Tempo und lokalem Bestwert. Steuerkreuz, Hilfe und Spielstand sind in der Trail-Seite angeordnet; gesperrter oder voller Browser-Speicher verhindert das Spielen nicht. Der „Solo“-Zusatz wurde aus VIBE Stack entfernt. ✅
-- **0.5.4 — Konto löschen im Profil:** Eine „Delete Account“-Schaltfläche im Profil ergänzen, mit verständlichen Hinweisen zu den Folgen, deutlicher Warnung sowie expliziter Bestätigungs- und Abbruchmöglichkeit.
+- **0.5.4 — VIBE Glide:** One-touch-Flugspiel im Flappy-Bird-Stil mit dem transparenten VIBE-Logo als Spielfigur, Touch-/Tastatursteuerung, Hindernissen, steigendem Schwierigkeitsgrad und lokalem Bestwert. Spielhilfe im animierten ?-Orb sowie Dark-/Light-Theme; Speicher- und Resize-Fallbacks halten das Spiel auch in eingeschränkten Browsern nutzbar. ✅
+- **0.5.5 — Konto löschen im Profil:** Eine „Delete Account“-Schaltfläche im Profil ergänzen, mit verständlichen Hinweisen zu den Folgen, deutlicher Warnung sowie expliziter Bestätigungs- und Abbruchmöglichkeit.
 - **Später, ohne Versionsnummer — Ranglisten:** Bestenlisten für die VIBE-Minispiele ergänzen.
-- **Später, ohne Versionsnummer — VIBE Glide:** One-touch-Flugspiel; das VIBE-Logo ist die Spielfigur und fliegt durch Hindernislücken.
+
+## 0.6 — Planung
+
+- **Markierte Beiträge im Profil:** Bilder und Beiträge, in denen das eigene Profil markiert/verlinkt wurde, in einem eigenen Profilbereich anzeigen. Dabei die Sichtbarkeit und Zugriffsrechte des Originalbeitrags respektieren.

@@ -373,9 +373,10 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
   const isReflexGame = pathname === "/games/reflex";
   const isTrailGame = pathname === "/games/trail";
   const isStackGame = pathname === "/games/stack";
-  const hasGameHelp = isReflexGame || isTrailGame || isStackGame;
-  const gameHelpId = isStackGame ? "vibe-stack-help" : isTrailGame ? "vibe-trail-help" : "vibe-reflex-help";
-  const gameHelpName = isStackGame ? "VIBE Stack" : isTrailGame ? "VIBE Trail" : "VIBE Reflex";
+  const isGlideGame = pathname === "/games/glide";
+  const hasGameHelp = isReflexGame || isTrailGame || isStackGame || isGlideGame;
+  const gameHelpId = isGlideGame ? "vibe-glide-help" : isStackGame ? "vibe-stack-help" : isTrailGame ? "vibe-trail-help" : "vibe-reflex-help";
+  const gameHelpName = isGlideGame ? "VIBE Glide" : isStackGame ? "VIBE Stack" : isTrailGame ? "VIBE Trail" : "VIBE Reflex";
   const themeOptions: { value: ThemePreference; label: string; icon: typeof Sun }[] = [
     { value: "light", label: de ? "Hell" : "Light", icon: Sun },
     { value: "dark", label: de ? "Dunkel" : "Dark", icon: Moon },
@@ -459,7 +460,11 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
             <button type="button" onClick={closeGameHelp} aria-label={de ? "Schließen" : "Close instructions"} className="grid size-7 place-items-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-orange-600 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-orange-300"><X size={15} /></button>
           </div>
           <ol className="mt-3 space-y-2.5 text-sm font-medium leading-5 text-slate-700 dark:text-slate-300">
-            {isStackGame ? <>
+            {isGlideGame ? <>
+              <li className="flex gap-2"><span className="font-black text-orange-600 dark:text-orange-300">01</span><span>{de ? "Tippe oder klicke ins Spielfeld; Leertaste und ↑ lassen das VIBE-Logo ebenfalls flattern." : "Tap or click the field; Space and ↑ also make the VIBE logo flap."}</span></li>
+              <li className="flex gap-2"><span className="font-black text-orange-600 dark:text-orange-300">02</span><span>{de ? "Flieg durch die Lücken und weiche den Hindernissen sowie Boden und Decke aus. Jede passierte Lücke gibt einen Punkt." : "Fly through the gaps and avoid the obstacles, floor, and ceiling. Each cleared gap adds a point."}</span></li>
+              <li className="flex gap-2"><span className="font-black text-orange-600 dark:text-orange-300">03</span><span>{de ? "P oder Esc pausiert. Dein Bestwert bleibt lokal auf diesem Gerät." : "Press P or Esc to pause. Your best score stays on this device."}</span></li>
+            </> : isStackGame ? <>
               <li className="flex gap-2"><span className="font-black text-orange-600 dark:text-orange-300">01</span><span>{de ? "Fülle Reihen mit VIBE-Steinen; volle Reihen verschwinden. Alle 10 Reihen steigt das Level und die Steine fallen schneller." : "Fill rows with VIBE pieces; completed rows disappear. Every 10 lines raises the level and fall speed."}</span></li>
               <li className="flex gap-2"><span className="font-black text-orange-600 dark:text-orange-300">02</span><span>{de ? "←/→ bewegen, ↓ beschleunigt den Fall, Leertaste oder DROP setzt sofort ab. Gedrückte Pfeile wiederholen die Bewegung." : "←/→ move, ↓ soft-drops, Space or DROP hard-drops. Hold the arrows to repeat movement."}</span></li>
               <li className="flex gap-2"><span className="font-black text-orange-600 dark:text-orange-300">03</span><span>{de ? "↑ dreht im Uhrzeigersinn, Z gegen den Uhrzeigersinn. Wand- und Bodenkicks helfen beim Drehen an Hindernissen." : "↑ rotates clockwise, Z counter-clockwise. Wall and floor kicks help rotate beside obstacles."}</span></li>
