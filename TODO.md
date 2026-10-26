@@ -475,9 +475,8 @@ Implemented and covered by access regression tests. Native packages remain uncha
 
 ## 0.5.x — Status und Planung
 
-- **0.5.2 — VIBE Reflex (local web):** Fünf Runden Reaktionstest mit zufälligem Signal, Fehlstart-Wiederholung, Durchschnitt und Bestwert pro Lauf. Spieleübersicht mit Vorschaukarten und eigenen Detailseiten für VIBE Reflex, VIBE Trail, VIBE Stack und VIBE Glide. Der Hilfe-Orb übernimmt die Ein- und Ausblendanimation der Schnellzugriffe; der Drei-Sekunden-Fallback pausiert bei Hover/Fokus und startet danach neu. Android/Windows bleiben bei ihren lokalen 0.5.1-Kandidaten. ✅
+- **0.5.2 — VIBE Reflex und VIBE Stack (Web):** Fünf Runden Reaktionstest mit zufälligem Signal, Fehlstart-Wiederholung, Durchschnitt und Bestwert pro Lauf. Die Spieleübersicht hat Vorschaukarten und eigene Seiten. Stack bietet ein 10×20-Spielfeld, VIBE-Logo-Steine, Bewegung, Drehen, Halten, Soft-/Hard-Drop, Level, Reihenwertung und lokalen Bestwert. Der Hilfe-Orb übernimmt die Ein- und Ausblendanimation der Schnellzugriffe; sein Drei-Sekunden-Fallback pausiert bei Hover/Fokus und startet danach neu. Bei nicht verfügbarem Browser-Speicher bleibt Stack spielbar; eine leere Teilewarteschlange wird sicher neu befüllt. Android/Windows bleiben bei ihren lokalen 0.5.1-Kandidaten. ✅
 - **0.5.3 — Konto löschen im Profil:** Eine „Delete Account“-Schaltfläche im Profil ergänzen, mit verständlichen Hinweisen zu den Folgen, deutlicher Warnung sowie expliziter Bestätigungs- und Abbruchmöglichkeit.
 - **Später, ohne Versionsnummer — Ranglisten:** Bestenlisten für die VIBE-Minispiele ergänzen.
 - **Später, ohne Versionsnummer — VIBE Trail:** Spur-Spiel nach Snake-Art; das VIBE-Logo ersetzt die Äpfel bzw. Sammelobjekte.
-- **VIBE Stack — lokal umgesetzt, noch nicht gepusht:** Block-Puzzle mit VIBE-Logo-Steinen, Tastatur- und Touch-Steuerung sowie lokalem Bestwert auf dem Gerät. Noch keiner Release-Version zugeordnet.
 - **Später, ohne Versionsnummer — VIBE Glide:** One-touch-Flugspiel; das VIBE-Logo ist die Spielfigur und fliegt durch Hindernislücken.

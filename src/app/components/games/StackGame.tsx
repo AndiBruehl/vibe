@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useReducer } from "react";
-import { ArrowDown, ArrowLeft, ArrowRight, Pause, Play, RotateCcw, RotateCw, Sparkles, Trophy } from "lucide-react";
+import { useCallback, useEffect, useReducer, useRef, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from "react";
+import { ArrowDown, ArrowLeft, ArrowRight, Package, Pause, Play, RotateCcw, RotateCw, Sparkles, Trophy } from "lucide-react";
 import useVibeLanguage from "@/app/components/useVibeLanguage";
 import {
   createInitialStackGame,
@@ -10,6 +10,7 @@ import {
   getStackDropInterval,
   getStackLandingY,
   getStackPieceCells,
+  STACK_LOCK_DELAY_MS,
   STACK_BOARD_HEIGHT,
   STACK_BOARD_WIDTH,
   STACK_PIECE_COLORS,
@@ -19,14 +20,14 @@ import {
 
 const BEST_SCORE_KEY = "vibe-stack-best-v1";
 
-function PiecePreview({ type }: { type: StackPieceType }) {
-  const occupied = new Set(getStackPieceCells(createStackPiece(type, 0, 0)).map(({ x, y }) => `${x},${y}`));
+function PiecePreview({ type }: { type: StackPieceType | null }) {
+  const occupied = new Set(type ? getStackPieceCells(createStackPiece(type, 0, 0)).map(({ x, y }) => `${x},${y}`) : []);
   return (
     <div aria-hidden="true" className="grid w-fit grid-cols-4 gap-1 rounded-xl border border-slate-200/80 bg-white/70 p-2 dark:border-white/10 dark:bg-slate-950/50">
       {Array.from({ length: 16 }, (_, index) => {
         const key = `${index % 4},${Math.floor(index / 4)}`;
         const filled = occupied.has(key);
-        return <span key={index} className={`aspect-square size-4 rounded-[3px] border ${filled ? "border-white/70 shadow-inner shadow-white/20" : "border-slate-200/70 bg-slate-100/70 dark:border-white/[0.04] dark:bg-white/[0.025]"}`} style={filled ? { backgroundColor: STACK_PIECE_COLORS[type], backgroundImage: "url('/logo.svg')", backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "135% auto" } : undefined} />;
+        return <span key={index} className={`aspect-square size-4 rounded-[3px] border ${filled ? "border-white/70 shadow-inner shadow-white/20" : "border-slate-200/70 bg-slate-100/70 dark:border-white/[0.04] dark:bg-white/[0.025]"}`} style={filled && type ? { backgroundColor: STACK_PIECE_COLORS[type], backgroundImage: "url('/logo.svg')", backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "135% auto" } : undefined} />;
       })}
     </div>
   );
@@ -35,6 +36,9 @@ function PiecePreview({ type }: { type: StackPieceType }) {
 export default function StackGame() {
   const de = useVibeLanguage() === "de";
   const [game, dispatch] = useReducer(stackGameReducer, undefined, createInitialStackGame);
+  const holdDelayRef = useRef<number | null>(null);
+  const holdRepeatRef = useRef<number | null>(null);
+  const pointerMoveRepeatedRef = useRef(false);
   const level = Math.floor(game.lines / 10) + 1;
   const currentCells = new Map((game.active ? getStackPieceCells(game.active) : []).map((cell) => [`${cell.x},${cell.y}`, game.active!.type]));
   const landingCells = game.phase === "playing" && game.active
@@ -49,8 +53,12 @@ export default function StackGame() {
     dispatch({ type: "move", dx });
   }
 
-  function rotate() {
-    dispatch({ type: "rotate" });
+  function rotate(direction: 1 | -1 = 1) {
+    dispatch({ type: "rotate", direction });
+  }
+
+  function holdPiece() {
+    dispatch({ type: "hold", refill: createStackBag() });
   }
 
   function softDrop() {
@@ -61,11 +69,66 @@ export default function StackGame() {
     dispatch({ type: "hard-drop", refill: createStackBag() });
   }
 
+  const clearHeldMoveTimers = useCallback(() => {
+    if (holdDelayRef.current !== null) window.clearTimeout(holdDelayRef.current);
+    if (holdRepeatRef.current !== null) window.clearInterval(holdRepeatRef.current);
+    holdDelayRef.current = null;
+    holdRepeatRef.current = null;
+  }, []);
+
+  function beginHeldMove(event: ReactPointerEvent<HTMLButtonElement>, action: () => void) {
+    if (event.button !== 0) return;
+    clearHeldMoveTimers();
+    pointerMoveRepeatedRef.current = false;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    holdDelayRef.current = window.setTimeout(() => {
+      holdDelayRef.current = null;
+      pointerMoveRepeatedRef.current = true;
+      action();
+      holdRepeatRef.current = window.setInterval(action, 85);
+    }, 220);
+  }
+
+  const beginKeyboardMove = useCallback((dx: number) => {
+    clearHeldMoveTimers();
+    dispatch({ type: "move", dx });
+    holdDelayRef.current = window.setTimeout(() => {
+      holdDelayRef.current = null;
+      holdRepeatRef.current = window.setInterval(() => dispatch({ type: "move", dx }), 85);
+    }, 220);
+  }, [clearHeldMoveTimers, dispatch]);
+
+  function endHeldMove() {
+    clearHeldMoveTimers();
+  }
+
+  function clickMoveControl(event: ReactMouseEvent<HTMLButtonElement>, action: () => void) {
+    if (event.detail > 0 && pointerMoveRepeatedRef.current) {
+      pointerMoveRepeatedRef.current = false;
+      return;
+    }
+    action();
+  }
+
+  function cancelHeldMove() {
+    endHeldMove();
+    pointerMoveRepeatedRef.current = false;
+  }
+
+  useEffect(() => () => {
+    if (holdDelayRef.current !== null) window.clearTimeout(holdDelayRef.current);
+    if (holdRepeatRef.current !== null) window.clearInterval(holdRepeatRef.current);
+  }, []);
+
   useEffect(() => {
     if (game.phase !== "playing") return;
+    if (game.groundedTicks > 0) {
+      const timer = window.setTimeout(() => dispatch({ type: "tick", refill: createStackBag() }), STACK_LOCK_DELAY_MS);
+      return () => window.clearTimeout(timer);
+    }
     const timer = window.setInterval(() => dispatch({ type: "tick", refill: createStackBag() }), getStackDropInterval(game.lines));
     return () => window.clearInterval(timer);
-  }, [game.phase, game.lines]);
+  }, [game.phase, game.lines, game.groundedTicks, game.active?.x, game.active?.y, game.active?.rotation, game.board]);
 
   useEffect(() => {
     try {
@@ -84,41 +147,61 @@ export default function StackGame() {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       const target = event.target;
-      if (target instanceof HTMLElement && target.closest("button, input, textarea, select, [contenteditable='true']")) return;
+      if (target instanceof HTMLElement && target.closest("input, textarea, select, [contenteditable='true']")) return;
+      if (target instanceof HTMLElement && target.closest("button") && (event.key === "Enter" || event.code === "Space")) return;
 
+      const key = event.key.toLowerCase();
       if ((event.key === "Enter" || event.key === " ") && (game.phase === "ready" || game.phase === "over")) {
         event.preventDefault();
         startGame();
         return;
       }
-      if (event.key === "Escape" || event.key.toLowerCase() === "p") {
+      if (event.key === "Escape" || key === "p") {
         if (game.phase === "playing") dispatch({ type: "pause" });
         else if (game.phase === "paused") dispatch({ type: "resume" });
         return;
       }
       if (game.phase !== "playing") return;
 
-      if (event.key === "ArrowLeft" || event.key.toLowerCase() === "a") {
+      if (event.key === "ArrowLeft" || key === "a") {
         event.preventDefault();
-        dispatch({ type: "move", dx: -1 });
-      } else if (event.key === "ArrowRight" || event.key.toLowerCase() === "d") {
+        if (!event.repeat) beginKeyboardMove(-1);
+      } else if (event.key === "ArrowRight" || key === "d") {
         event.preventDefault();
-        dispatch({ type: "move", dx: 1 });
-      } else if (event.key === "ArrowDown" || event.key.toLowerCase() === "s") {
+        if (!event.repeat) beginKeyboardMove(1);
+      } else if (event.key === "ArrowDown" || key === "s") {
         event.preventDefault();
         dispatch({ type: "soft-drop", refill: createStackBag() });
-      } else if (event.key === "ArrowUp" || event.key.toLowerCase() === "w" || event.key.toLowerCase() === "x") {
+      } else if (key === "z") {
         event.preventDefault();
-        dispatch({ type: "rotate" });
-      } else if (event.code === "Space" && !event.repeat) {
+        dispatch({ type: "rotate", direction: -1 });
+      } else if (event.key === "ArrowUp" || key === "w" || key === "x") {
         event.preventDefault();
-        dispatch({ type: "hard-drop", refill: createStackBag() });
+        dispatch({ type: "rotate", direction: 1 });
+      } else if ((key === "c" || event.key === "Shift") && !event.repeat) {
+        event.preventDefault();
+        dispatch({ type: "hold", refill: createStackBag() });
+      } else if (event.code === "Space") {
+        event.preventDefault();
+        if (!event.repeat) dispatch({ type: "hard-drop", refill: createStackBag() });
       }
     };
+    const onKeyUp = (event: KeyboardEvent) => {
+      const key = event.key.toLowerCase();
+      if (event.key === "ArrowLeft" || event.key === "ArrowRight" || key === "a" || key === "d") clearHeldMoveTimers();
+    };
+    const onWindowBlur = () => clearHeldMoveTimers();
 
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [game.phase, startGame]);
+    window.addEventListener("keyup", onKeyUp);
+    window.addEventListener("blur", onWindowBlur);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
+      window.removeEventListener("blur", onWindowBlur);
+      clearHeldMoveTimers();
+    };
+  }, [beginKeyboardMove, clearHeldMoveTimers, game.phase, startGame]);
 
   useEffect(() => {
     const pauseWhenHidden = () => {
@@ -141,16 +224,17 @@ export default function StackGame() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-fuchsia-800 dark:text-fuchsia-200"><Sparkles size={15} aria-hidden="true" /> {de ? "Einzelspiel" : "Solo mode"}</p>
         <div className="flex items-center gap-2">
+          <button type="button" onClick={holdPiece} disabled={game.phase !== "playing" || !game.canHold} aria-label={de ? "Stein halten und tauschen" : "Hold and swap piece"} title={de ? "Stein halten (C)" : "Hold piece (C)"} className="grid size-9 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-fuchsia-300 hover:text-fuchsia-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-fuchsia-300 dark:hover:text-fuchsia-200"><Package size={16} aria-hidden="true" /></button>
           <button type="button" onClick={() => dispatch({ type: game.phase === "paused" ? "resume" : "pause" })} disabled={game.phase !== "playing" && game.phase !== "paused"} aria-label={game.phase === "paused" ? (de ? "Fortsetzen" : "Resume") : (de ? "Pausieren" : "Pause")} className="grid size-9 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-fuchsia-300 hover:text-fuchsia-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-fuchsia-300 dark:hover:text-fuchsia-200"><span className="sr-only">{game.phase === "paused" ? (de ? "Fortsetzen" : "Resume") : (de ? "Pausieren" : "Pause")}</span>{game.phase === "paused" ? <Play size={16} aria-hidden="true" /> : <Pause size={16} aria-hidden="true" />}</button>
           <button type="button" onClick={startGame} aria-label={de ? "Neues Spiel starten" : "Start a new game"} className="grid size-9 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-fuchsia-300 hover:text-fuchsia-700 dark:border-white/10 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-fuchsia-300 dark:hover:text-fuchsia-200"><RotateCcw size={16} aria-hidden="true" /></button>
         </div>
       </div>
       <p className="sr-only" aria-live="polite">{status}</p>
 
-      <div className="mt-3 grid gap-3 lg:mt-4 lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-4">
+      <div className="mt-3 grid grid-cols-[minmax(0,1fr)_9rem] items-start gap-2.5 sm:mt-4 sm:grid-cols-[minmax(0,1fr)_12rem] sm:gap-4 lg:grid-cols-[minmax(0,1fr)_15rem]">
         <div className="min-w-0">
           <div className="rounded-[1.6rem] border border-fuchsia-100 bg-[#fff9fc] p-2 shadow-inner shadow-fuchsia-950/[0.035] dark:border-white/10 dark:bg-[#0d1224] dark:shadow-black/20 sm:p-3">
-            <div className="relative mx-auto w-full max-w-[15rem] sm:max-w-[18rem]">
+            <div className="relative mx-auto w-full max-w-[18rem]" style={{ width: "min(100%, 18rem, max(7rem, calc((100svh - 16rem) / 2)))" }}>
               <div role="img" aria-label={de ? `Spielfeld mit 10 Spalten, 20 Reihen. Punktzahl ${game.score}.` : `10-column, 20-row board. Score ${game.score}.`} className="grid aspect-[1/2] grid-cols-10 grid-rows-20 gap-[3px] overflow-hidden rounded-[1.15rem] border border-violet-200 bg-[#f6f2fb] p-2 dark:border-violet-300/20 dark:bg-[#090e1c]">
                 {Array.from({ length: STACK_BOARD_WIDTH * STACK_BOARD_HEIGHT }, (_, index) => {
                   const x = index % STACK_BOARD_WIDTH;
@@ -174,18 +258,23 @@ export default function StackGame() {
             </div>
           </div>
 
-          <div role="group" aria-label={de ? "Touch-Steuerung" : "Touch controls"} className="mx-auto mt-3 grid w-full max-w-[15rem] grid-cols-5 gap-2 sm:max-w-[18rem]">
-            <button type="button" onClick={() => move(-1)} disabled={game.phase !== "playing"} aria-label={de ? "Nach links bewegen" : "Move left"} className="grid h-12 place-items-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-fuchsia-300 hover:text-fuchsia-700 active:translate-y-0 disabled:opacity-40 dark:border-white/10 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-fuchsia-300"><ArrowLeft size={19} aria-hidden="true" /></button>
-            <button type="button" onClick={softDrop} disabled={game.phase !== "playing"} aria-label={de ? "Schneller nach unten" : "Soft drop"} className="grid h-12 place-items-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-fuchsia-300 hover:text-fuchsia-700 active:translate-y-0 disabled:opacity-40 dark:border-white/10 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-fuchsia-300"><ArrowDown size={19} aria-hidden="true" /></button>
-            <button type="button" onClick={() => move(1)} disabled={game.phase !== "playing"} aria-label={de ? "Nach rechts bewegen" : "Move right"} className="grid h-12 place-items-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-fuchsia-300 hover:text-fuchsia-700 active:translate-y-0 disabled:opacity-40 dark:border-white/10 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-fuchsia-300"><ArrowRight size={19} aria-hidden="true" /></button>
-            <button type="button" onClick={rotate} disabled={game.phase !== "playing"} aria-label={de ? "Stein drehen" : "Rotate piece"} className="grid h-12 place-items-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-fuchsia-300 hover:text-fuchsia-700 active:translate-y-0 disabled:opacity-40 dark:border-white/10 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-fuchsia-300"><RotateCw size={19} aria-hidden="true" /></button>
+          <div role="group" aria-label={de ? "Touch-Steuerung" : "Touch controls"} className="mx-auto mt-3 grid w-full max-w-[15rem] grid-cols-3 gap-2 sm:max-w-[18rem]">
+            <button type="button" onPointerDown={(event) => beginHeldMove(event, () => move(-1))} onPointerUp={endHeldMove} onPointerCancel={cancelHeldMove} onClick={(event) => clickMoveControl(event, () => move(-1))} disabled={game.phase !== "playing"} aria-label={de ? "Nach links bewegen, halten für Wiederholung" : "Move left, hold to repeat"} title={de ? "Gedrückt halten für wiederholte Bewegung" : "Hold to repeat movement"} className="grid h-12 touch-none select-none place-items-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-fuchsia-300 hover:text-fuchsia-700 active:translate-y-0 disabled:opacity-40 dark:border-white/10 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-fuchsia-300"><ArrowLeft size={19} aria-hidden="true" /></button>
+            <button type="button" onPointerDown={(event) => beginHeldMove(event, softDrop)} onPointerUp={endHeldMove} onPointerCancel={cancelHeldMove} onClick={(event) => clickMoveControl(event, softDrop)} disabled={game.phase !== "playing"} aria-label={de ? "Schneller nach unten, halten für Wiederholung" : "Soft drop, hold to repeat"} title={de ? "Gedrückt halten für schnelleres Fallen" : "Hold to drop faster"} className="grid h-12 touch-none select-none place-items-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-fuchsia-300 hover:text-fuchsia-700 active:translate-y-0 disabled:opacity-40 dark:border-white/10 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-fuchsia-300"><ArrowDown size={19} aria-hidden="true" /></button>
+            <button type="button" onPointerDown={(event) => beginHeldMove(event, () => move(1))} onPointerUp={endHeldMove} onPointerCancel={cancelHeldMove} onClick={(event) => clickMoveControl(event, () => move(1))} disabled={game.phase !== "playing"} aria-label={de ? "Nach rechts bewegen, halten für Wiederholung" : "Move right, hold to repeat"} title={de ? "Gedrückt halten für wiederholte Bewegung" : "Hold to repeat movement"} className="grid h-12 touch-none select-none place-items-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-fuchsia-300 hover:text-fuchsia-700 active:translate-y-0 disabled:opacity-40 dark:border-white/10 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-fuchsia-300"><ArrowRight size={19} aria-hidden="true" /></button>
+            <button type="button" onClick={() => rotate(-1)} disabled={game.phase !== "playing"} aria-label={de ? "Stein nach links drehen" : "Rotate piece counter-clockwise"} title={de ? "Nach links drehen (Z)" : "Rotate left (Z)"} className="grid h-12 place-items-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-fuchsia-300 hover:text-fuchsia-700 active:translate-y-0 disabled:opacity-40 dark:border-white/10 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-fuchsia-300"><RotateCcw size={19} aria-hidden="true" /></button>
+            <button type="button" onClick={() => rotate(1)} disabled={game.phase !== "playing"} aria-label={de ? "Stein nach rechts drehen" : "Rotate piece clockwise"} title={de ? "Nach rechts drehen (↑)" : "Rotate right (↑)"} className="grid h-12 place-items-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-fuchsia-300 hover:text-fuchsia-700 active:translate-y-0 disabled:opacity-40 dark:border-white/10 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-fuchsia-300"><RotateCw size={19} aria-hidden="true" /></button>
             <button type="button" onClick={hardDrop} disabled={game.phase !== "playing"} aria-label={de ? "Stein direkt ablegen" : "Hard drop"} className="grid h-12 place-items-center rounded-xl bg-linear-to-br from-fuchsia-500 to-violet-600 text-white shadow-md shadow-fuchsia-950/15 transition hover:-translate-y-0.5 hover:brightness-110 active:translate-y-0 disabled:opacity-40"><span className="text-[10px] font-black leading-none">DROP</span></button>
           </div>
-          <p className="mt-2 text-center text-[11px] font-semibold text-slate-500 dark:text-slate-400">{de ? "Tastatur: ← → bewegen · ↑ drehen · ↓ schneller · Leertaste ablegen" : "Keyboard: ← → move · ↑ rotate · ↓ soft drop · Space hard drop"}</p>
+          <p className="mt-2 text-center text-[11px] font-semibold text-slate-500 dark:text-slate-400">{de ? "Tastatur: ← → bewegen · Z/↑ drehen · C halten · ↓ schneller · Leertaste ablegen" : "Keyboard: ← → move · Z/↑ rotate · C hold · ↓ soft drop · Space hard drop"}</p>
         </div>
 
-        <aside className="grid grid-cols-2 gap-2.5 lg:grid-cols-1 lg:content-start" aria-label={de ? "Spielstand" : "Game stats"}>
-          <div className="col-span-2 flex items-center justify-between rounded-2xl border border-fuchsia-100 bg-white/80 p-3 dark:border-white/10 dark:bg-white/[0.035] lg:col-span-1">
+        <aside className="grid grid-cols-1 content-start gap-2" aria-label={de ? "Spielstand" : "Game stats"}>
+          <div className="col-span-1 flex items-center justify-between rounded-2xl border border-fuchsia-100 bg-white/80 p-2.5 dark:border-white/10 dark:bg-white/[0.035] sm:p-3">
+            <div><p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">{de ? "Halten" : "Hold"}</p><p className="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">{game.hold ?? (de ? "Leer" : "Empty")}</p></div>
+            <PiecePreview type={game.hold} />
+          </div>
+          <div className="col-span-1 flex items-center justify-between rounded-2xl border border-fuchsia-100 bg-white/80 p-2.5 dark:border-white/10 dark:bg-white/[0.035] sm:p-3">
             <div><p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">{de ? "Als Nächstes" : "Next up"}</p><p className="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">{de ? "VIBE-Stein" : "VIBE piece"}</p></div>
             <PiecePreview type={game.next} />
           </div>
@@ -194,11 +283,11 @@ export default function StackGame() {
             { label: de ? "Reihen" : "Lines", value: game.lines },
             { label: de ? "Level" : "Level", value: level },
             { label: de ? "Bestwert · Gerät" : "Best · device", value: game.bestScore },
-          ].map((stat) => <div key={stat.label} className="rounded-2xl border border-fuchsia-100 bg-white/80 p-3 dark:border-white/10 dark:bg-white/[0.035]">
-            <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">{stat.label}</p>
-            <p className="mt-1 text-xl font-black tabular-nums tracking-tight text-slate-950 dark:text-white">{stat.value.toLocaleString(de ? "de-DE" : "en-US")}</p>
+          ].map((stat) => <div key={stat.label} className="rounded-2xl border border-fuchsia-100 bg-white/80 p-2.5 dark:border-white/10 dark:bg-white/[0.035] sm:p-3">
+            <p className="text-[9px] font-black uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400 sm:text-[10px] sm:tracking-[0.12em]">{stat.label}</p>
+            <p className="mt-1 text-lg font-black tabular-nums tracking-tight text-slate-950 dark:text-white sm:text-xl">{stat.value.toLocaleString(de ? "de-DE" : "en-US")}</p>
           </div>)}
-          <div className="col-span-2 rounded-2xl border border-fuchsia-100 bg-fuchsia-50/80 p-3 text-xs leading-5 text-slate-600 dark:border-fuchsia-300/10 dark:bg-fuchsia-300/[0.045] dark:text-slate-300 lg:col-span-1">
+          <div className="col-span-1 rounded-2xl border border-fuchsia-100 bg-fuchsia-50/80 p-2.5 text-[11px] leading-4 text-slate-600 dark:border-fuchsia-300/10 dark:bg-fuchsia-300/[0.045] dark:text-slate-300 sm:p-3 sm:text-xs sm:leading-5">
             <p className="font-black text-fuchsia-900 dark:text-fuchsia-100">{de ? "Dein lokaler Lauf" : "Your local run"}</p>
             <p className="mt-1">{de ? "Spielstand und persönlicher Bestwert bleiben auf diesem Gerät. Es gibt keine Online-Rangliste oder Synchronisierung." : "Your run and personal best stay on this device. There is no online leaderboard or syncing."}</p>
           </div>

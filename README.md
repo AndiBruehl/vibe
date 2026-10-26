@@ -1,6 +1,6 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Local web version: **0.5.2** (2026-10-25) 🛡️ — Added VIBE Reflex and a redesigned Games hub with dedicated game pages. The Reflex help orb now shares the Quick Settings entrance and exit animation, with a hover-aware idle-close fallback. See [release notes](docs/releases/0.5.2.md). Android and Windows remain local 0.5.1 debug candidates; the published native manifest remains on 0.5.0.6.
+Web version: **0.5.2** (2026-10-26) 🛡️ — Added VIBE Reflex and VIBE Stack to the redesigned Games hub, with dedicated game pages. Stack has standard keyboard and touch controls, VIBE-logo pieces, hold/next previews, line clears, levels, and a local best score. Reflex help shares the Quick Settings entrance and exit animation, with a hover-aware idle-close fallback. See [release notes](docs/releases/0.5.2.md). Android and Windows remain local 0.5.1 debug candidates; the published native manifest remains on 0.5.0.6.
 
 ## Getting Started
 

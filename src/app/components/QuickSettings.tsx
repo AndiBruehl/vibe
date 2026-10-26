@@ -371,6 +371,9 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
 
   const de = language === "de";
   const isReflexGame = pathname === "/games/reflex";
+  const isStackGame = pathname === "/games/stack";
+  const hasGameHelp = isReflexGame || isStackGame;
+  const gameHelpId = isStackGame ? "vibe-stack-help" : "vibe-reflex-help";
   const themeOptions: { value: ThemePreference; label: string; icon: typeof Sun }[] = [
     { value: "light", label: de ? "Hell" : "Light", icon: Sun },
     { value: "dark", label: de ? "Dunkel" : "Dark", icon: Moon },
@@ -424,7 +427,7 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
 
   return (
     <div ref={panel} onPointerEnter={pausePanelClose} onPointerLeave={resumePanelClose} onFocusCapture={pausePanelClose} onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) resumePanelClose(); }} className={`fixed ${position} z-50 flex items-start gap-2 transition-[right,top] duration-200`} style={dynamicPosition} data-vibe-quick-settings>
-      {isReflexGame && <div ref={gameHelpPanel} onPointerEnter={pauseGameHelpClose} onPointerLeave={resumeGameHelpClose} onFocusCapture={pauseGameHelpClose} onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) resumeGameHelpClose(); }} className="relative">
+      {hasGameHelp && <div ref={gameHelpPanel} onPointerEnter={pauseGameHelpClose} onPointerLeave={resumeGameHelpClose} onFocusCapture={pauseGameHelpClose} onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) resumeGameHelpClose(); }} className="relative">
         <button type="button" onClick={() => {
           if (gameHelpOpenRef.current) {
             if (gameHelpClosingRef.current) {
@@ -443,20 +446,29 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
           setGameHelpOpen(true);
           setGameHelpClosing(false);
           scheduleGameHelpClose();
-        }} aria-expanded={gameHelpOpen} aria-controls="vibe-reflex-help" aria-label={de ? "Spielanleitung" : "Game instructions"}
+        }} aria-expanded={gameHelpOpen} aria-controls={gameHelpId} aria-label={de ? "Spielanleitung" : "Game instructions"}
           className="grid size-10 place-items-center rounded-full border border-slate-300/80 bg-white/90 text-slate-600 shadow-lg shadow-slate-900/10 backdrop-blur transition hover:-translate-y-0.5 hover:border-orange-300 hover:text-orange-500 dark:border-slate-600 dark:bg-slate-800/90 dark:text-slate-200 dark:shadow-black/30 dark:hover:border-orange-400 dark:hover:text-orange-300">
           <CircleHelp size={18} aria-hidden="true" />
         </button>
 
-        {gameHelpOpen && <section id="vibe-reflex-help" role="dialog" aria-label={de ? "So spielst du VIBE Reflex" : "How to play VIBE Reflex"} className={`vibe-quick-settings-panel ${gameHelpClosing ? "vibe-quick-settings-panel-exit pointer-events-none" : ""} absolute right-0 top-12 z-[60] w-72 max-w-[calc(100vw-1.5rem)] origin-top-right rounded-2xl border border-slate-300/80 bg-white/95 p-4 shadow-2xl shadow-slate-900/20 backdrop-blur dark:border-slate-600 dark:bg-slate-900/95 dark:shadow-black/40`}>
+        {gameHelpOpen && <section id={gameHelpId} role="dialog" aria-label={de ? `So spielst du ${isStackGame ? "VIBE Stack" : "VIBE Reflex"}` : `How to play ${isStackGame ? "VIBE Stack" : "VIBE Reflex"}`} className={`vibe-quick-settings-panel ${gameHelpClosing ? "vibe-quick-settings-panel-exit pointer-events-none" : ""} absolute right-0 top-12 z-[60] w-72 max-w-[calc(100vw-1.5rem)] origin-top-right rounded-2xl border border-slate-300/80 bg-white/95 p-4 shadow-2xl shadow-slate-900/20 backdrop-blur dark:border-slate-600 dark:bg-slate-900/95 dark:shadow-black/40`}>
           <div className="flex items-center justify-between gap-3">
             <p className="text-xs font-black uppercase tracking-[.14em] text-slate-700 dark:text-slate-200">{de ? "So spielst du" : "How to play"}</p>
             <button type="button" onClick={closeGameHelp} aria-label={de ? "Schließen" : "Close instructions"} className="grid size-7 place-items-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-orange-600 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-orange-300"><X size={15} /></button>
           </div>
           <ol className="mt-3 space-y-2.5 text-sm font-medium leading-5 text-slate-700 dark:text-slate-300">
-            <li className="flex gap-2"><span className="font-black text-orange-600 dark:text-orange-300">01</span><span>{de ? "Starte fünf Runden." : "Start a five-round run."}</span></li>
-            <li className="flex gap-2"><span className="font-black text-orange-600 dark:text-orange-300">02</span><span>{de ? "Warte auf das grüne Signal." : "Wait for the green signal."}</span></li>
-            <li className="flex gap-2"><span className="font-black text-orange-600 dark:text-orange-300">03</span><span>{de ? "Tippe oder drücke Leertaste so schnell du kannst." : "Tap or press Space as fast as you can."}</span></li>
+            {isStackGame ? <>
+              <li className="flex gap-2"><span className="font-black text-orange-600 dark:text-orange-300">01</span><span>{de ? "Fülle Reihen mit VIBE-Steinen; volle Reihen verschwinden. Alle 10 Reihen steigt das Level und die Steine fallen schneller." : "Fill rows with VIBE pieces; completed rows disappear. Every 10 lines raises the level and fall speed."}</span></li>
+              <li className="flex gap-2"><span className="font-black text-orange-600 dark:text-orange-300">02</span><span>{de ? "←/→ bewegen, ↓ beschleunigt den Fall, Leertaste oder DROP setzt sofort ab. Gedrückte Pfeile wiederholen die Bewegung." : "←/→ move, ↓ soft-drops, Space or DROP hard-drops. Hold the arrows to repeat movement."}</span></li>
+              <li className="flex gap-2"><span className="font-black text-orange-600 dark:text-orange-300">03</span><span>{de ? "↑ dreht im Uhrzeigersinn, Z gegen den Uhrzeigersinn. Wand- und Bodenkicks helfen beim Drehen an Hindernissen." : "↑ rotates clockwise, Z counter-clockwise. Wall and floor kicks help rotate beside obstacles."}</span></li>
+              <li className="flex gap-2"><span className="font-black text-orange-600 dark:text-orange-300">04</span><span>{de ? "Mit C oder dem Paket-Button hältst/tauschst du einen Stein – einmal, bis der aktuelle Stein abgelegt ist." : "Press C or the package button to hold/swap a piece once until the current piece locks."}</span></li>
+              <li className="flex gap-2"><span className="font-black text-orange-600 dark:text-orange-300">05</span><span>{de ? "Unter einen Überhang kommst du, indem du seitlich daran vorbeifällst und erst darunter in die freie Lücke schiebst. Belegte Felder sind undurchdringlich." : "To tuck under an overhang, fall beside it first, then slide into the gap from below. Occupied cells cannot be crossed."}</span></li>
+              <li className="flex gap-2"><span className="font-black text-orange-600 dark:text-orange-300">06</span><span>{de ? "Soft-/Hard-Drop: 1/2 Punkte pro Feld. Reihen: 100/300/500/800, T-Spins: 400–1600; alles × Level. Back-to-Back gibt 50 % extra." : "Soft/hard drop: 1/2 points per cell. Lines: 100/300/500/800; T-Spins: 400–1600; all × level. Back-to-back adds 50%."}</span></li>
+            </> : <>
+              <li className="flex gap-2"><span className="font-black text-orange-600 dark:text-orange-300">01</span><span>{de ? "Starte fünf Runden." : "Start a five-round run."}</span></li>
+              <li className="flex gap-2"><span className="font-black text-orange-600 dark:text-orange-300">02</span><span>{de ? "Warte auf das grüne Signal." : "Wait for the green signal."}</span></li>
+              <li className="flex gap-2"><span className="font-black text-orange-600 dark:text-orange-300">03</span><span>{de ? "Tippe oder drücke Leertaste so schnell du kannst." : "Tap or press Space as fast as you can."}</span></li>
+            </>}
           </ol>
         </section>}
       </div>}

@@ -1,5 +1,6 @@
 export const STACK_BOARD_WIDTH = 10;
 export const STACK_BOARD_HEIGHT = 20;
+export const STACK_LOCK_DELAY_MS = 480;
 
 export const STACK_PIECES = ["I", "O", "T", "S", "Z", "J", "L"] as const;
 export type StackPieceType = (typeof STACK_PIECES)[number];
@@ -19,15 +20,21 @@ export type StackGameState = {
   active: StackPiece | null;
   next: StackPieceType;
   queue: StackPieceType[];
+  hold: StackPieceType | null;
+  canHold: boolean;
   lines: number;
   score: number;
   bestScore: number;
+  groundedTicks: number;
+  lastActionWasRotation: boolean;
+  backToBack: boolean;
 };
 
 type StackAction =
   | { type: "start"; bag: StackPieceType[] }
   | { type: "move"; dx: number }
-  | { type: "rotate" }
+  | { type: "rotate"; direction?: 1 | -1 }
+  | { type: "hold"; refill: StackPieceType[] }
   | { type: "tick"; refill: StackPieceType[] }
   | { type: "soft-drop"; refill: StackPieceType[] }
   | { type: "hard-drop"; refill: StackPieceType[] }
@@ -43,6 +50,31 @@ const SHAPES: Record<StackPieceType, readonly (readonly [number, number])[]> = {
   Z: [[0, 0], [1, 0], [1, 1], [2, 1]],
   J: [[0, 0], [0, 1], [1, 1], [2, 1]],
   L: [[2, 0], [0, 1], [1, 1], [2, 1]],
+};
+
+type KickOffset = readonly [number, number];
+
+// SRS tables converted to board coordinates (positive Y points down).
+const JLSTZ_KICKS: Record<string, readonly KickOffset[]> = {
+  "0>1": [[0, 0], [-1, 0], [-1, -1], [0, 2], [-1, 2]],
+  "1>2": [[0, 0], [1, 0], [1, 1], [0, -2], [1, -2]],
+  "2>3": [[0, 0], [1, 0], [1, -1], [0, 2], [1, 2]],
+  "3>0": [[0, 0], [-1, 0], [-1, 1], [0, -2], [-1, -2]],
+  "0>3": [[0, 0], [1, 0], [1, -1], [0, 2], [1, 2]],
+  "3>2": [[0, 0], [-1, 0], [-1, 1], [0, -2], [-1, -2]],
+  "2>1": [[0, 0], [-1, 0], [-1, -1], [0, 2], [-1, 2]],
+  "1>0": [[0, 0], [1, 0], [1, 1], [0, -2], [1, -2]],
+};
+
+const I_KICKS: Record<string, readonly KickOffset[]> = {
+  "0>1": [[0, 0], [-2, 0], [1, 0], [-2, 1], [1, -2]],
+  "1>2": [[0, 0], [-1, 0], [2, 0], [-1, -2], [2, 1]],
+  "2>3": [[0, 0], [2, 0], [-1, 0], [2, -1], [-1, 2]],
+  "3>0": [[0, 0], [1, 0], [-2, 0], [1, 2], [-2, -1]],
+  "0>3": [[0, 0], [-1, 0], [2, 0], [-1, -2], [2, 1]],
+  "3>2": [[0, 0], [-2, 0], [1, 0], [-2, 1], [1, -2]],
+  "2>1": [[0, 0], [1, 0], [-2, 0], [1, 2], [-2, -1]],
+  "1>0": [[0, 0], [2, 0], [-1, 0], [2, -1], [-1, 2]],
 };
 
 export const STACK_PIECE_COLORS: Record<StackPieceType, string> = {
@@ -80,14 +112,29 @@ export function canPlaceStackPiece(board: StackBoard, piece: StackPiece): boolea
   );
 }
 
-export function rotateStackPiece(board: StackBoard, piece: StackPiece): StackPiece {
+export function rotateStackPiece(board: StackBoard, piece: StackPiece, direction: 1 | -1 = 1): StackPiece {
   if (piece.type === "O") return piece;
-  const rotated = { ...piece, rotation: (piece.rotation + 1) % 4 };
-  for (const kick of [0, -1, 1, -2, 2]) {
-    const candidate = { ...rotated, x: rotated.x + kick };
+  const from = piece.rotation;
+  const to = (from + direction + 4) % 4;
+  const kicks = (piece.type === "I" ? I_KICKS : JLSTZ_KICKS)[`${from}>${to}`];
+  for (const [dx, dy] of kicks) {
+    const candidate = { ...piece, rotation: to, x: piece.x + dx, y: piece.y + dy };
     if (canPlaceStackPiece(board, candidate)) return candidate;
   }
   return piece;
+}
+
+export function isStackTSpin(board: StackBoard, piece: StackPiece, lastActionWasRotation: boolean): boolean {
+  if (piece.type !== "T" || !lastActionWasRotation) return false;
+  const pivotX = piece.x + 1;
+  const pivotY = piece.y + 1;
+  const corners: KickOffset[] = [[-1, -1], [1, -1], [-1, 1], [1, 1]];
+  const occupiedCorners = corners.filter(([dx, dy]) => {
+    const x = pivotX + dx;
+    const y = pivotY + dy;
+    return x < 0 || x >= STACK_BOARD_WIDTH || y < 0 || y >= STACK_BOARD_HEIGHT || board[y]?.[x] !== null;
+  });
+  return occupiedCorners.length >= 3;
 }
 
 export function getStackLandingY(board: StackBoard, piece: StackPiece): number {
@@ -129,25 +176,46 @@ export function createInitialStackGame(): StackGameState {
     active: null,
     next: "T",
     queue: [],
+    hold: null,
+    canHold: true,
     lines: 0,
     score: 0,
     bestScore: 0,
+    groundedTicks: 0,
+    lastActionWasRotation: false,
+    backToBack: false,
+  };
+}
+
+function takeNextPiece(state: StackGameState, refill: StackPieceType[]) {
+  const safeFallback = STACK_PIECES.filter((piece) => piece !== state.next);
+  const upcoming = state.queue.length > 0
+    ? [...state.queue]
+    : refill.length > 0
+      ? [...refill]
+      : safeFallback;
+  return {
+    active: createStackPiece(state.next),
+    next: upcoming.shift() ?? state.next,
+    queue: upcoming,
   };
 }
 
 function settleStackPiece(state: StackGameState, piece: StackPiece, refill: StackPieceType[], dropBonus = 0): StackGameState {
   const locked = lockStackPiece(state.board, piece);
-  if (locked.toppedOut) return { ...state, phase: "over", active: null };
+  if (locked.toppedOut) return { ...state, phase: "over", active: null, groundedTicks: 0, lastActionWasRotation: false };
 
+  const spun = isStackTSpin(state.board, piece, state.lastActionWasRotation);
   const linePoints = [0, 100, 300, 500, 800];
+  const spinPoints = [400, 800, 1200, 1600];
   const levelMultiplier = Math.floor(state.lines / 10) + 1;
-  const score = state.score + dropBonus + (linePoints[locked.cleared] ?? 800 + (locked.cleared - 4) * 300) * levelMultiplier;
+  const basePoints = spun ? (spinPoints[locked.cleared] ?? 1600) : (linePoints[locked.cleared] ?? 800 + (locked.cleared - 4) * 300);
+  const difficultClear = locked.cleared === 4 || (spun && locked.cleared > 0);
+  const backToBackBonus = state.backToBack && difficultClear ? Math.floor(basePoints * 0.5) : 0;
+  const score = state.score + (dropBonus + basePoints + backToBackBonus) * levelMultiplier;
   const lines = state.lines + locked.cleared;
-  const upcoming = [...state.queue];
-  if (upcoming.length === 0) upcoming.push(...refill);
-  const active = createStackPiece(state.next);
-  const next = upcoming[0] ?? state.next;
-  const queue = upcoming.length > 0 ? upcoming.slice(1) : [];
+  const upcoming = takeNextPiece(state, refill);
+  const active = upcoming.active;
   const toppedOut = !canPlaceStackPiece(locked.board, active);
 
   return {
@@ -155,11 +223,15 @@ function settleStackPiece(state: StackGameState, piece: StackPiece, refill: Stac
     board: locked.board,
     phase: toppedOut ? "over" : "playing",
     active: toppedOut ? null : active,
-    next,
-    queue,
+    next: upcoming.next,
+    queue: upcoming.queue,
+    canHold: true,
     lines,
     score,
     bestScore: Math.max(state.bestScore, score),
+    groundedTicks: 0,
+    lastActionWasRotation: false,
+    backToBack: difficultClear ? true : locked.cleared > 0 ? false : state.backToBack,
   };
 }
 
@@ -176,24 +248,67 @@ export function stackGameReducer(state: StackGameState, action: StackAction): St
       active,
       next,
       queue,
+      hold: null,
+      canHold: true,
       lines: 0,
       score: 0,
+      groundedTicks: 0,
+      lastActionWasRotation: false,
+      backToBack: false,
     };
   }
   if (action.type === "pause") return state.phase === "playing" ? { ...state, phase: "paused" } : state;
   if (action.type === "resume") return state.phase === "paused" ? { ...state, phase: "playing" } : state;
   if (state.phase !== "playing" || !state.active) return state;
 
+  if (action.type === "hold") {
+    if (!state.canHold) return state;
+    let incoming: StackPiece;
+    let next = state.next;
+    let queue = state.queue;
+    if (state.hold) {
+      incoming = createStackPiece(state.hold);
+    } else {
+      const drawn = takeNextPiece(state, action.refill);
+      incoming = drawn.active;
+      next = drawn.next;
+      queue = drawn.queue;
+    }
+    const toppedOut = !canPlaceStackPiece(state.board, incoming);
+    return {
+      ...state,
+      active: toppedOut ? null : incoming,
+      phase: toppedOut ? "over" : "playing",
+      next,
+      queue,
+      hold: state.active.type,
+      canHold: false,
+      groundedTicks: 0,
+      lastActionWasRotation: false,
+    };
+  }
+
   if (action.type === "move") {
     const candidate = { ...state.active, x: state.active.x + action.dx };
-    return canPlaceStackPiece(state.board, candidate) ? { ...state, active: candidate } : state;
+    if (!canPlaceStackPiece(state.board, candidate)) return state;
+    const grounded = !canPlaceStackPiece(state.board, { ...candidate, y: candidate.y + 1 });
+    return { ...state, active: candidate, groundedTicks: grounded ? 1 : 0, lastActionWasRotation: false };
   }
-  if (action.type === "rotate") return { ...state, active: rotateStackPiece(state.board, state.active) };
+  if (action.type === "rotate") {
+    const candidate = rotateStackPiece(state.board, state.active, action.direction ?? 1);
+    if (candidate === state.active) return state;
+    const grounded = !canPlaceStackPiece(state.board, { ...candidate, y: candidate.y + 1 });
+    return { ...state, active: candidate, groundedTicks: grounded ? 1 : 0, lastActionWasRotation: true };
+  }
   if (action.type === "tick" || action.type === "soft-drop") {
     const candidate = { ...state.active, y: state.active.y + 1 };
     if (canPlaceStackPiece(state.board, candidate)) {
-      return { ...state, active: candidate, score: state.score + (action.type === "soft-drop" ? 1 : 0) };
+      const grounded = !canPlaceStackPiece(state.board, { ...candidate, y: candidate.y + 1 });
+      const levelMultiplier = Math.floor(state.lines / 10) + 1;
+      return { ...state, active: candidate, groundedTicks: grounded ? 1 : 0, score: state.score + (action.type === "soft-drop" ? levelMultiplier : 0), lastActionWasRotation: false };
     }
+    if (state.groundedTicks === 0) return { ...state, groundedTicks: 1 };
+    if (action.type === "soft-drop") return state;
     return settleStackPiece(state, state.active, action.refill);
   }
   if (action.type === "hard-drop") {
