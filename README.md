@@ -1,6 +1,6 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Web version: **0.5.2** (2026-10-26) 🛡️ — Added VIBE Reflex, VIBE Stack, and VIBE Trail to the redesigned Games hub, with dedicated game pages. Stack and Trail have keyboard/touch controls and local best scores; Trail uses the VIBE logo as its collectible. Browser storage remains optional for both games. Reflex help shares the Quick Settings entrance and exit animation, with a hover-aware idle-close fallback. See [release notes](docs/releases/0.5.2.md). Android and Windows remain local 0.5.1 debug candidates; the published native manifest remains on 0.5.0.6.
+Web version: **0.5.3** (2026-10-26) 🛡️ — Added VIBE Trail as the third playable game in the redesigned Games hub. Guide the growing trail with keyboard or touch and collect the VIBE logo; the best score stays on the device, and gameplay survives unavailable browser storage. See [release notes](docs/releases/0.5.3.md). Android and Windows remain local 0.5.1 debug candidates; the published native manifest remains on 0.5.0.6.
 
 ## Getting Started
 
