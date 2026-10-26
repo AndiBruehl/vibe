@@ -73,14 +73,14 @@ function TrailArtwork() {
           const color = tile === "head"
             ? "bg-linear-to-br from-cyan-200 to-teal-400 text-slate-950 shadow-[0_0_15px_rgba(34,211,238,0.55)]"
             : tile === "body"
-              ? "bg-linear-to-br from-violet-400 to-indigo-500 shadow-[0_0_12px_rgba(129,140,248,0.28)]"
+              ? index % 2 === 0 ? "bg-linear-to-br from-violet-400 to-indigo-500 shadow-[0_0_12px_rgba(129,140,248,0.28)]" : "bg-linear-to-br from-fuchsia-400 to-violet-500 shadow-[0_0_12px_rgba(217,70,239,0.28)]"
               : tile === "logo"
               ? "z-10 border border-amber-200 bg-[#10121f] shadow-[0_0_18px_rgba(251,191,36,0.65)]"
                 : "bg-white/[0.035]";
 
           return (
             <span key={index} className={`${base} ${color}`}>
-              {tile === "head" && <span className="size-2 rounded-sm bg-cyan-50 shadow-[0_0_10px_rgba(103,232,249,0.8)]" />}
+              {tile === "head" && <Image src="/logo.svg" alt="" width={1536} height={1024} className="h-full w-full scale-[1.8] object-contain drop-shadow-[0_0_5px_rgba(255,255,255,0.75)]" />}
               {tile === "logo" && <Image src="/logo.svg" alt="" width={1536} height={1024} className="h-full w-full scale-[1.8] object-contain" />}
             </span>
           );
@@ -117,7 +117,7 @@ function StackArtwork() {
           <span className="text-sm font-black tabular-nums text-white/80">04</span>
         </div>
       </div>
-      <span className="absolute bottom-3 right-4 text-[10px] font-black tracking-[0.2em] text-fuchsia-100/70">VIBE STACK · SOLO</span>
+      <span className="absolute bottom-3 right-4 text-[10px] font-black tracking-[0.2em] text-fuchsia-100/70">VIBE STACK</span>
     </div>
   );
 }

@@ -26,9 +26,9 @@ const games: GameCardData[] = [
   {
     id: "trail",
     title: "VIBE Trail",
-    description: { en: "Follow your trail and collect the VIBE mark. Keep an eye on your path.", de: "Folge deiner Spur und sammle das VIBE-Zeichen. Behalte deinen Weg im Blick." },
-    badge: { en: "Coming soon", de: "Kommt bald" },
-    available: false,
+    description: { en: "Guide the VIBE logo around the board, collect more marks, and avoid your own trail.", de: "Führe das VIBE-Logo über das Spielfeld, sammle weitere Logos und weiche deiner eigenen Spur aus." },
+    badge: { en: "Play now", de: "Jetzt spielen" },
+    available: true,
     accent: "from-[#22d3ee] to-[#6655ff]",
   },
   {
@@ -64,7 +64,7 @@ function GameCard({ game }: { game: GameCardData }) {
             {game.available ? <Zap size={12} fill="currentColor" aria-hidden="true" /> : <Clock3 size={12} aria-hidden="true" />}
             <LocalizedText en={game.badge.en} de={game.badge.de} />
           </span>
-          {game.available && <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">5 <LocalizedText en="rounds" de="Runden" /></span>}
+          {game.id === "reflex" && <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">5 <LocalizedText en="rounds" de="Runden" /></span>}
         </div>
         <h2 className="mt-3 text-xl font-black tracking-tight text-slate-950 dark:text-white">{game.title}</h2>
         <p className="mt-2 flex-1 text-sm leading-6 text-slate-600 dark:text-slate-300"><LocalizedText en={game.description.en} de={game.description.de} /></p>
@@ -124,7 +124,7 @@ export default function GamesPage() {
             <p className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-[0.18em] text-[#c52c5c] dark:text-[#ff8c70]"><Sparkles size={14} aria-hidden="true" /> SELECT YOUR GAME</p>
             <h2 id="vibe-games-list" className="mt-1 text-2xl font-black tracking-tight text-slate-950 dark:text-white sm:text-3xl"><LocalizedText en="Choose your side quest" de="Wähl deine Nebenmission" /></h2>
           </div>
-          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400"><LocalizedText en="02 playable · 02 in the works" de="02 spielbar · 02 in Arbeit" /></p>
+          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400"><LocalizedText en="03 playable · 01 in the works" de="03 spielbar · 01 in Arbeit" /></p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {games.map((game) => <GameCard key={game.id} game={game} />)}
@@ -135,7 +135,7 @@ export default function GamesPage() {
         <div aria-hidden="true" className="pointer-events-none absolute -right-8 -top-16 size-48 rounded-full bg-[#ff4b8c]/10 blur-3xl" />
         <div className="relative max-w-xl">
           <p className="text-sm font-black text-slate-950 dark:text-white"><LocalizedText en="More little games are loading." de="Weitere kleine Spiele laden schon." /></p>
-          <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300"><LocalizedText en="The next games put the VIBE logo in motion: chase it, fly it, stack it." de="Die nächsten Spiele bringen das VIBE-Logo in Bewegung: sammeln, fliegen, stapeln." /></p>
+          <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300"><LocalizedText en="More little games are on the way: fly the VIBE logo, then chase new challenges." de="Weitere kleine Spiele sind unterwegs: Flieg mit dem VIBE-Logo und stell dich neuen Herausforderungen." /></p>
         </div>
         <span className="relative mt-3 inline-flex shrink-0 items-center gap-2 rounded-lg border border-[#f2c4d0] bg-[#fff5f3] px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#bd315d] dark:border-white/10 dark:bg-white/[0.06] dark:text-[#ffc198] sm:mt-0"><Clock3 size={14} aria-hidden="true" /><LocalizedText en="More soon" de="Mehr folgt" /></span>
       </section>

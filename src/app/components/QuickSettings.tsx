@@ -371,9 +371,11 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
 
   const de = language === "de";
   const isReflexGame = pathname === "/games/reflex";
+  const isTrailGame = pathname === "/games/trail";
   const isStackGame = pathname === "/games/stack";
-  const hasGameHelp = isReflexGame || isStackGame;
-  const gameHelpId = isStackGame ? "vibe-stack-help" : "vibe-reflex-help";
+  const hasGameHelp = isReflexGame || isTrailGame || isStackGame;
+  const gameHelpId = isStackGame ? "vibe-stack-help" : isTrailGame ? "vibe-trail-help" : "vibe-reflex-help";
+  const gameHelpName = isStackGame ? "VIBE Stack" : isTrailGame ? "VIBE Trail" : "VIBE Reflex";
   const themeOptions: { value: ThemePreference; label: string; icon: typeof Sun }[] = [
     { value: "light", label: de ? "Hell" : "Light", icon: Sun },
     { value: "dark", label: de ? "Dunkel" : "Dark", icon: Moon },
@@ -451,7 +453,7 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
           <CircleHelp size={18} aria-hidden="true" />
         </button>
 
-        {gameHelpOpen && <section id={gameHelpId} role="dialog" aria-label={de ? `So spielst du ${isStackGame ? "VIBE Stack" : "VIBE Reflex"}` : `How to play ${isStackGame ? "VIBE Stack" : "VIBE Reflex"}`} className={`vibe-quick-settings-panel ${gameHelpClosing ? "vibe-quick-settings-panel-exit pointer-events-none" : ""} absolute right-0 top-12 z-[60] w-72 max-w-[calc(100vw-1.5rem)] origin-top-right rounded-2xl border border-slate-300/80 bg-white/95 p-4 shadow-2xl shadow-slate-900/20 backdrop-blur dark:border-slate-600 dark:bg-slate-900/95 dark:shadow-black/40`}>
+        {gameHelpOpen && <section id={gameHelpId} role="dialog" aria-label={de ? `So spielst du ${gameHelpName}` : `How to play ${gameHelpName}`} className={`vibe-quick-settings-panel ${gameHelpClosing ? "vibe-quick-settings-panel-exit pointer-events-none" : ""} absolute right-0 top-12 z-[60] w-72 max-w-[calc(100vw-1.5rem)] origin-top-right rounded-2xl border border-slate-300/80 bg-white/95 p-4 shadow-2xl shadow-slate-900/20 backdrop-blur dark:border-slate-600 dark:bg-slate-900/95 dark:shadow-black/40`}>
           <div className="flex items-center justify-between gap-3">
             <p className="text-xs font-black uppercase tracking-[.14em] text-slate-700 dark:text-slate-200">{de ? "So spielst du" : "How to play"}</p>
             <button type="button" onClick={closeGameHelp} aria-label={de ? "Schließen" : "Close instructions"} className="grid size-7 place-items-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-orange-600 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-orange-300"><X size={15} /></button>
@@ -464,6 +466,11 @@ export default function QuickSettings({ initialLanguage, initialTheme, guest = f
               <li className="flex gap-2"><span className="font-black text-orange-600 dark:text-orange-300">04</span><span>{de ? "Mit C oder dem Paket-Button hältst/tauschst du einen Stein – einmal, bis der aktuelle Stein abgelegt ist." : "Press C or the package button to hold/swap a piece once until the current piece locks."}</span></li>
               <li className="flex gap-2"><span className="font-black text-orange-600 dark:text-orange-300">05</span><span>{de ? "Unter einen Überhang kommst du, indem du seitlich daran vorbeifällst und erst darunter in die freie Lücke schiebst. Belegte Felder sind undurchdringlich." : "To tuck under an overhang, fall beside it first, then slide into the gap from below. Occupied cells cannot be crossed."}</span></li>
               <li className="flex gap-2"><span className="font-black text-orange-600 dark:text-orange-300">06</span><span>{de ? "Soft-/Hard-Drop: 1/2 Punkte pro Feld. Reihen: 100/300/500/800, T-Spins: 400–1600; alles × Level. Back-to-Back gibt 50 % extra." : "Soft/hard drop: 1/2 points per cell. Lines: 100/300/500/800; T-Spins: 400–1600; all × level. Back-to-back adds 50%."}</span></li>
+            </> : isTrailGame ? <>
+              <li className="flex gap-2"><span className="font-black text-orange-600 dark:text-orange-300">01</span><span>{de ? "Sammle das leuchtende VIBE-Logo. Jeder Fund verlängert deine Spur und gibt 10 Punkte." : "Collect the glowing VIBE logo. Each one grows your trail and adds 10 points."}</span></li>
+              <li className="flex gap-2"><span className="font-black text-orange-600 dark:text-orange-300">02</span><span>{de ? "Lenke mit ←/→/↑/↓ oder WASD. Auf Touch verwendest du das Steuerkreuz." : "Turn with ←/→/↑/↓ or WASD. Use the direction pad on touch."}</span></li>
+              <li className="flex gap-2"><span className="font-black text-orange-600 dark:text-orange-300">03</span><span>{de ? "Weiche den Wänden und deiner eigenen Spur aus. Pro Schritt ist eine Wendung möglich; U-Turns sind gesperrt." : "Avoid the walls and your own trail. You can turn once per step; U-turns are blocked."}</span></li>
+              <li className="flex gap-2"><span className="font-black text-orange-600 dark:text-orange-300">04</span><span>{de ? "Das Tempo steigt mit deiner Punktzahl. Mit P oder Esc pausierst du; dein Bestwert bleibt lokal auf dem Gerät." : "Speed increases with your score. Press P or Esc to pause; your best stays on this device."}</span></li>
             </> : <>
               <li className="flex gap-2"><span className="font-black text-orange-600 dark:text-orange-300">01</span><span>{de ? "Starte fünf Runden." : "Start a five-round run."}</span></li>
               <li className="flex gap-2"><span className="font-black text-orange-600 dark:text-orange-300">02</span><span>{de ? "Warte auf das grüne Signal." : "Wait for the green signal."}</span></li>
