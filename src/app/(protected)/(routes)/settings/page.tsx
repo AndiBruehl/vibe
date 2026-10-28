@@ -6,6 +6,7 @@ import { prisma } from "@/db";
 import SettingsForm from "@/app/components/SettingsForm";
 import SettingsHeading from "@/app/components/SettingsHeading";
 import LocalizedText from "@/app/components/LocalizedText";
+import { isProtectedAdmin } from "@/admin";
 
 export default async function SettingsPage() {
   const session = await auth();
@@ -58,7 +59,7 @@ export default async function SettingsPage() {
           <SettingsHeading initialLanguage={profile.language === "de" ? "de" : "en"} />
 
           <div className="p-4 sm:p-5">
-            <SettingsForm profile={profile} />
+            <SettingsForm profile={profile} deleteBlockedReason={profile.isSystem ? "system" : isProtectedAdmin(profile.email.toLowerCase()) ? "protected" : undefined} />
           </div>
         </div>
       </section>

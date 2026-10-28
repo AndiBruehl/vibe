@@ -17,6 +17,7 @@ import { isCuratedProfileBadge, parseCustomProfileBadge } from "@/profile-badges
 import { syncProfileMilestones } from "@/profile-milestones";
 import { isProfileMilestone } from "@/profile-milestone-data";
 import { normalizeAvatarAccent, normalizeAvatarFrameDirection, normalizeProfileAccent, normalizeProfileHeaderBackgroundImage, normalizeProfileHeaderBackgroundMode, normalizeProfileHeaderLayout, normalizeProfileHeaderTextColor } from "@/profile-personalization";
+import { getSelfDeletionBlocker } from "@/account-deletion-policy";
 const MAX_STORY_SLIDES = 4;
 
 async function usersAreBlocked(profileIdA: string, profileIdB: string) {
@@ -2465,19 +2466,27 @@ export async function updateMilestoneVisibility(formData: FormData): Promise<voi
   revalidatePath("/milestones"); revalidatePath("/profile"); revalidatePath("/", "layout");
 }
 
-export async function deleteProfileAsSuperAdmin(formData: FormData): Promise<void> {
+async function performProfileDeletion(formData: FormData, mode: "admin" | "self"): Promise<void> {
   const session = await auth();
   const actorEmail = session?.user?.email;
-  if (!actorEmail || !isSuperAdmin(actorEmail)) throw new Error("Only protected administrators can delete accounts.");
+  const selfDeletion = mode === "self";
+  if (!actorEmail || (!selfDeletion && !isSuperAdmin(actorEmail))) throw new Error("Only the account owner or a protected administrator can delete accounts.");
+  if (selfDeletion && formData.get("confirmation") !== "DELETE") throw new Error("Account deletion was not confirmed.");
 
   const profileId = formData.get("profileId");
   const returnToValue = formData.get("returnTo");
   // Only the two deletion contexts are valid. Never follow a stale referrer.
-  const stayInAdmin = returnToValue === "/admin";
-  if (typeof profileId !== "string" || !profileId) throw new Error("Invalid profile.");
-  const target = await prisma.profile.findUnique({ where: { id: profileId }, select: { id: true, email: true } });
+  const stayInAdmin = !selfDeletion && returnToValue === "/admin";
+  if (!selfDeletion && (typeof profileId !== "string" || !profileId)) throw new Error("Invalid profile.");
+  const target = selfDeletion
+    ? await prisma.profile.findUnique({ where: { email: actorEmail }, select: { id: true, email: true, isSystem: true } })
+    : await prisma.profile.findUnique({ where: { id: profileId as string }, select: { id: true, email: true, isSystem: true } });
   if (!target) throw new Error("Profile not found.");
-  if (isProtectedAdmin(target.email)) throw new Error("Protected administrators cannot be deleted.");
+  if (selfDeletion) {
+    if (getSelfDeletionBlocker(actorEmail, formData.get("confirmation"), target, isProtectedAdmin)) throw new Error("Account deletion is not allowed.");
+  } else if (isProtectedAdmin(target.email.toLowerCase())) {
+    throw new Error("Protected administrators cannot be deleted.");
+  }
 
   const [posts, comments, stories, collections, conversations, sentMessages] = await Promise.all([
     prisma.post.findMany({ where: { authorEmail: target.email }, select: { id: true } }),
@@ -2581,7 +2590,7 @@ export async function deleteProfileAsSuperAdmin(formData: FormData): Promise<voi
     prisma.loginCredential.deleteMany({ where: { email: { equals: target.email, mode: "insensitive" } } }),
     prisma.loginProof.deleteMany({ where: { email: { equals: target.email, mode: "insensitive" } } }),
     prisma.profile.delete({ where: { id: target.id } }),
-    prisma.adminActivity.create({ data: { actorEmail, kind: "user-delete", detail: "Account deletion committed, including provider links, credentials and pending proofs. Receipt: " + globalThis.crypto.randomUUID() } }),
+    ...(!selfDeletion ? [prisma.adminActivity.create({ data: { actorEmail, kind: "user-delete", detail: "Account deletion committed, including provider links, credentials and pending proofs. Receipt: " + globalThis.crypto.randomUUID() } })] : []),
   ]);
 
   // The privacy-preserving receipt commits atomically with the deletion.
@@ -2589,6 +2598,14 @@ export async function deleteProfileAsSuperAdmin(formData: FormData): Promise<voi
   revalidatePath("/home");
   revalidatePath("/profiles");
   revalidatePath("/admin");
-  if (stayInAdmin) return;
+  if (selfDeletion || stayInAdmin) return;
   redirect("/profiles");
+}
+
+export async function deleteProfileAsSuperAdmin(formData: FormData): Promise<void> {
+  await performProfileDeletion(formData, "admin");
+}
+
+export async function deleteOwnProfile(formData: FormData): Promise<void> {
+  await performProfileDeletion(formData, "self");
 }

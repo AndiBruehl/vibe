@@ -473,14 +473,11 @@ Implemented and covered by access regression tests. Native packages remain uncha
 
 - **0.5.1 — native Update-Integrität und Debug-Abnahme vorbereitet (local):** Android prüft APK-Größe und SHA-256 in 1-MiB-Blöcken vor dem Installerstart und blockiert Browser-Fallbacks bei Integritätsfehlern. Desktop lehnt ungültige Update-Metadaten und fremde Download-URLs ab. Android/Windows-Debugkandidaten und lokale Hash-Metadaten sind vorbereitet. Android 15 Emulator-Neuinstallation und Start bis zum Anmeldebildschirm bestanden. Offen: Google-/Discord-Abnahme auf echten Geräten, Updatehinweis vor Login mit veröffentlichter 0.5.1-Manifestversion, Installations-/Fallbackprüfung und detached Release-Signatur. Öffentliche Downloads bleiben bis zur Geräteabnahme auf 0.5.0.6.
 
-## 0.5.x — Status und Planung
+## 0.5.x und 0.6.0 — Status und Planung
 
 - **0.5.2 — VIBE Reflex und VIBE Stack (Web):** Fünf Runden Reaktionstest mit zufälligem Signal, Fehlstart-Wiederholung, Durchschnitt und Bestwert pro Lauf. Die Spieleübersicht bietet Vorschauen und eigene Seiten. Stack hat ein 10×20-Spielfeld, VIBE-Logo-Steine, Bewegung, Drehung, Halten, Drops, Level, Reihenwertung und lokalen Bestwert. Bei nicht verfügbarem Browser-Speicher bleibt Stack spielbar; eine leere Teilewarteschlange wird sicher neu befüllt. Der Reflex-Hilfe-Orb übernimmt die Ein- und Ausblendanimation der Schnellzugriffe; sein Drei-Sekunden-Fallback pausiert bei Hover/Fokus und startet danach neu. Android/Windows bleiben bei ihren lokalen 0.5.1-Kandidaten. ✅
 - **0.5.3 — VIBE Trail (Web):** Snake-artiges Spurspiel mit dem VIBE-Logo als Sammelobjekt, Tastatur-/Touch-Steuerung, wachsendem Tempo und lokalem Bestwert. Steuerkreuz, Hilfe und Spielstand sind in der Trail-Seite angeordnet; gesperrter oder voller Browser-Speicher verhindert das Spielen nicht. Der „Solo“-Zusatz wurde aus VIBE Stack entfernt. ✅
 - **0.5.4 — VIBE Glide:** One-touch-Flugspiel im Flappy-Bird-Stil mit dem transparenten VIBE-Logo als Spielfigur, Touch-/Tastatursteuerung, Hindernissen, steigendem Schwierigkeitsgrad und lokalem Bestwert. Spielhilfe im animierten ?-Orb sowie Dark-/Light-Theme; Speicher- und Resize-Fallbacks halten das Spiel auch in eingeschränkten Browsern nutzbar. ✅
-- **0.5.5 — Konto löschen im Profil:** Eine „Delete Account“-Schaltfläche im Profil ergänzen, mit verständlichen Hinweisen zu den Folgen, deutlicher Warnung sowie expliziter Bestätigungs- und Abbruchmöglichkeit.
+- **0.5.5 — Konto löschen in den Einstellungen:** Gefahrenbereich mit Folgenwarnung, getippter Bestätigung und Abbrechen. Löscht das eigene Profil und verbundene VIBE-Daten; blockiert geschützte Admin- und Systemkonten, meldet danach ab und entfernt lokale Entwürfe bestmöglich. ✅ In 0.6.0 enthalten, nicht separat veröffentlicht.
+- **0.6.0 — Markierte Beiträge im Profil (Web):** Beiträge und Bilder, in denen das eigene Profil markiert, in der Beschreibung per @Handle oder in Kommentaren verlinkt wurde, erscheinen im normalen Profilraster und im Tagged-Bereich; Zähler und Sortierung schließen sie ein. Archivierte Beiträge, blockierte Autoren und nicht zugängliche Privatprofile bleiben verborgen; Gäste sehen nur Beiträge mit eindeutig öffentlichem Autor. ✅
 - **Später, ohne Versionsnummer — Ranglisten:** Bestenlisten für die VIBE-Minispiele ergänzen.
-
-## 0.6 — Planung
-
-- **Markierte Beiträge im Profil:** Bilder und Beiträge, in denen das eigene Profil markiert/verlinkt wurde, in einem eigenen Profilbereich anzeigen. Dabei die Sichtbarkeit und Zugriffsrechte des Originalbeitrags respektieren.

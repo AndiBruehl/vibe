@@ -13,6 +13,7 @@ import AppVersion from "@/app/components/AppVersion";
 import ProfileVisibilitySettings from "@/app/components/ProfileVisibilitySettings";
 import ProfileBadgeVisibility from "@/app/components/ProfileBadgeVisibility";
 import LocationSharingSettings from "@/app/components/LocationSharingSettings";
+import DeleteOwnAccount from "@/app/components/DeleteOwnAccount";
 import { applyTheme, type ThemePreference } from "@/app/components/ProfileThemeRuntime";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -24,6 +25,7 @@ type AppearancePreset = { id: string; name: string; avatarAccent: string; avatar
 
 type SettingsFormProps = {
   profile: (Profile & { profileLinks?: { id: string; label: string; url: string }[]; shoutouts?: { id: string; label: string; targetProfile: { id: string; username: string | null; name: string | null; avatar: string | null } }[]; framePresets?: { id: string; startColor: string; endColor: string; direction: string; position: number }[]; appearancePresets?: AppearancePreset[] }) | null;
+  deleteBlockedReason?: "protected" | "system";
 };
 
 type EditableProfileLink = { id: string; label: string; url: string };
@@ -49,7 +51,7 @@ function settingsPath(tab: SettingsTab, appearance: AppearanceSection = "general
   return "/settings?tab=profile";
 }
 
-export default function SettingsForm({ profile }: SettingsFormProps) {
+export default function SettingsForm({ profile, deleteBlockedReason }: SettingsFormProps) {
   const searchParams = useSearchParams();
   const initialRoute = settingsRoute(searchParams);
   const fileInRef = useRef<HTMLInputElement>(null);
@@ -491,7 +493,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
   }
 
   return (
-    <form action={saveProfile} onChange={(event) => { if (event.target instanceof HTMLInputElement && event.target.type === "color") return; setIsDirty(true); }} className="space-y-5">
+    <form action={saveProfile} onChange={(event) => { if (event.target instanceof HTMLInputElement && (event.target.type === "color" || event.target.dataset.accountDeletionInput !== undefined)) return; setIsDirty(true); }} className="space-y-5">
       <div className="relative">
         <Search size={17} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true" />
         <input value={settingsSearch} onChange={(event) => setSettingsSearch(event.target.value)} placeholder={copy("Search settings", "Einstellungen durchsuchen")} className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-orange-400 focus:ring-4 focus:ring-orange-100 dark:border-slate-700 dark:bg-slate-900/30 dark:text-white dark:placeholder:text-slate-500" />
@@ -757,6 +759,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
           <div className="mt-3 border-t border-slate-200 pt-3 dark:border-slate-700/80"><ReleaseDownloads /></div>
         </details>
         <AppVersion />
+        <DeleteOwnAccount de={de} blockedReason={deleteBlockedReason} />
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5 dark:border-slate-700/80">
         <Link href="/settings/login" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-orange-400/40 px-3 text-sm font-bold text-orange-600 dark:text-orange-400">{copy("Sign-in methods", "Anmeldemethoden")}</Link>

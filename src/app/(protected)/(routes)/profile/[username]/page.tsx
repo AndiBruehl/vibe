@@ -2,8 +2,9 @@ import { auth } from "@/auth";
 import { prisma } from "@/db";
 import Image from "next/image";
 import Link from "next/link";
-import { Grid3X3, Bookmark, Lock } from "lucide-react";
+import { Grid3X3, Bookmark, Lock, Tag } from "lucide-react";
 import ProfilePosts from "@/app/components/ProfilePosts";
+import TaggedProfilePosts from "@/app/components/TaggedProfilePosts";
 import BookmarkPosts from "@/app/components/BookmarkPosts";
 import MentionText from "@/app/components/MentionText";
 import BackNavigationLink from "@/app/components/BackNavigationLink";
@@ -90,7 +91,7 @@ export default async function ProfileByUsernamePage({
   const showShoutouts = profile.showProfileShoutouts !== false;
   const showPinnedPosts = profile.showPinnedPosts !== false;
   const canDeleteProfile = !isOwnProfile && !isSystemProfile && isSuperAdmin(viewerEmail) && !isProtectedAdmin(profile.email);
-  const activeTab = isOwnProfile && tab === "bookmarks" ? "bookmarks" : "posts";
+  const activeTab = isOwnProfile && tab === "bookmarks" ? "bookmarks" : tab === "tagged" ? "tagged" : "posts";
 
   const [postsCount, followersCount, followingCount] = await Promise.all([
     prisma.post.count({
@@ -244,6 +245,18 @@ export default async function ProfileByUsernamePage({
                 Posts
               </Link>
 
+              <Link
+                href={`/profile/${encodeURIComponent(profile.username ?? "")}?tab=tagged`}
+                className={`flex items-center gap-2 px-5 py-4 text-sm font-medium transition ${
+                  activeTab === "tagged"
+                    ? "border-b-2 border-black text-slate-900 dark:border-white dark:text-white"
+                    : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                }`}
+              >
+                <Tag size={16} />
+                {de ? "Markiert" : "Tagged"}
+              </Link>
+
               {isOwnProfile ? (
                 <Link
                   href={`/profile/${encodeURIComponent(profile.username)}?tab=bookmarks`}
@@ -270,8 +283,10 @@ export default async function ProfileByUsernamePage({
             </div>
           ) : activeTab === "bookmarks" && isOwnProfile ? (
             <BookmarkPosts email={profile.email} collectionId={collection} language={de ? "de" : "en"} />
+          ) : activeTab === "tagged" ? (
+            <TaggedProfilePosts profileId={profile.id} profileUsername={profile.username} viewerEmail={viewerEmail} language={de ? "de" : "en"} />
           ) : (
-            <ProfilePosts email={profile.email} language={de ? "de" : "en"} canManagePins={isOwnProfile} showPinnedPosts={isOwnProfile || showPinnedPosts} />
+            <ProfilePosts email={profile.email} profileId={profile.id} profileUsername={profile.username} viewerEmail={viewerEmail} language={de ? "de" : "en"} canManagePins={isOwnProfile} showPinnedPosts={isOwnProfile || showPinnedPosts} />
           )}
         </section>
       </main>

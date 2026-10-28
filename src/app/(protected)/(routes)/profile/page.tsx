@@ -1,9 +1,10 @@
 import { auth } from "@/auth";
-import { Check, CircleHelp, MoveLeft, Settings, Shield } from "lucide-react";
+import { Check, CircleHelp, MoveLeft, Settings, Shield, Tag } from "lucide-react";
 import Link from "next/link";
 import img1 from "./default.jpg";
 import { prisma } from "@/db";
 import ProfilePosts from "@/app/components/ProfilePosts";
+import TaggedProfilePosts from "@/app/components/TaggedProfilePosts";
 import BookmarkPosts from "@/app/components/BookmarkPosts";
 import HighlightsPosts from "@/app/components/HighlightsPosts";
 import ProfileTopics from "@/app/components/ProfileTopics";
@@ -40,7 +41,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   const { tab, collection, archived, restored } = await searchParams;
 
   const activeTab =
-    tab === "bookmarks" || tab === "highlights" || tab === "topics" || tab === "archive"
+    tab === "bookmarks" || tab === "highlights" || tab === "topics" || tab === "archive" || tab === "tagged"
       ? tab
       : "posts";
 
@@ -246,6 +247,14 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
             {de ? "Gespeichert" : "Bookmarks"}
           </Link>
 
+          <Link
+            className={activeTab === "tagged" ? "font-bold underline text-(--ig-red)" : "font-medium text-slate-700 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"}
+            href="/profile?tab=tagged"
+            style={activeTab === "tagged" ? { color: profileAccent, textDecorationColor: profileAccent } : undefined}
+          >
+            <span className="inline-flex items-center gap-1.5"><Tag size={14} />{de ? "Markiert" : "Tagged"}</span>
+          </Link>
+
           {showTopics && <Link
             className={
               activeTab === "topics"
@@ -276,7 +285,9 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
       <section className="mt-4">
         <Suspense fallback={de ? "Beiträge werden geladen..." : "Loading posts..."}>
           {activeTab === "posts" ? (
-            <ProfilePosts email={session.user.email} language={de ? "de" : "en"} canManagePins showPinnedPosts={showPinnedPosts} />
+            <ProfilePosts email={session.user.email} profileId={profile.id} profileUsername={profile.username} viewerEmail={session.user.email} language={de ? "de" : "en"} canManagePins showPinnedPosts={showPinnedPosts} />
+          ) : activeTab === "tagged" ? (
+          <TaggedProfilePosts profileId={profile.id} profileUsername={profile.username} viewerEmail={session.user.email} language={de ? "de" : "en"} />
           ) : activeTab === "bookmarks" ? (
             <BookmarkPosts email={session.user.email} collectionId={collection} language={de ? "de" : "en"} />
           ) : activeTab === "highlights" && showHighlights ? (
@@ -285,7 +296,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
             <ArchivedPosts email={session.user.email} language={de ? "de" : "en"} />
           ) : showTopics ? (
             <ProfileTopics email={session.user.email} />
-          ) : <ProfilePosts email={session.user.email} language={de ? "de" : "en"} canManagePins showPinnedPosts={showPinnedPosts} />}
+          ) : <ProfilePosts email={session.user.email} profileId={profile.id} profileUsername={profile.username} viewerEmail={session.user.email} language={de ? "de" : "en"} canManagePins showPinnedPosts={showPinnedPosts} />}
         </Suspense>
       </section>
     </main>

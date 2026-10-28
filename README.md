@@ -1,6 +1,6 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Web version: **0.5.4** (2026-10-26) 🛡️ — Added VIBE Glide, a Flappy Bird-style one-touch game with the transparent VIBE logo as the flyer, rising difficulty, and a device-local best score. See [release notes](docs/releases/0.5.4.md). Android and Windows remain local 0.5.1 debug candidates; the published native manifest remains on 0.5.0.6.
+Web version: **0.6.0** (2026-10-28) 🛡️ — Tagged and mentioned posts appear in the regular profile grid and the Tagged section, with source-post visibility checks. The candidate also includes self-service account deletion with typed confirmation and protected-account safeguards. See [release notes](docs/releases/0.6.0.md). Android and Windows remain local 0.5.1 debug candidates; the published native manifest remains on 0.5.0.6.
 
 ## Getting Started
 

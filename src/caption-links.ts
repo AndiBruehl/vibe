@@ -32,3 +32,17 @@ export function captionParts(text: string): CaptionPart[] {
   if (offset < text.length) parts.push({ text: text.slice(offset) });
   return parts;
 }
+
+export function captionLinksToProfile(text: string, username: string | null | undefined): boolean {
+  if (!username) return false;
+  const normalizedUsername = username.toLocaleLowerCase("en-US");
+  return captionParts(text).some((part) => {
+    if (!part.href?.startsWith("/profile/") || part.external || !part.text.startsWith("@")) return false;
+    try {
+      const linkedUsername = decodeURIComponent(part.href.slice("/profile/".length));
+      return linkedUsername.toLocaleLowerCase("en-US") === normalizedUsername;
+    } catch {
+      return false;
+    }
+  });
+}

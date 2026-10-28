@@ -3,6 +3,7 @@ import { prisma } from "@/db";
 import { guestAuthorSelect, publicProfileWhere } from "@/guest-content";
 import GuestJoinPrompt from "@/app/components/GuestJoinPrompt";
 import GuestPosts, { GuestUnavailable } from "@/app/components/GuestPosts";
+import TaggedProfilePosts from "@/app/components/TaggedProfilePosts";
 import ProfileAvatar from "@/app/components/ProfileAvatar";
 import LocalizedText from "@/app/components/LocalizedText";
 import AdminBadge from "@/app/components/AdminBadge";
@@ -11,12 +12,12 @@ import ProfileLinks from "@/app/components/ProfileLinks";
 import ProfileShoutouts from "@/app/components/ProfileShoutouts";
 import ProfileMilestones from "@/app/components/ProfileMilestones";
 import { avatarFrameStyle, normalizeProfileHeaderLayout, normalizeProfileHeaderTextColor, profileHeaderBackgroundStyle } from "@/profile-personalization";
-import { ArrowLeft, Globe2, Grid3X3 } from "lucide-react";
+import { ArrowLeft, Globe2, Grid3X3, Tag } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { publicProfileMetadata } from "@/public-page-metadata";
 
-type GuestProfileProps = { params: Promise<{ username: string }>; searchParams: Promise<{ page?: string }> };
+type GuestProfileProps = { params: Promise<{ username: string }>; searchParams: Promise<{ page?: string; tab?: string }> };
 
 export async function generateMetadata({ params }: GuestProfileProps): Promise<Metadata> {
   const { username } = await params;
@@ -63,6 +64,7 @@ export default async function GuestProfile({ params, searchParams }: GuestProfil
 
   const query = await searchParams;
   const page = Math.min(1000, Math.max(1, Math.floor(Number(query.page) || 1)));
+  const activeTab = query.tab === "tagged" ? "tagged" : "posts";
   const profileHeaderLayout = normalizeProfileHeaderLayout(profile.profileHeaderLayout);
   const headerBackgroundStyle = profileHeaderBackgroundStyle(profile.profileHeaderBackgroundMode, profile.profileHeaderBackgroundImage, profile.profileHeaderBackgroundColor, profile.profileHeaderBackgroundEnd);
   const headerTextColor = normalizeProfileHeaderTextColor(profile.profileHeaderTextColor);
@@ -106,9 +108,12 @@ export default async function GuestProfile({ params, searchParams }: GuestProfil
       </div>
     </header>
     <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-      <h2 className="inline-flex items-center gap-2 font-bold"><Grid3X3 size={17}/><LocalizedText en="Public posts" de="Öffentliche Beiträge"/></h2>
+      <nav aria-label="Profile posts" className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white/80 p-1 dark:border-slate-700 dark:bg-slate-900/60">
+        <Link href={`/guest/profile/${encodeURIComponent(username)}?tab=posts`} className={`inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-bold transition ${activeTab === "posts" ? "bg-orange-500 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"}`}><Grid3X3 size={16}/><LocalizedText en="Posts" de="Beiträge"/></Link>
+        <Link href={`/guest/profile/${encodeURIComponent(username)}?tab=tagged`} className={`inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-bold transition ${activeTab === "tagged" ? "bg-orange-500 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"}`}><Tag size={16}/><LocalizedText en="Tagged" de="Markiert"/></Link>
+      </nav>
       <div className="w-full sm:max-w-md"><GuestJoinPrompt compact /></div>
     </div>
-    <GuestPosts username={username} page={page}/>
+    {activeTab === "tagged" ? <TaggedProfilePosts profileId={profile.id} profileUsername={profile.username} viewerEmail={null} /> : <GuestPosts username={username} page={page}/>}
   </>;
 }
